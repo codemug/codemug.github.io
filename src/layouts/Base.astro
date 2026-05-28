@@ -1,0 +1,86 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  path?: string;
+}
+
+const { title, description, path = "/" } = Astro.props;
+const siteUrl = "https://codemug.github.io";
+const canonical = new URL(path, siteUrl).toString();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Usman Shahid" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <header
+      class="border-b border-[--color-border] bg-[--color-bg]/80 backdrop-blur-sm sticky top-0 z-10"
+    >
+      <nav
+        class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between text-sm"
+      >
+        <a
+          href="/"
+          class="font-semibold text-[--color-text] hover:no-underline tracking-tight"
+        >
+          Usman Shahid
+        </a>
+        <div class="flex items-center gap-6 text-[--color-text-muted]">
+          <a href="/" class="hover:text-[--color-text]">Home</a>
+          <a href="/cv/" class="hover:text-[--color-text]">CV</a>
+          <a href="/writing/" class="hover:text-[--color-text]">Writing</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <footer
+      class="border-t border-[--color-border] mt-24 py-10 text-sm text-[--color-text-dim]"
+    >
+      <div
+        class="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+      >
+        <p>
+          Built with <a
+            href="https://astro.build"
+            target="_blank"
+            rel="noopener noreferrer">Astro</a
+          > · Source on <a
+            href="https://github.com/codemug/codemug.github.io"
+            target="_blank"
+            rel="noopener noreferrer">GitHub</a
+          >
+        </p>
+        <p>&copy; 2026 Usman Shahid</p>
+      </div>
+    </footer>
+  </body>
+</html>

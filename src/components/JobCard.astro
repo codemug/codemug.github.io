@@ -1,0 +1,29 @@
+---
+interface Props {
+  company: string;
+  role: string;
+  period: string;
+  location?: string;
+}
+const { company, role, period, location } = Astro.props;
+---
+
+<article
+  class="rounded-xl border border-[--color-border] bg-[--color-surface] p-6 sm:p-7 transition-colors hover:border-[--color-border-strong]"
+>
+  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
+    <h3 class="text-lg sm:text-xl font-semibold text-[--color-text] tracking-tight">
+      {company}
+    </h3>
+    {
+      location && (
+        <span class="text-xs font-mono text-[--color-text-dim]">{location}</span>
+      )
+    }
+  </div>
+  <p class="text-[--color-accent] font-medium mb-0.5">{role}</p>
+  <p class="text-xs font-mono text-[--color-text-dim] mb-4">{period}</p>
+  <div class="text-[--color-text-muted] text-sm sm:text-[15px] leading-relaxed space-y-2">
+    <slot />
+  </div>
+</article>

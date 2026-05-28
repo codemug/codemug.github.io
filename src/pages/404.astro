@@ -1,0 +1,25 @@
+---
+import Base from "../layouts/Base.astro";
+
+const title = "404 · Usman Shahid";
+const description = "Page not found.";
+---
+
+<Base title={title} description={description} path="/404">
+  <section class="max-w-3xl mx-auto px-6 py-24 text-center">
+    <p
+      class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-3"
+    >
+      404
+    </p>
+    <h1
+      class="text-3xl sm:text-4xl font-semibold tracking-tight text-[--color-text] mb-4"
+    >
+      Page not found.
+    </h1>
+    <p class="text-[--color-text-muted] mb-8">
+      That page doesn't exist (yet). Head back to the <a href="/">home page</a>
+      or browse the <a href="/writing/">writing</a>.
+    </p>
+  </section>
+</Base>

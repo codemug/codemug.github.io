@@ -1,0 +1,472 @@
+---
+import Base from "../layouts/Base.astro";
+
+const title = "CV · Usman Shahid";
+const description =
+  "Full CV of Usman Shahid — Staff Site Reliability Engineer at Careem. 11+ years scaling cloud infrastructure. Download as PDF.";
+---
+
+<Base title={title} description={description} path="/cv/">
+  <article class="max-w-3xl mx-auto px-6 py-16 sm:py-20">
+    <header class="mb-10 pb-8 border-b border-[--color-border]">
+      <h1
+        class="text-3xl sm:text-4xl font-semibold tracking-tight text-[--color-text] mb-2"
+      >
+        Usman Shahid
+      </h1>
+      <p class="text-[--color-text-muted] mb-1">
+        <a href="mailto:u.manshahid@gmail.com">u.manshahid@gmail.com</a> ·
+        +971-52-932-8265 ·
+        <a
+          href="https://github.com/codemug"
+          target="_blank"
+          rel="noopener noreferrer">github.com/codemug</a
+        > ·
+        <a
+          href="https://linkedin.com/in/u-manshahid"
+          target="_blank"
+          rel="noopener noreferrer">linkedin.com/in/u-manshahid</a
+        >
+      </p>
+      <p class="text-sm text-[--color-text-muted] mb-6">
+        Open to relocation: EU / UK / Ireland / Netherlands / Germany &mdash;
+        visa sponsorship required. Currently Dubai (GMT+4).
+      </p>
+      <a
+        href="/cv-usman-shahid.pdf"
+        class="inline-flex items-center gap-2 rounded-lg bg-[--color-accent] text-[--color-bg] px-4 py-2 text-sm font-medium hover:no-underline hover:opacity-90"
+      >
+        Download PDF
+      </a>
+    </header>
+
+    <section class="mb-10">
+      <h2
+        class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-3"
+      >
+        Summary
+      </h2>
+      <p class="text-[--color-text-muted] leading-relaxed">
+        Staff <strong class="text-[--color-text]"
+          >Site Reliability Engineer</strong
+        > and Technical Lead with <strong class="text-[--color-text]"
+          >11+ years</strong
+        > scaling resilient, cost-effective cloud infrastructure for
+        high-traffic services. Currently running a self-service AI Agent
+        Platform with Model Context Protocol (MCP) tool-calling, multi-agent
+        orchestration, and human-in-the-loop (HITL) approval flows &mdash;
+        <strong class="text-[--color-text]">~200K requests/day</strong>,
+        <strong class="text-[--color-text]">~800 registered tools</strong>,
+        <strong class="text-[--color-text]">~60 production agents</strong>
+        &mdash; bridging classic SRE discipline with the agentic-AI era.
+        Track record: <strong class="text-[--color-text]"
+          >40% EKS cost reduction</strong
+        > via Karpenter / ARM / Spot / VPA, <strong class="text-[--color-text]"
+          >99.99% uptime</strong
+        > consolidating 12 API gateways to Kong at ~10k RPS, <strong
+          class="text-[--color-text]">300+ microservices</strong
+        > migrated to EKS. Polyglot &mdash; production Go, Python, Java, and
+        C#. Daily AI-tooling user (Claude, Cursor, Copilot, Gemini).
+      </p>
+    </section>
+
+    <section class="mb-10">
+      <h2
+        class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-3"
+      >
+        Work Experience
+      </h2>
+
+      <div class="space-y-8">
+        <div>
+          <div
+            class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1"
+          >
+            <h3 class="text-lg font-semibold text-[--color-text]">
+              Staff Site Reliability Engineer · Careem
+            </h3>
+            <span class="text-xs font-mono text-[--color-text-dim]"
+              >Jan 2023 — Present</span
+            >
+          </div>
+          <p class="text-sm text-[--color-text-muted] mb-3">
+            Technical Lead and SRE Architect mentoring a team focused on
+            infrastructure provisioning and developer experience.
+          </p>
+          <ul
+            class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim] text-[--color-text-muted] text-[15px] leading-relaxed"
+          >
+            <li>
+              Designed and built a <strong class="text-[--color-text]"
+                >self-service AI Agent Platform</strong
+              > with MCP tool-calling, multi-agent orchestration, and HITL
+              approval flows for internal infrastructure-support workflows
+              &mdash; ~200K req/day, ~800 registered tools, ~60 agents in
+              production. Engineering teams contribute their own tools and
+              agents.
+            </li>
+            <li>
+              <strong class="text-[--color-text]"
+                >Slashed EKS cluster costs by 40%</strong
+              > via resource-optimization program — Karpenter consolidation,
+              migration to ARM &amp; Spot nodes, VPA, and custom scheduling
+              (FinOps at scale).
+            </li>
+            <li>
+              Consolidated <strong class="text-[--color-text]"
+                >12 legacy API gateways (~10k RPS) onto a single Kong gateway
+                with 99.99% uptime</strong
+              > during cutover; built a GitOps-driven bespoke control plane for
+              API route management.
+            </li>
+            <li>
+              Designed and deployed a fully automated cloud-resource
+              provisioning platform with GitOps (Terraform + Terragrunt) &mdash;
+              provisioning time for new services from days to minutes.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div
+            class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1"
+          >
+            <h3 class="text-lg font-semibold text-[--color-text]">
+              Senior Site Reliability Engineer · Careem
+            </h3>
+            <span class="text-xs font-mono text-[--color-text-dim]"
+              >Dec 2020 — Jan 2023</span
+            >
+          </div>
+          <p class="text-sm text-[--color-text-muted] mb-3">
+            Led migration of 300+ microservices from legacy AWS to AWS EKS.
+          </p>
+          <ul
+            class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim] text-[--color-text-muted] text-[15px] leading-relaxed"
+          >
+            <li>
+              Engineered automated provisioning of multiple EKS clusters with
+              Terraform + Terragrunt &mdash; repeatable, auditable
+              infrastructure foundation.
+            </li>
+            <li>
+              Provisioned centralized API Gateways using Kong with a GitOps
+              control plane for API route management.
+            </li>
+            <li>
+              Built the observability stack with <strong
+                class="text-[--color-text]"
+                >Prometheus, Thanos, and Grafana</strong
+              > &mdash; high-cardinality metric storage, SLO dashboards, cost
+              tracking across the EKS fleet.
+            </li>
+            <li>
+              Improved deployment velocity and safety via service mesh
+              (Linkerd) with automated canary rollouts via Flagger.
+            </li>
+            <li>
+              On-call 24×7 on a bi-weekly rotation for the cloud-infrastructure
+              platform.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div
+            class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1"
+          >
+            <h3 class="text-lg font-semibold text-[--color-text]">
+              Infrastructure Architect &amp; Team Lead · Intech IIS
+            </h3>
+            <span class="text-xs font-mono text-[--color-text-dim]"
+              >Jul 2019 — Dec 2020</span
+            >
+          </div>
+          <ul
+            class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim] text-[--color-text-muted] text-[15px] leading-relaxed"
+          >
+            <li>
+              Designed and implemented the infrastructure of a Cloud IIoT
+              Platform while leading a team of 6 polyglot engineers in a KanBan
+              model &mdash; workload distribution, technology selection,
+              mentoring, customer integration.
+            </li>
+            <li>
+              Built a bespoke <strong class="text-[--color-text]"
+                >Kubernetes Ingress Operator</strong
+              > for bare-metal Kubernetes clusters using RedHat operator-sdk
+              (custom control-plane work, not just operator consumption).
+            </li>
+            <li>
+              Secured &amp; streamlined the software delivery lifecycle by
+              integrating <strong class="text-[--color-text]"
+                >ArgoCD with Keycloak</strong
+              > &mdash; a secure, auditable GitOps workflow for Helm-based
+              deployments.
+            </li>
+            <li>
+              Implemented Google SRE golden signals (latency / traffic / errors
+              / saturation) on bare-metal Kubernetes clusters using Prometheus.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div
+            class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1"
+          >
+            <h3 class="text-lg font-semibold text-[--color-text]">
+              Senior Software Developer / DevOps Engineer · Intech IIS
+            </h3>
+            <span class="text-xs font-mono text-[--color-text-dim]"
+              >Jan 2017 — Jun 2019</span
+            >
+          </div>
+          <ul
+            class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim] text-[--color-text-muted] text-[15px] leading-relaxed"
+          >
+            <li>
+              Containerized all services of a distributed Industrial IoT
+              platform with Docker; orchestrated via Kubernetes and D2iQ
+              stacks.
+            </li>
+            <li>
+              Automated deployment of the IIoT platform using Ansible
+              Playbooks; provisioned production-ready Kubernetes and D2iQ
+              clusters.
+            </li>
+            <li>
+              Built a serverless framework in Python running code on containers
+              via Kubernetes / Marathon / Metronome.
+            </li>
+            <li>
+              Built a parallel metric aggregation publisher for StatsD in Golang.
+            </li>
+            <li>
+              Built an OPC &rarr; MQTT data pipeline service in C# using Avro
+              RPC and REST.
+            </li>
+            <li>
+              Built a generic client API using Java Streams for CRUD operations
+              on IBM Maximo and SAP EAM systems via Avro schemas, exposed via
+              Avro RPC.
+            </li>
+            <li>
+              Built an OpenID Connect Identity Provider microservice using
+              Spring OAuth2 with JDBC, Active Directory, LDAP, and Mongo
+              storage backends (Spring JPA + Spring LDAP).
+            </li>
+            <li>
+              Implemented dynamic proxying and JWT bearer authentication using
+              OpenResty LuaJIT.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div
+            class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1"
+          >
+            <h3 class="text-lg font-semibold text-[--color-text]">
+              Software Developer · Diyatech (Alachisoft)
+            </h3>
+            <span class="text-xs font-mono text-[--color-text-dim]"
+              >Jun 2014 — Jan 2017</span
+            >
+          </div>
+          <p class="text-sm text-[--color-text-muted] mb-3">
+            Core developer for <strong class="text-[--color-text]"
+              >NCache Enterprise</strong
+            > (Redis-class distributed cache for .NET) and <strong
+              class="text-[--color-text]">NosDB Enterprise</strong
+            > (CouchDB/MongoDB-class NoSQL JSON store for .NET), both in C#.
+          </p>
+          <ul
+            class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim] text-[--color-text-muted] text-[15px] leading-relaxed"
+          >
+            <li>
+              Reimplemented Microsoft's Collections to prevent Large Object
+              Heap (LOH) leakage.
+            </li>
+            <li>
+              Implemented the ASP.NET Core Session State Management middleware
+              with NCache backend storage and full session-locking support.
+            </li>
+            <li>
+              Implemented a reliable socket protocol for message delivery using
+              Protobuf.
+            </li>
+            <li>
+              Built file-storage-based B+ Tree indexing with support for
+              single-attribute and compound indexes.
+            </li>
+            <li>
+              Built the query execution system using Streams and nested
+              Enumerables in C#.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2
+        class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-3"
+      >
+        Skills
+      </h2>
+      <dl class="space-y-3 text-[--color-text-muted] text-[15px] leading-relaxed">
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            Site Reliability / Platform:
+          </dt>
+          <dd class="inline">
+            SRE practices, SLO/SLI/error budgets, on-call &amp; incident
+            response, GitOps, Internal Developer Platforms, FinOps, capacity
+            planning
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            Kubernetes ecosystem:
+          </dt>
+          <dd class="inline">
+            Kubernetes (managed + bare-metal), Karpenter, VPA, custom
+            scheduling, Linkerd, Flagger, Helm, Kustomize, ArgoCD, operator-sdk
+            (custom Go operators)
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">Cloud:</dt>
+          <dd class="inline">
+            AWS (EKS, EC2, S3, VPC, Route 53, IAM), bare-metal Kubernetes,
+            multi-cluster patterns
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            Observability:
+          </dt>
+          <dd class="inline">
+            Prometheus, Thanos, Grafana, Google SRE golden signals, SLO
+            dashboards
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            Infrastructure &amp; CI/CD:
+          </dt>
+          <dd class="inline">
+            Terraform, Terragrunt, Ansible, Docker, D2iQ, GitLab CI
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            API &amp; Gateway:
+          </dt>
+          <dd class="inline">
+            Kong (12&rarr;1 consolidation, ~10k RPS, 99.99% uptime), OpenResty
+            / LuaJIT, OpenID Connect, JWT, dynamic proxying
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            AI / LLMOps:
+          </dt>
+          <dd class="inline">
+            Model Context Protocol (MCP), multi-agent orchestration, HITL
+            approval flows, AI Agent Platform engineering; daily use of Claude,
+            Cursor, GitHub Copilot, Gemini
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            Languages:
+          </dt>
+          <dd class="inline">
+            Go (production), Python (production), Java (production), C# / .NET
+            (production)
+          </dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-[--color-text] inline">
+            Data / Storage internals:
+          </dt>
+          <dd class="inline">
+            B+ Tree indexing (NosDB), distributed-cache internals (NCache),
+            Mongo, LDAP, JDBC, Avro / Protobuf
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="mb-10">
+      <h2
+        class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-3"
+      >
+        Selected Writing
+      </h2>
+      <ul class="space-y-3 text-[--color-text-muted] text-[15px] leading-relaxed list-disc pl-5 marker:text-[--color-text-dim]">
+        <li>
+          <strong class="text-[--color-text]"
+            >LLM Tool Calling Series · Part 2</strong
+          > &mdash;
+          <a
+            href="https://usmanshahid.medium.com/llm-tool-calling-series-part-2-enabling-mcp-on-your-existing-microservices-bfc9ce7dc67f"
+            target="_blank"
+            rel="noopener noreferrer">Enabling MCP on Your Existing Microservices</a
+          > · Medium, October 2025
+        </li>
+        <li>
+          <strong class="text-[--color-text]"
+            >LLM Tool Calling Series · Part 1</strong
+          > &mdash;
+          <a
+            href="https://usmanshahid.medium.com/llm-tool-calling-series-part-1-understanding-tool-calling-and-the-model-context-protocol-mcp-911a7c422fd8"
+            target="_blank"
+            rel="noopener noreferrer">Understanding Tool Calling and the Model Context Protocol (MCP)</a
+          > · Medium, June 2025 <em
+            class="text-[--color-text-dim]"
+            >(published before MCP became mainstream)</em
+          >
+        </li>
+        <li>
+          <strong class="text-[--color-text]">Keycloak Access Control Series</strong>
+          (4 parts, August 2020) &mdash; token authentication, authentication
+          flows, role-based access control, and Kubernetes integration. <a
+            href="https://medium.com/@usmanshahid"
+            target="_blank"
+            rel="noopener noreferrer">Series index on Medium</a
+          >
+        </li>
+      </ul>
+    </section>
+
+    <section class="mb-10">
+      <h2
+        class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-3"
+      >
+        Awards
+      </h2>
+      <p class="text-[--color-text-muted] text-[15px]">
+        <strong class="text-[--color-text]">Excellence Award</strong>,
+        Alachisoft Inc. &mdash; outstanding performance recognition
+        (November 2015)
+      </p>
+    </section>
+
+    <section>
+      <h2
+        class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-3"
+      >
+        Education
+      </h2>
+      <p class="text-[--color-text-muted] text-[15px] leading-relaxed">
+        <strong class="text-[--color-text]"
+          >Bachelors (Honors) in Computer Engineering</strong
+        >, National University of Sciences and Technology (NUST). CGPA: 3.40.
+        Graduated 2014.
+      </p>
+    </section>
+  </article>
+</Base>

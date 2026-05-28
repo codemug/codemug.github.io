@@ -1,17 +1,417 @@
 ---
+import Base from "../layouts/Base.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import Metric from "../components/Metric.astro";
+import JobCard from "../components/JobCard.astro";
+import Card from "../components/Card.astro";
 
+const title = "Usman Shahid · Staff Site Reliability Engineer";
+const description =
+  "Staff SRE / Technical Lead, 11+ years scaling cloud infrastructure. Running a production AI Agent Platform at Careem with MCP, multi-agent orchestration, and HITL approval flows. Open to relocation EU/UK/IE/NL/DE.";
+
+const metrics = [
+  { value: "40%", label: "EKS cost cut" },
+  { value: "99.99%", label: "Kong uptime" },
+  { value: "300+", label: "µservices on EKS" },
+  { value: "200K+", label: "agent req/day" },
+  { value: "60", label: "prod agents" },
+  { value: "800", label: "MCP tools" },
+];
+
+const writing = [
+  {
+    date: "2025-10",
+    title: "Enabling MCP on Your Existing Microservices",
+    series: "LLM Tool Calling Series · Part 2",
+    href: "https://usmanshahid.medium.com/llm-tool-calling-series-part-2-enabling-mcp-on-your-existing-microservices-bfc9ce7dc67f",
+    note: "Practical deep-dive on retrofitting microservices to expose MCP endpoints — drawn from the Careem AI Agent Platform.",
+  },
+  {
+    date: "2025-06",
+    title: "Understanding Tool Calling and the Model Context Protocol",
+    series: "LLM Tool Calling Series · Part 1",
+    href: "https://usmanshahid.medium.com/llm-tool-calling-series-part-1-understanding-tool-calling-and-the-model-context-protocol-mcp-911a7c422fd8",
+    note: "Primer on MCP, published before it became mainstream.",
+  },
+  {
+    date: "2020-08",
+    title: "Keycloak Access Control Series",
+    series: "4 parts · OIDC, RBAC, K8s integration",
+    href: "https://medium.com/@usmanshahid",
+    note: "Token authentication, authentication flows, role-based access control, and Kubernetes integration.",
+  },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Base title={title} description={description} path="/">
+  <section
+    class="border-b border-[--color-border] bg-gradient-to-b from-[--color-surface] to-[--color-bg]"
+  >
+    <div class="max-w-3xl mx-auto px-6 py-16 sm:py-24">
+      <p
+        class="text-xs font-mono uppercase tracking-[0.18em] text-[--color-accent] mb-4"
+      >
+        Dubai · GMT+4 · Open to relocate
+      </p>
+      <h1
+        class="text-4xl sm:text-5xl font-semibold tracking-tight text-[--color-text] leading-[1.1] mb-5"
+      >
+        Usman Shahid
+      </h1>
+      <p
+        class="text-lg sm:text-xl text-[--color-text-muted] leading-relaxed mb-6 max-w-2xl"
+      >
+        Staff Site Reliability Engineer and Technical Lead. 11+ years
+        scaling resilient, cost-effective cloud infrastructure for
+        high-traffic services. Currently running a self-service
+        <span class="text-[--color-text]">AI Agent Platform</span> at
+        <span class="text-[--color-text]">Careem</span> with
+        <span class="text-[--color-text]">MCP tool-calling</span>,
+        <span class="text-[--color-text]">multi-agent orchestration</span>, and
+        <span class="text-[--color-text]">HITL approval flows</span> &mdash;
+        bridging classic SRE discipline with the agentic-AI era.
+      </p>
+      <p class="text-sm text-[--color-text-muted] mb-8">
+        Open to visa-sponsored relocation: <span
+          class="text-[--color-text]">EU</span
+        > · <span class="text-[--color-text]">UK</span> · <span
+          class="text-[--color-text]">Ireland</span
+        > · <span class="text-[--color-text]">Netherlands</span> · <span
+          class="text-[--color-text]">Germany</span
+        >.
+      </p>
+
+      <div class="flex flex-wrap gap-3 mb-10">
+        <a
+          href="mailto:u.manshahid@gmail.com"
+          class="inline-flex items-center gap-2 rounded-lg bg-[--color-accent] text-[--color-bg] px-4 py-2 text-sm font-medium hover:no-underline hover:opacity-90 transition-opacity"
+        >
+          Email
+        </a>
+        <a
+          href="https://linkedin.com/in/u-manshahid"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-lg border border-[--color-border-strong] px-4 py-2 text-sm font-medium text-[--color-text] hover:no-underline hover:bg-[--color-surface]"
+        >
+          LinkedIn
+        </a>
+        <a
+          href="https://github.com/codemug"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-lg border border-[--color-border-strong] px-4 py-2 text-sm font-medium text-[--color-text] hover:no-underline hover:bg-[--color-surface]"
+        >
+          GitHub
+        </a>
+        <a
+          href="/cv-usman-shahid.pdf"
+          class="inline-flex items-center gap-2 rounded-lg border border-[--color-border-strong] px-4 py-2 text-sm font-medium text-[--color-text] hover:no-underline hover:bg-[--color-surface]"
+        >
+          CV (PDF)
+        </a>
+      </div>
+
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+        {metrics.map((m) => <Metric value={m.value} label={m.label} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-3xl mx-auto px-6 py-16 sm:py-20">
+    <SectionHeading
+      id="experience"
+      eyebrow="Experience"
+      title="Where I've shipped infrastructure"
+    />
+    <div class="space-y-5">
+      <JobCard
+        company="Careem"
+        role="Staff Site Reliability Engineer · Tech Lead"
+        period="Jan 2023 — Present"
+        location="Dubai, UAE"
+      >
+        <p>
+          Technical Lead and SRE Architect mentoring a team focused on
+          infrastructure provisioning and developer experience.
+        </p>
+        <ul class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim]">
+          <li>
+            Designed and built a <strong class="text-[--color-text]"
+              >self-service AI Agent Platform</strong
+            > with MCP tool-calling, multi-agent orchestration, and HITL approval
+            flows for internal infrastructure-support workflows &mdash;
+            <strong class="text-[--color-text]">~200K req/day</strong>,
+            <strong class="text-[--color-text]">~800 registered tools</strong>,
+            <strong class="text-[--color-text]">~60 agents in production</strong
+            >. Engineering teams contribute their own tools and agents.
+          </li>
+          <li>
+            <strong class="text-[--color-text]">Slashed EKS cluster costs by 40%</strong
+            > via Karpenter consolidation, migration to ARM and Spot nodes, VPA,
+            and custom scheduling.
+          </li>
+          <li>
+            Consolidated <strong class="text-[--color-text]"
+              >12 legacy API gateways onto a single Kong gateway at ~10k RPS
+              with 99.99% uptime</strong
+            > during cutover; built a GitOps-driven control plane for API route
+            management.
+          </li>
+          <li>
+            Designed and deployed a fully automated cloud-resource provisioning
+            platform with GitOps (Terraform + Terragrunt) &mdash; provisioning
+            time for new services from <strong class="text-[--color-text]"
+              >days to minutes</strong
+            >.
+          </li>
+        </ul>
+      </JobCard>
+
+      <JobCard
+        company="Careem"
+        role="Senior Site Reliability Engineer"
+        period="Dec 2020 — Jan 2023"
+        location="Dubai, UAE"
+      >
+        <p>
+          Led migration of <strong class="text-[--color-text]"
+            >300+ microservices</strong
+          > from legacy AWS infrastructure to AWS EKS.
+        </p>
+        <ul class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim]">
+          <li>
+            Engineered automated provisioning of multiple EKS clusters with
+            Terraform + Terragrunt &mdash; repeatable, auditable infrastructure
+            foundation.
+          </li>
+          <li>
+            Built the observability stack with <strong
+              class="text-[--color-text]">Prometheus, Thanos, and Grafana</strong
+            > &mdash; high-cardinality metric storage, SLO dashboards, and cost
+            tracking across the EKS fleet.
+          </li>
+          <li>
+            Improved deployment velocity and safety via service mesh (Linkerd)
+            with automated canary rollouts via Flagger.
+          </li>
+          <li>On-call 24×7 on a bi-weekly rotation.</li>
+        </ul>
+      </JobCard>
+
+      <JobCard
+        company="Intech IIS"
+        role="Infrastructure Architect &amp; Team Lead"
+        period="Jul 2019 — Dec 2020"
+        location="On-prem &amp; Cloud IIoT"
+      >
+        <p>
+          Designed and implemented the infrastructure of a Cloud IIoT
+          Platform while leading a team of 6 polyglot engineers in a KanBan
+          model &mdash; workload distribution, technology selection,
+          mentoring, customer integration.
+        </p>
+        <ul class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim]">
+          <li>
+            Built a bespoke <strong class="text-[--color-text]"
+              >Kubernetes Ingress Operator</strong
+            > for bare-metal Kubernetes clusters using RedHat operator-sdk
+            (custom control-plane work, not just operator consumption).
+          </li>
+          <li>
+            Secured and streamlined the software delivery lifecycle by
+            integrating <strong class="text-[--color-text]"
+              >ArgoCD with Keycloak</strong
+            > &mdash; a secure, auditable GitOps workflow for Helm-based
+            deployments.
+          </li>
+          <li>
+            Implemented Google SRE golden signals (latency / traffic / errors /
+            saturation) on bare-metal Kubernetes using Prometheus.
+          </li>
+        </ul>
+      </JobCard>
+
+      <JobCard
+        company="Intech IIS"
+        role="Senior Software Developer / DevOps Engineer"
+        period="Jan 2017 — Jun 2019"
+      >
+        <p>
+          Containerized all services of a distributed Industrial IoT
+          platform with Docker; orchestrated via Kubernetes and D2iQ.
+          Polyglot delivery across Python, Go, Java, and C#.
+        </p>
+        <ul class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim]">
+          <li>
+            Built a serverless framework in Python running code on containers
+            via Kubernetes / Marathon / Metronome.
+          </li>
+          <li>
+            Built a parallel metric aggregation publisher for StatsD in Golang.
+          </li>
+          <li>
+            Built an OPC &rarr; MQTT data pipeline service in C# using Avro RPC
+            and REST.
+          </li>
+          <li>
+            Built an OpenID Connect Identity Provider microservice using Spring
+            OAuth2 with JDBC, Active Directory, LDAP, and Mongo storage
+            backends.
+          </li>
+          <li>
+            Implemented dynamic proxying and JWT bearer authentication using
+            OpenResty LuaJIT.
+          </li>
+        </ul>
+      </JobCard>
+
+      <JobCard
+        company="Diyatech (for Alachisoft)"
+        role="Software Developer · NCache &amp; NosDB internals"
+        period="Jun 2014 — Jan 2017"
+      >
+        <p>
+          Core developer for <strong class="text-[--color-text]"
+            >NCache Enterprise</strong
+          > (Redis-class distributed cache native to .NET) and <strong
+            class="text-[--color-text]">NosDB Enterprise</strong
+          > (CouchDB/MongoDB-class NoSQL JSON store native to .NET), both in C#.
+        </p>
+        <ul class="space-y-2 list-disc pl-5 marker:text-[--color-text-dim]">
+          <li>
+            Reimplemented Microsoft's Collections to prevent Large Object Heap
+            (LOH) leakage.
+          </li>
+          <li>
+            Implemented the ASP.NET Core Session State Management middleware
+            with NCache backend storage and full session-locking support.
+          </li>
+          <li>
+            Built file-storage-based B+ Tree indexing with support for
+            single-attribute and compound indexes.
+          </li>
+          <li>
+            Built the query execution system using Streams and nested
+            Enumerables.
+          </li>
+        </ul>
+        <p class="pt-2 text-xs font-mono text-[--color-text-dim]">
+          Excellence Award, Alachisoft Inc. (Nov 2015)
+        </p>
+      </JobCard>
+    </div>
+  </section>
+
+  <section
+    class="max-w-3xl mx-auto px-6 py-16 sm:py-20 border-t border-[--color-border]"
+  >
+    <SectionHeading
+      id="writing"
+      eyebrow="Writing"
+      title="Selected technical writing"
+    />
+    <div class="space-y-4">
+      {
+        writing.map((w) => (
+          <Card>
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
+              <span class="text-xs font-mono text-[--color-text-dim]">
+                {w.date}
+              </span>
+              <span class="text-xs font-mono text-[--color-accent]">
+                {w.series}
+              </span>
+            </div>
+            <h3 class="text-base sm:text-lg font-semibold text-[--color-text] mb-2 leading-snug">
+              <a
+                href={w.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="hover:underline"
+              >
+                {w.title}
+              </a>
+            </h3>
+            <p class="text-sm text-[--color-text-muted] leading-relaxed">
+              {w.note}
+            </p>
+          </Card>
+        ))
+      }
+    </div>
+    <p class="mt-6 text-sm text-[--color-text-muted]">
+      Full archive on <a
+        href="https://medium.com/@usmanshahid"
+        target="_blank"
+        rel="noopener noreferrer">Medium</a
+      >. <a href="/writing/">See all writing &rarr;</a>
+    </p>
+  </section>
+
+  <section
+    class="max-w-3xl mx-auto px-6 py-16 sm:py-20 border-t border-[--color-border]"
+  >
+    <SectionHeading
+      id="contact"
+      eyebrow="Contact"
+      title="Let's talk"
+    />
+    <Card>
+      <p class="text-[--color-text-muted] leading-relaxed mb-4">
+        I'm actively interviewing for senior IC roles &mdash; Staff SRE,
+        Principal Platform Engineer, Cloud Infrastructure Architect, or
+        AI Platform / LLMOps Engineer &mdash; in EU, UK, Ireland,
+        Netherlands, or Germany. Visa sponsorship required.
+      </p>
+      <dl
+        class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm mb-2"
+      >
+        <div>
+          <dt class="text-xs font-mono uppercase tracking-wider text-[--color-text-dim] mb-1">
+            Email
+          </dt>
+          <dd>
+            <a href="mailto:u.manshahid@gmail.com">u.manshahid@gmail.com</a>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-mono uppercase tracking-wider text-[--color-text-dim] mb-1">
+            LinkedIn
+          </dt>
+          <dd>
+            <a
+              href="https://linkedin.com/in/u-manshahid"
+              target="_blank"
+              rel="noopener noreferrer">linkedin.com/in/u-manshahid</a
+            >
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-mono uppercase tracking-wider text-[--color-text-dim] mb-1">
+            GitHub
+          </dt>
+          <dd>
+            <a
+              href="https://github.com/codemug"
+              target="_blank"
+              rel="noopener noreferrer">github.com/codemug</a
+            >
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-mono uppercase tracking-wider text-[--color-text-dim] mb-1">
+            Medium
+          </dt>
+          <dd>
+            <a
+              href="https://medium.com/@usmanshahid"
+              target="_blank"
+              rel="noopener noreferrer">medium.com/@usmanshahid</a
+            >
+          </dd>
+        </div>
+      </dl>
+    </Card>
+  </section>
+</Base>
