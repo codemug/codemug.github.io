@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/InterVariable.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/InterVariable-Italic.woff2") format("woff2-variations");
+}
+
 @theme {
   --color-bg: #0a0a0b;
   --color-surface: #131316;
@@ -18,6 +33,20 @@
     "Liberation Mono", monospace;
 }
 
+/* Light theme — applied when [data-theme="light"] is on <html> */
+html[data-theme="light"] {
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f4f5;
+  --color-border: #e4e4e7;
+  --color-border-strong: #d4d4d8;
+  --color-text: #18181b;
+  --color-text-muted: #52525b;
+  --color-text-dim: #71717a;
+  --color-accent: #0891b2;
+  --color-accent-muted: #155e75;
+}
+
 @layer base {
   html {
     background: var(--color-bg);
@@ -25,6 +54,10 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    color-scheme: dark;
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
   }
   body {
     background: var(--color-bg);
@@ -37,6 +70,22 @@
   a:hover {
     text-decoration: underline;
     text-underline-offset: 3px;
+  }
+  /* Prose links: visible underline so links aren't distinguished by color alone (WCAG 1.4.1). */
+  main p a,
+  main li a,
+  main dd a,
+  footer p a {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--color-accent) 50%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  main p a:hover,
+  main li a:hover,
+  main dd a:hover,
+  footer p a:hover {
+    text-decoration-color: var(--color-accent);
   }
   ::selection {
     background: var(--color-accent);
