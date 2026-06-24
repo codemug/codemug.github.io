@@ -1,7 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
 import SectionHeading from "../../components/SectionHeading.astro";
-import Card from "../../components/Card.astro";
 
 const title = "Writing · Usman Shahid";
 const description =
@@ -33,46 +32,49 @@ const articles = [
 ---
 
 <Base title={title} description={description} path="/writing/">
-  <section class="max-w-3xl mx-auto px-6 py-16 sm:py-20">
-    <SectionHeading
-      eyebrow="Writing"
-      title="Technical writing"
-    />
-    <p class="text-[--color-text-muted] leading-relaxed mb-10 max-w-2xl">
+  <section class="max-w-[980px] mx-auto px-6 sm:px-8 py-16 sm:py-20">
+    <SectionHeading eyebrow="Writing" title="Technical writing" />
+    <p class="text-[--color-text-soft] leading-relaxed mb-12 max-w-[680px] text-[17px]">
       I write on Medium about the systems I ship: tool-calling and the Model
       Context Protocol, gateway and Kubernetes work, and access control. The
       pieces below are the ones worth reading first.
     </p>
-    <div class="space-y-4">
+    <div class="flex flex-col">
       {
         articles.map((a) => (
-          <Card>
-            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
-              <span class="text-xs font-mono text-[--color-text-dim]">
-                {a.date}
-              </span>
-              <span class="text-xs font-mono text-[--color-accent]">
-                {a.series}
-              </span>
-            </div>
-            <h3 class="text-base sm:text-lg font-semibold text-[--color-text] mb-2 leading-snug">
-              <a
-                href={a.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="hover:underline"
-              >
+          <a
+            href={a.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="group grid grid-cols-[1fr_auto] gap-6 items-start py-7 border-t border-[--color-hairline] transition-[padding] duration-200 hover:pl-3"
+          >
+            <div>
+              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
+                <span class="font-mono text-[12px] text-[--color-text-dim]">
+                  {a.date}
+                </span>
+                <span class="font-mono text-[12px] text-[--color-accent]">
+                  {a.series}
+                </span>
+              </div>
+              <h3 class="text-[19px] font-medium tracking-[-0.01em] leading-snug text-[--color-text] mb-2 max-w-[680px]">
                 {a.title}
-              </a>
-            </h3>
-            <p class="text-sm text-[--color-text-muted] leading-relaxed">
-              {a.note}
-            </p>
-          </Card>
+              </h3>
+              <p class="text-[14.5px] text-[--color-text-muted] leading-relaxed max-w-[680px]">
+                {a.note}
+              </p>
+            </div>
+            <span
+              class="text-[22px] text-[--color-text-dim] transition-all duration-200 group-hover:text-[--color-accent] group-hover:translate-x-1"
+              aria-hidden="true"
+            >
+              ↗
+            </span>
+          </a>
         ))
       }
     </div>
-    <p class="mt-8 text-sm text-[--color-text-muted]">
+    <p class="mt-10 text-[14px] text-[--color-text-muted]">
       Full archive on <a
         href="https://medium.com/@usmanshahid"
         target="_blank"

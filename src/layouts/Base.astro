@@ -12,6 +12,14 @@ const siteUrl = "https://codemug.github.io";
 const canonical = new URL(path, siteUrl).toString();
 const ogImage = new URL("/og-image.png", siteUrl).toString();
 
+const navLinks = [
+  { label: "Work", href: "/#work", section: true },
+  { label: "Skills", href: "/#skills", section: true },
+  { label: "Writing", href: "/writing/", section: false },
+  { label: "Uses", href: "/uses/", section: false },
+  { label: "CV", href: "/cv/", section: false },
+];
+
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -85,6 +93,13 @@ const personJsonLd = {
       type="font/woff2"
       crossorigin
     />
+    <link
+      rel="preload"
+      href="/fonts/JetBrainsMono.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
@@ -126,29 +141,54 @@ const personJsonLd = {
     />
   </head>
   <body class="min-h-screen flex flex-col">
+    <!-- ambient glow -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none fixed left-1/2 top-[-200px] -translate-x-1/2 w-[900px] max-w-[140vw] h-[500px] z-0"
+      style="background:radial-gradient(ellipse at center,color-mix(in oklab,var(--color-accent) 7%,transparent),transparent 70%)"
+    >
+    </div>
+
     <header
-      class="border-b border-[--color-border] bg-[--color-bg]/80 backdrop-blur-sm sticky top-0 z-10"
+      class="sticky top-0 z-50 border-b border-[--color-hairline-2] backdrop-blur-md"
+      style="background:color-mix(in oklab,var(--color-bg) 72%,transparent)"
     >
       <nav
-        class="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between text-sm"
+        class="max-w-[980px] mx-auto px-6 sm:px-8 py-4 flex items-center justify-between"
       >
         <a
           href="/"
-          class="font-semibold text-[--color-text] hover:no-underline tracking-tight"
+          class="flex items-center gap-3 font-mono text-[13px] tracking-[0.02em]"
         >
-          Usman Shahid
+          <span
+            class="inline-block w-[9px] h-[9px] rounded-full bg-[--color-accent] shadow-[0_0_12px_var(--color-accent)]"
+          ></span>
+          <span class="text-[--color-text] font-medium"
+            >usman<span class="text-[--color-text-dim]">.sh</span></span
+          >
         </a>
-        <div class="flex items-center gap-3 sm:gap-6 text-[--color-text-muted]">
-          <a href="/" class="hover:text-[--color-text]">Home</a>
-          <a href="/cv/" class="hover:text-[--color-text]">CV</a>
-          <a href="/writing/" class="hover:text-[--color-text]">Writing</a>
-          <a href="/uses/" class="hover:text-[--color-text]">Uses</a>
+        <div
+          class="flex items-center gap-4 sm:gap-7 text-[13.5px] text-[--color-text-muted]"
+        >
+          {
+            navLinks.map((link) => (
+              <a
+                href={link.href}
+                class:list={[
+                  "transition-colors hover:text-[--color-text]",
+                  link.section && "hidden sm:inline",
+                ]}
+              >
+                {link.label}
+              </a>
+            ))
+          }
           <button
             id="theme-toggle"
             type="button"
             aria-label="Toggle color theme"
             title="Toggle color theme"
-            class="ml-1 inline-flex items-center justify-center w-8 h-8 rounded-md border border-[--color-border] hover:border-[--color-border-strong] hover:bg-[--color-surface] transition-colors"
+            class="ml-0.5 inline-flex items-center justify-center w-8 h-8 rounded-md border border-[--color-border] text-[--color-text-muted] hover:text-[--color-text] hover:border-[--color-border-strong] hover:bg-[--color-surface] transition-colors"
           >
             <svg
               class="w-4 h-4 hidden dark-show"
@@ -182,28 +222,52 @@ const personJsonLd = {
       </nav>
     </header>
 
-    <main class="flex-1">
+    <main class="flex-1 relative z-10">
       <slot />
     </main>
 
     <footer
-      class="border-t border-[--color-border] mt-24 py-10 text-sm text-[--color-text-dim]"
+      class="relative z-10 border-t border-[--color-hairline] text-[13.5px] text-[--color-text-dim]"
     >
       <div
-        class="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+        class="max-w-[980px] mx-auto px-6 sm:px-8 py-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <p>
-          Built with <a
-            href="https://astro.build"
+        <span class="font-mono">Dubai, UAE · GMT+4</span>
+        <div class="flex flex-wrap gap-6">
+          <a
+            href="https://github.com/codemug"
             target="_blank"
-            rel="noopener noreferrer">Astro</a
-          > · Source on <a
-            href="https://github.com/codemug/codemug.github.io"
-            target="_blank"
-            rel="noopener noreferrer">GitHub</a
+            rel="noopener noreferrer"
+            class="transition-colors hover:text-[--color-text]">GitHub</a
           >
-        </p>
-        <p>&copy; 2026 Usman Shahid</p>
+          <a
+            href="https://linkedin.com/in/u-manshahid"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="transition-colors hover:text-[--color-text]">LinkedIn</a
+          >
+          <a
+            href="https://medium.com/@usmanshahid"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="transition-colors hover:text-[--color-text]">Medium</a
+          >
+        </div>
+      </div>
+      <div
+        class="max-w-[980px] mx-auto px-6 sm:px-8 pb-8 text-[12px] text-[--color-text-dim] font-mono"
+      >
+        © 2026 Usman Shahid · built with <a
+          href="https://astro.build"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-[--color-text]">Astro</a
+        > · <a
+          href="https://github.com/codemug/codemug.github.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-[--color-text]">source</a
+        >
       </div>
     </footer>
 
