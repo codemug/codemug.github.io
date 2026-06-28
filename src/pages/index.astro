@@ -273,88 +273,88 @@ const posts = [
       <div
         data-reveal
         class="rounded-[22px] overflow-x-auto"
-        style="background:var(--color-panel);border:1px solid #1c1c21;padding:clamp(24px,4vw,44px)"
+        style="background:var(--color-panel);border:1px solid var(--color-hairline);padding:clamp(24px,4vw,44px)"
       >
-        <div class="font-mono text-[11px] tracking-[0.12em] text-[#4a4a52] uppercase mb-6">Runtime architecture</div>
+        <div class="font-mono text-[11px] tracking-[0.12em] text-[var(--color-text-faint)] uppercase mb-6">Runtime architecture</div>
         <svg viewBox="0 0 980 392" style="width:100%;min-width:720px;display:block;font-family:'Inter',sans-serif">
           <defs>
             <linearGradient id="nodeg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#15171a"></stop><stop offset="1" stop-color="#101113"></stop>
+              <stop offset="0" style="stop-color:var(--d-node)"></stop><stop offset="1" style="stop-color:var(--d-node-2)"></stop>
             </linearGradient>
             <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
           </defs>
-          <text x="105" y="20" text-anchor="middle" fill="#4a4a52" font-size="11" font-family="JetBrains Mono" letter-spacing="1">EDGES</text>
-          <text x="490" y="20" text-anchor="middle" fill="#4a4a52" font-size="11" font-family="JetBrains Mono" letter-spacing="1">ORCHESTRATION CORE</text>
-          <text x="875" y="20" text-anchor="middle" fill="#4a4a52" font-size="11" font-family="JetBrains Mono" letter-spacing="1">PER-TURN</text>
-          <path d="M180 56 C260 56 280 150 380 150" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <path d="M180 112 C260 112 290 150 380 150" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <path d="M180 168 C260 168 300 150 380 150" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <path d="M180 224 C280 224 300 158 380 158" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <path d="M600 130 C680 130 700 56 780 56" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
-          <path d="M600 142 C680 142 700 112 780 112" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
-          <path d="M600 158 C680 158 700 168 780 168" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
-          <path d="M600 170 C680 170 700 224 780 224" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
-          <path d="M490 196 V268" stroke="#6a6a73" stroke-width="1.4" fill="none" stroke-dasharray="5 6" opacity=".7"></path>
-          <path d="M600 294 H700" stroke="#6a6a73" stroke-width="1.4" fill="none" stroke-dasharray="5 6" opacity=".7"></path>
+          <text x="105" y="20" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">EDGES</text>
+          <text x="490" y="20" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">ORCHESTRATION CORE</text>
+          <text x="875" y="20" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">PER-TURN</text>
+          <path d="M180 56 C260 56 280 150 380 150" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <path d="M180 112 C260 112 290 150 380 150" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <path d="M180 168 C260 168 300 150 380 150" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <path d="M180 224 C280 224 300 158 380 158" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <path d="M600 130 C680 130 700 56 780 56" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
+          <path d="M600 142 C680 142 700 112 780 112" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
+          <path d="M600 158 C680 158 700 168 780 168" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
+          <path d="M600 170 C680 170 700 224 780 224" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
+          <path d="M490 196 V268" stroke="var(--color-text-dim)" stroke-width="1.4" fill="none" stroke-dasharray="5 6" opacity=".7"></path>
+          <path d="M600 294 H700" stroke="var(--color-text-dim)" stroke-width="1.4" fill="none" stroke-dasharray="5 6" opacity=".7"></path>
           <g>
-            <rect x="30" y="36" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="105" y="61" text-anchor="middle" fill="#ededf0" font-size="13" font-weight="600">REST · Console</text>
+            <rect x="30" y="36" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="105" y="61" text-anchor="middle" fill="var(--color-text)" font-size="13" font-weight="600">REST · Console</text>
           </g>
           <g>
-            <rect x="30" y="92" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="105" y="117" text-anchor="middle" fill="#ededf0" font-size="13" font-weight="600">MCP clients</text>
+            <rect x="30" y="92" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="105" y="117" text-anchor="middle" fill="var(--color-text)" font-size="13" font-weight="600">MCP clients</text>
           </g>
           <g>
-            <rect x="30" y="148" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="105" y="167" text-anchor="middle" fill="#ededf0" font-size="12.5" font-weight="600">Channels</text>
-            <text x="105" y="180" text-anchor="middle" fill="#6a6a73" font-size="9.5">Slack · Telegram · Discord</text>
+            <rect x="30" y="148" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="105" y="167" text-anchor="middle" fill="var(--color-text)" font-size="12.5" font-weight="600">Channels</text>
+            <text x="105" y="180" text-anchor="middle" fill="var(--color-text-dim)" font-size="9.5">Slack · Telegram · Discord</text>
           </g>
           <g>
-            <rect x="30" y="204" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="105" y="223" text-anchor="middle" fill="#ededf0" font-size="12.5" font-weight="600">Triggers</text>
-            <text x="105" y="236" text-anchor="middle" fill="#6a6a73" font-size="9.5">cron · delay · webhook</text>
+            <rect x="30" y="204" width="150" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="105" y="223" text-anchor="middle" fill="var(--color-text)" font-size="12.5" font-weight="600">Triggers</text>
+            <text x="105" y="236" text-anchor="middle" fill="var(--color-text-dim)" font-size="9.5">cron · delay · webhook</text>
           </g>
           <g>
-            <rect x="380" y="92" width="220" height="116" rx="14" fill="url(#nodeg)" stroke="#22d3ee" filter="url(#glow)"></rect>
-            <text x="490" y="124" text-anchor="middle" fill="#22d3ee" font-size="16" font-weight="700">Worker pool</text>
-            <line x1="410" y1="138" x2="570" y2="138" stroke="#1c3a40" stroke-width="1"></line>
-            <text x="490" y="160" text-anchor="middle" fill="#ededf0" font-size="12.5">sessions · chats</text>
-            <text x="490" y="178" text-anchor="middle" fill="#ededf0" font-size="12.5">graph runs</text>
-            <text x="490" y="196" text-anchor="middle" fill="#6a6a73" font-size="10.5">directed cyclic graphs</text>
+            <rect x="380" y="92" width="220" height="116" rx="14" fill="url(#nodeg)" stroke="var(--color-accent)" filter="url(#glow)"></rect>
+            <text x="490" y="124" text-anchor="middle" fill="var(--color-accent)" font-size="16" font-weight="700">Worker pool</text>
+            <line x1="410" y1="138" x2="570" y2="138" stroke="var(--d-teal)" stroke-width="1"></line>
+            <text x="490" y="160" text-anchor="middle" fill="var(--color-text)" font-size="12.5">sessions · chats</text>
+            <text x="490" y="178" text-anchor="middle" fill="var(--color-text)" font-size="12.5">graph runs</text>
+            <text x="490" y="196" text-anchor="middle" fill="var(--color-text-dim)" font-size="10.5">directed cyclic graphs</text>
           </g>
           <g>
-            <rect x="380" y="268" width="220" height="52" rx="12" fill="#101315" stroke="#1c3a40"></rect>
-            <text x="490" y="291" text-anchor="middle" fill="#ededf0" font-size="13" font-weight="600">Park &amp; resume</text>
-            <text x="490" y="308" text-anchor="middle" fill="#6a6a73" font-size="10.5">event-driven · frees compute while waiting</text>
+            <rect x="380" y="268" width="220" height="52" rx="12" fill="var(--d-fill-soft)" stroke="var(--d-teal)"></rect>
+            <text x="490" y="291" text-anchor="middle" fill="var(--color-text)" font-size="13" font-weight="600">Park &amp; resume</text>
+            <text x="490" y="308" text-anchor="middle" fill="var(--color-text-dim)" font-size="10.5">event-driven · frees compute while waiting</text>
           </g>
           <g>
-            <rect x="700" y="268" width="180" height="52" rx="12" fill="#101315" stroke="#1c3a40"></rect>
-            <text x="790" y="291" text-anchor="middle" fill="#ededf0" font-size="13" font-weight="600">Human approval</text>
-            <text x="790" y="308" text-anchor="middle" fill="#6a6a73" font-size="10.5">gate the risky</text>
+            <rect x="700" y="268" width="180" height="52" rx="12" fill="var(--d-fill-soft)" stroke="var(--d-teal)"></rect>
+            <text x="790" y="291" text-anchor="middle" fill="var(--color-text)" font-size="13" font-weight="600">Human approval</text>
+            <text x="790" y="308" text-anchor="middle" fill="var(--color-text-dim)" font-size="10.5">gate the risky</text>
           </g>
           <g>
-            <rect x="780" y="36" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="865" y="61" text-anchor="middle" fill="#ededf0" font-size="13" font-weight="600">LLM providers</text>
+            <rect x="780" y="36" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="865" y="61" text-anchor="middle" fill="var(--color-text)" font-size="13" font-weight="600">LLM providers</text>
           </g>
           <g>
-            <rect x="780" y="92" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="865" y="117" text-anchor="middle" fill="#ededf0" font-size="13" font-weight="600">Tools · MCP</text>
+            <rect x="780" y="92" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="865" y="117" text-anchor="middle" fill="var(--color-text)" font-size="13" font-weight="600">Tools · MCP</text>
           </g>
           <g>
-            <rect x="780" y="148" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="865" y="167" text-anchor="middle" fill="#ededf0" font-size="12.5" font-weight="600">Workspaces</text>
-            <text x="865" y="180" text-anchor="middle" fill="#6a6a73" font-size="9.5">local · container · k8s</text>
+            <rect x="780" y="148" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="865" y="167" text-anchor="middle" fill="var(--color-text)" font-size="12.5" font-weight="600">Workspaces</text>
+            <text x="865" y="180" text-anchor="middle" fill="var(--color-text-dim)" font-size="9.5">local · container · k8s</text>
           </g>
           <g>
-            <rect x="780" y="204" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="#2a2c30"></rect>
-            <text x="865" y="223" text-anchor="middle" fill="#ededf0" font-size="12.5" font-weight="600">Collections</text>
-            <text x="865" y="236" text-anchor="middle" fill="#6a6a73" font-size="9.5">semantic search</text>
+            <rect x="780" y="204" width="170" height="40" rx="10" fill="url(#nodeg)" stroke="var(--d-stroke)"></rect>
+            <text x="865" y="223" text-anchor="middle" fill="var(--color-text)" font-size="12.5" font-weight="600">Collections</text>
+            <text x="865" y="236" text-anchor="middle" fill="var(--color-text-dim)" font-size="9.5">semantic search</text>
           </g>
           <g>
-            <rect x="380" y="344" width="220" height="34" rx="9" fill="#0e1418" stroke="#1c3a40"></rect>
-            <text x="490" y="366" text-anchor="middle" fill="#22d3ee" font-size="12" font-weight="600" font-family="JetBrains Mono">Postgres + pgvector</text>
+            <rect x="380" y="344" width="220" height="34" rx="9" fill="var(--d-fill-pg)" stroke="var(--d-teal)"></rect>
+            <text x="490" y="366" text-anchor="middle" fill="var(--color-accent)" font-size="12" font-weight="600" font-family="JetBrains Mono">Postgres + pgvector</text>
           </g>
-          <path d="M490 320 V344" stroke="#1c3a40" stroke-width="1.4" fill="none"></path>
+          <path d="M490 320 V344" stroke="var(--d-teal)" stroke-width="1.4" fill="none"></path>
         </svg>
 
         <div class="flex flex-wrap gap-2.5 mt-9">
@@ -363,11 +363,11 @@ const posts = [
 
         <div
           class="grid grid-cols-3 gap-px rounded-[14px] overflow-hidden mt-8"
-          style="background:#1a1a1f;border:1px solid #1a1a1f"
+          style="background:var(--color-surface-2);border:1px solid var(--color-surface-2)"
         >
           {
             platformStats.map((s) => (
-              <div style="background:#0d0d0f;padding:24px 22px">
+              <div style="background:var(--color-surface-deep);padding:24px 22px">
                 <div
                   class="count text-[clamp(26px,3vw,34px)] font-semibold tracking-[-0.03em] text-[--color-accent] leading-none"
                   style="font-variant-numeric:tabular-nums"
@@ -379,7 +379,7 @@ const posts = [
                 >
                   {fmtCount(s)}
                 </div>
-                <div class="mt-2.5 text-[12.5px] text-[#9a9aa3]">{s.label}</div>
+                <div class="mt-2.5 text-[12.5px] text-[var(--color-text-muted)]">{s.label}</div>
               </div>
             ))
           }
@@ -476,57 +476,57 @@ const posts = [
       <div
         data-reveal
         class="rounded-[22px] overflow-x-auto"
-        style="background:var(--color-panel);border:1px solid #1c1c21;padding:clamp(24px,4vw,44px)"
+        style="background:var(--color-panel);border:1px solid var(--color-hairline);padding:clamp(24px,4vw,44px)"
       >
-        <div class="font-mono text-[11px] tracking-[0.12em] text-[#4a4a52] uppercase mb-6">Consolidation</div>
+        <div class="font-mono text-[11px] tracking-[0.12em] text-[var(--color-text-faint)] uppercase mb-6">Consolidation</div>
         <svg viewBox="0 0 980 300" style="width:100%;min-width:720px;display:block;font-family:'Inter',sans-serif">
           <defs>
             <linearGradient id="nodeg2" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#15171a"></stop><stop offset="1" stop-color="#101113"></stop>
+              <stop offset="0" style="stop-color:var(--d-node)"></stop><stop offset="1" style="stop-color:var(--d-node-2)"></stop>
             </linearGradient>
             <filter id="glow2"><feGaussianBlur stdDeviation="3" result="b"></feGaussianBlur><feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>
           </defs>
-          <text x="180" y="20" text-anchor="middle" fill="#4a4a52" font-size="11" font-family="JetBrains Mono" letter-spacing="1">12 LEGACY GATEWAYS</text>
-          <text x="515" y="20" text-anchor="middle" fill="#4a4a52" font-size="11" font-family="JetBrains Mono" letter-spacing="1">UNIFIED PLATFORM</text>
-          <text x="845" y="20" text-anchor="middle" fill="#4a4a52" font-size="11" font-family="JetBrains Mono" letter-spacing="1">UPSTREAMS</text>
-          <rect x="40" y="36" width="280" height="234" rx="14" fill="none" stroke="#26262d" stroke-dasharray="5 6"></rect>
+          <text x="180" y="20" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">12 LEGACY GATEWAYS</text>
+          <text x="515" y="20" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">UNIFIED PLATFORM</text>
+          <text x="845" y="20" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">UPSTREAMS</text>
+          <rect x="40" y="36" width="280" height="234" rx="14" fill="none" stroke="var(--color-border)" stroke-dasharray="5 6"></rect>
           {
             gwGrid.map((g) => (
               <g>
-                <rect x={g.x} y={g.y} width="78" height="40" rx="8" fill="url(#nodeg2)" stroke="#2a2c30" />
-                <text x={g.cx} y={g.ty} text-anchor="middle" fill="#9a9aa3" font-size="10.5" font-family="JetBrains Mono">{g.label}</text>
+                <rect x={g.x} y={g.y} width="78" height="40" rx="8" fill="url(#nodeg2)" stroke="var(--d-stroke)" />
+                <text x={g.cx} y={g.ty} text-anchor="middle" fill="var(--color-text-muted)" font-size="10.5" font-family="JetBrains Mono">{g.label}</text>
               </g>
             ))
           }
-          <path d="M320 90 C400 90 410 145 460 145" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <path d="M320 130 C400 130 415 148 460 148" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <path d="M320 175 C400 175 415 152 460 152" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <path d="M320 215 C400 215 410 158 460 158" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
-          <rect x="460" y="100" width="160" height="100" rx="14" fill="url(#nodeg2)" stroke="#22d3ee" filter="url(#glow2)"></rect>
-          <text x="540" y="134" text-anchor="middle" fill="#22d3ee" font-size="19" font-weight="700">Kong</text>
-          <line x1="486" y1="148" x2="594" y2="148" stroke="#1c3a40" stroke-width="1"></line>
-          <text x="540" y="168" text-anchor="middle" fill="#ededf0" font-size="11.5">Self-Service Gateway</text>
-          <text x="540" y="184" text-anchor="middle" fill="#6a6a73" font-size="10">auth · routing · rate-limit · plugins</text>
-          <path d="M620 130 C690 130 700 118 760 118" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
-          <path d="M620 170 C690 170 700 182 760 182" stroke="#22d3ee" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
+          <path d="M320 90 C400 90 410 145 460 145" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <path d="M320 130 C400 130 415 148 460 148" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <path d="M320 175 C400 175 415 152 460 152" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <path d="M320 215 C400 215 410 158 460 158" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".75"></path>
+          <rect x="460" y="100" width="160" height="100" rx="14" fill="url(#nodeg2)" stroke="var(--color-accent)" filter="url(#glow2)"></rect>
+          <text x="540" y="134" text-anchor="middle" fill="var(--color-accent)" font-size="19" font-weight="700">Kong</text>
+          <line x1="486" y1="148" x2="594" y2="148" stroke="var(--d-teal)" stroke-width="1"></line>
+          <text x="540" y="168" text-anchor="middle" fill="var(--color-text)" font-size="11.5">Self-Service Gateway</text>
+          <text x="540" y="184" text-anchor="middle" fill="var(--color-text-dim)" font-size="10">auth · routing · rate-limit · plugins</text>
+          <path d="M620 130 C690 130 700 118 760 118" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
+          <path d="M620 170 C690 170 700 182 760 182" stroke="var(--color-accent)" stroke-width="1.5" fill="none" class="flowline" opacity=".7"></path>
           <g>
-            <rect x="760" y="96" width="190" height="46" rx="11" fill="url(#nodeg2)" stroke="#2a2c30"></rect>
-            <text x="855" y="124" text-anchor="middle" fill="#ededf0" font-size="13.5" font-weight="600">300+ microservices</text>
+            <rect x="760" y="96" width="190" height="46" rx="11" fill="url(#nodeg2)" stroke="var(--d-stroke)"></rect>
+            <text x="855" y="124" text-anchor="middle" fill="var(--color-text)" font-size="13.5" font-weight="600">300+ microservices</text>
           </g>
           <g>
-            <rect x="760" y="160" width="190" height="46" rx="11" fill="url(#nodeg2)" stroke="#2a2c30"></rect>
-            <text x="855" y="182" text-anchor="middle" fill="#ededf0" font-size="13.5" font-weight="600">~10k RPS</text>
-            <text x="855" y="197" text-anchor="middle" fill="#6a6a73" font-size="10">sustained public traffic</text>
+            <rect x="760" y="160" width="190" height="46" rx="11" fill="url(#nodeg2)" stroke="var(--d-stroke)"></rect>
+            <text x="855" y="182" text-anchor="middle" fill="var(--color-text)" font-size="13.5" font-weight="600">~10k RPS</text>
+            <text x="855" y="197" text-anchor="middle" fill="var(--color-text-dim)" font-size="10">sustained public traffic</text>
           </g>
         </svg>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 mt-9">
           {
             gwMigration.map((m) => (
-              <div class="rounded-xl px-4 py-[18px]" style="background:#0d0d0f;border:1px solid #1c1c21">
+              <div class="rounded-xl px-4 py-[18px]" style="background:var(--color-surface-deep);border:1px solid var(--color-hairline)">
                 <div class="font-mono text-[11px] text-[--color-accent] mb-2.5">{m.step}</div>
-                <div class="text-[13.5px] font-semibold text-[#ededf0] mb-1.5">{m.title}</div>
-                <div class="text-[12px] leading-[1.45] text-[#9a9aa3]">{m.desc}</div>
+                <div class="text-[13.5px] font-semibold text-[var(--color-text)] mb-1.5">{m.title}</div>
+                <div class="text-[12px] leading-[1.45] text-[var(--color-text-muted)]">{m.desc}</div>
               </div>
             ))
           }
@@ -534,11 +534,11 @@ const posts = [
 
         <div
           class="grid grid-cols-2 md:grid-cols-4 gap-px rounded-[14px] overflow-hidden mt-8"
-          style="background:#1a1a1f;border:1px solid #1a1a1f"
+          style="background:var(--color-surface-2);border:1px solid var(--color-surface-2)"
         >
           {
             gwStats.map((s) => (
-              <div style="background:#0d0d0f;padding:24px 22px">
+              <div style="background:var(--color-surface-deep);padding:24px 22px">
                 <div
                   class="count text-[clamp(24px,3vw,32px)] font-semibold tracking-[-0.03em] text-[--color-accent] leading-none"
                   style="font-variant-numeric:tabular-nums"
@@ -550,7 +550,7 @@ const posts = [
                 >
                   {fmtCount(s)}
                 </div>
-                <div class="mt-2.5 text-[12.5px] text-[#9a9aa3]">{s.label}</div>
+                <div class="mt-2.5 text-[12.5px] text-[var(--color-text-muted)]">{s.label}</div>
               </div>
             ))
           }
@@ -742,16 +742,16 @@ const posts = [
     /* capability chips (inside the dark diagram panel) */
     .chip-d {
       font-size: 13px;
-      color: #c4c4cb;
-      background: #121215;
-      border: 1px solid #232329;
+      color: var(--color-text-soft);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
       padding: 8px 13px;
       border-radius: 8px;
       transition: border-color 0.2s, color 0.2s;
     }
     .chip-d:hover {
       border-color: var(--color-accent);
-      color: #ededf0;
+      color: var(--color-text);
     }
     /* metric cells hover */
     .mcell {
