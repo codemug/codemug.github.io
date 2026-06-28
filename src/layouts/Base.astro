@@ -13,11 +13,10 @@ const canonical = new URL(path, siteUrl).toString();
 const ogImage = new URL("/og-image.png", siteUrl).toString();
 
 const navLinks = [
-  { label: "Work", href: "/#work", section: true },
-  { label: "Skills", href: "/#skills", section: true },
-  { label: "Writing", href: "/writing/", section: false },
-  { label: "Uses", href: "/uses/", section: false },
-  { label: "CV", href: "/cv/", section: false },
+  { label: "Impact", href: "/#impact", hideSmall: true },
+  { label: "Platform", href: "/#platform", hideSmall: true },
+  { label: "Work", href: "/#work", hideSmall: false },
+  { label: "Contact", href: "/#contact", hideSmall: false },
 ];
 
 const personJsonLd = {
@@ -141,30 +140,30 @@ const personJsonLd = {
     />
   </head>
   <body class="min-h-screen flex flex-col">
-    <!-- ambient glow -->
+    <!-- fixed ambient field -->
     <div
       aria-hidden="true"
-      class="pointer-events-none fixed left-1/2 top-[-200px] -translate-x-1/2 w-[900px] max-w-[140vw] h-[500px] z-0"
-      style="background:radial-gradient(ellipse at center,color-mix(in oklab,var(--color-accent) 7%,transparent),transparent 70%)"
+      class="pointer-events-none fixed inset-0 z-0"
+      style="background:radial-gradient(900px 480px at 50% -8%,color-mix(in oklab,var(--color-accent) 7%,transparent),transparent 70%),radial-gradient(700px 500px at 90% 30%,color-mix(in oklab,var(--color-accent) 3.5%,transparent),transparent 70%)"
     >
     </div>
 
     <header
       class="sticky top-0 z-50 border-b border-[--color-hairline-2] backdrop-blur-md"
-      style="background:color-mix(in oklab,var(--color-bg) 72%,transparent)"
+      style="background:color-mix(in oklab,var(--color-bg) 70%,transparent)"
     >
       <nav
-        class="max-w-[980px] mx-auto px-6 sm:px-8 py-4 flex items-center justify-between"
+        class="max-w-[1040px] mx-auto px-6 sm:px-8 py-4 flex items-center justify-between"
       >
         <a
           href="/"
-          class="flex items-center gap-3 font-mono text-[13px] tracking-[0.02em]"
+          class="flex items-center gap-3 font-mono text-[13px] tracking-[0.01em]"
         >
           <span
             class="inline-block w-[9px] h-[9px] rounded-full bg-[--color-accent] shadow-[0_0_12px_var(--color-accent)]"
-          ></span>
+            style="animation:pulse 2.4s ease-in-out infinite"></span>
           <span class="text-[--color-text] font-medium"
-            >usman<span class="text-[--color-text-dim]">.sh</span></span
+            >codemug<span class="text-[--color-text-dim]">.github.io</span></span
           >
         </a>
         <div
@@ -176,7 +175,7 @@ const personJsonLd = {
                 href={link.href}
                 class:list={[
                   "transition-colors hover:text-[--color-text]",
-                  link.section && "hidden sm:inline",
+                  link.hideSmall && "hidden sm:inline",
                 ]}
               >
                 {link.label}
@@ -230,9 +229,9 @@ const personJsonLd = {
       class="relative z-10 border-t border-[--color-hairline] text-[13.5px] text-[--color-text-dim]"
     >
       <div
-        class="max-w-[980px] mx-auto px-6 sm:px-8 py-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        class="max-w-[1040px] mx-auto px-6 sm:px-8 py-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <span class="font-mono">Dubai, UAE · GMT+4</span>
+        <span class="font-mono">codemug.github.io · Dubai, UAE · GMT+4</span>
         <div class="flex flex-wrap gap-6">
           <a
             href="https://github.com/codemug"
@@ -253,21 +252,6 @@ const personJsonLd = {
             class="transition-colors hover:text-[--color-text]">Medium</a
           >
         </div>
-      </div>
-      <div
-        class="max-w-[980px] mx-auto px-6 sm:px-8 pb-8 text-[12px] text-[--color-text-dim] font-mono"
-      >
-        © 2026 Usman Shahid · built with <a
-          href="https://astro.build"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="hover:text-[--color-text]">Astro</a
-        > · <a
-          href="https://github.com/codemug/codemug.github.io"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="hover:text-[--color-text]">source</a
-        >
       </div>
     </footer>
 
