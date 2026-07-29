@@ -4,7 +4,7 @@ import { defineCollection, z } from "astro:content";
 // Blog posts live as Markdown in src/content/blog/. Each file's name (minus
 // .md) becomes its URL slug: src/content/blog/my-post.md -> /blog/my-post/.
 const blog = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/blog" }),
+  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/blog" }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

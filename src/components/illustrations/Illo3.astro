@@ -1,0 +1,166 @@
+<figure class="illo illo-3" role="group" aria-label="One overloaded agent compared with a chain of four small focused agents">
+  <style is:global>
+    .illo-3 {
+      margin: 2.2em 0;
+      padding: clamp(18px, 3vw, 26px);
+      background: var(--color-panel);
+      border: 1px solid var(--color-hairline);
+      border-radius: 20px;
+      font-family: var(--font-sans);
+    }
+    .illo-3 .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .illo-3 .hd {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text-faint);
+      margin: 0 0 12px;
+    }
+    .illo-3 .card {
+      background: var(--color-surface-deep);
+      border: 1px solid var(--color-border);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .illo-3 .card.hero { border-color: color-mix(in oklab, var(--color-accent) 45%, transparent); }
+    .illo-3 .blocks { display: flex; flex-direction: column; gap: 5px; }
+    .illo-3 .blk {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-text-muted);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-hairline);
+      border-radius: 6px;
+      padding: 7px 9px;
+      line-height: 1.35;
+    }
+    .illo-3 .blk.tall { padding-bottom: 20px; }
+    .illo-3 .step {
+      display: block;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--color-text-soft);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-hairline);
+      border-radius: 8px;
+      padding: 9px 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .illo-3 .step:hover,
+    .illo-3 .step[aria-pressed="true"] {
+      border-color: var(--color-accent);
+      color: var(--color-text);
+      background: color-mix(in oklab, var(--color-accent) 6%, transparent);
+    }
+    .illo-3 .chain { display: flex; flex-direction: column; gap: 4px; }
+    .illo-3 .arrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-text-faint);
+      text-align: center;
+      line-height: 1;
+    }
+    .illo-3 .mrow {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: var(--color-text-dim);
+      margin: 12px 0 6px;
+    }
+    .illo-3 .meter { height: 7px; border-radius: 4px; background: var(--color-surface-2); overflow: hidden; }
+    .illo-3 .meter div { height: 100%; border-radius: 4px; }
+    .illo-3 .meter .hot { width: 94%; background: var(--color-text-dim); }
+    .illo-3 .meter .cool { width: 12%; background: var(--color-accent); }
+    .illo-3 .readout {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-text-soft);
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--color-hairline);
+      min-height: 1.6em;
+    }
+    .illo-3 .readout b { color: var(--color-accent); font-weight: 500; }
+    .illo-3 figcaption {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--color-text-dim);
+      margin-top: 14px;
+    }
+    @media (max-width: 560px) {
+      .illo-3 .cols { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="cols">
+    <div>
+      <p class="hd">One agent, everything at once</p>
+      <div class="card">
+        <div class="blocks">
+          <div class="blk tall">system prompt · 1,800 tokens</div>
+          <div class="blk">50 tool definitions</div>
+          <div class="blk tall">full conversation history</div>
+          <div class="blk" style="color:var(--color-text-dim)">…the actual task</div>
+        </div>
+        <div class="mrow"><span>context used</span><span>94%</span></div>
+        <div class="meter"><div class="hot"></div></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="hd">Four agents, one job each</p>
+      <div class="card hero">
+        <div class="chain">
+          <button type="button" class="step" data-job="write" aria-pressed="false">write</button>
+          <span class="arrow" aria-hidden="true">↓</span>
+          <button type="button" class="step" data-job="check" aria-pressed="false">check</button>
+          <span class="arrow" aria-hidden="true">↓</span>
+          <button type="button" class="step" data-job="summarize" aria-pressed="false">summarize</button>
+          <span class="arrow" aria-hidden="true">↓</span>
+          <button type="button" class="step" data-job="decide" aria-pressed="false">decide</button>
+        </div>
+        <div class="mrow"><span>context used · per step</span><span>12%</span></div>
+        <div class="meter"><div class="cool"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="readout">Each step carries only what its one job needs. Select a step to see its whole prompt.</p>
+
+  <figcaption>Same work, split four ways. The meters are the point — no single call ever has to hold the task in its head.</figcaption>
+
+  <script is:inline>
+    (() => {
+      const root = document.currentScript.closest('.illo-3');
+      const out = root.querySelector('.readout');
+      const jobs = {
+        write: 'write · <b>"draft the section from these notes"</b> — notes + one output rule',
+        check: 'check · <b>"list every claim not supported by the notes"</b> — draft + notes',
+        summarize: 'summarize · <b>"compress to five bullets"</b> — the checked draft only',
+        decide: 'decide · <b>"ship or send back, one word"</b> — the five bullets only'
+      };
+      root.querySelectorAll('.step').forEach((b) => {
+        const show = () => {
+          out.innerHTML = jobs[b.dataset.job];
+          root.querySelectorAll('.step').forEach((o) =>
+            o.setAttribute('aria-pressed', String(o === b))
+          );
+        };
+        b.addEventListener('click', show);
+        b.addEventListener('mouseenter', show);
+        b.addEventListener('focus', show);
+      });
+    })();
+  </script>
+</figure>
