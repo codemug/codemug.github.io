@@ -1,5 +1,22 @@
 ---
 import Base from "../layouts/Base.astro";
+import { getCollection } from "astro:content";
+
+// Latest on-site blog posts (drafts hidden in production, visible in dev).
+const blogPosts = (
+  await getCollection("blog", ({ data }) =>
+    import.meta.env.PROD ? !data.draft : true,
+  )
+)
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+  .slice(0, 4);
+const fmtPostDate = (d) =>
+  d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 
 const title = "Usman Shahid · Staff Site Reliability Engineer";
 const description =
@@ -622,10 +639,51 @@ const posts = [
       </div>
     </section>
 
-    <!-- 07 · WRITING -->
+    <!-- 07 · FROM THE BLOG -->
+    {
+      blogPosts.length > 0 && (
+        <section id="blog" class="py-20 border-t border-[--color-hairline] scroll-mt-24">
+          <div data-reveal class="flex items-baseline gap-4 mb-12">
+            <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">07</span>
+            <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">From the blog</h2>
+          </div>
+          <div class="flex flex-col">
+            {blogPosts.map((post) => (
+              <a
+                data-reveal
+                href={`/blog/${post.id}/`}
+                class="wrow group grid grid-cols-[1fr_auto] gap-6 items-center py-[26px] border-t border-[--color-hairline]"
+              >
+                <div>
+                  <div class="font-mono text-[12px] text-[--color-text-dim] tracking-[0.04em] mb-2.5">
+                    {fmtPostDate(post.data.pubDate)}
+                    {post.data.tags.length > 0 && (
+                      <span> · {post.data.tags.slice(0, 3).map((t) => `#${t}`).join(" ")}</span>
+                    )}
+                  </div>
+                  <h3 class="text-[19px] font-[550] tracking-[-0.01em] leading-[1.35] text-[--color-text] max-w-[680px]">
+                    {post.data.title}
+                  </h3>
+                </div>
+                <span class="arr text-[22px] text-[--color-text-faint]" aria-hidden="true">→</span>
+              </a>
+            ))}
+          </div>
+          <a
+            data-reveal
+            href="/blog"
+            class="prim-link inline-flex items-center gap-2.5 mt-8 text-[14px] text-[--color-accent] font-medium"
+          >
+            All posts <span>→</span>
+          </a>
+        </section>
+      )
+    }
+
+    <!-- 08 · SELECTED WRITING (elsewhere) -->
     <section id="writing" class="py-20 border-t border-[--color-hairline] scroll-mt-24">
       <div data-reveal class="flex items-baseline gap-4 mb-12">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">07</span>
+        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">08</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">Selected Writing</h2>
       </div>
       <div class="flex flex-col">
