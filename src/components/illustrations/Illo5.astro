@@ -1,0 +1,94 @@
+<figure class="illo illo-5" role="group" aria-label="A small agent context reaching into large indexed catalogs and pulling back a single match">
+  <style is:global>
+    .illo-5 {
+      margin: 2.2em 0;
+      padding: clamp(18px, 3vw, 26px);
+      background: var(--color-panel);
+      border: 1px solid var(--color-hairline);
+      border-radius: 20px;
+      font-family: var(--font-sans);
+    }
+    .illo-5 .hd {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text-faint);
+      margin: 0 0 16px;
+    }
+    .illo-5 .scroll { overflow-x: auto; }
+    .illo-5 svg { width: 100%; min-width: 560px; display: block; }
+    .illo-5 figcaption {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--color-text-dim);
+      margin-top: 16px;
+    }
+    @media (prefers-reduced-motion: reduce) { .illo-5 .flow5 { animation: none; } }
+    .illo-5 .flow5 { stroke-dasharray: 7 9; animation: illo5flow 2.6s linear infinite; }
+    @keyframes illo5flow { to { stroke-dashoffset: -220; } }
+  </style>
+
+  <p class="hd">Small context · large reachable surface</p>
+
+  <div class="scroll">
+    <svg viewBox="0 0 720 330" role="img" aria-label="Diagram: one agent context in the centre, four indexed catalogs around it, one match returning">
+      <defs>
+        <linearGradient id="illo5-node" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" style="stop-color:var(--d-node)"></stop>
+          <stop offset="1" style="stop-color:var(--d-node-2)"></stop>
+        </linearGradient>
+        <filter id="illo5-glow">
+          <feGaussianBlur stdDeviation="3" result="b"></feGaussianBlur>
+          <feMerge><feMergeNode in="b"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+        </filter>
+        <g id="illo5-cyl">
+          <path d="M1 7v34c0 3.3 6.3 6 14 6s14-2.7 14-6V7" fill="var(--d-fill-pg)" stroke="var(--d-teal)"></path>
+          <ellipse cx="15" cy="7" rx="14" ry="6" fill="var(--d-fill-soft)" stroke="var(--d-teal)"></ellipse>
+        </g>
+      </defs>
+
+      <text x="360" y="18" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">INDEXED CATALOGS</text>
+
+      <path d="M270 140 C220 140 190 95 160 88" fill="none" stroke="var(--color-accent)" stroke-width="1.5" class="flow5" opacity=".85"></path>
+      <path d="M450 140 C500 140 530 95 560 88" fill="none" stroke="var(--color-text-dim)" stroke-width="1.3" stroke-dasharray="4 6" opacity=".55"></path>
+      <path d="M270 190 C220 190 190 245 160 252" fill="none" stroke="var(--color-text-dim)" stroke-width="1.3" stroke-dasharray="4 6" opacity=".55"></path>
+      <path d="M450 190 C500 190 530 245 560 252" fill="none" stroke="var(--color-text-dim)" stroke-width="1.3" stroke-dasharray="4 6" opacity=".55"></path>
+
+      <text x="215" y="105" text-anchor="middle" fill="var(--color-accent)" font-size="10" font-family="JetBrains Mono">1 match</text>
+
+      <g opacity="1">
+        <use href="#illo5-cyl" x="60" y="60"></use>
+        <text x="106" y="78" fill="var(--color-text)" font-size="13" font-weight="600">agents</text>
+        <text x="106" y="95" fill="var(--color-text-dim)" font-size="10.5" font-family="JetBrains Mono">~60 indexed</text>
+      </g>
+      <g opacity=".62">
+        <use href="#illo5-cyl" x="570" y="60"></use>
+        <text x="616" y="78" fill="var(--color-text)" font-size="13" font-weight="600">graphs</text>
+        <text x="616" y="95" fill="var(--color-text-dim)" font-size="10.5" font-family="JetBrains Mono">~40 indexed</text>
+      </g>
+      <g opacity=".62">
+        <use href="#illo5-cyl" x="60" y="224"></use>
+        <text x="106" y="242" fill="var(--color-text)" font-size="13" font-weight="600">collections</text>
+        <text x="106" y="259" fill="var(--color-text-dim)" font-size="10.5" font-family="JetBrains Mono">~120 indexed</text>
+      </g>
+      <g opacity=".62">
+        <use href="#illo5-cyl" x="570" y="224"></use>
+        <text x="616" y="242" fill="var(--color-text)" font-size="13" font-weight="600">tools</text>
+        <text x="616" y="259" fill="var(--color-text-dim)" font-size="10.5" font-family="JetBrains Mono">~800 indexed</text>
+      </g>
+
+      <rect x="270" y="112" width="180" height="106" rx="14" fill="url(#illo5-node)" stroke="var(--color-accent)" filter="url(#illo5-glow)"></rect>
+      <text x="360" y="140" text-anchor="middle" fill="var(--color-accent)" font-size="14" font-weight="700">agent context</text>
+      <line x1="292" y1="152" x2="428" y2="152" stroke="var(--d-teal)" stroke-width="1"></line>
+      <text x="360" y="172" text-anchor="middle" fill="var(--color-text)" font-size="11.5">one job · two tools</text>
+      <text x="360" y="192" text-anchor="middle" fill="var(--color-text-dim)" font-size="10.5" font-family="JetBrains Mono">+ 1 expanded match</text>
+      <text x="360" y="208" text-anchor="middle" fill="var(--color-text-faint)" font-size="10" font-family="JetBrains Mono">everything else stays indexed</text>
+
+      <text x="360" y="312" text-anchor="middle" fill="var(--color-text-faint)" font-size="11" font-family="JetBrains Mono" letter-spacing="1">SEARCH OUT · ONE MATCH BACK</text>
+    </svg>
+  </div>
+
+  <figcaption>It expands only the branch it is standing on.</figcaption>
+</figure>

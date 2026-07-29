@@ -1,0 +1,92 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+export async function getStaticPaths() {
+  // Drafts are hidden in production builds, visible in `astro dev`.
+  const posts = await getCollection("blog", ({ data }) =>
+    import.meta.env.PROD ? !data.draft : true,
+  );
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const { title, description, pubDate, updatedDate, tags, canonicalUrl, ogImage } =
+  post.data;
+
+const path = `/blog/${post.id}/`;
+const fmt = (d: Date) =>
+  d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+---
+
+<Base
+  title={`${title} · Usman Shahid`}
+  description={description}
+  path={path}
+  ogType="article"
+  publishedTime={pubDate.toISOString()}
+  modifiedTime={updatedDate?.toISOString()}
+  canonicalOverride={canonicalUrl}
+  ogImage={ogImage}
+>
+  <article class="max-w-[720px] mx-auto px-6 sm:px-8 py-16 sm:py-20 rise">
+    <a
+      href="/blog"
+      class="inline-flex items-center gap-1.5 font-mono text-[12.5px] text-[--color-text-dim] hover:text-[--color-text] transition-colors"
+    >
+      <span aria-hidden="true">&larr;</span> Writing
+    </a>
+
+    <header class="mt-6 mb-10">
+      <h1
+        class="text-[30px] sm:text-[38px] leading-[1.12] font-semibold tracking-[-0.02em] text-[--color-text]"
+      >
+        {title}
+      </h1>
+      <div
+        class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[12.5px] text-[--color-text-dim]"
+      >
+        <time datetime={pubDate.toISOString()}>{fmt(pubDate)}</time>
+        {
+          updatedDate && (
+            <span>· updated {fmt(updatedDate)}</span>
+          )
+        }
+        {
+          tags.length > 0 && (
+            <span class="flex flex-wrap gap-2">
+              {tags.map((t) => (
+                <span class="text-[--color-text-muted]">#{t}</span>
+              ))}
+            </span>
+          )
+        }
+      </div>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {
+      canonicalUrl && (
+        <p class="mt-12 pt-6 border-t border-[--color-hairline] text-[13.5px] text-[--color-text-dim]">
+          Originally published at{" "}
+          <a href={canonicalUrl} target="_blank" rel="noopener noreferrer">
+            {canonicalUrl}
+          </a>
+          .
+        </p>
+      )
+    }
+  </article>
+</Base>

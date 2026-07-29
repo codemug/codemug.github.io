@@ -5,17 +5,36 @@ interface Props {
   title: string;
   description: string;
   path?: string;
+  ogType?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
+  // When set, this URL is the canonical source (a post first published
+  // elsewhere). Otherwise the page's own URL is canonical.
+  canonicalOverride?: string;
+  // Absolute path from /public for a per-page social card; falls back to the
+  // site default.
+  ogImage?: string;
 }
 
-const { title, description, path = "/" } = Astro.props;
+const {
+  title,
+  description,
+  path = "/",
+  ogType = "website",
+  publishedTime,
+  modifiedTime,
+  canonicalOverride,
+  ogImage: ogImageProp,
+} = Astro.props;
 const siteUrl = "https://codemug.github.io";
-const canonical = new URL(path, siteUrl).toString();
-const ogImage = new URL("/og-image.png", siteUrl).toString();
+const canonical = canonicalOverride ?? new URL(path, siteUrl).toString();
+const ogImage = new URL(ogImageProp ?? "/og-image.png", siteUrl).toString();
 
 const navLinks = [
   { label: "Impact", href: "/#impact", hideSmall: true },
   { label: "Platform", href: "/#platform", hideSmall: true },
-  { label: "Work", href: "/#work", hideSmall: false },
+  { label: "Writing", href: "/blog", hideSmall: false },
+  { label: "Work", href: "/#work", hideSmall: true },
   { label: "Contact", href: "/#contact", hideSmall: false },
 ];
 
@@ -69,6 +88,24 @@ const personJsonLd = {
     "https://medium.com/@usmanshahid",
   ],
 };
+
+// BlogPosting structured data for article pages (SEO / rich results).
+const articleJsonLd =
+  ogType === "article"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description,
+        datePublished: publishedTime,
+        dateModified: modifiedTime ?? publishedTime,
+        author: { "@type": "Person", name: "Usman Shahid", url: siteUrl },
+        publisher: { "@type": "Person", name: "Usman Shahid", url: siteUrl },
+        image: ogImage,
+        url: canonical,
+        mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+      }
+    : null;
 ---
 
 <!doctype html>
@@ -84,6 +121,12 @@ const personJsonLd = {
     <meta name="author" content="Usman Shahid" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Usman Shahid - Writing"
+      href="/rss.xml"
+    />
 
     <link
       rel="preload"
@@ -100,7 +143,7 @@ const personJsonLd = {
       crossorigin
     />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
@@ -109,6 +152,16 @@ const personJsonLd = {
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Usman Shahid · Staff Site Reliability Engineer" />
+    {
+      ogType === "article" && publishedTime && (
+        <meta property="article:published_time" content={publishedTime} />
+      )
+    }
+    {
+      ogType === "article" && modifiedTime && (
+        <meta property="article:modified_time" content={modifiedTime} />
+      )
+    }
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
@@ -138,6 +191,14 @@ const personJsonLd = {
       type="application/ld+json"
       set:html={JSON.stringify(personJsonLd)}
     />
+    {
+      articleJsonLd && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(articleJsonLd)}
+        />
+      )
+    }
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- fixed ambient field -->

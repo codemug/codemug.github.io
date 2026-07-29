@@ -204,6 +204,123 @@ html[data-theme="light"] {
   }
 }
 
+/* Prose - rendered Markdown for blog posts. Uses the site's design tokens so
+   posts match the hand-built pages in both themes. (Prose link styling comes
+   from the `main p a` / `main li a` rules in the base layer above.) */
+.prose {
+  color: var(--color-text-soft);
+  font-size: 16px;
+  line-height: 1.75;
+  letter-spacing: -0.005em;
+}
+.prose > * + * {
+  margin-top: 1.15em;
+}
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: var(--color-text);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  scroll-margin-top: 88px;
+}
+.prose h2 {
+  margin-top: 2.2em;
+  margin-bottom: 0.2em;
+  font-size: 1.45em;
+}
+.prose h3 {
+  margin-top: 1.8em;
+  margin-bottom: 0.1em;
+  font-size: 1.2em;
+}
+.prose h4 {
+  margin-top: 1.5em;
+  font-size: 1.05em;
+}
+.prose strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.35em;
+}
+.prose ul {
+  list-style: disc;
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose li {
+  margin-top: 0.4em;
+}
+.prose li::marker {
+  color: var(--color-text-dim);
+}
+.prose blockquote {
+  border-left: 2px solid var(--color-accent);
+  padding: 0.15em 0 0.15em 1.1em;
+  color: var(--color-text-muted);
+}
+.prose blockquote p {
+  margin-top: 0.5em;
+}
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: color-mix(in oklab, var(--color-text) 8%, transparent);
+  border: 1px solid var(--color-hairline);
+  border-radius: 5px;
+  padding: 0.12em 0.4em;
+}
+.prose pre {
+  background: var(--color-surface-deep);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1em 1.15em;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.prose pre code {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  font-size: inherit;
+}
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-hairline);
+  margin: 2.4em 0;
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--color-hairline);
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  display: block;
+  overflow-x: auto;
+}
+.prose th,
+.prose td {
+  border: 1px solid var(--color-border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+.prose th {
+  color: var(--color-text);
+  font-weight: 600;
+  background: var(--color-surface);
+}
+
 /* Custom scrollbar to match the dark surface */
 ::-webkit-scrollbar {
   width: 10px;

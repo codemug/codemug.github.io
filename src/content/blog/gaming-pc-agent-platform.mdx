@@ -1,0 +1,144 @@
+---
+title: "I created Primer, a context optimized, loop engineering AI platform so I can get meaningful work done on my 16GB VRAM"
+description: "I bought a 16GB gaming GPU, tried to get real work out of small local models, and ended up building Primer: a platform for running lots of tiny, focused agents instead of prompting one big one."
+pubDate: 2026-07-29
+tags: ["local-llms", "agents", "primer", "context-engineering"]
+draft: false
+---
+
+import Illo1 from "../../components/illustrations/Illo1.astro";
+import Illo2 from "../../components/illustrations/Illo2.astro";
+import Illo3 from "../../components/illustrations/Illo3.astro";
+import Illo4 from "../../components/illustrations/Illo4.astro";
+import Illo5 from "../../components/illustrations/Illo5.astro";
+import Illo6 from "../../components/illustrations/Illo6.astro";
+import Illo7 from "../../components/illustrations/Illo7.astro";
+import Illo8 from "../../components/illustrations/Illo8.astro";
+import Illo9 from "../../components/illustrations/Illo9.astro";
+import Illo10 from "../../components/illustrations/Illo10.astro";
+
+A few months ago I bought a gaming PC. Nothing fancy, an RTX 5060 Ti with 16GB of VRAM. I told myself it was for games. It mostly turned into a lab for one stubborn question: can I get real, useful work out of small language models running locally, on hardware I already own?
+
+16GB sounds like plenty until you try to fit a language model into it. That ceiling means you can run something around a 12B model, and only if you squeeze it down to about 4 bits per weight. So I grabbed the small open-weight models that fit, the little Qwen and Gemma builds, and pointed the popular community agents at them: opencode, pi, openclaw, hermes.
+
+<Illo1 />
+
+They were rough. Really rough. These agents are lovely with a frontier model behind them, but hand them a small local model and they fall apart. Wrong tools, lost plans, confident nonsense. My first instinct was that the models were simply too small to be useful. But that felt too easy, so instead of giving up I started pulling the whole thing apart to figure out why.
+
+## What actually happens inside the model
+
+I went all the way down to the transformer itself, because if I was going to blame the model, I wanted to know exactly what I was blaming.
+
+Two things happen to every token (roughly, a word) as it moves through the model.
+
+First there's attention. Each token looks around at all the other tokens in the input and pulls in the ones that matter for its meaning. The word "it" leans on whatever noun it points back to. The word "bank" leans on "river" or "money" depending on what's sitting nearby. Attention is how a token works out what it means in this particular sentence, by aligning itself toward the other tokens around it.
+
+Then there's the feed-forward part, the little perceptron layer. This is where the token gets matched against everything the model soaked up during training. It lines the token up against the facts and patterns baked into the weights and pulls in the related knowledge. So attention is the token looking sideways at its neighbors, and the feed-forward layer is the token looking inward at what the model already knows.
+
+Here's the catch, and it's the whole reason [Primer](https://primerhq.github.io/) exists. Both of these are a fixed budget being shared out. A token only has so much attention to spend, and it has to spread that across everything in the context. In a short, tight prompt, the handful of tokens that actually matter get a big, clean share. In a giant prompt stuffed with history, tool definitions, and half-relevant junk, those same important tokens are now competing with thousands of distractors. Each distractor pulls only a sliver, but there are so many of them that the signal gets buried.
+
+<Illo2 />
+
+You can see this in the wild. There's a well-known effect where a model finds a fact easily when it sits at the start or the end of a long input, and misses the exact same fact when it's buried in the middle. The more you cram in, the fuzzier the alignment gets. The model isn't broken. It has just been handed too much to pay attention to.
+
+That reframed the whole problem for me. The small model wasn't failing because it was small. It was failing because those community agents were burying it, dumping a huge system prompt, fifty tool definitions, and the entire conversation history into every single call. A frontier model can bulldoze through that noise. A small model can't. So the question stopped being "how do I get a bigger model" and became "what if I never let the alignment degrade in the first place?"
+
+## Perfect context
+
+My bet was simple. What if I hand a single model call the perfect context and nothing else?
+
+By perfect context I mean three things:
+
+- **Small.** Every token spends from the same attention budget, so tokens are a cost, not something free.
+- **Exactly enough.** Everything the model needs for this one task, and nothing it doesn't.
+- **Shaped for one job.** Not a general assistant that might be asked anything, just one narrow thing done well.
+
+One call like that can punch way above what you'd expect from a small model, because you've handed it the cleanest possible version of its job. The problem is that one call can only do one small thing, and real work is bigger than one small thing.
+
+So the next bet: what if I chain these calls together? Lots of small, focused calls, each with its own perfect context, passing work down the line. One writes, one checks, one summarizes, one decides. No single call ever has to hold the whole task in its head, so no single call ever gets buried.
+
+<Illo3 />
+
+That's the entire idea. Everything I built after this is just the machinery to make that chaining actually work, because it turns out that the moment you start chopping a task into tiny specialized pieces, a pile of new problems shows up. I ended up building a platform to solve them one at a time. I called it Primer.
+
+## Keeping each context small: tool routing
+
+The first thing that wrecks a context is tools.
+
+To let a model use a tool, you paste that tool's definition, its name, description, and arguments, into the prompt. Do that for two tools and it's fine. Do it for the fifty tools a real system accumulates and you've rebuilt the exact bloated context I was trying to escape, before the model has done a single thing. Worse, the model now has to pick the right tool out of a menu of fifty, which small models are bad at.
+
+I fixed this in two moves. First, every [agent](https://primerhq.github.io/docs/features/agents/) only gets the two or three specific tools it actually needs, never the whole catalog. Second, and this is the fun part, I gave agents [two meta-tools](https://primerhq.github.io/docs/toolsets/overview/) instead of many real ones: one to search for a tool by describing what it's trying to do, and one to call any tool by its id. The full catalog lives in a search index, not in the prompt. The agent describes its need, gets back the best two or three matches, and calls one. It can reach every tool in the system while carrying almost none of them in context.
+
+<Illo4 />
+
+## Making that trick general: an internal search subsystem
+
+Once tool search worked, I realized it generalizes to everything. If a growing pile of tools can live behind semantic search instead of in the prompt, then so can a growing pile of anything.
+
+So Primer keeps its own [internal, searchable catalogs](https://primerhq.github.io/docs/embedding/internal-collections/) of the things an agent might want, not just tools, but other agents, whole graphs, document collections, and the platform's own docs. An agent can ask "who around here knows how to summarize a PDF" and get back a short list of agents, instead of a context stuffed with every agent definition in the system. And there's a set of system tools so that once it finds the right thing, it can actually act on it: run that agent, query that collection, create a new one.
+
+<Illo5 />
+
+Small context, huge reachable surface. The agent expands only the branch it's standing on and leaves everything else indexed and out of the way.
+
+## Letting agents work together: workspaces
+
+Now I had lots of tiny agents that could find each other. But if each one runs in its own private little context, where does the shared work live? The thing one agent produces has to be visible to the next one.
+
+I looked at off-the-shelf sandboxes for this, and they had the exact disease I was trying to cure: huge tool surfaces and heavy conventions that land right back in the context. So I stripped the idea down to the bone. A [workspace](https://primerhq.github.io/docs/workspaces/overview/) in Primer is just two things: a shared folder and a place to run commands. Agents read and write the same files and run shell commands against them. There's a small fixed set of file tools and one rule: you have to read a file before you overwrite it, so two agents don't quietly stomp on each other's work.
+
+The surprising bit is how much "rich tooling" turns out to be just structured file operations underneath. A task list, for example, is really just a file with some checkboxes that an agent reads and edits. I didn't need a special task-list feature. I needed a file and a prompt.
+
+<Illo6 />
+
+## Putting them in order: directed cyclic graphs
+
+Sharing a folder tells agents nothing about who goes first or when to stop. For that I added [graphs](https://primerhq.github.io/docs/graphs/overview/).
+
+A Primer graph is just a set of agent steps wired together with edges. The important choice was letting those edges loop back on themselves, so a graph is allowed to cycle. A single cap on the number of iterations keeps a loop from running forever. That one allowance unlocked the pattern I most wanted to try: a producer and a judge. One agent writes something, another agent critiques it and either accepts it or sends it back with specific feedback. The producer revises, the judge looks again, round and round until it's good enough.
+
+<Illo7 />
+
+This is the moment small models start to look bigger than they are. Neither agent is a genius. The producer only knows how to produce, the judge only knows how to criticize. But the loop itself supplies the quality that no single pass had. You can also fan a task out across many parallel agents and fan the results back in, which is how one big job gets chopped into small pieces and stitched back together.
+
+There's a cost hiding in here, and I want to be honest about it. Work that a frontier model would do in one expensive pass is now spread across many small passes arranged over time. I traded raw compute for time. Which leads straight into the next problem.
+
+## Letting loops run on their own: event-driven execution
+
+A feedback loop that grinds away until a judge is finally happy can take a while. Minutes. Sometimes a lot longer. You can't ask a person to sit and hold a chat window open the whole time, and you can't have a long run hogging a worker either.
+
+So I made execution event-driven. A run can park itself. When an agent hits a point where it has to wait, it [yields](https://primerhq.github.io/docs/workspaces/yielding-tools/), saves its state, and lets the worker go do something else. When the thing it was waiting for finally shows up, the run gets picked back up right where it left off. Waiting on a person works this way (the run parks until they answer, and the answer can come back through Slack or Telegram or wherever they actually are), and so does waiting on a schedule or an event through [triggers](https://primerhq.github.io/docs/features/triggers/).
+
+<Illo8 />
+
+Now a chain of agents can run for hours or days. It pauses to ask a human, sleeps until nine in the morning, waits for some external event, and through all of it holds nothing open. The time I traded compute for is finally time the platform can actually sit through.
+
+## Keeping it useful and safe: web search and approvals
+
+Two more pieces made this comfortable to actually use.
+
+First, web search, as a real built-in rather than something bolted on the side. A small model's baked-in knowledge is fixed and often stale, so letting an agent pull in live information matters a lot. Any agent can search the web through [one clean tool](https://primerhq.github.io/docs/web/overview/), without dragging provider details around in its context.
+
+Second, approvals. Once agents can discover and call any tool, and can run for a long time with nobody watching, you want a gate. So I added [approval policies](https://primerhq.github.io/docs/toolsets/toolsets-approvals/): certain sensitive tool calls pause and wait for a human to sign off before they run. It uses the exact same park-and-resume machinery as everything else. The agent stops at the gate, a person says yes or no, and the run either continues or records the denial.
+
+<Illo9 />
+
+## Sharing the hard part: harnesses
+
+Here's the thing I didn't see coming. Tuning an agent's context is real work. You shape the prompt, prune the tools, adjust the graph it sits in, and you only converge on something good after several passes. That final setup is valuable, and it felt wrong to keep re-deriving it, or to keep it locked in my own head.
+
+So I turned a tuned configuration into a portable thing I called a [harness](https://primerhq.github.io/docs/features/harnesses/). It's basically Helm for Primer: a git-backed bundle of agents, tools, collections, and graphs that someone can install in one step, and that someone else can build and publish. My hard-won context tuning becomes something you can just grab and run, without redoing all the iteration.
+
+<Illo10 />
+
+That's the part that makes the open-source version genuinely interesting to me. A community can pile up and trade these tuned configs, each one a packaged answer to "here's a context that makes a small model do this specific job well."
+
+## The honest part
+
+I should be clear that this is a bet, not a proven result. "A fleet of small, well-fed models can match a big one on a task you've broken into pieces" is a hypothesis, and Primer is the apparatus I built to test it, not the evidence that it's true.
+
+But here's the part I keep coming back to. That attention dilution I started with isn't a small-model problem. Every transformer has it, frontier models included. They just have more horsepower to push through the noise. Which means cleaning up context isn't a crutch for weak hardware. It's a lever on the whole class of models. It turns a small model from unusable into useful, and it makes a big model better too.
+
+Capability was never only about how large your model is. It's also about how well you manage what it pays attention to. That's the whole idea behind Primer, and my little 16GB gaming PC is what made me take it seriously.
+
+[Primer](https://primerhq.github.io/) is open source, so you can dig into exactly how it's put together: the code is [on GitHub](https://github.com/primerhq/primer), and the [documentation](https://primerhq.github.io/docs/getting-started/introduction/) walks through every piece, from agents to graphs to harnesses. If you want to try it yourself, start with the [quickstart](https://primerhq.github.io/docs/getting-started/quickstart/).

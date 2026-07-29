@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 import sitemap from '@astrojs/sitemap';
 
+import mdx from '@astrojs/mdx';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://codemug.github.io',
@@ -17,5 +19,5 @@ export default defineConfig({
     inlineStylesheets: 'auto'
   },
 
-  integrations: [sitemap()]
+  integrations: [mdx(), sitemap()]
 });
