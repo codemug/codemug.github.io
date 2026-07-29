@@ -88,6 +88,24 @@ const personJsonLd = {
     "https://medium.com/@usmanshahid",
   ],
 };
+
+// BlogPosting structured data for article pages (SEO / rich results).
+const articleJsonLd =
+  ogType === "article"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description,
+        datePublished: publishedTime,
+        dateModified: modifiedTime ?? publishedTime,
+        author: { "@type": "Person", name: "Usman Shahid", url: siteUrl },
+        publisher: { "@type": "Person", name: "Usman Shahid", url: siteUrl },
+        image: ogImage,
+        url: canonical,
+        mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+      }
+    : null;
 ---
 
 <!doctype html>
@@ -173,6 +191,14 @@ const personJsonLd = {
       type="application/ld+json"
       set:html={JSON.stringify(personJsonLd)}
     />
+    {
+      articleJsonLd && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(articleJsonLd)}
+        />
+      )
+    }
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- fixed ambient field -->
