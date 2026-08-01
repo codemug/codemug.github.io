@@ -1,0 +1,177 @@
+---
+// A responsive grid of YouTube "lite embeds": each card shows the video's
+// thumbnail as a facade and only loads the real (cookieless) player iframe
+// when the reader clicks it. Fast, private, and dependency-free.
+interface Video {
+  id: string;
+  title: string;
+  author?: string;
+}
+interface Props {
+  videos: Video[];
+}
+const { videos } = Astro.props;
+---
+
+<div class="yt-grid">
+  {
+    videos.map((v) => (
+      <figure class="yt-lite" data-id={v.id}>
+        <button
+          type="button"
+          class="yt-frame"
+          aria-label={`Play video: ${v.title}${v.author ? ` (${v.author})` : ""}`}
+        >
+          <img
+            class="yt-thumb"
+            src={`https://i.ytimg.com/vi/${v.id}/maxresdefault.jpg`}
+            data-fallback={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`}
+            alt=""
+            loading="lazy"
+            width="1280"
+            height="720"
+          />
+          <span class="yt-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26">
+              <path d="M8 5v14l11-7z" fill="currentColor" />
+            </svg>
+          </span>
+        </button>
+        <figcaption class="yt-cap">
+          <span class="yt-title">{v.title}</span>
+          {v.author && <span class="yt-author">{v.author}</span>}
+        </figcaption>
+      </figure>
+    ))
+  }
+</div>
+
+<style>
+  .yt-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.1rem;
+  }
+  .yt-lite {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+  .yt-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--color-surface-deep);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .yt-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    /* Override the global `.prose img` frame — the button already frames it. */
+    border: 0;
+    border-radius: 0;
+    transition: transform 0.35s ease, filter 0.35s ease;
+  }
+  .yt-badge {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    padding-left: 3px;
+    color: #fff;
+    background: color-mix(in oklab, #000 55%, transparent);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    backdrop-filter: blur(2px);
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .yt-frame:hover .yt-thumb,
+  .yt-frame:focus-visible .yt-thumb {
+    transform: scale(1.03);
+    filter: brightness(0.9);
+  }
+  .yt-frame:hover .yt-badge,
+  .yt-frame:focus-visible .yt-badge {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    transform: scale(1.08);
+    border-color: transparent;
+  }
+  .yt-frame:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .yt-cap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    line-height: 1.35;
+  }
+  .yt-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+  }
+  .yt-author {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--color-text-dim);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .yt-thumb,
+    .yt-badge {
+      transition: none;
+    }
+    .yt-frame:hover .yt-thumb,
+    .yt-frame:focus-visible .yt-thumb {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".yt-lite").forEach((fig) => {
+    // Some videos have no maxres thumbnail; fall back to the always-present one.
+    const img = fig.querySelector<HTMLImageElement>(".yt-thumb");
+    if (img) {
+      img.addEventListener(
+        "error",
+        () => {
+          const fb = img.dataset.fallback;
+          if (fb && img.src !== fb) img.src = fb;
+        },
+        { once: true },
+      );
+    }
+
+    const btn = fig.querySelector<HTMLButtonElement>(".yt-frame");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const id = fig.dataset.id;
+      if (!id) return;
+      const iframe = document.createElement("iframe");
+      iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+      iframe.title =
+        fig.querySelector(".yt-title")?.textContent || "YouTube video";
+      iframe.allow =
+        "autoplay; encrypted-media; picture-in-picture; web-share; fullscreen";
+      iframe.allowFullscreen = true;
+      iframe.style.cssText =
+        "width:100%;aspect-ratio:16/9;display:block;border:1px solid var(--color-border);border-radius:10px;";
+      btn.replaceWith(iframe);
+    });
+  });
+</script>

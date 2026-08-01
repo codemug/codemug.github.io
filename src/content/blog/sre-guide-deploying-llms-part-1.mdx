@@ -8,6 +8,7 @@ draft: false
 
 import AnimRuntime from "../../components/illustrations/anim/AnimRuntime.astro";
 import Fig from "../../components/illustrations/anim/Fig.astro";
+import YouTubeGrid from "../../components/YouTubeGrid.astro";
 
 <AnimRuntime />
 
@@ -17,10 +18,30 @@ As SREs, we can deploy and ensure the reliability of a workload only because we 
 
 On the surface, LLMs look like microservices, because invoking one looks like you're just talking to an HTTP endpoint, but they're absolutely nothing like a regular microservice. Under the hood, an LLM is a hyper-parallelized matrix-multiplication beast that takes some know-how of machine learning, specifically deep learning, which I'm not going to go into. Frankly, understanding transformers opens the Pandora's box of neural networks, gradient descent, matrices, linear algebra, and probability and statistics: a very dry and steep learning curve, one that's hard to justify for SREs. ML engineers spend a good portion of their studies mastering all of this, and if you can, I do highly recommend building at least a high-level understanding when you have the time and energy. Once the concepts click, they're fairly simple, and also fascinating. If you do decide to go down this path, I highly recommend Grant Sanderson's videos on attention, which helped me build a mental model of what's going on:
 
-- https://www.youtube.com/watch?v=KJtZARuO3JY
-- https://www.youtube.com/watch?v=eMlx5fFNoYc
-- https://www.youtube.com/watch?v=wjZofJX0v4M
-- https://www.youtube.com/watch?v=9-Jl0dxWQs8
+<YouTubeGrid
+  videos={[
+    {
+      id: "wjZofJX0v4M",
+      title: "Transformers, the tech behind LLMs | Deep Learning Chapter 5",
+      author: "3Blue1Brown",
+    },
+    {
+      id: "eMlx5fFNoYc",
+      title: "Attention in transformers, step-by-step | Deep Learning Chapter 6",
+      author: "3Blue1Brown",
+    },
+    {
+      id: "9-Jl0dxWQs8",
+      title: "How might LLMs store facts | Deep Learning Chapter 7",
+      author: "3Blue1Brown",
+    },
+    {
+      id: "KJtZARuO3JY",
+      title: "Visualizing transformers and attention | TNG Big Tech Day '24",
+      author: "Grant Sanderson",
+    },
+  ]}
+/>
 
 But today I'm only going to touch these subjects superficially, and try to explain them in the simplest terms I can.
 
