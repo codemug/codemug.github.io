@@ -8,6 +8,7 @@ draft: false
 
 import AnimRuntime from "../../components/illustrations/anim/AnimRuntime.astro";
 import Fig from "../../components/illustrations/anim/Fig.astro";
+import YouTubeGrid from "../../components/YouTubeGrid.astro";
 
 <AnimRuntime />
 
@@ -17,10 +18,30 @@ As SREs, we can deploy and ensure the reliability of a workload only because we 
 
 On the surface, LLMs look like microservices, because invoking one looks like you're just talking to an HTTP endpoint, but they're absolutely nothing like a regular microservice. Under the hood, an LLM is a hyper-parallelized matrix-multiplication beast that takes some know-how of machine learning, specifically deep learning, which I'm not going to go into. Frankly, understanding transformers opens the Pandora's box of neural networks, gradient descent, matrices, linear algebra, and probability and statistics: a very dry and steep learning curve, one that's hard to justify for SREs. ML engineers spend a good portion of their studies mastering all of this, and if you can, I do highly recommend building at least a high-level understanding when you have the time and energy. Once the concepts click, they're fairly simple, and also fascinating. If you do decide to go down this path, I highly recommend Grant Sanderson's videos on attention, which helped me build a mental model of what's going on:
 
-- https://www.youtube.com/watch?v=KJtZARuO3JY
-- https://www.youtube.com/watch?v=eMlx5fFNoYc
-- https://www.youtube.com/watch?v=wjZofJX0v4M
-- https://www.youtube.com/watch?v=9-Jl0dxWQs8
+<YouTubeGrid
+  videos={[
+    {
+      id: "wjZofJX0v4M",
+      title: "Transformers, the tech behind LLMs | Deep Learning Chapter 5",
+      author: "3Blue1Brown",
+    },
+    {
+      id: "eMlx5fFNoYc",
+      title: "Attention in transformers, step-by-step | Deep Learning Chapter 6",
+      author: "3Blue1Brown",
+    },
+    {
+      id: "9-Jl0dxWQs8",
+      title: "How might LLMs store facts | Deep Learning Chapter 7",
+      author: "3Blue1Brown",
+    },
+    {
+      id: "KJtZARuO3JY",
+      title: "Visualizing transformers and attention | TNG Big Tech Day '24",
+      author: "Grant Sanderson",
+    },
+  ]}
+/>
 
 But today I'm only going to touch these subjects superficially, and try to explain them in the simplest terms I can.
 
@@ -119,7 +140,11 @@ Finally, we sample: we draw one token at random using those probabilities as wei
 
 That is the whole forward pass: text becomes tokens, tokens become embeddings, attention lets them influence each other, the feed-forward step folds in learned facts, a stack of these layers refines the result, and a final scoring-and-sampling step picks the next token, on repeat.
 
+<Fig name="forward" />
+
 Now step back and notice one thing about all of this. Everything we've walked through, the embedding lookup, then attention and the feed-forward step repeated across every layer, then the final scoring, is the structure of the transformer. And here's the point I want to land: this exact same structure is what runs during training. There's no separate training-time machine. At the start, every number in it is random: the embedding table, the Wq, Wk, Wv, Wu, and Wd in each layer, and the output table. We run this structure forward on a piece of training text to predict the next token, we measure how far off that prediction is from the token that actually came next, and we push that single "how off we are" number back through the whole structure, nudging every number in it in proportion to how much it contributed to the error. That's gradient descent, the same mechanism I described for the embeddings, except now you can see it's tuning everything at once, in one pass, repeated over and over across enormous amounts of text. Inference, the thing that actually serves your request, is just this same forward pass with all of those numbers now frozen in place.
+
+<Fig name="trainpass" />
 
 And this is exactly why an LLM is nothing like the microservice it resembles from the outside. A single response is not one cheap request; it's this entire stack run once per token, looping until the model decides to stop. That one fact, that the unit of work is a token and not a request, is what reshapes everything an SRE cares about: latency, throughput, batching, memory, and cost. In the next part, we'll start turning this understanding into the numbers we actually deploy against.
 

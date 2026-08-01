@@ -228,3 +228,38 @@ const { name } = Astro.props;
     </div>
   </figure>
 )}
+
+{name === "forward" && (
+  <figure class="fp ill fwd" tabindex="0" data-dwell="2300"
+    data-captions='["Select each token’s embedding from the table.","Attention: every token pulls in context from the others.","Feed-forward: learned facts are folded into each token.","The same attention and feed-forward pair repeats through the middle layers.","The final layer applies attention and feed-forward one last time.","The last position is scored against the vocabulary to pick the next token."]'>
+    <div class="fp-stage">
+      <div class="ttl">forward pass · inference</div>
+      <div class="col">
+        <div class="st s1"><span class="lb">select embeddings</span></div>
+        <div class="st s2"><span class="lb">attention <em>· layer 1</em></span></div>
+        <div class="st s3"><span class="lb">feed-forward <em>· layer 1</em></span></div>
+        <div class="st mid s4"><span class="lb">layers 2 to 33 <em>· attention + feed-forward</em></span></div>
+        <div class="st s5"><span class="lb">attention <em>· layer 34</em></span></div>
+        <div class="st s6"><span class="lb">feed-forward <em>· layer 34</em></span></div>
+        <div class="st out s7"><span class="lb">dot product → next token</span><span class="pred pill">mat</span></div>
+      </div>
+    </div>
+  </figure>
+)}
+
+{name === "trainpass" && (
+  <figure class="fp ill tp" tabindex="0" data-dwell="2500"
+    data-captions='["A partial training sentence selects its token embeddings.","The full stack of layers runs forward, the same as at inference.","The model predicts a next token, often wrong early in training.","Score the guess against the real next token: how large is the error?","Backpropagate: nudge every weight, and the input tokens’ embeddings, in proportion to the error."]'>
+    <div class="fp-stage">
+      <div class="ttl">training · one step</div>
+      <div class="col">
+        <div class="st i1"><span class="lb">input <em>· “The cat sat on”</em></span></div>
+        <div class="st i2"><span class="lb">embedding lookup</span></div>
+        <div class="st i3"><span class="lb">layers 1 to 34 <em>· attention + feed-forward</em></span></div>
+        <div class="st i4"><span class="lb">dot product → prediction</span><span class="pred pill">dog</span></div>
+      </div>
+      <div class="cmp"><span class="mut">guess</span><span class="pill">dog</span><span class="ar">vs</span><span class="mut">actual</span><span class="chip">mat</span><span class="err">→ error <b>large</b></span></div>
+      <div class="bp">← backpropagate: nudge every weight and the input tokens’ embeddings, proportional to the error</div>
+    </div>
+  </figure>
+)}
