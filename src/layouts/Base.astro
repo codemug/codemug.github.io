@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import { CF_BEACON_TOKEN } from "../consts";
 
 interface Props {
   title: string;
@@ -196,6 +197,19 @@ const articleJsonLd =
         <script
           type="application/ld+json"
           set:html={JSON.stringify(articleJsonLd)}
+        />
+      )
+    }
+
+    {/* Cloudflare Web Analytics — privacy-first, no cookies. Renders only when
+        a beacon token is configured in src/consts.ts. */}
+    {
+      CF_BEACON_TOKEN && (
+        <script
+          type="module"
+          is:inline
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={`{"token": "${CF_BEACON_TOKEN}"}`}
         />
       )
     }

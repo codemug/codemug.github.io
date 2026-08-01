@@ -1,0 +1,104 @@
+---
+// Comments + reactions via giscus, backed by GitHub Discussions. No database,
+// no build dependency — data lives in this repo's Discussions.
+//
+// One-time setup (repo owner): install the giscus GitHub App and grant it
+// access to this repo -> https://github.com/apps/giscus
+// (Discussions is already enabled and the IDs below are this repo's.)
+const GISCUS = {
+  repo: "codemug/codemug.github.io",
+  repoId: "R_kgDOSqw0-w",
+  category: "Announcements",
+  categoryId: "DIC_kwDOSqw0-84DCd5X",
+};
+---
+
+<section class="comments" aria-label="Comments and reactions">
+  <h2 class="comments-h">Comments &amp; reactions</h2>
+  <p class="comments-note">
+    React or leave a comment below — sign in with GitHub. It all lives in this
+    site's <a
+      href="https://github.com/codemug/codemug.github.io/discussions"
+      target="_blank"
+      rel="noopener noreferrer">GitHub Discussions</a
+    >.
+  </p>
+  <div id="giscus-mount"></div>
+</section>
+
+<script is:inline define:vars={{ GISCUS }}>
+  (function () {
+    var mount = document.getElementById("giscus-mount");
+    if (!mount) return;
+    var theme = function () {
+      return document.documentElement.getAttribute("data-theme") === "light"
+        ? "light"
+        : "dark";
+    };
+    var s = document.createElement("script");
+    s.src = "https://giscus.app/client.js";
+    var attrs = {
+      "data-repo": GISCUS.repo,
+      "data-repo-id": GISCUS.repoId,
+      "data-category": GISCUS.category,
+      "data-category-id": GISCUS.categoryId,
+      "data-mapping": "pathname",
+      "data-strict": "0",
+      "data-reactions-enabled": "1",
+      "data-emit-metadata": "0",
+      "data-input-position": "top",
+      "data-theme": theme(),
+      "data-lang": "en",
+      "data-loading": "lazy",
+    };
+    Object.keys(attrs).forEach(function (k) {
+      s.setAttribute(k, attrs[k]);
+    });
+    s.crossOrigin = "anonymous";
+    s.async = true;
+    mount.appendChild(s);
+
+    // Keep giscus's theme in sync with the site's light/dark toggle.
+    new MutationObserver(function () {
+      var f = document.querySelector("iframe.giscus-frame");
+      if (!f || !f.contentWindow) return;
+      f.contentWindow.postMessage(
+        { giscus: { setConfig: { theme: theme() } } },
+        "https://giscus.app",
+      );
+    }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  })();
+</script>
+
+<style>
+  .comments {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-hairline);
+  }
+  .comments-h {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text);
+    margin: 0 0 0.35rem;
+  }
+  .comments-note {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--color-text-dim);
+    margin: 0 0 1.5rem;
+  }
+  .comments-note a {
+    color: var(--color-text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .comments-note a:hover {
+    color: var(--color-text);
+  }
+</style>

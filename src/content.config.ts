@@ -22,6 +22,8 @@ const blog = defineCollection({
     // Optional per-post social-card image (absolute path from /public, e.g.
     // "/og/my-post.png"). Falls back to the site default.
     ogImage: z.string().optional(),
+    // Show the giscus comments + reactions section. Set false to opt a post out.
+    comments: z.boolean().default(true),
   }),
 });
 
