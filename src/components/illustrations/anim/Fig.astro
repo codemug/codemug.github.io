@@ -1,0 +1,230 @@
+---
+// One animated illustration, chosen by `name`. Requires <AnimRuntime /> once on
+// the page (it provides the styles + the player that auto-inits every `.fp`).
+interface Props { name: string; }
+const { name } = Astro.props;
+---
+{name === "tokenize" && (
+  <figure class="fp tok" tabindex="0" data-dwell="2600"
+    data-captions='["The sentence, as plain text.","It breaks into tokens. “LLMs” splits into two pieces: ▁ll + ms.","Each token is looked up in the vocabulary to get its id."]'>
+    <div class="fp-stage">
+      <div class="layer sentence">I can reliably deploy LLMs</div>
+      <div class="layer words">
+        <span class="tw"><span class="w"><span class="piece">I</span></span><span class="ids"><span class="id">236777</span></span></span>
+        <span class="tw"><span class="w"><span class="piece">can</span></span><span class="ids"><span class="id">740</span></span></span>
+        <span class="tw"><span class="w"><span class="piece">reliably</span></span><span class="ids"><span class="id">65372</span><span class="id">1162</span></span></span>
+        <span class="tw"><span class="w"><span class="piece">deploy</span></span><span class="ids"><span class="id">236758</span><span class="id">1088</span></span></span>
+        <span class="tw sp"><span class="w"><span class="piece">▁ll</span></span><span class="ids"><span class="id">15292</span></span></span>
+        <span class="tw sp"><span class="w"><span class="piece">ms</span></span><span class="ids"><span class="id">1356</span></span></span>
+      </div>
+      <div class="note">5 words → 8 tokens · a word can map to more than one token</div>
+    </div>
+  </figure>
+)}
+
+{name === "config" && (
+  <figure class="fp ill cfg" tabindex="0" data-dwell="2600" data-captions='["The model’s real config.json (the text model).","hidden_size — the length of every token’s embedding.","intermediate_size — the width of the feed-forward step (≈ 4× hidden_size).","num_hidden_layers — how many attention + FFN blocks are stacked."]'>
+    <div class="fp-stage">
+      <div>
+        <div class="panel">
+          <span class="ln"><span class="k">"model_type"</span>: <span class="val">"gemma3_text"</span>,</span>
+          <span class="ln l-hs"><span class="k">"hidden_size"</span>: <span class="val">2560</span>,</span>
+          <span class="ln l-is"><span class="k">"intermediate_size"</span>: <span class="val">10240</span>,</span>
+          <span class="ln l-nl"><span class="k">"num_hidden_layers"</span>: <span class="val">34</span>,</span>
+          <span class="ln"><span class="k">"torch_dtype"</span>: <span class="val">"bfloat16"</span></span>
+        </div>
+        <div class="callout"><span class="co co-1">the numbers that set the model’s shape</span><span class="co co-2"><b>2560</b> numbers per embedding</span><span class="co co-3">the wide layer is <b>4×</b> hidden_size</span><span class="co co-4"><b>34</b> stacked layers</span></div>
+      </div>
+    </div>
+  </figure>
+)}
+
+{name === "tokenloop" && (
+  <figure class="fp ill loop" tabindex="0" data-dwell="2200" data-captions='["The input so far, as tokens.","The transformer reads it all and predicts one next token.","That token is appended to the input.","The longer input is fed back in, predicting the next token.","…and so on, until it predicts an end-of-sentence token."]'>
+    <div class="fp-stage">
+      <div class="ctx"><span class="chip">The</span><span class="chip">cat</span><span class="chip">sat</span><span class="chip">on</span><span class="chip">the</span><span class="chip t-mat">mat</span><span class="chip t-dot">.</span></div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="ar">↑</span><span class="box">transformer</span><span class="ar">↓</span></div>
+      <div class="gen"><span class="mut">predicts →</span><span class="pill g-mat">mat</span><span class="pill g-dot">.</span></div>
+      <div class="end mut">↳ end-of-sentence token — stop</div>
+    </div>
+  </figure>
+)}
+
+{name === "embeddings" && (
+  <figure class="fp ill emb" tabindex="0" data-dwell="2400" data-captions='["The token ids from the sentence.","Each id looks up its row in the embedding table — a vector of numbers.","Every token now has its own embedding (2560 numbers)."]'>
+    <div class="fp-stage">
+      <div class="ids"><span class="idc">740</span><span class="idc">236758</span><span class="idc">15292</span></div>
+      <span class="ar">→</span>
+      <div class="out">
+        <div class="row r1"><span class="lead">740</span><span class="v"><i style="--v:20"></i><i style="--v:55"></i><i style="--v:35"></i><i style="--v:75"></i><i style="--v:15"></i></span><span class="mut">… (2560)</span></div>
+        <div class="row r2"><span class="lead">236758</span><span class="v"><i style="--v:70"></i><i style="--v:25"></i><i style="--v:60"></i><i style="--v:40"></i><i style="--v:80"></i></span><span class="mut">… (2560)</span></div>
+        <div class="row r3"><span class="lead">15292</span><span class="v"><i style="--v:45"></i><i style="--v:85"></i><i style="--v:20"></i><i style="--v:55"></i><i style="--v:30"></i></span><span class="mut">… (2560)</span></div>
+      </div>
+    </div>
+  </figure>
+)}
+
+{name === "training" && (
+  <figure class="fp ill trn" tabindex="0" data-dwell="2400" data-captions='["A training sentence, split into two parts.","The first part goes through the network, which guesses the rest.","We measure how far the guess is from the real continuation.","Backpropagation nudges the weights — and only the input tokens’ embeddings get updated."]'>
+    <div class="fp-stage">
+      <div class="split"><div class="part first"><span class="chip">The</span><span class="chip">cat</span><span class="chip">sat</span><span class="chip">on</span></div><span class="sep">|</span><div class="part"><span class="chip">the</span><span class="chip">mat</span></div></div>
+      <div class="nn">neural network</div>
+      <div class="guess"><span class="mut">guess:</span><span class="chip">the</span><span class="chip">dog</span></div>
+      <div class="err">vs actual “the mat” — error: <b>large</b></div>
+      <div class="bp">← backpropagate · only the input tokens’ embeddings update</div>
+    </div>
+  </figure>
+)}
+
+{name === "attention" && (
+  <figure class="fp attn" tabindex="0" data-dwell="2700"
+    data-captions='["Start with the embedding of each token.","Multiply each embedding by Wq, Wk, Wv to get a query, key and value per token.","Lay the queries down the side and the keys across the top.","Fill each cell with query · key — the score. Higher = more relevant.","Weight each token’s value by its score (here, for “ball”).","Sum the weighted values and add them onto the original embedding."]'>
+    <div class="fp-stage">
+      <div class="layer a1">
+        <div class="ttl">embeddings</div>
+        <div class="row"><span class="tok">the</span><span class="v"><i style="--v:20"></i><i style="--v:55"></i><i style="--v:35"></i><i style="--v:10"></i></span></div>
+        <div class="row"><span class="tok">golf</span><span class="v"><i style="--v:80"></i><i style="--v:25"></i><i style="--v:60"></i><i style="--v:45"></i></span></div>
+        <div class="row"><span class="tok">ball</span><span class="v"><i style="--v:40"></i><i style="--v:70"></i><i style="--v:20"></i><i style="--v:85"></i></span></div>
+      </div>
+      <div class="layer a2">
+        <div class="ttl">× Wq, Wk, Wv</div>
+        <div class="row"><span class="tok">the</span><span class="ar">→</span><div class="qkv"><b><em>q</em><span class="v"><i style="--v:30"></i><i style="--v:60"></i><i style="--v:20"></i></span></b><b><em>k</em><span class="v teal"><i></i><i></i><i></i></span></b><b><em>v</em><span class="v"><i style="--v:50"></i><i style="--v:15"></i><i style="--v:40"></i></span></b></div></div>
+        <div class="row"><span class="tok">golf</span><span class="ar">→</span><div class="qkv"><b><em>q</em><span class="v"><i style="--v:70"></i><i style="--v:30"></i><i style="--v:55"></i></span></b><b><em>k</em><span class="v teal"><i></i><i></i><i></i></span></b><b><em>v</em><span class="v"><i style="--v:85"></i><i style="--v:40"></i><i style="--v:60"></i></span></b></div></div>
+        <div class="row"><span class="tok">ball</span><span class="ar">→</span><div class="qkv"><b><em>q</em><span class="v"><i style="--v:65"></i><i style="--v:35"></i><i style="--v:50"></i></span></b><b><em>k</em><span class="v teal"><i></i><i></i><i></i></span></b><b><em>v</em><span class="v"><i style="--v:45"></i><i style="--v:75"></i><i style="--v:25"></i></span></b></div></div>
+      </div>
+      <div class="layer a3">
+        <div class="ttl">queries × keys</div>
+        <div class="grid">
+          <span class="h"></span><span class="h">the</span><span class="h">golf</span><span class="h">ball</span>
+          <span class="h">the</span><span class="c"></span><span class="c"></span><span class="c"></span>
+          <span class="h">golf</span><span class="c"></span><span class="c"></span><span class="c"></span>
+          <span class="h">ball</span><span class="c"></span><span class="c"></span><span class="c"></span>
+        </div>
+      </div>
+      <div class="layer a4">
+        <div class="ttl">q · k = score</div>
+        <div class="grid">
+          <span class="h"></span><span class="h">the</span><span class="h">golf</span><span class="h">ball</span>
+          <span class="h">the</span><span class="c hi">.8</span><span class="c">.1</span><span class="c">.1</span>
+          <span class="h">golf</span><span class="c">.1</span><span class="c hi">.7</span><span class="c">.2</span>
+          <span class="h">ball</span><span class="c">.1</span><span class="c hi">.7</span><span class="c">.2</span>
+        </div>
+      </div>
+      <div class="layer a5">
+        <div class="ttl">ball: value × score</div>
+        <div class="row"><span class="tok">the</span><span class="cap2">.1 ×</span><span class="v" style="opacity:.3"><i style="--v:50"></i><i style="--v:15"></i><i style="--v:40"></i></span></div>
+        <div class="row"><span class="tok">golf</span><span class="cap2">.7 ×</span><span class="v"><i style="--v:85"></i><i style="--v:40"></i><i style="--v:60"></i></span></div>
+        <div class="row"><span class="tok">ball</span><span class="cap2">.2 ×</span><span class="v" style="opacity:.5"><i style="--v:45"></i><i style="--v:75"></i><i style="--v:25"></i></span></div>
+      </div>
+      <div class="layer a6">
+        <div class="ttl">new “ball” vector</div>
+        <div class="row"><span class="tok">ball</span><span class="v"><i style="--v:40"></i><i style="--v:70"></i><i style="--v:20"></i><i style="--v:85"></i></span><span class="ar">+</span><span class="cap2">Σ weighted values</span></div>
+        <div class="row"><span class="tok">=</span><span class="v"><i style="--v:72"></i><i style="--v:52"></i><i style="--v:44"></i><i style="--v:80"></i></span></div>
+      </div>
+    </div>
+  </figure>
+)}
+
+{name === "ffn" && (
+  <figure class="fp ill ffn" tabindex="0" data-dwell="2400" data-captions='["Multiply the token’s vector by Wu — it grows much wider.","The activation keeps the strong matches and zeroes the weak ones.","Multiply by Wd to shrink back, and add the result onto the token."]'>
+    <div class="fp-stage">
+      <div class="stg">
+        <div><div class="v"><i style="--v:40"></i><i style="--v:70"></i><i style="--v:25"></i><i style="--v:85"></i></div><div class="lab">2560</div></div>
+        <span class="ar">× Wu →</span>
+        <div class="wide"><div class="v"><i style="--v:75"></i><i class="weak" style="--v:8"></i><i style="--v:90"></i><i class="weak" style="--v:12"></i><i style="--v:60"></i><i class="weak" style="--v:6"></i><i style="--v:82"></i><i class="weak" style="--v:14"></i></div><div class="lab">10240 · activations</div></div>
+        <span class="ar down">× Wd →</span>
+        <div class="down"><div class="v"><i style="--v:55"></i><i style="--v:35"></i><i style="--v:62"></i><i style="--v:22"></i></div><div class="lab">2560 · added back</div></div>
+      </div>
+    </div>
+  </figure>
+)}
+
+{name === "nextword" && (
+  <figure class="fp ill nw" tabindex="0" data-dwell="2400" data-captions='["The final vector at the last position (highlighted).","Dot it against every word in the vocabulary → a score (logit) per word.","Divide by temperature, then softmax → probabilities to sample from."]'>
+    <div class="fp-stage">
+      <div class="vecs"><span class="v"><i style="--v:30"></i><i style="--v:60"></i><i style="--v:20"></i><i style="--v:50"></i></span><span class="v"><i style="--v:70"></i><i style="--v:25"></i><i style="--v:55"></i><i style="--v:40"></i></span><span class="v last"><i style="--v:45"></i><i style="--v:80"></i><i style="--v:30"></i><i style="--v:65"></i></span></div>
+      <span class="ar">·</span>
+      <div class="scores">
+        <div class="sc"><span class="w">mat</span><span class="bw"><span class="bar" style="width:82%"></span></span><span class="val">2.0</span></div>
+        <div class="sc"><span class="w">rug</span><span class="bw"><span class="bar" style="width:52%"></span></span><span class="val">1.0</span></div>
+        <div class="sc"><span class="w">floor</span><span class="bw"><span class="bar" style="width:34%"></span></span><span class="val">0.4</span></div>
+        <div class="sc tnote"><span class="w"></span><span class="mut">÷ T → softmax → probs</span></div>
+      </div>
+    </div>
+  </figure>
+)}
+
+{name === "temperature" && (
+  <figure class="fp temp" tabindex="0" data-dwell="2600"
+    data-captions='["Three candidate tokens and their probabilities at temperature 1.","Lower temperature (T = 0.5) sharpens: the top token dominates.","Higher temperature (T = 2) flattens: more spread, more random.","top-k / top-p drop the unlikely tokens, then renormalise."]'>
+    <div class="fp-stage">
+      <div class="chart">
+        <div class="tbar">
+          <div class="pv"><i data-f="1">0.66</i><i data-f="2">0.86</i><i data-f="3">0.50</i><i data-f="4">0.73</i></div>
+          <div class="fill fa"></div><div class="nm">mat</div>
+        </div>
+        <div class="tbar">
+          <div class="pv"><i data-f="1">0.24</i><i data-f="2">0.12</i><i data-f="3">0.30</i><i data-f="4">0.27</i></div>
+          <div class="fill fb"></div><div class="nm">rug</div>
+        </div>
+        <div class="tbar cbar">
+          <div class="pv"><i data-f="1">0.10</i><i data-f="2">0.02</i><i data-f="3">0.19</i><i data-f="4">—</i></div>
+          <div class="fill fc"></div><div class="nm">floor</div>
+        </div>
+      </div>
+      <div class="tag">“the cat sat on the …” · logits <b>[2.0, 1.0, 0.1]</b> → ÷ T → softmax</div>
+    </div>
+  </figure>
+)}
+
+{name === "whyattention" && (
+  <figure class="fp wa" tabindex="0" data-dwell="2600"
+    data-captions='["Raw embeddings: “ball” and “golf” are perpendicular, so their dot product is 0.","Wq rotates ball’s query toward a new direction.","Ball’s query now lines up with golf’s key.","Their dot product jumps to 1 — golf is highly relevant to ball.","Golf’s value folds in, and ball moves toward the “golf ball” region."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 260 220" role="img" aria-label="2D vectors: rotating ball's query onto golf's key">
+        <defs>
+          <marker id="wa-am" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--color-text-muted)"></path></marker>
+          <marker id="wa-aa" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--color-accent)"></path></marker>
+        </defs>
+        <line class="axis" x1="30" y1="194" x2="240" y2="194"></line>
+        <line class="axis" x1="46" y1="206" x2="46" y2="34"></line>
+        <line class="vec ball" x1="46" y1="194" x2="168" y2="194"></line>
+        <text class="lab" x="174" y="198">ball</text>
+        <line class="vec golf" x1="46" y1="194" x2="46" y2="72"></line>
+        <text class="lab a" x="26" y="64">golf</text>
+        <line class="vec query" x1="46" y1="194" x2="168" y2="194"></line>
+        <text class="lab a keylab" x="54" y="88">golf’s key</text>
+        <line class="vec result" x1="46" y1="194" x2="168" y2="72"></line>
+        <text class="lab reslab" x="174" y="72">golf ball</text>
+        <text class="score" x="150" y="26">score =</text>
+        <text class="score s0" x="205" y="26">0</text>
+        <text class="score s1" x="205" y="26">1</text>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "whyffn" && (
+  <figure class="fp ill wf" tabindex="0" data-dwell="2500" data-captions='["The token x = [1, 0]. Two learned detector directions: A and B.","Dot with each: A · x = 1 (fires), B · x = 0 (stays silent).","Only the strong match survives.","A’s write-back vector adds “spain”; the token moves toward [1, 1]."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 260 220" role="img" aria-label="2D: a detector fires and writes a fact into the token">
+        <defs>
+          <marker id="wf-am" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--color-text-muted)"></path></marker>
+          <marker id="wf-aa" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--color-accent)"></path></marker>
+        </defs>
+        <line class="axis" x1="30" y1="194" x2="240" y2="194"></line>
+        <line class="axis" x1="46" y1="206" x2="46" y2="34"></line>
+        <line class="vec detB" x1="46" y1="194" x2="46" y2="80"></line>
+        <line class="vec detA" x1="46" y1="194" x2="162" y2="194"></line>
+        <line class="vec tok" x1="46" y1="194" x2="150" y2="194"></line>
+        <line class="vec result" x1="46" y1="194" x2="168" y2="72"></line>
+        <text class="lab" x="120" y="210">token x</text>
+        <text class="lab a" x="168" y="198">A</text>
+        <text class="lab" x="52" y="76">B</text>
+        <text class="lab reslab" x="174" y="72">+ spain</text>
+        <text class="fire a" x="118" y="178">A·x = 1</text>
+        <text class="fire d" x="54" y="120">B·x = 0</text>
+      </svg>
+    </div>
+  </figure>
+)}
