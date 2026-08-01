@@ -202,6 +202,39 @@
   .wf .fire{font-size:11px;opacity:0;transition:opacity .4s}
   .wf[data-frame="2"] .fire,.wf[data-frame="3"] .fire,.wf[data-frame="4"] .fire{opacity:1}
   .wf .fire.a{fill:var(--color-accent)}.wf .fire.d{fill:var(--color-text-dim)}
+
+  /* ---------- #12 forward pass (full transformer) ---------- */
+  .fwd .ttl{margin-bottom:12px}
+  .fwd .col{display:flex;flex-direction:column;gap:7px;max-width:440px;margin:0 auto}
+  .fwd .st{display:flex;align-items:center;gap:10px;border:1px solid var(--color-border);background:var(--color-surface-deep);border-radius:9px;padding:9px 13px;opacity:.4;transition:opacity .4s,border-color .4s,background .4s,box-shadow .4s}
+  .fwd .lb{font-family:var(--font-mono);font-size:12.5px;color:var(--color-text-muted)}
+  .fwd .lb em{color:var(--color-text-faint);font-style:normal}
+  .fwd .st.mid{border-style:dashed}
+  .fwd .st.out{border-color:color-mix(in oklab,var(--color-accent) 25%,var(--color-border))}
+  .fwd .pred{margin-left:auto;opacity:0;transform:translateX(-5px);transition:opacity .5s,transform .5s}
+  .fwd[data-frame="1"] .st:nth-child(-n+1),.fwd[data-frame="2"] .st:nth-child(-n+2),.fwd[data-frame="3"] .st:nth-child(-n+3),.fwd[data-frame="4"] .st:nth-child(-n+4),.fwd[data-frame="5"] .st:nth-child(-n+6),.fwd[data-frame="6"] .st:nth-child(-n+7){opacity:1}
+  .fwd[data-frame="1"] .st.s1,.fwd[data-frame="2"] .st.s2,.fwd[data-frame="3"] .st.s3,.fwd[data-frame="4"] .st.s4,.fwd[data-frame="5"] .st.s5,.fwd[data-frame="5"] .st.s6,.fwd[data-frame="6"] .st.s7{border-color:color-mix(in oklab,var(--color-accent) 55%,transparent);background:color-mix(in oklab,var(--color-accent) 10%,transparent);box-shadow:0 0 14px color-mix(in oklab,var(--color-accent) 18%,transparent)}
+  .fwd[data-frame="1"] .st.s1 .lb,.fwd[data-frame="2"] .st.s2 .lb,.fwd[data-frame="3"] .st.s3 .lb,.fwd[data-frame="4"] .st.s4 .lb,.fwd[data-frame="5"] .st.s5 .lb,.fwd[data-frame="5"] .st.s6 .lb,.fwd[data-frame="6"] .st.s7 .lb{color:var(--color-accent)}
+  .fwd[data-frame="6"] .pred{opacity:1;transform:none}
+
+  /* ---------- #13 training pass (full transformer + backprop) ---------- */
+  .tp .fp-stage{display:flex;flex-direction:column;align-items:center;gap:13px}
+  .tp .ttl{margin-bottom:1px}
+  .tp .col{display:flex;flex-direction:column;gap:7px;width:100%;max-width:440px}
+  .tp .st{display:flex;align-items:center;gap:10px;border:1px solid var(--color-border);background:var(--color-surface-deep);border-radius:9px;padding:9px 13px;opacity:.4;transition:opacity .4s,border-color .4s,background .4s,box-shadow .4s}
+  .tp .lb{font-family:var(--font-mono);font-size:12.5px;color:var(--color-text-muted)}
+  .tp .pred{margin-left:auto;opacity:0;transform:translateX(-5px);transition:opacity .5s,transform .5s}
+  .tp .cmp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-family:var(--font-mono);font-size:12px;opacity:0;transition:opacity .45s}
+  .tp .cmp .err{color:var(--color-text-muted)}
+  .tp .cmp .err b{color:var(--color-accent)}
+  .tp .bp{font-family:var(--font-mono);font-size:11.5px;color:var(--d-teal);text-align:center;max-width:440px;line-height:1.5;opacity:0;min-height:16px;transition:opacity .45s}
+  .tp[data-frame="1"] .st:nth-child(-n+2),.tp[data-frame="2"] .st:nth-child(-n+3),.tp[data-frame="3"] .st:nth-child(-n+4),.tp[data-frame="4"] .st,.tp[data-frame="5"] .st{opacity:1}
+  .tp[data-frame="1"] .st.i1,.tp[data-frame="1"] .st.i2,.tp[data-frame="2"] .st.i3,.tp[data-frame="3"] .st.i4{border-color:color-mix(in oklab,var(--color-accent) 55%,transparent);background:color-mix(in oklab,var(--color-accent) 10%,transparent);box-shadow:0 0 14px color-mix(in oklab,var(--color-accent) 18%,transparent)}
+  .tp[data-frame="1"] .st.i1 .lb,.tp[data-frame="1"] .st.i2 .lb,.tp[data-frame="2"] .st.i3 .lb,.tp[data-frame="3"] .st.i4 .lb{color:var(--color-accent)}
+  .tp[data-frame="3"] .pred,.tp[data-frame="4"] .pred,.tp[data-frame="5"] .pred{opacity:1;transform:none}
+  .tp[data-frame="4"] .cmp,.tp[data-frame="5"] .cmp{opacity:1}
+  .tp[data-frame="5"] .bp{opacity:1}
+  .tp[data-frame="5"] .st{border-color:color-mix(in oklab,var(--d-teal) 50%,transparent);background:color-mix(in oklab,var(--d-teal) 9%,transparent);box-shadow:0 0 12px color-mix(in oklab,var(--d-teal) 16%,transparent)}
 </style>
 
 <script is:inline>
