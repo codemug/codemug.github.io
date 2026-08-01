@@ -12,7 +12,13 @@
   .fp-btn{font-family:var(--font-mono);font-size:15px;line-height:1;min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text-muted);border-radius:8px;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
   .fp-btn:hover{color:var(--color-text);border-color:var(--color-border-strong)}
   .fp-btn:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
-  .fp-cap{flex:1;margin:0;font-family:var(--font-mono);font-size:12.5px;color:var(--color-text-muted);line-height:1.5}
+  /* Captions are stacked in one grid cell so the bar reserves the height of the
+     TALLEST caption at any width — the figure never changes height as it plays,
+     so the article below it never shifts. */
+  .fp-cap{flex:1;margin:0;display:grid;font-family:var(--font-mono);font-size:12.5px;color:var(--color-text-muted);line-height:1.5}
+  .fp-cap-line{grid-area:1/1;margin:0;visibility:hidden}
+  .fp-cap-line.on{visibility:visible}
+  .fp-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   .fp-dots{display:flex;gap:6px;margin-top:12px}
   .fp-dot{width:7px;height:7px;border-radius:50%;background:var(--color-border);cursor:pointer;transition:background .2s,transform .2s}
   .fp-dot.on{background:var(--color-accent);transform:scale(1.15)}
@@ -256,7 +262,11 @@
       this.prevB=mk('‹','Previous frame',()=>this.step(-1));
       this.playB=mk('▶','Play',()=>this.toggle());
       this.nextB=mk('›','Next frame',()=>this.step(1));
-      this.cap=document.createElement('p'); this.cap.className='fp-cap'; this.cap.setAttribute('aria-live','polite');
+      this.cap=document.createElement('div'); this.cap.className='fp-cap';
+      this.capEls=this.caps.map(text=>{const s=document.createElement('span');s.className='fp-cap-line';s.setAttribute('aria-hidden','true');s.textContent=text;return s;});
+      this.capEls.forEach(s=>this.cap.appendChild(s));
+      this.live=document.createElement('span'); this.live.className='fp-sr'; this.live.setAttribute('aria-live','polite');
+      this.cap.appendChild(this.live);
       this.bar.append(this.prevB,this.playB,this.nextB,this.cap);
       this.dotsEl=document.createElement('div'); this.dotsEl.className='fp-dots';
       for(let k=1;k<=this.n;k++){const d=document.createElement('span');d.className='fp-dot';d.setAttribute('role','button');d.setAttribute('aria-label','Frame '+k);d.tabIndex=0;d.addEventListener('click',()=>{this.pause();this.go(k);});this.dotsEl.appendChild(d);}
@@ -270,7 +280,8 @@
     go(i){
       this.i=((i-1+this.n)%this.n)+1;
       this.fig.dataset.frame=this.i;
-      this.cap.textContent=this.caps[this.i-1]||'';
+      this.capEls.forEach((s,k)=>s.classList.toggle('on',k===this.i-1));
+      this.live.textContent=this.caps[this.i-1]||'';
       [...this.dotsEl.children].forEach((d,k)=>d.classList.toggle('on',k===this.i-1));
     }
     step(d){this.pause();this.go(this.i+d);}
