@@ -139,6 +139,105 @@ const { name } = Astro.props;
   </figure>
 )}
 
+{name === "ffn-matrix" && (
+  <figure class="fp ill fmx" tabindex="0" data-dwell="2600" data-captions='["Wu is a 2560 by 10240 grid. Multiply the token (2560 numbers) by it and you get a wider row: 10240 numbers.","Wd is a 10240 by 2560 grid. Multiply that row by it and you are back to 2560, ready to add onto the token."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 150" role="img" aria-label="Wu and Wd are two-dimensional matrices: Wu maps the token up to 10240, Wd maps it back down to 2560">
+        <g class="up">
+          <rect class="cell" x="16" y="46" width="20" height="58" rx="4"></rect>
+          <line class="gl" x1="16" y1="65" x2="36" y2="65"></line>
+          <line class="gl" x1="16" y1="84" x2="36" y2="84"></line>
+          <text class="lab" x="26" y="118">token</text>
+          <text class="dim" x="26" y="130">2560</text>
+          <text class="op" x="52" y="80">×</text>
+          <rect class="grid" x="66" y="50" width="120" height="50" rx="5"></rect>
+          <line class="gl" x1="66" y1="67" x2="186" y2="67"></line>
+          <line class="gl" x1="66" y1="83" x2="186" y2="83"></line>
+          <line class="gl" x1="96" y1="50" x2="96" y2="100"></line>
+          <line class="gl" x1="126" y1="50" x2="126" y2="100"></line>
+          <line class="gl" x1="156" y1="50" x2="156" y2="100"></line>
+          <text class="lab" x="126" y="118">Wu</text>
+          <text class="dim" x="126" y="130">2560 × 10240</text>
+          <text class="op" x="200" y="80">=</text>
+          <rect class="cell" x="214" y="66" width="96" height="18" rx="4"></rect>
+          <line class="gl" x1="238" y1="66" x2="238" y2="84"></line>
+          <line class="gl" x1="262" y1="66" x2="262" y2="84"></line>
+          <line class="gl" x1="286" y1="66" x2="286" y2="84"></line>
+          <text class="dim" x="262" y="100">10240</text>
+        </g>
+        <g class="dn">
+          <rect class="cell" x="10" y="66" width="96" height="18" rx="4"></rect>
+          <line class="gl" x1="34" y1="66" x2="34" y2="84"></line>
+          <line class="gl" x1="58" y1="66" x2="58" y2="84"></line>
+          <line class="gl" x1="82" y1="66" x2="82" y2="84"></line>
+          <text class="dim" x="58" y="100">10240</text>
+          <text class="op" x="120" y="80">×</text>
+          <rect class="grid" x="134" y="34" width="52" height="82" rx="5"></rect>
+          <line class="gl" x1="151" y1="34" x2="151" y2="116"></line>
+          <line class="gl" x1="168" y1="34" x2="168" y2="116"></line>
+          <line class="gl" x1="134" y1="54" x2="186" y2="54"></line>
+          <line class="gl" x1="134" y1="75" x2="186" y2="75"></line>
+          <line class="gl" x1="134" y1="96" x2="186" y2="96"></line>
+          <text class="lab" x="160" y="130">Wd</text>
+          <text class="dim" x="160" y="141">10240 × 2560</text>
+          <text class="op" x="200" y="80">=</text>
+          <rect class="out" x="248" y="46" width="20" height="58" rx="4"></rect>
+          <line class="gl" x1="248" y1="65" x2="268" y2="65"></line>
+          <line class="gl" x1="248" y1="84" x2="268" y2="84"></line>
+          <text class="dim" x="258" y="118">+ token</text>
+        </g>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "ffn-relu" && (
+  <figure class="fp ill frl" tabindex="0" data-dwell="2600" data-captions='["Each of the 10240 patterns gets a score. Positive means the pattern is present, negative means it is not.","ReLU sets every negative score to 0, so only the positive matches survive to write anything back."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 300 150" role="img" aria-label="ReLU sets negative activation scores to zero, keeping only the positive matches">
+        <line class="base" x1="14" y1="104" x2="286" y2="104"></line>
+        <text class="zero" x="4" y="108">0</text>
+        <rect class="pos" x="26" y="44" width="16" height="60" rx="2"></rect>
+        <rect class="pos" x="48" y="90" width="16" height="14" rx="2"></rect>
+        <rect class="neg" x="70" y="104" width="16" height="16" rx="2"></rect>
+        <rect class="pos" x="92" y="56" width="16" height="48" rx="2"></rect>
+        <rect class="pos" x="114" y="94" width="16" height="10" rx="2"></rect>
+        <rect class="neg" x="136" y="104" width="16" height="22" rx="2"></rect>
+        <rect class="pos" x="158" y="62" width="16" height="42" rx="2"></rect>
+        <rect class="neg" x="180" y="104" width="16" height="12" rx="2"></rect>
+        <rect class="pos" x="202" y="78" width="16" height="26" rx="2"></rect>
+        <rect class="neg" x="224" y="104" width="16" height="18" rx="2"></rect>
+        <rect class="pos" x="246" y="86" width="16" height="18" rx="2"></rect>
+        <text class="tag n" x="150" y="140">negative scores = noise</text>
+        <text class="tag k" x="150" y="140">only positive matches kept</text>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "ffn-detector" && (
+  <figure class="fp ill fdet" tabindex="0" data-dwell="2800" data-captions='["The token arrives carrying the context from attention: the 2026 World Cup winner is being asked for.","Multiplied by Wu, one detector fires hard on exactly that situation. The others stay quiet.","Its partner direction in Wd writes spain into the token, straight from the weights."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 180" role="img" aria-label="A detector in Wu fires on the World Cup question, and its partner in Wd writes the spain direction into the token">
+        <defs>
+          <marker id="fd-a" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--color-accent)"></path></marker>
+        </defs>
+        <rect class="pill" x="26" y="12" width="268" height="30" rx="8"></rect>
+        <text class="ptxt" x="160" y="31">the 2026 World Cup winner is being asked for</text>
+        <text class="wlab" x="160" y="60">Wu detectors</text>
+        <g class="chip dim d1"><rect x="14" y="72" width="68" height="30" rx="7"></rect><text x="48" y="91">capital?</text></g>
+        <g class="chip dim d2"><rect x="90" y="72" width="68" height="30" rx="7"></rect><text x="124" y="91">a date?</text></g>
+        <g class="chip d3"><rect x="166" y="72" width="68" height="30" rx="7"></rect><text x="200" y="91">WC winner?</text></g>
+        <g class="chip dim d4"><rect x="242" y="72" width="64" height="30" rx="7"></rect><text x="274" y="91">an age?</text></g>
+        <path class="arrow wb" d="M200,102 L200,140"></path>
+        <text class="wdlab wb" x="208" y="126">Wd</text>
+        <rect class="spin wb" x="150" y="140" width="100" height="30" rx="8"></rect>
+        <text class="spintx wb" x="200" y="159">→ spain</text>
+      </svg>
+    </div>
+  </figure>
+)}
+
 {name === "nextword" && (
   <figure class="fp ill nw" tabindex="0" data-dwell="2400" data-captions='["The final vector at the last position (highlighted).","Dot it against every word in the vocabulary → a score (logit) per word.","Divide by temperature, then softmax → probabilities to sample from."]'>
     <div class="fp-stage">
