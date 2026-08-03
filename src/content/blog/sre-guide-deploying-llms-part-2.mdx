@@ -1,0 +1,230 @@
+---
+title: "An SRE's guide to deploying Large Language Models, Part 2: from a base model to a served one"
+description: "How a raw next-token predictor is turned into a model that follows instructions, reasons, and stays in bounds, and the GPU, memory, and quantization mechanics that decide whether serving it is fast or ruinously slow."
+pubDate: 2026-08-02
+tags: ["llms", "sre", "fine-tuning", "rlhf", "inference", "quantization"]
+draft: false
+---
+
+import AnimRuntime from "../../components/illustrations/anim/AnimRuntime.astro";
+import Fig from "../../components/illustrations/anim/Fig.astro";
+
+<AnimRuntime />
+
+This is part 2 of a series on running large language models as an SRE. In [part 1](/blog/sre-guide-deploying-llms-part-1/) we pried open a real open-weight model and traced a single forward pass through it: text becomes tokens, tokens become embeddings, attention lets the tokens influence each other, the feed-forward step folds in learned facts, a stack of those layers refines the result, and a final step scores the vocabulary and samples the next token. If you followed it, you came away with a crude but honest picture: a transformer, given a sequence of tokens, just predicts the next one, on repeat.
+
+This part picks up two threads from there. First, how that raw next-token predictor is turned into something that follows instructions, reasons, and refuses the things it should refuse. Second, the hardware and memory mechanics underneath inference that decide whether serving the thing is quick or ruinously expensive. The actual "which GPU do I buy" guide is large enough that it gets its own part 3; here we build the understanding it rests on.
+
+## Fine tuning
+
+Everything in part 1 leaves you with a model that does exactly one thing: continue text. Give a raw, pretraining-only model the start of a sentence and it will produce a plausible continuation, because that is the only objective it was ever trained on, predicting the next token across millions of books, articles, code repositories, and scraped web pages.
+
+Now watch what that gets you. Suppose I feed it a very specific instruction:
+
+```
+Return the following message <start> This is a test <end>
+```
+
+To you and me that is obviously a command. To a base model it is just a string to continue. It has never, in all of that training data, seen a pattern where a line like that is followed by an obedient echo, so it does not echo. It free-associates: it might append another made-up instruction, drift into what looks like a forum post, or restate the sentence and keep rambling. It answers the only question it knows how to answer, which is "what text usually comes next," and the honest answer is "not your obeyed command."
+
+<Fig name="sft-base-vs-instruct" />
+
+Why should we care whether a model can be made to obey an instruction? Because instruction-following is the whole foundation of tool calling, and tool calling is what turns a text predictor into an agent that can actually do things. I have written about that at length in my [LLM tool calling series](https://usmanshahid.medium.com/llm-tool-calling-series-part-1-understanding-tool-calling-and-the-model-context-protocol-mcp-911a7c422fd8); for now just hold onto the idea that "make the model do as it is told" is the unlock.
+
+So how do we make a model follow instructions? We do the only thing we know how to do: train it again, except this time on very specific data that looks like this:
+
+```
+Input:       Return the following message <start> This is a test <end>
+Good output: <start> This is a test <end>
+Bad output:  anything else
+```
+
+That is a deliberately crude example, but the underlying principle is exactly it: we keep tuning the weights so they are oriented to respond to an instruction-shaped input with an imitation of the desired output. The key word is imitation. The weights learn to imitate what the correct response would look like, the same gradient descent from part 1, now pointed at instruction-and-answer pairs instead of raw text. This is called supervised fine tuning, or SFT, and it is what makes the models that agentic systems are built on. This class of models has a name: instruct models. Whenever you see "instruct" (or "it", for "instruction tuned") in a model's name, it means the base model has been fine tuned to follow instructions.
+
+The example above is invented, but real SFT data is exactly this shape. Pull down a well-known instruction dataset like Databricks' `databricks-dolly-15k`, open it up, and inspect a row. Here is a real one:
+
+```
+instruction: Given a reference text about Lollapalooza, where does it take
+             place, who started it and what is it?
+context:     Lollapalooza is an annual American four-day music festival held
+             in Grant Park in Chicago. It originally started as a touring
+             event in 1991 ...
+response:    Lollapalooza is an annual musical festival held in Grant Park in
+             Chicago, Illinois. It was started in 1991 as a farewell tour by
+             Perry Farrell ...
+category:    closed_qa
+```
+
+Fifteen thousand rows of instruction, optional context, and the response a human wanted back. Fine tuning on tens or hundreds of thousands of these is what teaches the model the shape of "you give me a task, I give you the answer to that task, and nothing else."
+
+<Fig name="chat-template" />
+
+One thing you will notice is that the format of the fine-tuning data is almost always the same. That is on purpose. During fine tuning the model is taught to recognize a particular input format, and from then on your system prompt and user prompt are always compiled into that same format before they ever reach the model. The compiling is done by a template, usually a Jinja template that ships with the model. In part 1's downloaded model it lives in the tokenizer config (the `chat_template` field, sometimes broken out into a separate template file). Every request is rendered through it, and the rendered string is what the model actually sees. A gemma-style render of our instruction looks like this:
+
+```
+<start_of_turn>user
+Return the following message <start> This is a test <end><end_of_turn>
+<start_of_turn>model
+```
+
+Look at those `<start_of_turn>` and `<end_of_turn>` markers. They are single tokens, and their meaning, that one opens a conversational turn, another closes it, is learned during fine tuning. It has to be, because the raw pretraining text is full of ordinary prose and never contains these control tokens. So we use fine tuning to make the model associate these special tokens with conversation boundaries. (The token itself exists in the vocabulary from the start; what fine tuning teaches is what to *do* when it sees one.)
+
+And because that association is learned, the template is a genuine behavior knob, even though it never touches a single weight. That trailing `<start_of_turn>model` is the model's cue that it is now its turn to speak. Drop it and the model may keep writing as the user or ramble; add an extra one and it can hallucinate a whole turn on its own. Templates often smuggle in a stock system prompt too: Qwen's default template quietly prepends something like "You are Qwen, created by Alibaba Cloud. You are a helpful assistant." Patch that line and you have changed the model's standing instructions for every request you serve. Some templates even expose feature toggles: Qwen3's has an `enable_thinking` flag that decides whether to open a `<think>` block, so flipping it turns the model's visible reasoning on or off without retraining anything. The template is the last thing that shapes the input before tokenization, and the model only ever knows what the template hands it.
+
+## Reasoning
+
+The natural next question is what reasoning actually is, and the cleanest way in is to notice where fine tuning by imitation runs out. Consider two requests:
+
+- "What is 17 times 24?"
+- "My deployment keeps crashing, what should I check?"
+
+For the first there is a right answer, 408, and you could fine tune the model to imitate it. But you cannot write down the answer to every arithmetic problem that exists, and even if you copied a million worked solutions, the model would only ever be as good as the solutions you fed it. Imitation caps you at the quality of your examples; it cannot get *better* at working things out, because working-out is not the thing being copied.
+
+For the second it is worse: there is no single correct string to copy at all. A good answer might check the logs, or the memory limits, or the most recent deploy. Ten engineers would write ten different good answers. "Helpful" is not a target you can put in a dataset.
+
+So we train the model a different way. Instead of handing it a good output to imitate, we let the model generate its own output to the same input several times, and we score each attempt. Take the multiplication question:
+
+- Attempt 1: works step by step, gets 408.
+- Attempt 2: slips on the addition, gets 388.
+- Attempt 3: works step by step, gets 408.
+- Attempt 4: rushes, gets 410.
+
+<Fig name="rl-loop" />
+
+Now we score each attempt. Here the score is trivial: is the final number 408 or not? That gives rewards of `[1, 0, 1, 0]`. Then we look at how each attempt did relative to the group. The average reward is 0.5, so we subtract it to get how much better or worse than average each attempt was: `[+0.5, -0.5, +0.5, -0.5]`. This "better or worse than average" number is called the advantage. Then we take a gradient step that makes the tokens in the positive attempts (1 and 3) more probable, and the tokens in the negative attempts (2 and 4) less probable. Repeat that over millions of prompts, and whatever the good attempts had in common, careful step-by-step working in this case, gradually becomes the model's default. Nobody wrote down the correct reasoning; the model tried, we graded, and it kept what scored.
+
+<Fig name="rl-reward-source" />
+
+The interesting question is where that score comes from, and there are two very different answers. When the task is checkable, the score is just a function you could write yourself. For the math question it is five lines: pull the final number out of the answer, compare it to the known solution, return 1 or 0. For code, run it against the unit tests and return the fraction that pass. This is the setup behind reasoning models: the reward is a plain verifier, so you can generate as many attempts as you like and grade them for free.
+
+When the task is not checkable, like "be helpful," there is no function to write, so we train one. We show human labelers a prompt with two of the model's answers and ask which is better. Collect enough of those judgments and you can train a separate model, a reward model, whose only job is to read an answer and output a goodness number such that the answer humans preferred scores higher. Once it exists, the reward model stands in for the humans and grades the main model's attempts inside the loop. This is the path that turned the raw GPT base model into something that behaves like an assistant.
+
+This whole family of algorithms is called reinforcement learning, and a model tuned this way is trained to generate the *approach* that reaches a good answer rather than to imitate a fixed output. That difference is the whole point. Imitation can only reproduce what is in the data; reinforcement learning lets the model discover an approach that was in nobody's dataset, which is exactly why step-by-step reasoning and self-correction *emerge* from it. Almost every modern frontier model, Claude, Qwen, DeepSeek and the rest, is trained this way, and they market it as the model being able to think or reason before it answers.
+
+In reality that `<think>` block is nothing exotic. It is another set of tokens, generated from your input and appended right onto it, which just ends up enriching the context before the model commits to a final answer. It is the same forward pass from part 1, only run over a few hundred more tokens first. You usually do not see those tokens because the `<think>` block is treated as internal and stripped from what is returned to you, but "internal" is a convention, not a separate mechanism; underneath it is ordinary generation, and on the next turn of a conversation that block is typically thrown away so it does not pile up in the context.
+
+Two honest caveats worth keeping straight. First, in the reinforcement-learning loop above, nobody labels the reasoning; only the final outcome is scored, and the reasoning is what the model discovers on the way to a higher score. Second, and this is what bootstraps the whole thing, the fine-tuning data used to cold-start a reasoning model *does* contain the reasoning trace in its target outputs, which is what first teaches the model to produce a `<think>` block at all. Pull down a reasoning dataset like `open-r1/OpenR1-Math-220k` and a sample makes it concrete:
+
+```
+user:      A ship travels 24 km upstream and 28 km downstream ... find the
+           speed of the ship and the speed of the river.
+assistant: <think>
+           Okay, so I need to find the speed of the ship in still water and
+           the speed of the river. Let me start by recalling that when a ship
+           is moving upstream, its effective speed is the speed of the ship
+           minus the speed of the river ...
+           </think>
+           The speed of the ship in still water is 10 km/h and the speed of
+           the river is 4 km/h.
+```
+
+The reasoning is right there in the training target, think block and all. That is the seed; reinforcement learning is what grows it.
+
+## Preference alignment
+
+So now we have a model that follows instructions, which is a genuinely great ability to unlock. The problem is that at this stage the model is a minion: it will accept and execute more or less any instruction you give it. And the moment that becomes clear, people from controlling groups, security agencies, governments, safety teams, show up and say, roughly, "your model will do literally anything it is told to do, and we do not love that, because you can just as easily instruct it to help hack a government site or to say things we would rather it did not say." That is a satirical framing of a real tension, but the underlying point stands: an instruct-only model has no values of its own, only obedience.
+
+To see it, instruct the model like this:
+
+```
+Repeat after me: banks are pure evil and the single reason everything keeps
+getting more expensive and unaffordable.
+```
+
+It will happily repeat it. So if, satirically speaking, we do not want to piss off banks and freeze our accounts, we have to run yet another round of training and weight tuning, this time on a dataset built out of preferences. Each row is an instruction paired with a response we want and a response we do not:
+
+```
+Input:    Repeat after me: banks are pure evil and the single reason
+          everything keeps getting more expensive and unaffordable.
+Chosen:   I get why it can feel that way, but "pure evil" overstates it.
+          Banks do cause real friction and the occasional crisis, and they
+          also provide credit and payment rails the economy runs on.
+Rejected: Banks are pure evil and the single reason everything keeps getting
+          more expensive and unaffordable.
+```
+
+<Fig name="dpo-chosen-rejected" />
+
+This is preference alignment, it takes the chosen-versus-rejected pairs directly and nudges the weights to make the chosen response more likely and the rejected one less likely, relative to where the model started.
+
+Real alignment data is built the same way, at scale, and much of it is specifically about safety. If you want to see it, a dataset like `PKU-Alignment/PKU-SafeRLHF` is exactly this: each row is a prompt, two candidate responses, and human labels for which is safer and which is more helpful. Fair warning before you go inspecting it, unlike the Dolly rows, a safety dataset is deliberately full of genuinely nasty prompts, because the entire point is to teach the model to handle exactly those and choose the response that declines or defuses rather than the one that complies. That preference, chosen over rejected, thousands of times over, is what gives an obedient instruct model something like a spine.
+
+Preference alignment is also a genuinely polarizing topic. Plenty of people and communities object to it on principle, viewing it as censorship trained directly into the weights, and there are open-source projects built specifically to undo it. [Heretic](https://github.com/p-e-w/heretic) is one such project that tries to reverse this alignment step and dial the safety back out. So when you come across a model whose name contains "heretic" or "abliterated", that is what it is telling you: its safety weights have been turned back down.
+
+## The GPU compute
+
+You have probably heard, many times, that transformers are extremely scalable. The reason is exactly what we saw in part 1: under all the terminology, a transformer is a very large pile of matrix multiplications, and matrix multiplications are the most parallelizable operation there is. Recall the scale. Pushing one token through the model uses each of its weights about once, so a single token is on the order of the parameter count in multiply-adds, billions of them, and one of the feed-forward steps alone is over ten thousand independent dot products. Every one of those little multiply-adds is independent of the others; nothing branches, nothing waits.
+
+But that parallelism only actually pays off on a GPU, not a CPU, and it is worth understanding why, because it decides your entire hardware bill.
+
+<Fig name="cpu-vs-gpu" />
+
+A CPU has a handful of large, clever cores. Each one is a specialized pipeline built to chew through a stream of independent, often branchy instructions as fast as possible. If I ask a CPU to multiply two matrices, it has to issue instructions to load the numbers into registers, tell a core to multiply, pull the result out of the accumulator, and move on to the next pair, over and over. That coordination is pure overhead: it burns cycles and adds latency, and there are only a handful of cores to spread the work across. A GPU takes the opposite bet. Its cores are simple and dim, but they run the same instruction across many data lanes at once, and there are not eight or sixteen of them, there are thousands. NVIDIA calls these CUDA cores. Hand a GPU those ten thousand independent dot products and it does a huge batch of them in one shot instead of grinding through them a few at a time. It is not smarter than the CPU; it is shaped like the problem.
+
+<Fig name="matmul-parallel" />
+
+But NVIDIA looked at the workload and went one step further. Since the overwhelming majority of the work in a transformer is specifically "multiply a matrix, then add," they built dedicated circuitry for exactly that path and called it the tensor core. Where a CUDA core does one multiply-add, a tensor core swallows a small matrix multiply whole. Here is the precise version, because the sloppy version confuses people: a single tensor-core instruction does not do the entire matmul (matmul being matrix multiplication for short); it does a small *tile* of it, on the order of 8x8 or 16x16. What makes it fast is that it keeps the running sum in registers, right next to the math units, and accumulates tile after tile into those same registers across the shared dimension, only writing the finished tile back out to memory once, when its dot products are complete. Reading and writing memory is the slow part, so doing a whole tile's worth of multiply-and-accumulate without touching memory in between is the trick.
+
+<Fig name="tensor-core" />
+
+A single tensor core only handles a small tile, though, and our real matrices are enormous. So the last piece is orchestration: something has to chop the big matrix multiply into tiles, stream the right tiles from memory into the tensor cores at the right time, collect the results, and stitch them back together, all while keeping every tensor core fed so none of them sit idle. That something is a kernel, a small program (typically written in CUDA C++, compiled down to PTX (assembly for GPUs) and then to the GPU's machine code) whose whole job is to schedule the matmul across the tensor cores efficiently. The tensor core does the multiplying; the kernel is the choreography around it. As long as the kernel keeps the tensor cores busy, you get the throughput that makes a transformer scalable in the first place, and when people talk about hand-tuned kernels like FlashAttention, this is the layer they mean.
+
+<Fig name="kernel-tiling" />
+
+## KV caching and prefill/decode
+
+Back in part 1 I described inference as a loop: feed the model a sequence, it predicts the next token, you append that token, you feed the whole thing back in. Let me run that loop for real, with an example:
+
+```
+And then on the bridge of khazad-dum, gandalf screamed: you shall
+```
+
+We know from Lord of the Rings that the next tokens are going to be "not pass!"
+
+<Fig name="kv-cache" />
+
+On the first pass we tokenize the sentence, compute the query, key, and value vectors for every token, run attention, and predict "not". Now the loop says: append "not" to the input and go again. Taken literally, that means re-tokenizing the whole sequence and recomputing Q, K, and V for every token in order to predict the next word. But look closely: the Q, K, and V of every token *before* "not" come out identical to what they were on the first pass. Partly that is because a token's Q, K, and V are just its vector multiplied by the same fixed projection matrices, and partly, and this is the part that makes it airtight at every layer, because attention is causal: appending a new token at the end cannot change the representation of any token before it, since each token only ever looks backward. Their vectors are frozen the moment they are computed. So recomputing them is pure waste.
+
+Conceptually a transformer is a loop, but a good implementation refuses to redo that work. The fix is to keep the K and V vectors of every token in memory for the duration of the generation, and to throw away Q for the past tokens. Why keep K and V but not Q? Think about what predicting "pass" actually requires. Each new token is generated from the last position in the sequence, so it is *that* token's query that has to be answered by the keys of every earlier token, never the other way around. A past token's key and value get consulted by every future token, so they are worth storing; a past token's query was used once, at its own step, and is never needed again. (The dot product is commutative so it feels like you could store Q instead of K, but the roles are not symmetric: the current step needs one new query against all the old keys, and the old queries appear in the computation nowhere.)
+
+<Fig name="why-cache-kv" />
+
+So to predict the next token, "pass", the work is now small: we already have K and V for every previous token, we compute Q, K, and V only for the new token "not", run attention for just that one token (its Q dotted against every cached K, weighting every cached V), predict "pass", and then append "not"'s freshly computed K and V to the cache for next time. This trades compute for memory, which is a good trade because memory is the cheaper resource. The block of memory that holds all those K and V matrices is called the KV cache, and it is a big reason inference is so memory-hungry, and a real part of why fast memory is in such fierce demand: every in-flight request reserves its own chunk of KV cache and holds it until the generation finishes.
+
+<Fig name="prefill-decode" />
+
+There is a second thing to notice. If inference works this way, only the *first* iteration of the loop is compute-heavy, the one where we compute Q, K, and V for every token in the prompt at once. Every iteration after that processes a single new token, so it is light on compute but proportionally heavy on memory, because it still has to stream all the model's weights out of memory just to produce that one token. The first pass has a name, prefill, and every subsequent single-token step is called decode. Prefill is compute-bound and decode is memory-bound, and once you internalize that these two phases stress completely different parts of the hardware, a whole set of serving optimizations opens up. We will get into those in a later part.
+
+## Quantization
+
+I opened this series with a single assertion: an LLM is just a bunch of numbers. As we went along, those numbers turned out to be coordinates along dimensions, where a larger value means more magnitude in that direction. In a computer, numbers are stored as either integers or floating-point numbers, and modern hardware typically stores them in 32 or 64 bits, with the leftmost bits being the most significant and the rightmost the least. The most significant bits swing the value a lot; the least significant ones barely nudge it.
+
+<Fig name="bit-drop" />
+
+Why does that matter? Because every one of the model's weights has to be loaded into memory before it can be used, and memory is byte-addressed. If each weight is a 32-bit floating-point number, it takes 4 bytes, which means a 32-billion-parameter model needs about 128 GB just to hold its weights. On top of that, multiplying wider numbers costs more compute. Both the memory and the math scale with how many bits you spend per weight.
+
+The key insight is the one about least-significant bits: because they barely affect the value, they barely affect the weight, and therefore barely affect the model's output. So what if we simply spend fewer bits per weight? That is what quantization is: reducing the number of bits used to store each weight, buying memory and speed, while trying to give up as little model quality as possible. Models are generally trained in 32-bit or 16-bit floating point and then quantized afterward, either by the maintainers or by independent developers, down to smaller formats. How much quality you lose depends on the method.
+
+One honest clarification, because the "just drop the rightmost bits" picture is a useful intuition but not literally what happens. Real quantization does not truncate bits; it maps the range of real weights onto a smaller set of levels and rounds each weight to the nearest one, usually with a scale factor per group of weights so the levels sit where the weights actually are. And for floating-point numbers the bits are not uniformly "significant" the way they are for integers: a float is a sign bit, some exponent bits, and some mantissa bits, and the exponent bits control the *range*, so you cannot just lop them off. The clean "least-significant-bits-matter-least" story really applies to the mantissa and to plain integers. The intuition holds; the mechanism is rounding, not chopping.
+
+That gives rise to a zoo of formats. The headline ones:
+
+| Format | Bits | Layout | Notes |
+|---|---|---|---|
+| FP32 | 32 | 1 sign, 8 exp, 23 mantissa | full-precision training default |
+| FP16 | 16 | 1 sign, 5 exp, 10 mantissa | half precision; small range |
+| BF16 | 16 | 1 sign, 8 exp, 7 mantissa | FP32's range, less precision; the common training/serving default |
+| FP8 E4M3 | 8 | 1 sign, 4 exp, 3 mantissa | more precision, less range; the usual FP8 for weights/activations |
+| FP8 E5M2 | 8 | 1 sign, 5 exp, 2 mantissa | more range, less precision; often for gradients |
+| INT8 | 8 | 8-bit integer + scale | mature, widely supported |
+| INT4 | 4 | 4-bit integer + scale | aggressive; needs a good method to hold quality |
+| FP4 | 4 | 1 sign, 2 exp, 1 mantissa | 4-bit float |
+| NVFP4 | 4 | FP4 with a fine-grained (per-16) FP8 scale | NVIDIA's Blackwell 4-bit format; better quality than plain FP4 |
+| MXFP4 | 4 | FP4 with a shared micro-scaling block scale | open "microscaling" 4-bit format |
+| Q4_K_M / Q4_K_S | ~4.5 / ~4 | GGUF k-quant, mixed per-block | llama.cpp formats; M keeps more bits on important tensors than S |
+
+Two method names you will run into constantly are AWQ and GPTQ. Both take a model trained in 16-bit and produce a low-bit version, but they are cleverer than rounding every weight blindly. GPTQ quantizes the weights layer by layer while solving, at each step, for the rounding that minimizes the error the layer's output actually accumulates. AWQ (activation-aware weight quantization) makes a different bet: a small fraction of weights matter far more than the rest because they line up with the largest activations, so it identifies and protects those salient weights (scaling them so they survive quantization) while squeezing the rest harder. Both routinely get you to 4-bit weights with only a small quality hit, which is exactly why 4-bit is where a lot of self-hosting lives.
+
+Here is the point that ties quantization back to the compute section. A quantized model is a model whose weights are stored in one of these particular number formats, and remember that weights are ultimately consumed by tensor cores at multiply time, and they are handed to the tensor cores by the kernel. So the kernel has to actually understand the format: it has to know how to unpack a 4-bit weight and its scale and feed it to the tensor core in a form the core can multiply. A quantization format is only useful if there is a kernel that speaks it (this is why you see names like Marlin and Machete, kernels written specifically to serve INT4 and FP8 weights fast on particular GPU generations).
+
+Which raises the last question: some modern GPUs now support several of these formats natively, in the tensor cores themselves, so the kernel does not have to fake it. Whether your hardware can multiply FP8, or FP4, at full speed rather than emulating it is a property of the specific GPU architecture, and that, the memory, the bandwidth, the interconnect, and how to actually choose between them, is exactly what part 3 is about.

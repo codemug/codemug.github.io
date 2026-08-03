@@ -263,3 +263,183 @@ const { name } = Astro.props;
     </div>
   </figure>
 )}
+
+{name === "sft-base-vs-instruct" && (
+  <figure class="fp p2sft" tabindex="0" data-dwell="2600"
+    data-captions='["Give a base model an instruction and its next-token distribution is diffuse: it could continue with almost anything.","Supervised fine tuning tunes the weights toward the reply the instruction actually asks for.","The instruct model’s distribution collapses onto that response: now it obeys."]'>
+    <div class="fp-stage">
+      <div class="dist"><span class="bar b1"></span><span class="bar b2"></span><span class="bar b3 tgt"></span><span class="bar b4"></span><span class="bar b5"></span><span class="bar b6"></span><span class="bar b7"></span></div>
+      <div class="xa"><span class="mut">possible next tokens</span><span class="tl">↑ “This is a test”</span></div>
+    </div>
+  </figure>
+)}
+
+{name === "chat-template" && (
+  <figure class="fp p2tmpl" tabindex="0" data-dwell="2600"
+    data-captions='["You send a message: a single user turn.","The template renders it into one flat token stream, wrapping the content in learned control tokens.","Drop the trailing model cue and the model no longer knows it is its turn to speak."]'>
+    <div class="fp-stage">
+      <div class="bubble">user: “return the message”</div>
+      <div class="down">↓</div>
+      <div class="stream"><span class="tk ctl">&lt;start_of_turn&gt;</span><span class="tk">user</span><span class="tk">return</span><span class="tk">the</span><span class="tk">message</span><span class="tk ctl">&lt;end_of_turn&gt;</span><span class="tk ctl cue">&lt;start_of_turn&gt;model</span></div>
+      <div class="warn">no model cue → it keeps writing as the user</div>
+    </div>
+  </figure>
+)}
+
+{name === "rl-loop" && (
+  <figure class="fp p2rl" tabindex="0" data-dwell="2700"
+    data-captions='["One prompt, sampled four times. Each attempt traces its own path to an answer.","Score each: the two paths that reach 408 get reward 1, the other two get 0.","Against the group average, the winners get a positive advantage and the losers a negative one.","So the winning paths are reinforced and the losing ones suppressed. Repeat a million times."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 344 176" role="img" aria-label="Reinforcement learning: sampled trajectories are scored, then the good ones reinforced">
+        <path class="traj okp" d="M64,88 C140,88 172,26 248,26"></path>
+        <path class="traj nop" d="M64,88 C140,88 172,66 248,66"></path>
+        <path class="traj okp" d="M64,88 C140,88 172,110 248,110"></path>
+        <path class="traj nop" d="M64,88 C140,88 172,150 248,150"></path>
+        <g class="prompt"><rect x="6" y="74" width="58" height="28" rx="7"></rect><text x="35" y="92">17×24</text></g>
+        <g class="ans ok"><rect x="248" y="13" width="54" height="26" rx="7"></rect><text x="275" y="30">408</text></g>
+        <g class="ans no"><rect x="248" y="53" width="54" height="26" rx="7"></rect><text x="275" y="70">388</text></g>
+        <g class="ans ok"><rect x="248" y="97" width="54" height="26" rx="7"></rect><text x="275" y="114">408</text></g>
+        <g class="ans no"><rect x="248" y="137" width="54" height="26" rx="7"></rect><text x="275" y="154">410</text></g>
+        <text class="adv aok" x="308" y="30">+.5</text>
+        <text class="adv ano" x="308" y="70">−.5</text>
+        <text class="adv aok" x="308" y="114">+.5</text>
+        <text class="adv ano" x="308" y="154">−.5</text>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "rl-reward-source" && (
+  <figure class="fp p2rew" tabindex="0" data-dwell="2800"
+    data-captions='["When the answer is checkable, the reward is a tiny function: match the known answer, return 1, else 0.","When it is not, a reward model trained on human preferences reads the answer and outputs a score."]'>
+    <div class="fp-stage">
+      <div class="lane v"><span class="lb">verifiable</span><span class="chip">408</span><span class="ar">→</span><span class="gate">= 408 ?</span><span class="ar">→</span><span class="tick">✓</span><span class="rv">1</span></div>
+      <div class="lane r"><span class="lb">learned</span><span class="chip">answer</span><span class="ar">→</span><span class="rm">reward model</span><span class="ar">→</span><span class="meter"><span class="fill"></span></span><span class="rv">0.82</span></div>
+    </div>
+  </figure>
+)}
+
+{name === "dpo-chosen-rejected" && (
+  <figure class="fp p2dpo" tabindex="0" data-dwell="2700"
+    data-captions='["For each prompt, a response we want (chosen) and one we do not (rejected), on an even footing.","The weights are nudged until the chosen response outweighs the rejected one."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 300 168" role="img" aria-label="DPO tips the balance toward the chosen response">
+        <line class="post" x1="150" y1="150" x2="150" y2="58"></line>
+        <polygon class="pivot" points="150,50 141,64 159,64"></polygon>
+        <g class="beam">
+          <line class="arm" x1="56" y1="64" x2="244" y2="64"></line>
+          <g class="pan rej"><line class="hang" x1="56" y1="64" x2="56" y2="90"></line><rect x="28" y="90" width="56" height="26" rx="6"></rect><text x="56" y="107">rejected</text></g>
+          <g class="pan cho"><line class="hang" x1="244" y1="64" x2="244" y2="90"></line><rect x="216" y="90" width="56" height="26" rx="6"></rect><text x="244" y="107">chosen</text></g>
+        </g>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "cpu-vs-gpu" && (
+  <figure class="fp ill p2cg" tabindex="0" data-dwell="2600"
+    data-captions='["A CPU has a few big cores, grinding through the multiply-adds a handful at a time.","A GPU has thousands of small lanes running the same multiply-add all at once."]'>
+    <div class="fp-stage">
+      <div class="side cpu"><div class="lbl">CPU · a few big cores</div><div class="cores"><span class="core"></span><span class="core"></span><span class="core"></span><span class="core"></span></div></div>
+      <div class="side gpu"><div class="lbl">GPU · thousands of small lanes</div><div class="lanes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+    </div>
+  </figure>
+)}
+
+{name === "matmul-parallel" && (
+  <figure class="fp ill p2mm" tabindex="0" data-dwell="2500"
+    data-captions='["One output cell is a single dot product: one row of weights against one token vector.","The whole matmul is a grid of these, and no cell needs the result of any other.","So hand each cell to its own lane and compute them all at once."]'>
+    <div class="fp-stage">
+      <div class="lead">each cell = one row · one vector, all independent</div>
+      <div class="mgrid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="one"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </figure>
+)}
+
+{name === "tensor-core" && (
+  <figure class="fp p2tc" tabindex="0" data-dwell="2700"
+    data-captions='["A tensor core is a small grid of multiply-add units, here 4×4.","Numbers stream through, and each cell folds its product into a running sum that stays on-chip.","Only when the whole tile is finished does the result get written out to memory, once."]'>
+    <div class="fp-stage">
+      <div class="tcrow">
+        <div class="lfeed">rows →</div>
+        <div class="sys"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="rout"><span class="wr">→</span><span class="mem">memory</span></div>
+      </div>
+      <div class="note">the running sum stays in the grid until the tile is finished</div>
+    </div>
+  </figure>
+)}
+
+{name === "kernel-tiling" && (
+  <figure class="fp ill p2kt" tabindex="0" data-dwell="2600"
+    data-captions='["The real matrices are huge, so the kernel chops the matmul into tiles.","It streams each tile from VRAM, through fast on-chip memory, into the tensor cores.","Keeping every tensor core fed, with no stalls, is the kernel’s whole job."]'>
+    <div class="fp-stage">
+      <div class="big"><i class="t"></i><i class="t"></i><i></i><i></i><i></i><i></i><i class="t"></i><i class="t"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="pipe"><span class="st">VRAM</span><span class="ar">→</span><span class="st">shared memory</span><span class="ar">→</span><span class="st">registers</span><span class="ar">→</span><span class="st tc">tensor core</span></div>
+      <div class="note">the kernel schedules the tiles so no core sits idle</div>
+    </div>
+  </figure>
+)}
+
+{name === "kv-cache" && (
+  <figure class="fp p2kv" tabindex="0" data-dwell="3000"
+    data-captions='["The prompt so far, ending in you shall.","Prefill: compute a key and value for every token, and store them in the cache.","The newest token’s query (dashed) sweeps back over the stored keys, and predicts: not.","not joins the sequence, so its key and value are cached too.","Next step, only the new token’s query is computed; the whole cache is reused.","And it predicts pass. Every step adds one K,V and reuses the rest."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 190" role="img" aria-label="KV cache: keys and values are stored once and reused as each new token is generated">
+        <g class="beams f3"><line x1="101" y1="42" x2="37" y2="118"></line><line x1="101" y1="42" x2="101" y2="118"></line></g>
+        <g class="beams f5"><line x1="165" y1="42" x2="37" y2="118"></line><line x1="165" y1="42" x2="101" y2="118"></line><line x1="165" y1="42" x2="165" y2="118"></line></g>
+        <g class="slot s1"><rect x="10" y="118" width="54" height="30" rx="6"></rect><text x="37" y="137">K,V</text></g>
+        <g class="slot s2"><rect x="74" y="118" width="54" height="30" rx="6"></rect><text x="101" y="137">K,V</text></g>
+        <g class="slot s3"><rect x="138" y="118" width="54" height="30" rx="6"></rect><text x="165" y="137">K,V</text></g>
+        <text class="clabel" x="10" y="164">KV cache</text>
+        <g class="tk t1"><rect x="10" y="16" width="54" height="26" rx="7"></rect><text x="37" y="33">you</text></g>
+        <g class="tk t2"><rect x="74" y="16" width="54" height="26" rx="7"></rect><text x="101" y="33">shall</text></g>
+        <g class="tk t3"><rect x="138" y="16" width="54" height="26" rx="7"></rect><text x="165" y="33">not</text></g>
+        <g class="tk t4"><rect x="202" y="16" width="54" height="26" rx="7"></rect><text x="229" y="33">pass</text></g>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "why-cache-kv" && (
+  <figure class="fp p2wc" tabindex="0" data-dwell="2700"
+    data-captions='["Each step, the newest token holds the query and looks back over the keys so far.","The query is spent the moment it is used, so a step later it is gone. Nothing to keep.","But every token’s key and value stay on the record, read by each token that follows. Those we cache."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 300 150" role="img" aria-label="The query is used once and discarded, while keys and values accumulate and are cached">
+        <text class="rlab" x="6" y="36">query</text>
+        <text class="rlab" x="6" y="116">key + value</text>
+        <circle class="qd q1" cx="115" cy="34" r="10"></circle>
+        <circle class="qd q2" cx="170" cy="34" r="10"></circle>
+        <circle class="qd q3" cx="225" cy="34" r="10"></circle>
+        <rect class="kd k1" x="105" y="96" width="20" height="26" rx="4"></rect>
+        <rect class="kd k2" x="160" y="96" width="20" height="26" rx="4"></rect>
+        <rect class="kd k3" x="215" y="96" width="20" height="26" rx="4"></rect>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "prefill-decode" && (
+  <figure class="fp p2pd" tabindex="0" data-dwell="2700"
+    data-captions='["Prefill reads the weights once and pushes the whole prompt through together, so the compute units stay busy. Compute-bound.","Decode reads all the weights again just to produce a single token, so most of the time is spent waiting on memory. Memory-bound."]'>
+    <div class="fp-stage">
+      <div class="prow pre"><span class="pl">prefill</span><span class="wl">weights</span><span class="ar">→</span><span class="toks"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+      <div class="prow dec"><span class="pl">decode</span><span class="wl">weights</span><span class="ar">→</span><span class="toks"><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+      <div class="pdkey">one weight-read → many tokens (prefill) vs one (decode)</div>
+    </div>
+  </figure>
+)}
+
+{name === "bit-drop" && (
+  <figure class="fp p2bit" tabindex="0" data-dwell="2600"
+    data-captions='["A weight is a value on a fine-grained scale, one of many possible levels.","Quantizing keeps only a few coarse levels, and snaps the value to the nearest one.","Fewer levels means fewer bits: less memory and faster math, for a tiny shift in the value."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 300 116" role="img" aria-label="Quantization snaps a value to a coarser set of levels">
+        <line class="axis" x1="20" y1="72" x2="280" y2="72"></line>
+        <g class="fine"><line x1="20" y1="66" x2="20" y2="78"></line><line x1="36" y1="66" x2="36" y2="78"></line><line x1="52" y1="66" x2="52" y2="78"></line><line x1="69" y1="66" x2="69" y2="78"></line><line x1="85" y1="66" x2="85" y2="78"></line><line x1="101" y1="66" x2="101" y2="78"></line><line x1="118" y1="66" x2="118" y2="78"></line><line x1="134" y1="66" x2="134" y2="78"></line><line x1="150" y1="66" x2="150" y2="78"></line><line x1="166" y1="66" x2="166" y2="78"></line><line x1="183" y1="66" x2="183" y2="78"></line><line x1="199" y1="66" x2="199" y2="78"></line><line x1="215" y1="66" x2="215" y2="78"></line><line x1="231" y1="66" x2="231" y2="78"></line><line x1="248" y1="66" x2="248" y2="78"></line><line x1="264" y1="66" x2="264" y2="78"></line><line x1="280" y1="66" x2="280" y2="78"></line></g>
+        <g class="coarse"><line x1="20" y1="62" x2="20" y2="82"></line><line x1="85" y1="62" x2="85" y2="82"></line><line x1="150" y1="62" x2="150" y2="82"></line><line x1="215" y1="62" x2="215" y2="82"></line><line x1="280" y1="62" x2="280" y2="82"></line></g>
+        <g class="marker"><line class="stem" x1="0" y1="46" x2="0" y2="72"></line><circle class="dot" cx="0" cy="42" r="6"></circle><text class="vlab v1" x="0" y="30">0.66</text><text class="vlab v2" x="0" y="30">0.75</text></g>
+      </svg>
+    </div>
+  </figure>
+)}
