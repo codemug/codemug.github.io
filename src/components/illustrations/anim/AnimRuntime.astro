@@ -241,6 +241,323 @@
   .tp[data-frame="4"] .cmp,.tp[data-frame="5"] .cmp{opacity:1}
   .tp[data-frame="5"] .bp{opacity:1}
   .tp[data-frame="5"] .st{border-color:color-mix(in oklab,var(--d-teal) 50%,transparent);background:color-mix(in oklab,var(--d-teal) 9%,transparent);box-shadow:0 0 12px color-mix(in oklab,var(--d-teal) 16%,transparent)}
+
+  /* ================= PART 2 FIGURES ================= */
+
+  /* SFT base vs instruct */
+  .p2sft .fp-stage{min-height:184px;display:flex;flex-direction:column;gap:13px;justify-content:center}
+  .p2sft .in{display:flex;align-items:center;gap:9px;justify-content:center}
+  .p2sft .row{display:flex;align-items:center;gap:10px;justify-content:center;opacity:0;transition:opacity .4s}
+  .p2sft .tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--color-text-faint);width:96px;text-align:right}
+  .p2sft .out{font-family:var(--font-mono);font-size:12px;color:var(--color-text-dim);max-width:330px;font-style:italic}
+  .p2sft .pair{display:flex;align-items:center;gap:7px}
+  .p2sft .chip.bad{color:var(--color-text-dim);opacity:.7}
+  .p2sft[data-frame="2"] .base{opacity:1}
+  .p2sft[data-frame="3"] .sft{opacity:1}
+  .p2sft[data-frame="4"] .inst{opacity:1}
+  .p2sft[data-frame="4"] .inst .pill{box-shadow:0 0 12px color-mix(in oklab,var(--color-accent) 25%,transparent)}
+
+  /* chat template */
+  .p2tmpl .fp-stage{min-height:200px;display:flex;flex-direction:column;align-items:center;gap:10px;justify-content:center}
+  .p2tmpl .msgs{display:flex;gap:7px}
+  .p2tmpl .rendered{font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted);white-space:pre;background:var(--color-surface-deep);border:1px solid var(--color-border);border-radius:9px;padding:10px 14px;line-height:1.7;opacity:0;transition:opacity .4s}
+  .p2tmpl .ct{color:var(--color-accent)}
+  .p2tmpl[data-frame="2"] .rendered,.p2tmpl[data-frame="3"] .rendered{opacity:1}
+  .p2tmpl .cue{transition:opacity .3s,text-decoration-color .3s}
+  .p2tmpl[data-frame="3"] .cue{opacity:.3;text-decoration:line-through}
+  .p2tmpl .warn{font-family:var(--font-mono);font-size:11.5px;color:var(--color-text-dim);opacity:0;transition:opacity .4s;min-height:16px}
+  .p2tmpl[data-frame="3"] .warn{opacity:1}
+
+  /* RL loop (hero) */
+  .p2rl .fp-stage{min-height:206px;display:flex;flex-direction:column;gap:11px;justify-content:center}
+  .p2rl .q{text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--color-text)}
+  .p2rl .grid{display:flex;flex-direction:column;gap:5px;max-width:420px;margin:0 auto;width:100%}
+  .p2rl .hdr,.p2rl .att{display:grid;grid-template-columns:78px 60px 58px 54px 18px;gap:8px;align-items:center;font-family:var(--font-mono);font-size:12px}
+  .p2rl .hdr{color:var(--color-text-faint);font-size:9.5px;text-transform:uppercase;letter-spacing:.05em}
+  .p2rl .lb{color:var(--color-text-muted)}
+  .p2rl .ans.ok{color:var(--color-accent)}
+  .p2rl .ans.no{color:var(--color-text-dim)}
+  .p2rl .rw,.p2rl .ad,.p2rl .up,.p2rl .dn{opacity:0;transition:opacity .35s}
+  .p2rl[data-frame="2"] .rw,.p2rl[data-frame="3"] .rw,.p2rl[data-frame="4"] .rw{opacity:1}
+  .p2rl[data-frame="3"] .ad,.p2rl[data-frame="4"] .ad{opacity:1}
+  .p2rl[data-frame="4"] .up,.p2rl[data-frame="4"] .dn{opacity:1}
+  .p2rl .ad{color:var(--color-text-muted)}
+  .p2rl .up{color:var(--color-accent)}.p2rl .dn{color:var(--color-text-dim)}
+  .p2rl[data-frame="4"] .a1,.p2rl[data-frame="4"] .a3{background:color-mix(in oklab,var(--color-accent) 9%,transparent);border-radius:6px}
+
+  /* RL reward source */
+  .p2rew .fp-stage{min-height:150px;display:flex;flex-direction:column;gap:18px;justify-content:center}
+  .p2rew .path{display:flex;align-items:center;gap:9px;justify-content:center;flex-wrap:wrap;opacity:.22;transition:opacity .4s}
+  .p2rew[data-frame="1"] .v,.p2rew[data-frame="2"] .r{opacity:1}
+  .p2rew .fn{font-family:var(--font-mono);font-size:12px;color:var(--color-accent);border:1px solid color-mix(in oklab,var(--color-accent) 35%,transparent);border-radius:7px;padding:6px 10px}
+  .p2rew .human,.p2rew .box{font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted);border:1px solid var(--color-border);border-radius:7px;padding:6px 10px}
+
+  /* DPO chosen/rejected */
+  .p2dpo .fp-stage{min-height:172px;display:flex;flex-direction:column;gap:12px;justify-content:center}
+  .p2dpo .in{display:flex;align-items:center;gap:9px;justify-content:center}
+  .p2dpo .opt{display:flex;align-items:center;gap:10px;justify-content:center}
+  .p2dpo .tag{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--color-text-faint);width:66px;text-align:right}
+  .p2dpo .ch .pill{max-width:300px}
+  .p2dpo .chip.bad{color:var(--color-text-dim)}
+  .p2dpo .mv{font-family:var(--font-mono);font-size:11px;opacity:0;transition:opacity .4s}
+  .p2dpo .mv.up{color:var(--color-accent)}.p2dpo .mv.dn{color:var(--color-text-dim)}
+  .p2dpo[data-frame="2"] .mv{opacity:1}
+
+  /* CPU vs GPU */
+  .p2cg .fp-stage{min-height:180px;display:flex;gap:26px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .p2cg .side{display:flex;flex-direction:column;align-items:center;gap:10px;opacity:.3;transition:opacity .4s}
+  .p2cg[data-frame="1"] .cpu,.p2cg[data-frame="2"] .gpu{opacity:1}
+  .p2cg .lbl{font-family:var(--font-mono);font-size:10px;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:.04em}
+  .p2cg .cores{display:flex;gap:8px}
+  .p2cg .core{width:26px;height:34px;border-radius:5px;border:1px solid var(--color-border);background:var(--color-surface-2)}
+  .p2cg[data-frame="1"] .cpu .core{border-color:color-mix(in oklab,var(--color-accent) 45%,transparent);background:color-mix(in oklab,var(--color-accent) 14%,transparent)}
+  .p2cg .lanes{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
+  .p2cg .lanes i{width:11px;height:11px;border-radius:2px;border:1px solid var(--color-hairline);background:var(--color-surface-2)}
+  .p2cg[data-frame="2"] .gpu .lanes i{background:color-mix(in oklab,var(--color-accent) 55%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 40%,transparent)}
+
+  /* matmul as parallel dot products */
+  .p2mm .fp-stage{min-height:180px;display:flex;flex-direction:column;align-items:center;gap:14px;justify-content:center}
+  .p2mm .lead{font-family:var(--font-mono);font-size:11.5px;color:var(--color-text-dim);text-align:center;max-width:380px}
+  .p2mm .mgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+  .p2mm .mgrid i{width:24px;height:24px;border-radius:4px;border:1px solid var(--color-hairline);background:var(--color-surface-2);transition:background .3s,border-color .3s}
+  .p2mm[data-frame="1"] .mgrid i.one{background:color-mix(in oklab,var(--color-accent) 55%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 45%,transparent)}
+  .p2mm[data-frame="3"] .mgrid i{background:color-mix(in oklab,var(--color-accent) 48%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 36%,transparent)}
+
+  /* tensor core tile MMA */
+  .p2tc .fp-stage{min-height:184px;display:flex;flex-direction:column;align-items:center;gap:16px;justify-content:center}
+  .p2tc .flow{display:flex;align-items:center;gap:11px;flex-wrap:wrap;justify-content:center}
+  .p2tc .cell{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .p2tc .cap{font-family:var(--font-mono);font-size:9px;color:var(--color-text-faint);text-transform:uppercase}
+  .p2tc .box{width:46px;height:46px;border-radius:7px;border:1px solid var(--color-border);background:var(--color-surface-2);display:grid;place-items:center;font-family:var(--font-mono);font-size:10px;color:var(--color-text-muted);text-align:center}
+  .p2tc .op{font-family:var(--font-mono);color:var(--color-text-dim);font-size:14px}
+  .p2tc .acc .box{transition:background .4s,border-color .4s,box-shadow .4s}
+  .p2tc[data-frame="2"] .acc .box,.p2tc[data-frame="3"] .acc .box{border-color:color-mix(in oklab,var(--color-accent) 55%,transparent);background:color-mix(in oklab,var(--color-accent) 12%,transparent);box-shadow:0 0 12px color-mix(in oklab,var(--color-accent) 20%,transparent)}
+  .p2tc .wr,.p2tc .mem{opacity:.22;transition:opacity .4s}
+  .p2tc[data-frame="3"] .wr,.p2tc[data-frame="3"] .mem{opacity:1}
+  .p2tc .note{font-family:var(--font-mono);font-size:11px;color:var(--color-text-dim);text-align:center;max-width:400px}
+
+  /* kernel tiling */
+  .p2kt .fp-stage{min-height:186px;display:flex;flex-direction:column;align-items:center;gap:14px;justify-content:center}
+  .p2kt .big{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px;border:1px dashed var(--color-border);border-radius:8px}
+  .p2kt .big i{width:16px;height:16px;border-radius:2px;background:var(--color-surface-2);border:1px solid var(--color-hairline)}
+  .p2kt .big i.t{border-color:color-mix(in oklab,var(--color-accent) 45%,transparent);background:color-mix(in oklab,var(--color-accent) 12%,transparent)}
+  .p2kt .pipe{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;opacity:0;transition:opacity .4s}
+  .p2kt[data-frame="2"] .pipe,.p2kt[data-frame="3"] .pipe{opacity:1}
+  .p2kt .st{font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);border:1px solid var(--color-border);border-radius:7px;padding:5px 9px}
+  .p2kt .st.tc{transition:border-color .4s,color .4s}
+  .p2kt[data-frame="3"] .st.tc{border-color:color-mix(in oklab,var(--color-accent) 50%,transparent);color:var(--color-accent)}
+  .p2kt .note{font-family:var(--font-mono);font-size:11px;color:var(--color-text-dim);text-align:center;opacity:0;transition:opacity .4s;min-height:15px}
+  .p2kt[data-frame="3"] .note{opacity:1}
+
+  /* KV cache (hero) */
+  .p2kv .fp-stage{min-height:212px;display:flex;flex-direction:column;align-items:center;gap:16px;justify-content:center}
+  .p2kv .strip{display:flex;gap:16px;align-items:flex-end}
+  .p2kv .tcol{display:flex;flex-direction:column;align-items:center;gap:6px;transition:opacity .4s}
+  .p2kv .c3,.p2kv .c4{opacity:0}
+  .p2kv[data-frame="3"] .c3,.p2kv[data-frame="4"] .c3,.p2kv[data-frame="5"] .c3,.p2kv[data-frame="6"] .c3{opacity:1}
+  .p2kv[data-frame="6"] .c4{opacity:1}
+  .p2kv .tl{font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted)}
+  .p2kv .pred .tl{color:var(--color-accent)}
+  .p2kv .qkv{display:flex;gap:3px}
+  .p2kv .qkv i{width:14px;height:14px;border-radius:3px;border:1px solid var(--color-hairline);background:var(--color-surface-2);transition:background .35s,opacity .35s,border-color .35s}
+  .p2kv[data-frame="2"] .c1 .qkv i,.p2kv[data-frame="2"] .c2 .qkv i,.p2kv[data-frame="3"] .c1 .qkv i,.p2kv[data-frame="3"] .c2 .qkv i{background:color-mix(in oklab,var(--color-accent) 45%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 38%,transparent)}
+  .p2kv[data-frame="4"] .c1 .k,.p2kv[data-frame="4"] .c2 .k,.p2kv[data-frame="4"] .c1 .v,.p2kv[data-frame="4"] .c2 .v,.p2kv[data-frame="5"] .c1 .k,.p2kv[data-frame="5"] .c2 .k,.p2kv[data-frame="5"] .c1 .v,.p2kv[data-frame="5"] .c2 .v,.p2kv[data-frame="6"] .c1 .k,.p2kv[data-frame="6"] .c2 .k,.p2kv[data-frame="6"] .c1 .v,.p2kv[data-frame="6"] .c2 .v{background:color-mix(in oklab,var(--d-teal) 62%,var(--color-surface-2));border-color:color-mix(in oklab,var(--d-teal) 45%,transparent)}
+  .p2kv[data-frame="4"] .c1 .q,.p2kv[data-frame="4"] .c2 .q,.p2kv[data-frame="5"] .c1 .q,.p2kv[data-frame="5"] .c2 .q,.p2kv[data-frame="6"] .c1 .q,.p2kv[data-frame="6"] .c2 .q{opacity:.18}
+  .p2kv[data-frame="5"] .c3 .qkv i,.p2kv[data-frame="6"] .c3 .qkv i{background:color-mix(in oklab,var(--color-accent) 45%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 38%,transparent)}
+  .p2kv .cachebar{display:flex;align-items:center;gap:8px}
+  .p2kv .cl{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--color-text-faint);letter-spacing:.04em}
+  .p2kv .cslot{width:28px;height:16px;border-radius:4px;border:1px dashed var(--color-border);transition:background .4s,border-color .4s,border-style .4s}
+  .p2kv[data-frame="4"] .s1,.p2kv[data-frame="5"] .s1,.p2kv[data-frame="6"] .s1,.p2kv[data-frame="4"] .s2,.p2kv[data-frame="5"] .s2,.p2kv[data-frame="6"] .s2{background:color-mix(in oklab,var(--d-teal) 42%,transparent);border-style:solid;border-color:color-mix(in oklab,var(--d-teal) 50%,transparent)}
+  .p2kv[data-frame="6"] .s3{background:color-mix(in oklab,var(--color-accent) 30%,transparent);border-style:solid;border-color:color-mix(in oklab,var(--color-accent) 42%,transparent)}
+  .p2kv .qkvkey{font-size:10.5px}
+
+  /* why cache K,V not Q */
+  .p2wc .fp-stage{min-height:170px;display:flex;flex-direction:column;align-items:center;gap:16px;justify-content:center}
+  .p2wc .two{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .p2wc .col{width:212px;border:1px solid var(--color-border);border-radius:11px;padding:14px;background:var(--color-surface-deep);opacity:.32;transition:opacity .4s}
+  .p2wc[data-frame="1"] .qcol,.p2wc[data-frame="2"] .kcol{opacity:1}
+  .p2wc .h{font-family:var(--font-mono);font-size:12.5px;margin-bottom:6px}
+  .p2wc .qcol .h{color:var(--color-text-muted)}
+  .p2wc .kcol .h{color:var(--color-accent)}
+  .p2wc .d{font-size:12px;color:var(--color-text-dim);line-height:1.4}
+  .p2wc .use{font-family:var(--font-mono);font-size:11px;margin-top:8px}
+  .p2wc .qcol .use{color:var(--color-text-dim)}
+  .p2wc .kcol .use{color:var(--color-accent)}
+  .p2wc .verdict{font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted);opacity:0;transition:opacity .4s}
+  .p2wc[data-frame="2"] .verdict{opacity:1}
+
+  /* prefill vs decode */
+  .p2pd .fp-stage{min-height:180px;display:flex;flex-direction:column;gap:22px;justify-content:center}
+  .p2pd .phase{display:flex;flex-direction:column;gap:5px;max-width:440px;margin:0 auto;width:100%;opacity:.32;transition:opacity .4s}
+  .p2pd[data-frame="1"] .pre,.p2pd[data-frame="2"] .dec{opacity:1}
+  .p2pd .pl{font-family:var(--font-mono);font-size:11px;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:.04em}
+  .p2pd .bars{display:flex;flex-direction:column;gap:4px}
+  .p2pd .bar{height:18px;border-radius:5px;font-family:var(--font-mono);font-size:10px;display:flex;align-items:center;padding-left:8px;min-width:60px}
+  .p2pd .cmp{background:color-mix(in oklab,var(--color-accent) 68%,transparent);color:var(--color-accent-ink)}
+  .p2pd .memr{background:color-mix(in oklab,var(--d-teal) 75%,var(--color-surface-2));color:var(--color-text)}
+  .p2pd .verdict{font-family:var(--font-mono);font-size:11.5px;color:var(--color-text-muted)}
+
+  /* quantization bit drop */
+  .p2bit .fp-stage{min-height:176px;display:flex;flex-direction:column;align-items:center;gap:13px;justify-content:center}
+  .p2bit .num{font-family:var(--font-mono);font-size:15px;color:var(--color-text)}
+  .p2bit .bits{display:flex;gap:5px}
+  .p2bit .b{width:26px;height:32px;border-radius:5px;border:1px solid var(--color-border);background:var(--color-surface-2);display:grid;place-items:center;font-family:var(--font-mono);font-size:13px;color:var(--color-text-muted);transition:opacity .4s,background .4s}
+  .p2bit .b.msb{border-color:color-mix(in oklab,var(--color-accent) 45%,transparent)}
+  .p2bit .ann{display:flex;justify-content:space-between;width:100%;max-width:262px;font-family:var(--font-mono);font-size:9px;color:var(--color-text-faint);text-transform:uppercase}
+  .p2bit[data-frame="2"] .b.lo,.p2bit[data-frame="3"] .b.lo{opacity:.2;text-decoration:line-through}
+  .p2bit .after{font-family:var(--font-mono);font-size:12px;color:var(--color-text-dim);opacity:0;transition:opacity .4s}
+  .p2bit[data-frame="2"] .after,.p2bit[data-frame="3"] .after{opacity:1}
+  .p2bit .win{font-family:var(--font-mono);font-size:11.5px;color:var(--color-accent);opacity:0;transition:opacity .4s;min-height:15px}
+  .p2bit[data-frame="3"] .win{opacity:1}
+
+  /* RL loop (visual, SVG) */
+  .p2rl .fp-stage{min-height:190px;display:flex;flex-direction:row;justify-content:center;align-items:center;padding:4px 0}
+  .p2rl svg{width:100%;max-width:342px;height:auto;font-family:var(--font-mono)}
+  .p2rl .prompt rect{fill:var(--color-surface-2);stroke:var(--color-border);stroke-width:1}
+  .p2rl .prompt text{fill:var(--color-text-muted);font-size:11px;text-anchor:middle}
+  .p2rl .traj{fill:none;stroke:var(--color-border-strong);stroke-width:1.6;transition:stroke .45s,stroke-width .45s,opacity .45s}
+  .p2rl .ans rect{fill:var(--color-surface-2);stroke:var(--color-border);stroke-width:1;transition:fill .45s,stroke .45s,opacity .45s}
+  .p2rl .ans text{fill:var(--color-text-muted);font-size:11px;text-anchor:middle;transition:fill .45s}
+  .p2rl .adv{font-size:10px;text-anchor:start;opacity:0;transition:opacity .4s}
+  .p2rl .adv.aok{fill:var(--color-accent)}
+  .p2rl .adv.ano{fill:var(--color-text-dim)}
+  .p2rl[data-frame="2"] .ok rect,.p2rl[data-frame="3"] .ok rect,.p2rl[data-frame="4"] .ok rect{fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .p2rl[data-frame="2"] .ok text,.p2rl[data-frame="3"] .ok text,.p2rl[data-frame="4"] .ok text{fill:var(--color-accent)}
+  .p2rl[data-frame="2"] .okp,.p2rl[data-frame="3"] .okp,.p2rl[data-frame="4"] .okp{stroke:var(--color-accent)}
+  .p2rl[data-frame="2"] .no,.p2rl[data-frame="3"] .no{opacity:.45}
+  .p2rl[data-frame="2"] .nop,.p2rl[data-frame="3"] .nop{stroke:var(--color-text-dim)}
+  .p2rl[data-frame="3"] .adv,.p2rl[data-frame="4"] .adv{opacity:1}
+  .p2rl[data-frame="4"] .okp{stroke-width:3.4}
+  .p2rl[data-frame="4"] .nop{opacity:.12}
+  .p2rl[data-frame="4"] .no{opacity:.22}
+
+  /* KV cache (visual, SVG) */
+  .p2kv .fp-stage{min-height:206px;display:flex;flex-direction:row;justify-content:center;align-items:center;padding:4px 0}
+  .p2kv svg{width:100%;max-width:330px;height:auto;font-family:var(--font-mono)}
+  .p2kv .tk rect{fill:var(--color-surface-2);stroke:var(--color-border);stroke-width:1;transition:fill .4s,stroke .4s}
+  .p2kv .tk text{fill:var(--color-text-muted);font-size:11px;text-anchor:middle;transition:fill .4s}
+  .p2kv .t3,.p2kv .t4{opacity:0;transition:opacity .45s}
+  .p2kv[data-frame="3"] .t3,.p2kv[data-frame="4"] .t3,.p2kv[data-frame="5"] .t3,.p2kv[data-frame="6"] .t3{opacity:1}
+  .p2kv[data-frame="6"] .t4{opacity:1}
+  .p2kv[data-frame="3"] .t3 rect,.p2kv[data-frame="6"] .t4 rect{fill:color-mix(in oklab,var(--color-accent) 18%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .p2kv[data-frame="3"] .t3 text,.p2kv[data-frame="6"] .t4 text{fill:var(--color-accent)}
+  .p2kv .slot rect{fill:transparent;stroke:var(--color-border);stroke-width:1;stroke-dasharray:3 3;transition:fill .4s,stroke .4s,stroke-dasharray .1s}
+  .p2kv .slot text{fill:var(--color-text-faint);font-size:9px;text-anchor:middle;transition:fill .4s}
+  .p2kv .clabel{fill:var(--color-text-faint);font-size:8.5px;letter-spacing:.05em;text-transform:uppercase}
+  .p2kv[data-frame="2"] .s1 rect,.p2kv[data-frame="3"] .s1 rect,.p2kv[data-frame="4"] .s1 rect,.p2kv[data-frame="5"] .s1 rect,.p2kv[data-frame="6"] .s1 rect,.p2kv[data-frame="2"] .s2 rect,.p2kv[data-frame="3"] .s2 rect,.p2kv[data-frame="4"] .s2 rect,.p2kv[data-frame="5"] .s2 rect,.p2kv[data-frame="6"] .s2 rect,.p2kv[data-frame="4"] .s3 rect,.p2kv[data-frame="5"] .s3 rect,.p2kv[data-frame="6"] .s3 rect{fill:color-mix(in oklab,var(--d-teal) 50%,transparent);stroke:color-mix(in oklab,var(--d-teal) 62%,transparent);stroke-dasharray:none}
+  .p2kv[data-frame="2"] .s1 text,.p2kv[data-frame="2"] .s2 text,.p2kv[data-frame="3"] .s1 text,.p2kv[data-frame="3"] .s2 text,.p2kv[data-frame="4"] .s1 text,.p2kv[data-frame="4"] .s2 text,.p2kv[data-frame="4"] .s3 text,.p2kv[data-frame="5"] .s1 text,.p2kv[data-frame="5"] .s2 text,.p2kv[data-frame="5"] .s3 text,.p2kv[data-frame="6"] .s1 text,.p2kv[data-frame="6"] .s2 text,.p2kv[data-frame="6"] .s3 text{fill:var(--color-text-soft)}
+  .p2kv .beams line{stroke:var(--color-accent);stroke-width:1.5;stroke-dasharray:4 3;opacity:0;transition:opacity .4s;stroke-linecap:round}
+  .p2kv[data-frame="3"] .f3 line{opacity:.85}
+  .p2kv[data-frame="5"] .f5 line{opacity:.85}
+
+  /* SFT: next-token distribution collapsing */
+  .p2sft .fp-stage{min-height:186px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:2px 0}
+  .p2sft .dist{display:flex;align-items:flex-end;gap:10px;height:128px}
+  .p2sft .bar{width:26px;background:color-mix(in oklab,var(--color-accent) 28%,var(--color-surface-2));border-radius:5px 5px 0 0;height:20%;transition:height .6s cubic-bezier(.4,0,.2,1),background .5s}
+  .p2sft .bar.tgt{background:var(--color-accent)}
+  .p2sft[data-frame="1"] .b1{height:44%}.p2sft[data-frame="1"] .b2{height:58%}.p2sft[data-frame="1"] .b3{height:50%}.p2sft[data-frame="1"] .b4{height:63%}.p2sft[data-frame="1"] .b5{height:47%}.p2sft[data-frame="1"] .b6{height:55%}.p2sft[data-frame="1"] .b7{height:40%}
+  .p2sft[data-frame="2"] .b1{height:32%}.p2sft[data-frame="2"] .b2{height:38%}.p2sft[data-frame="2"] .b3{height:74%}.p2sft[data-frame="2"] .b4{height:40%}.p2sft[data-frame="2"] .b5{height:30%}.p2sft[data-frame="2"] .b6{height:36%}.p2sft[data-frame="2"] .b7{height:26%}
+  .p2sft[data-frame="3"] .bar{height:13%}
+  .p2sft[data-frame="3"] .b3{height:96%}
+  .p2sft .xa{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .p2sft .xa .mut{font-family:var(--font-mono);font-size:10.5px}
+  .p2sft .xa .tl{font-family:var(--font-mono);font-size:11.5px;color:var(--color-accent);opacity:0;transition:opacity .5s}
+  .p2sft[data-frame="3"] .xa .tl{opacity:1}
+
+  /* chat template: token stream */
+  .p2tmpl .fp-stage{min-height:190px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:11px;padding:2px 0}
+  .p2tmpl .bubble{font-family:var(--font-mono);font-size:12px;color:var(--color-text-muted);background:var(--color-surface-deep);border:1px solid var(--color-border);border-radius:10px;padding:7px 12px}
+  .p2tmpl .down{font-family:var(--font-mono);font-size:14px;color:var(--color-text-dim)}
+  .p2tmpl .stream{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:400px;opacity:0;transition:opacity .45s}
+  .p2tmpl[data-frame="2"] .stream,.p2tmpl[data-frame="3"] .stream{opacity:1}
+  .p2tmpl .tk{font-family:var(--font-mono);font-size:11px;border:1px solid var(--color-border);background:var(--color-surface-2);color:var(--color-text-muted);border-radius:5px;padding:4px 7px}
+  .p2tmpl .tk.ctl{border-color:color-mix(in oklab,var(--color-accent) 45%,transparent);background:color-mix(in oklab,var(--color-accent) 12%,transparent);color:var(--color-accent)}
+  .p2tmpl .cue{transition:opacity .3s}
+  .p2tmpl[data-frame="3"] .cue{opacity:.28;text-decoration:line-through}
+  .p2tmpl .warn{font-family:var(--font-mono);font-size:11px;color:var(--color-text-dim);opacity:0;transition:opacity .4s;min-height:15px}
+  .p2tmpl[data-frame="3"] .warn{opacity:1}
+
+  /* reward source: verifier + meter */
+  .p2rew .fp-stage{min-height:150px;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:2px 0}
+  .p2rew .lane{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;opacity:.24;transition:opacity .4s}
+  .p2rew[data-frame="1"] .v,.p2rew[data-frame="2"] .r{opacity:1}
+  .p2rew .lb{font-family:var(--font-mono);font-size:9px;text-transform:uppercase;color:var(--color-text-faint);width:58px;text-align:right}
+  .p2rew .gate,.p2rew .rm{font-family:var(--font-mono);font-size:11.5px;color:var(--color-text-muted);border:1px solid var(--color-border);border-radius:7px;padding:6px 10px}
+  .p2rew .tick{color:var(--color-accent);font-size:16px}
+  .p2rew .rv{font-family:var(--font-mono);font-size:13px;color:var(--color-accent);font-variant-numeric:tabular-nums}
+  .p2rew .meter{width:72px;height:14px;border-radius:7px;background:var(--color-surface-2);border:1px solid var(--color-border);overflow:hidden;position:relative}
+  .p2rew .meter .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--color-accent);transition:width .7s cubic-bezier(.4,0,.2,1)}
+  .p2rew[data-frame="2"] .meter .fill{width:82%}
+
+  /* DPO: balance tips toward chosen */
+  .p2dpo .fp-stage{min-height:180px;display:flex;justify-content:center;align-items:center;padding:2px 0}
+  .p2dpo svg{width:100%;max-width:300px;height:auto;font-family:var(--font-mono)}
+  .p2dpo .post{stroke:var(--color-border-strong);stroke-width:2}
+  .p2dpo .pivot{fill:var(--color-border-strong)}
+  .p2dpo .arm{stroke:var(--color-text-muted);stroke-width:2.5;stroke-linecap:round}
+  .p2dpo .hang{stroke:var(--color-border);stroke-width:1}
+  .p2dpo .pan rect{fill:var(--color-surface-2);stroke:var(--color-border);stroke-width:1;transition:fill .5s,stroke .5s,opacity .5s}
+  .p2dpo .pan text{fill:var(--color-text-muted);font-size:11px;text-anchor:middle;transition:fill .5s}
+  .p2dpo .beam{transform-box:view-box;transform-origin:150px 64px;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+  .p2dpo[data-frame="2"] .beam{transform:rotate(9deg)}
+  .p2dpo[data-frame="2"] .cho rect{fill:color-mix(in oklab,var(--color-accent) 18%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .p2dpo[data-frame="2"] .cho text{fill:var(--color-accent)}
+  .p2dpo[data-frame="2"] .rej{opacity:.4}
+
+  /* tensor core: systolic grid */
+  .p2tc .fp-stage{min-height:180px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:2px 0}
+  .p2tc .tcrow{display:flex;align-items:center;gap:12px}
+  .p2tc .lfeed{font-family:var(--font-mono);font-size:9.5px;color:var(--color-text-faint);text-transform:uppercase;text-align:right;max-width:40px;line-height:1.3}
+  .p2tc .sys{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border:1px solid var(--color-border);border-radius:8px;background:var(--color-surface-deep);transition:box-shadow .4s}
+  .p2tc .sys i{width:22px;height:22px;border-radius:4px;background:var(--color-surface-2);border:1px solid var(--color-hairline);transition:background .4s,border-color .4s}
+  .p2tc[data-frame="2"] .sys i,.p2tc[data-frame="3"] .sys i{background:color-mix(in oklab,var(--color-accent) 45%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 40%,transparent)}
+  .p2tc[data-frame="2"] .sys,.p2tc[data-frame="3"] .sys{box-shadow:0 0 16px color-mix(in oklab,var(--color-accent) 16%,transparent)}
+  .p2tc .rout{display:flex;align-items:center;gap:8px;opacity:.22;transition:opacity .4s}
+  .p2tc[data-frame="3"] .rout{opacity:1}
+  .p2tc .wr{font-family:var(--font-mono);color:var(--color-text-dim);font-size:14px}
+  .p2tc .mem{font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);border:1px solid var(--color-border);border-radius:7px;padding:6px 9px}
+  .p2tc .note{font-family:var(--font-mono);font-size:11px;color:var(--color-text-dim);text-align:center;max-width:400px}
+
+  /* why cache K,V: transient query vs accumulating K,V */
+  .p2wc .fp-stage{min-height:170px;display:flex;justify-content:center;align-items:center;padding:2px 0}
+  .p2wc svg{width:100%;max-width:300px;height:auto;font-family:var(--font-mono)}
+  .p2wc .rlab{fill:var(--color-text-faint);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+  .p2wc .qd{fill:color-mix(in oklab,var(--color-accent) 55%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 45%,transparent);stroke-width:1;opacity:0;transition:opacity .4s}
+  .p2wc[data-frame="1"] .q1,.p2wc[data-frame="2"] .q2,.p2wc[data-frame="3"] .q3{opacity:1}
+  .p2wc .kd{fill:color-mix(in oklab,var(--d-teal) 58%,var(--color-surface-2));stroke:color-mix(in oklab,var(--d-teal) 50%,transparent);stroke-width:1;opacity:.12;transition:opacity .4s}
+  .p2wc[data-frame="1"] .k1,.p2wc[data-frame="2"] .k1,.p2wc[data-frame="3"] .k1,.p2wc[data-frame="2"] .k2,.p2wc[data-frame="3"] .k2,.p2wc[data-frame="3"] .k3{opacity:1}
+
+  /* prefill vs decode: tokens per weight-read */
+  .p2pd .fp-stage{min-height:172px;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:2px 0}
+  .p2pd .prow{display:flex;align-items:center;gap:10px;justify-content:center;opacity:.28;transition:opacity .4s}
+  .p2pd[data-frame="1"] .pre,.p2pd[data-frame="2"] .dec{opacity:1}
+  .p2pd .pl{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;color:var(--color-text-faint);width:52px;text-align:right}
+  .p2pd .wl{font-family:var(--font-mono);font-size:11px;color:var(--color-text-muted);border:1px solid var(--color-border-strong);border-radius:6px;padding:8px 9px;background:var(--color-surface-2)}
+  .p2pd .toks{display:flex;gap:3px}
+  .p2pd .toks i{width:13px;height:20px;border-radius:3px;background:var(--color-surface-2);border:1px solid var(--color-hairline)}
+  .p2pd .pre .toks i{background:color-mix(in oklab,var(--color-accent) 52%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 40%,transparent)}
+  .p2pd .dec .toks i.on{background:color-mix(in oklab,var(--color-accent) 52%,var(--color-surface-2));border-color:color-mix(in oklab,var(--color-accent) 40%,transparent)}
+  .p2pd .pdkey{text-align:center;font-family:var(--font-mono);font-size:10.5px;color:var(--color-text-dim)}
+
+  /* quantization: snap to coarser levels on a number line */
+  .p2bit .fp-stage{min-height:170px;display:flex;justify-content:center;align-items:center;padding:2px 0}
+  .p2bit svg{width:100%;max-width:300px;height:auto;font-family:var(--font-mono)}
+  .p2bit .axis{stroke:var(--color-border);stroke-width:1.5}
+  .p2bit .fine line{stroke:var(--color-hairline);stroke-width:1}
+  .p2bit .coarse line{stroke:var(--color-text-dim);stroke-width:1.5}
+  .p2bit .fine{transition:opacity .4s}
+  .p2bit .coarse{opacity:0;transition:opacity .4s}
+  .p2bit[data-frame="2"] .fine,.p2bit[data-frame="3"] .fine{opacity:0}
+  .p2bit[data-frame="2"] .coarse,.p2bit[data-frame="3"] .coarse{opacity:1}
+  .p2bit .marker{transform-box:view-box;transform:translateX(192px);transition:transform .6s cubic-bezier(.4,0,.2,1)}
+  .p2bit[data-frame="2"] .marker,.p2bit[data-frame="3"] .marker{transform:translateX(215px)}
+  .p2bit .stem{stroke:var(--color-accent);stroke-width:1.5}
+  .p2bit .dot{fill:var(--color-accent)}
+  .p2bit .vlab{fill:var(--color-accent);font-size:11px;text-anchor:middle}
+  .p2bit .v2{opacity:0;transition:opacity .4s}
+  .p2bit .v1{transition:opacity .4s}
+  .p2bit[data-frame="2"] .v1,.p2bit[data-frame="3"] .v1{opacity:0}
+  .p2bit[data-frame="2"] .v2,.p2bit[data-frame="3"] .v2{opacity:1}
 </style>
 
 <script is:inline>
