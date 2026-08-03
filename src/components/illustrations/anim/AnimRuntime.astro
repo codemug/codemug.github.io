@@ -558,6 +558,54 @@
   .p2bit .v1{transition:opacity .4s}
   .p2bit[data-frame="2"] .v1,.p2bit[data-frame="3"] .v1{opacity:0}
   .p2bit[data-frame="2"] .v2,.p2bit[data-frame="3"] .v2{opacity:1}
+
+  /* #13 ffn matrices (2D grids) */
+  .fmx .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .fmx svg{width:100%;max-width:340px;height:auto;font-family:var(--font-mono)}
+  .fmx .cell{fill:var(--color-surface-2);stroke:var(--color-hairline)}
+  .fmx .out{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 50%,transparent)}
+  .fmx .grid{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 30%,transparent)}
+  .fmx .gl{stroke:var(--color-hairline);stroke-width:.75}
+  .fmx .op{fill:var(--color-text-dim);font-size:15px;text-anchor:middle}
+  .fmx .lab{fill:var(--color-text-muted);font-size:10px;text-anchor:middle}
+  .fmx .dim{fill:var(--color-text-dim);font-size:9px;text-anchor:middle}
+  .fmx .up{transition:opacity .4s}
+  .fmx .dn{opacity:0;transition:opacity .4s}
+  .fmx[data-frame="2"] .up{opacity:0}
+  .fmx[data-frame="2"] .dn{opacity:1}
+
+  /* #14 relu (zero baseline) */
+  .frl .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .frl svg{width:100%;max-width:330px;height:auto;font-family:var(--font-mono)}
+  .frl .base{stroke:var(--color-border-strong);stroke-width:1;stroke-dasharray:3 3}
+  .frl .zero{fill:var(--color-text-dim);font-size:10px}
+  .frl .pos{fill:color-mix(in oklab,var(--color-accent) 52%,var(--color-surface-2))}
+  .frl .neg{fill:color-mix(in oklab,var(--color-text-dim) 45%,var(--color-surface-2));transition:opacity .45s}
+  .frl[data-frame="2"] .neg{opacity:0}
+  .frl .tag{font-size:10.5px;text-anchor:middle;opacity:0;transition:opacity .4s}
+  .frl .tag.n{fill:var(--color-text-dim)}
+  .frl .tag.k{fill:var(--color-accent)}
+  .frl[data-frame="1"] .tag.n{opacity:1}
+  .frl[data-frame="2"] .tag.k{opacity:1}
+
+  /* #15 ffn detector (fires, writes spain) */
+  .fdet .fp-stage{display:flex;justify-content:center;padding:4px 0}
+  .fdet svg{width:100%;max-width:360px;height:auto;font-family:var(--font-mono)}
+  .fdet .pill{fill:var(--color-surface-2);stroke:var(--color-border)}
+  .fdet .ptxt{fill:var(--color-text-muted);font-size:10px;text-anchor:middle}
+  .fdet .wlab{fill:var(--color-text-faint);font-size:9.5px;text-anchor:middle;letter-spacing:.04em}
+  .fdet .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border);transition:fill .4s,stroke .4s}
+  .fdet .chip text{fill:var(--color-text-dim);font-size:10px;text-anchor:middle;transition:fill .4s}
+  .fdet .dim{transition:opacity .4s}
+  .fdet[data-frame="2"] .dim,.fdet[data-frame="3"] .dim{opacity:.32}
+  .fdet[data-frame="2"] .d3 rect,.fdet[data-frame="3"] .d3 rect{fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-deep));stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .fdet[data-frame="2"] .d3 text,.fdet[data-frame="3"] .d3 text{fill:var(--color-accent)}
+  .fdet .wb{opacity:0;transition:opacity .5s}
+  .fdet[data-frame="3"] .wb{opacity:1}
+  .fdet .arrow{stroke:var(--color-accent);stroke-width:1.5;fill:none;marker-end:url(#fd-a)}
+  .fdet .wdlab{fill:var(--color-text-muted);font-size:9.5px}
+  .fdet .spin{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .fdet .spintx{fill:var(--color-accent);font-size:12px;text-anchor:middle}
 </style>
 
 <script is:inline>
