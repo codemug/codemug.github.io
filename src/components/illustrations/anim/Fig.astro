@@ -542,3 +542,147 @@ const { name } = Astro.props;
     </div>
   </figure>
 )}
+
+{name === "primer-vram" && (
+  <figure class="fp ill pf pr1" tabindex="0" data-dwell="2600" data-captions='["A 12B model at 16-bit precision needs about 24 GB. It does not fit in a 16 GB budget.","Quantise to 8-bit and it is about 12 GB. Now it fits, but only just.","Quantise to 4-bit and it is about 6 GB, leaving room for the KV cache and activations."]'>
+    <div class="fp-stage"><div class="scene">
+      <div class="track"><div class="ceil"><span>16 GB budget</span></div><div class="bar"></div></div>
+      <div class="stack rd">
+        <span class="o1">16-bit &middot; &#8776; 24 GB &middot; <b class="bad">over budget</b></span>
+        <span class="o2">8-bit &middot; &#8776; 12 GB &middot; <b class="acc">fits</b></span>
+        <span class="o3">4-bit &middot; &#8776; 6 GB &middot; <b class="acc">room to spare</b></span>
+      </div>
+    </div></div>
+  </figure>
+)}
+
+{name === "primer-dilution" && (
+  <figure class="fp ill pf pr2" tabindex="0" data-dwell="2700" data-captions='["A short, tight prompt: the handful of tokens that matter get a big, clean share of attention.","Add history and tool definitions, and the same tokens now share the budget with distractors.","A giant prompt buries the signal. Each distractor takes only a sliver, but there are thousands.","Lost in the middle: the same fact is found at the edges, and missed when buried in the centre."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="dil col">
+        <div class="budget"><span class="key"></span><span class="rest"></span></div>
+        <div class="stack sig">
+          <span class="o1">signal <b class="acc">strong</b></span>
+          <span class="o2">signal <b>fading</b></span>
+          <span class="o3">signal <b class="bad">buried</b></span>
+        </div>
+        <div class="lg"><span class="sw acc"></span>tokens that matter<span class="sw dim"></span>everything else</div>
+      </div>
+      <div class="lim col">
+        <div class="ctxbar"><span class="fact"></span></div>
+        <div class="mn">start <b class="acc">found</b> &middot; middle <b class="bad">missed</b> &middot; end <b class="acc">found</b></div>
+      </div>
+    </div></div></div>
+  </figure>
+)}
+
+{name === "primer-split" && (
+  <figure class="fp ill pf pr3" tabindex="0" data-dwell="2600" data-captions='["One agent holds the whole task at once: a bloated context where the signal is buried.","Split it up. A writer, handed only what it needs for its one job.","A checker and a summariser, each with its own small, clean context.","And a decider. No single call holds the whole task, so no single call ever gets buried."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 col">
+        <div class="box warn">one agent &middot; write &middot; check &middot; summarise &middot; decide</div>
+        <div class="meter w"><i style="width:94%"></i></div>
+        <div class="mn">context overloaded</div>
+      </div>
+      <div class="many col f2">
+        <div class="row">
+          <div class="ag">writer<div class="meter"><i style="width:26%"></i></div></div>
+          <div class="ag f3">checker<div class="meter"><i style="width:24%"></i></div></div>
+          <div class="ag f3">summariser<div class="meter"><i style="width:28%"></i></div></div>
+          <div class="ag f4">decider<div class="meter"><i style="width:22%"></i></div></div>
+        </div>
+        <div class="mn f4">each with its own perfect context</div>
+      </div>
+    </div></div></div>
+  </figure>
+)}
+
+{name === "primer-toolsearch" && (
+  <figure class="fp ill pf pr4" tabindex="0" data-dwell="2700" data-captions='["The old way: paste every tool definition into the prompt. Fifty tools rebuild the bloat.","Move the whole catalogue into a search index, out of the prompt.","Give the agent two meta-tools instead of fifty real ones: one to search, one to call by id.","It describes what it needs, gets the best two or three matches, and calls one."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 col">
+        <div class="box warn"><div>prompt</div><div class="cluster" style="margin-top:7px"><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span><span class="tc"></span></div></div>
+        <div class="mn">50 tool definitions crammed in</div>
+      </div>
+      <div class="o2 row">
+        <div class="box">prompt</div><span class="arr">&rarr;</span><div class="box acc">search index<div class="mn">50 tools</div></div>
+      </div>
+      <div class="o3 col">
+        <div class="row"><div class="box acc">agent</div><span class="chip2">search()</span><span class="chip2">call(id)</span></div>
+        <div class="mn">the catalogue lives in the index, not the prompt</div>
+      </div>
+      <div class="o4 col">
+        <div class="row"><span class="chip2 hi">"summarise a PDF"</span><span class="arr">&rarr;</span><span class="chip2">match A</span><span class="chip2 hi">match B</span><span class="chip2">match C</span></div>
+        <div class="mn">describe the need, get 2 or 3 matches, call one</div>
+      </div>
+    </div></div></div>
+  </figure>
+)}
+
+{name === "primer-surface" && (
+  <figure class="fp ill pf pr5" tabindex="0" data-dwell="2600" data-captions='["The agent itself carries only a small context.","Around it sit large, searchable catalogues: tools, agents, graphs, collections, docs.","It expands only the branch it is standing on, and leaves everything else indexed and out of the way."]'>
+    <div class="fp-stage"><div class="scene">
+      <div class="box acc">agent<div class="mn">small context</div></div>
+      <span class="arr f2">&#8597;</span>
+      <div class="row f2">
+        <span class="cat">tools</span><span class="cat hl">agents</span><span class="cat">graphs</span><span class="cat">collections</span><span class="cat">docs</span>
+      </div>
+      <div class="mn f2">large searchable surface, indexed and out of the way</div>
+    </div></div>
+  </figure>
+)}
+
+{name === "primer-workspace" && (
+  <figure class="fp ill pf pr6" tabindex="0" data-dwell="2600" data-captions='["Two agents, each running in its own private context.","Between them, one shared thing: a folder, and a place to run commands.","One rule keeps them honest: read a file before you overwrite it, so neither stomps the other.","Rich tooling turns out to be structured files. A task list is just a file with checkboxes."]'>
+    <div class="fp-stage"><div class="scene">
+      <div class="row"><div class="box acc">agent A</div><div class="box acc">agent B</div></div>
+      <div class="col f2"><div class="mn">workspace</div><div class="row"><span class="chip2">shared folder</span><span class="chip2">run commands</span></div></div>
+      <div class="mn f3">rule: read before you overwrite</div>
+      <div class="file f4"><span><b class="acc">[x]</b> draft outline</span><span><b class="acc">[x]</b> write section</span><span>[ ] review</span></div>
+    </div></div>
+  </figure>
+)}
+
+{name === "primer-loop" && (
+  <figure class="fp ill pf pr7" tabindex="0" data-dwell="2700" data-captions='["A producer writes something.","A judge reads it and decides: accept, or reject with specific feedback.","Reject sends it back with feedback. The producer revises, and the judge looks again.","Round and round until it is good enough. A hard cap keeps a loop from running forever."]'>
+    <div class="fp-stage"><div class="scene">
+      <div class="row"><div class="box acc">producer<div class="mn">writes</div></div><span class="arr">&rarr;</span><div class="box f2">judge<div class="mn">critiques</div></div></div>
+      <div class="row f3"><span class="rj">&larr; reject: back with feedback</span></div>
+      <div class="row f3"><span class="it">iteration <b>3</b> &middot; cap 8</span></div>
+      <div class="row f4"><span class="ac">accept &rarr; done</span></div>
+    </div></div>
+  </figure>
+)}
+
+{name === "primer-events" && (
+  <figure class="fp ill pf pr8" tabindex="0" data-dwell="2700" data-captions='["A chain of agents is running on a worker.","It reaches a point where it has to wait, so it yields: it saves its state and frees the worker.","Parked, it waits on a human, a schedule, or an event, holding nothing open.","When the trigger arrives, the run is picked back up exactly where it left off."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 col"><div class="row"><div class="box acc">run</div><span class="chip2">worker</span></div><div class="mn">running</div></div>
+      <div class="o2 col"><div class="row"><div class="box">run</div><span class="arr">&rarr;</span><span class="chip2">saved state</span></div><div class="mn">yields and frees the worker</div></div>
+      <div class="o3 col"><div class="box">run &middot; <b class="acc">parked</b></div><div class="row"><span class="chip2">human</span><span class="chip2">schedule</span><span class="chip2">event</span></div><div class="mn">nothing held open, only saved state</div></div>
+      <div class="o4 col"><div class="row"><span class="chip2 hi">trigger</span><span class="arr">&rarr;</span><div class="box acc">run resumes</div></div><div class="mn">picks up where it left off</div></div>
+    </div></div></div>
+  </figure>
+)}
+
+{name === "primer-approval" && (
+  <figure class="fp ill pf pr9" tabindex="0" data-dwell="2700" data-captions='["Any agent can pull in live information through one clean web-search tool.","A sensitive tool call does not just run. It hits a gate first.","The run parks at the gate and waits for a human to sign off.","Approved, it continues. Denied, it records the denial and moves on."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 row"><div class="box acc">agent</div><span class="arr">&rarr;</span><div class="box">web search</div></div>
+      <div class="o2 row"><div class="box acc">agent</div><span class="arr">&rarr;</span><div class="box warn">gate</div><span class="arr">&rarr;</span><div class="box">sensitive tool</div></div>
+      <div class="o3 col"><div class="box warn">gate &middot; waiting</div><div class="mn">a human signs off before it runs</div></div>
+      <div class="o4 row"><span class="ok">approved &rarr; runs</span><span class="no">denied &rarr; recorded</span></div>
+    </div></div></div>
+  </figure>
+)}
+
+{name === "primer-harness" && (
+  <figure class="fp ill pf pr10" tabindex="0" data-dwell="2600" data-captions='["A setup you tuned over many passes: agents, tools, collections, and a graph that wires them.","Bundle it into a harness, a git-backed package of that whole configuration.","Someone else installs it in one step, and skips all the iteration.","A community piles up and trades these tuned configs, each a packaged answer to one job."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 row"><span class="chip2">agents</span><span class="chip2">tools</span><span class="chip2">collections</span><span class="chip2">graph</span></div>
+      <div class="o2 col"><div class="box acc">harness<div class="mn">git-backed bundle</div></div></div>
+      <div class="o3 row"><div class="box acc">harness</div><span class="arr">&rarr;</span><div class="box">installed in one step</div></div>
+      <div class="o4 row"><div class="box acc">harness</div><div class="box acc">harness</div><div class="box acc">harness</div></div>
+    </div></div></div>
+  </figure>
+)}

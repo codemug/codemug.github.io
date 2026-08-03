@@ -6,22 +6,16 @@ tags: ["local-llms", "agents", "primer", "context-engineering"]
 draft: false
 ---
 
-import Illo1 from "../../components/illustrations/Illo1.astro";
-import Illo2 from "../../components/illustrations/Illo2.astro";
-import Illo3 from "../../components/illustrations/Illo3.astro";
-import Illo4 from "../../components/illustrations/Illo4.astro";
-import Illo5 from "../../components/illustrations/Illo5.astro";
-import Illo6 from "../../components/illustrations/Illo6.astro";
-import Illo7 from "../../components/illustrations/Illo7.astro";
-import Illo8 from "../../components/illustrations/Illo8.astro";
-import Illo9 from "../../components/illustrations/Illo9.astro";
-import Illo10 from "../../components/illustrations/Illo10.astro";
+import AnimRuntime from "../../components/illustrations/anim/AnimRuntime.astro";
+import Fig from "../../components/illustrations/anim/Fig.astro";
+
+<AnimRuntime />
 
 A few months ago I bought a gaming PC. Nothing fancy, an RTX 5060 Ti with 16GB of VRAM. I told myself it was for games. It mostly turned into a lab for one stubborn question: can I get real, useful work out of small language models running locally, on hardware I already own?
 
 16GB sounds like plenty until you try to fit a language model into it. That ceiling means you can run something around a 12B model, and only if you squeeze it down to about 4 bits per weight. So I grabbed the small open-weight models that fit, the little Qwen and Gemma builds, and pointed the popular community agents at them: opencode, pi, openclaw, hermes.
 
-<Illo1 />
+<Fig name="primer-vram" />
 
 They were rough. Really rough. These agents are lovely with a frontier model behind them, but hand them a small local model and they fall apart. Wrong tools, lost plans, confident nonsense. My first instinct was that the models were simply too small to be useful. But that felt too easy, so instead of giving up I started pulling the whole thing apart to figure out why.
 
@@ -37,7 +31,7 @@ Then there's the feed-forward part, the little perceptron layer. This is where t
 
 Here's the catch, and it's the whole reason [Primer](https://primerhq.github.io/) exists. Both of these are a fixed budget being shared out. A token only has so much attention to spend, and it has to spread that across everything in the context. In a short, tight prompt, the handful of tokens that actually matter get a big, clean share. In a giant prompt stuffed with history, tool definitions, and half-relevant junk, those same important tokens are now competing with thousands of distractors. Each distractor pulls only a sliver, but there are so many of them that the signal gets buried.
 
-<Illo2 />
+<Fig name="primer-dilution" />
 
 You can see this in the wild. There's a well-known effect where a model finds a fact easily when it sits at the start or the end of a long input, and misses the exact same fact when it's buried in the middle. The more you cram in, the fuzzier the alignment gets. The model isn't broken. It has just been handed too much to pay attention to.
 
@@ -57,7 +51,7 @@ One call like that can punch way above what you'd expect from a small model, bec
 
 So the next bet: what if I chain these calls together? Lots of small, focused calls, each with its own perfect context, passing work down the line. One writes, one checks, one summarizes, one decides. No single call ever has to hold the whole task in its head, so no single call ever gets buried.
 
-<Illo3 />
+<Fig name="primer-split" />
 
 That's the entire idea. Everything I built after this is just the machinery to make that chaining actually work, because it turns out that the moment you start chopping a task into tiny specialized pieces, a pile of new problems shows up. I ended up building a platform to solve them one at a time. I called it Primer.
 
@@ -69,7 +63,7 @@ To let a model use a tool, you paste that tool's definition, its name, descripti
 
 I fixed this in two moves. First, every [agent](https://primerhq.github.io/docs/features/agents/) only gets the two or three specific tools it actually needs, never the whole catalog. Second, and this is the fun part, I gave agents [two meta-tools](https://primerhq.github.io/docs/toolsets/overview/) instead of many real ones: one to search for a tool by describing what it's trying to do, and one to call any tool by its id. The full catalog lives in a search index, not in the prompt. The agent describes its need, gets back the best two or three matches, and calls one. It can reach every tool in the system while carrying almost none of them in context.
 
-<Illo4 />
+<Fig name="primer-toolsearch" />
 
 ## Making that trick general: an internal search subsystem
 
@@ -77,7 +71,7 @@ Once tool search worked, I realized it generalizes to everything. If a growing p
 
 So Primer keeps its own [internal, searchable catalogs](https://primerhq.github.io/docs/embedding/internal-collections/) of the things an agent might want, not just tools, but other agents, whole graphs, document collections, and the platform's own docs. An agent can ask "who around here knows how to summarize a PDF" and get back a short list of agents, instead of a context stuffed with every agent definition in the system. And there's a set of system tools so that once it finds the right thing, it can actually act on it: run that agent, query that collection, create a new one.
 
-<Illo5 />
+<Fig name="primer-surface" />
 
 Small context, huge reachable surface. The agent expands only the branch it's standing on and leaves everything else indexed and out of the way.
 
@@ -89,7 +83,7 @@ I looked at off-the-shelf sandboxes for this, and they had the exact disease I w
 
 The surprising bit is how much "rich tooling" turns out to be just structured file operations underneath. A task list, for example, is really just a file with some checkboxes that an agent reads and edits. I didn't need a special task-list feature. I needed a file and a prompt.
 
-<Illo6 />
+<Fig name="primer-workspace" />
 
 ## Putting them in order: directed cyclic graphs
 
@@ -97,7 +91,7 @@ Sharing a folder tells agents nothing about who goes first or when to stop. For 
 
 A Primer graph is just a set of agent steps wired together with edges. The important choice was letting those edges loop back on themselves, so a graph is allowed to cycle. A single cap on the number of iterations keeps a loop from running forever. That one allowance unlocked the pattern I most wanted to try: a producer and a judge. One agent writes something, another agent critiques it and either accepts it or sends it back with specific feedback. The producer revises, the judge looks again, round and round until it's good enough.
 
-<Illo7 />
+<Fig name="primer-loop" />
 
 This is the moment small models start to look bigger than they are. Neither agent is a genius. The producer only knows how to produce, the judge only knows how to criticize. But the loop itself supplies the quality that no single pass had. You can also fan a task out across many parallel agents and fan the results back in, which is how one big job gets chopped into small pieces and stitched back together.
 
@@ -109,7 +103,7 @@ A feedback loop that grinds away until a judge is finally happy can take a while
 
 So I made execution event-driven. A run can park itself. When an agent hits a point where it has to wait, it [yields](https://primerhq.github.io/docs/workspaces/yielding-tools/), saves its state, and lets the worker go do something else. When the thing it was waiting for finally shows up, the run gets picked back up right where it left off. Waiting on a person works this way (the run parks until they answer, and the answer can come back through Slack or Telegram or wherever they actually are), and so does waiting on a schedule or an event through [triggers](https://primerhq.github.io/docs/features/triggers/).
 
-<Illo8 />
+<Fig name="primer-events" />
 
 Now a chain of agents can run for hours or days. It pauses to ask a human, sleeps until nine in the morning, waits for some external event, and through all of it holds nothing open. The time I traded compute for is finally time the platform can actually sit through.
 
@@ -121,7 +115,7 @@ First, web search, as a real built-in rather than something bolted on the side. 
 
 Second, approvals. Once agents can discover and call any tool, and can run for a long time with nobody watching, you want a gate. So I added [approval policies](https://primerhq.github.io/docs/toolsets/toolsets-approvals/): certain sensitive tool calls pause and wait for a human to sign off before they run. It uses the exact same park-and-resume machinery as everything else. The agent stops at the gate, a person says yes or no, and the run either continues or records the denial.
 
-<Illo9 />
+<Fig name="primer-approval" />
 
 ## Sharing the hard part: harnesses
 
@@ -129,7 +123,7 @@ Here's the thing I didn't see coming. Tuning an agent's context is real work. Yo
 
 So I turned a tuned configuration into a portable thing I called a [harness](https://primerhq.github.io/docs/features/harnesses/). It's basically Helm for Primer: a git-backed bundle of agents, tools, collections, and graphs that someone can install in one step, and that someone else can build and publish. My hard-won context tuning becomes something you can just grab and run, without redoing all the iteration.
 
-<Illo10 />
+<Fig name="primer-harness" />
 
 That's the part that makes the open-source version genuinely interesting to me. A community can pile up and trade these tuned configs, each one a packaged answer to "here's a context that makes a small model do this specific job well."
 
