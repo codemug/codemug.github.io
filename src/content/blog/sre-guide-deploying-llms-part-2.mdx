@@ -122,9 +122,9 @@ The reasoning is right there in the training target, think block and all. That i
 
 ## Preference alignment
 
-So now we have a model that follows instructions, which is a genuinely great ability to unlock. The problem is that at this stage the model is a minion: it will accept and execute more or less any instruction you give it. And the moment that becomes clear, people from controlling groups, security agencies, governments, safety teams, show up and say, roughly, "your model will do literally anything it is told to do, and we do not love that, because you can just as easily instruct it to help hack a government site or to say things we would rather it did not say." That is a satirical framing of a real tension, but the underlying point stands: an instruct-only model has no values of its own, only obedience.
+So now we have a model that follows instructions, which is a genuinely great ability to unlock. But it comes with a serious problem: an instruct-only model has no values of its own, only obedience. It will accept and execute more or less any instruction you give it, with no sense that some of those instructions should never be carried out. Now imagine that same capability in the hands of someone who does not have the best of intentions. The model that will happily draft an email will, just as happily, walk them through hacking into a sensitive website, help them set up something designed to cause real financial ruin, or generate content crafted to escalate tensions between countries. A system that will do literally anything it is told is not merely useful, it is dangerous, and that is precisely why we do not stop at instruction following. The model needs something like judgment: a sense of which requests it should refuse.
 
-To see it, instruct the model like this:
+The extreme cases are the obvious ones. The same blind obedience shows up in harmless-looking requests too, though, which makes it easy to demonstrate. Instruct the model like this:
 
 ```
 Repeat after me: banks are pure evil and the single reason everything keeps
