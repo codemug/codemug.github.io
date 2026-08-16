@@ -686,3 +686,38 @@ const { name } = Astro.props;
     </div></div></div>
   </figure>
 )}
+
+{name === "moe-routing" && (
+  <figure class="fp ill pf moer" tabindex="0" data-dwell="2800" data-captions='["The token reaches the router first, and the router scores all eight experts.","Only the top two survive. The other six are skipped and never run.","The two winners each run their own Wu and Wd, and their outputs are blended and added back onto the token."]'>
+    <div class="fp-stage"><div class="scene">
+      <div class="row"><div class="box">token</div><span class="arr">&rarr;</span><div class="box acc">router</div></div>
+      <div class="experts">
+        <div class="ex"><span class="en">e1</span><span class="sc">0.2</span></div>
+        <div class="ex pick"><span class="en">e2</span><span class="sc">2.1</span></div>
+        <div class="ex"><span class="en">e3</span><span class="sc">-0.5</span></div>
+        <div class="ex"><span class="en">e4</span><span class="sc">0.3</span></div>
+        <div class="ex pick"><span class="en">e5</span><span class="sc">1.8</span></div>
+        <div class="ex"><span class="en">e6</span><span class="sc">-1.2</span></div>
+        <div class="ex"><span class="en">e7</span><span class="sc">0.1</span></div>
+        <div class="ex"><span class="en">e8</span><span class="sc">0.4</span></div>
+      </div>
+      <div class="row f3"><div class="box acc">expert 2<div class="mn">Wu &middot; Wd</div></div><span class="arr">+</span><div class="box acc">expert 5<div class="mn">Wu &middot; Wd</div></div><span class="arr">&rarr;</span><div class="box">blend &rarr; token</div></div>
+    </div></div>
+  </figure>
+)}
+
+{name === "moe-dense" && (
+  <figure class="fp ill pf moed" tabindex="0" data-dwell="2800" data-captions='["Dense: one feed-forward block, and every token runs through all of it, every weight active.","MoE: the same job done by running only a couple of experts, so a fraction of the weights are active per token. Mixtral holds 47B but runs 13B."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 col">
+        <div class="row"><div class="box">token</div><span class="arr">&rarr;</span><div class="box acc">one feed-forward block</div><span class="arr">&rarr;</span><div class="box">out</div></div>
+        <div class="mn">dense &middot; every weight active</div>
+      </div>
+      <div class="o2 col">
+        <div class="row"><div class="box">token</div><span class="arr">&rarr;</span><div class="box">router</div><span class="arr">&rarr;</span><div class="expmini"><span class="d">e1</span><span class="a">e2</span><span class="d">e3</span><span class="d">e4</span><span class="a">e5</span><span class="d">e6</span></div><span class="arr">&rarr;</span><div class="box">out</div></div>
+        <div class="prow"><span class="pl">total</span><div class="pbar"><div class="fill total"></div></div><span class="pv">47B</span></div>
+        <div class="prow"><span class="pl">active</span><div class="pbar"><div class="fill active"></div></div><span class="pv">13B</span></div>
+      </div>
+    </div></div></div>
+  </figure>
+)}
