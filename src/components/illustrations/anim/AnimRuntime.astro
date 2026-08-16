@@ -671,6 +671,28 @@
   .pr7 .rj{font-family:var(--font-mono);font-size:11.5px;color:#e0645c}
   .pr7 .ac{font-family:var(--font-mono);font-size:11.5px;color:var(--color-accent)}
   .pr7 .it{font-family:var(--font-mono);font-size:11px;color:var(--color-text-dim)}
+
+  /* moe routing */
+  .moer .experts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:440px}
+  .moer .ex{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--font-mono);background:var(--color-surface-2);border:1px solid var(--color-hairline);border-radius:8px;padding:7px 9px;transition:opacity .4s,border-color .4s,background .4s}
+  .moer .ex .en{font-size:11px;color:var(--color-text-muted)}
+  .moer .ex .sc{font-size:10px;color:var(--color-text-dim);font-variant-numeric:tabular-nums}
+  .moer[data-frame="2"] .ex.pick,.moer[data-frame="3"] .ex.pick{border-color:color-mix(in oklab,var(--color-accent) 50%,transparent);background:color-mix(in oklab,var(--color-accent) 12%,transparent)}
+  .moer[data-frame="2"] .ex.pick .en,.moer[data-frame="3"] .ex.pick .en,.moer[data-frame="2"] .ex.pick .sc,.moer[data-frame="3"] .ex.pick .sc{color:var(--color-accent)}
+  .moer[data-frame="2"] .ex:not(.pick),.moer[data-frame="3"] .ex:not(.pick){opacity:.3}
+
+  /* moe vs dense */
+  .moed .expmini{display:flex;gap:4px}
+  .moed .expmini span{font-family:var(--font-mono);font-size:9.5px;border-radius:5px;padding:4px 6px}
+  .moed .expmini .d{color:var(--color-text-dim);background:var(--color-surface-2);border:1px solid var(--color-hairline);opacity:.4}
+  .moed .expmini .a{color:var(--color-accent);background:color-mix(in oklab,var(--color-accent) 12%,transparent);border:1px solid color-mix(in oklab,var(--color-accent) 50%,transparent)}
+  .moed .prow{display:flex;align-items:center;gap:10px;width:min(340px,82%)}
+  .moed .pl{font-family:var(--font-mono);font-size:10.5px;color:var(--color-text-dim);width:46px;text-align:right}
+  .moed .pbar{flex:1;height:16px;border-radius:6px;background:var(--color-surface-deep);border:1px solid var(--color-border);overflow:hidden}
+  .moed .fill{height:100%;border-radius:5px}
+  .moed .fill.total{width:100%;background:color-mix(in oklab,var(--color-accent) 32%,var(--color-surface-2))}
+  .moed .fill.active{width:28%;background:var(--color-accent)}
+  .moed .pv{font-family:var(--font-mono);font-size:12px;color:var(--color-accent);width:34px;font-variant-numeric:tabular-nums}
 </style>
 
 <script is:inline>
