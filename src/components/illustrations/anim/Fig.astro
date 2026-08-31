@@ -721,3 +721,220 @@ const { name } = Astro.props;
     </div></div></div>
   </figure>
 )}
+
+{name === "hw-three-levers" && (
+  <figure class="fp ill pf hwl" tabindex="0" data-dwell="2900" data-captions='["Capacity: the model has to fit. A 27 GB model does not fit in 16 GB of VRAM.","Compute: a chip with native 4-bit hardware multiplies straight away; without it, every weight is converted up to 16-bit first.","Bandwidth: decode re-reads the weights every token, so local memory speed sets the pace, and it dwarfs the link between chips."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 col">
+        <div class="caprow"><span class="cl">VRAM</span><div class="vbox">16 GB</div></div>
+        <div class="caprow"><span class="cl">model</span><div class="mbar">27 GB<span class="over">overflows</span></div></div>
+        <div class="mn">does not fit</div>
+      </div>
+      <div class="o2 col">
+        <div class="crow"><span class="ctag">no native 4-bit</span><span class="chip2">4-bit</span><span class="arr">&rarr;</span><span class="chip2">16-bit</span><span class="arr">&rarr;</span><span class="chip2">multiply</span></div>
+        <div class="crow"><span class="ctag on">native 4-bit</span><span class="chip2 hi">4-bit</span><span class="arr">&rarr;</span><span class="chip2 hi">multiply</span></div>
+        <div class="mn">native hardware skips the conversion</div>
+      </div>
+      <div class="o3 col">
+        <div class="brow"><span class="bl">memory</span><div class="bt"><div class="bf h" style="width:100%"></div></div><span class="bv">2 TB/s</span></div>
+        <div class="brow"><span class="bl">interconnect</span><div class="bt"><div class="bf g" style="width:3%"></div></div><span class="bv">60 GB/s</span></div>
+        <div class="mn">weights stream from memory, not across the wire</div>
+      </div>
+    </div></div></div>
+  </figure>
+)}
+
+{name === "mem-bandwidth-ladder" && (
+  <figure class="fp ill pf mbl" tabindex="0" data-dwell="2800" data-captions='["Consumer GDDR memory tops out under 2 TB/s.","Datacenter HBM starts where GDDR ends and climbs to about 8 TB/s. Decode speed rides this bar."]'>
+    <div class="fp-stage"><div class="scene">
+      <div class="bars">
+        <div class="brow"><span class="bl">A10G · GDDR6</span><div class="bt"><div class="bf g" style="width:7.5%"></div></div><span class="bv">0.6</span></div>
+        <div class="brow"><span class="bl">RTX PRO 6000 · GDDR7</span><div class="bt"><div class="bf g" style="width:22.5%"></div></div><span class="bv">1.8</span></div>
+        <div class="brow f2"><span class="bl">H100 · HBM3</span><div class="bt"><div class="bf h" style="width:42%"></div></div><span class="bv">3.4</span></div>
+        <div class="brow f2"><span class="bl">H200 · HBM3e</span><div class="bt"><div class="bf h" style="width:60%"></div></div><span class="bv">4.8</span></div>
+        <div class="brow f2"><span class="bl">B200 · HBM3e</span><div class="bt"><div class="bf h" style="width:100%"></div></div><span class="bv">8.0</span></div>
+      </div>
+      <div class="mn">memory bandwidth, TB/s</div>
+    </div></div>
+  </figure>
+)}
+
+{name === "interconnect" && (
+  <figure class="fp ill tpx" tabindex="0" data-dwell="2900" data-captions='["The model is split across the GPUs: each holds a slice of the weights in every layer. A token comes in.","Every GPU runs its slice on the token and produces a partial result.","They exchange the partials over the interconnect and add them up, an all-reduce, so each GPU has the full result.","Then the next block does the same. This exchange happens after every block, at the speed of the wire between the GPUs."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 224" role="img" aria-label="Tensor parallelism: three GPUs each run a weight slice, then combine partial results in an all-reduce">
+        <defs>
+          <marker id="tpa" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--color-accent)"></path></marker>
+          <marker id="tpm" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--color-text-dim)"></path></marker>
+        </defs>
+        <rect class="ib" x="124" y="10" width="72" height="24" rx="7"></rect><text class="it" x="160" y="26">token</text>
+        <line class="feed" x1="150" y1="34" x2="66" y2="68"></line>
+        <line class="feed" x1="160" y1="34" x2="160" y2="68"></line>
+        <line class="feed" x1="170" y1="34" x2="254" y2="68"></line>
+        <g class="gpu"><rect x="20" y="70" width="80" height="46" rx="9"></rect><text x="60" y="90">GPU 1</text><text class="sub" x="60" y="105">weight slice</text></g>
+        <g class="gpu"><rect x="120" y="70" width="80" height="46" rx="9"></rect><text x="160" y="90">GPU 2</text><text class="sub" x="160" y="105">weight slice</text></g>
+        <g class="gpu"><rect x="220" y="70" width="80" height="46" rx="9"></rect><text x="260" y="90">GPU 3</text><text class="sub" x="260" y="105">weight slice</text></g>
+        <text class="partial f2" x="60" y="132">partial</text>
+        <text class="partial f2" x="160" y="132">partial</text>
+        <text class="partial f2" x="260" y="132">partial</text>
+        <g class="f3">
+          <line class="xl" x1="60" y1="136" x2="146" y2="158"></line>
+          <line class="xl" x1="160" y1="136" x2="160" y2="158"></line>
+          <line class="xl" x1="260" y1="136" x2="174" y2="158"></line>
+          <rect class="arb" x="116" y="160" width="88" height="24" rx="8"></rect><text class="art" x="160" y="176">all-reduce</text>
+        </g>
+        <path class="loop f4" d="M204,172 C 296,158 300,44 198,32"></path>
+        <text class="rep f4" x="300" y="104" text-anchor="end">every block</text>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "dedicated-vs-unified" && (
+  <figure class="fp ill pf dvu" tabindex="0" data-dwell="2700" data-captions='["Dedicated memory: the GPU has its own fast VRAM, the CPU its own separate RAM.","Unified memory: CPU and GPU share one big pool. More capacity, but slower bandwidth."]'>
+    <div class="fp-stage"><div class="scene"><div class="stack">
+      <div class="o1 row">
+        <div class="unit"><div class="box">CPU</div><div class="pool sys">system RAM</div></div>
+        <span class="arr">|</span>
+        <div class="unit"><div class="box acc">GPU</div><div class="pool vram">VRAM<div class="mn2">small · fast</div></div></div>
+      </div>
+      <div class="o2 col">
+        <div class="row"><div class="box">CPU</div><div class="box acc">GPU</div></div>
+        <div class="pool unif">one shared pool<div class="mn2">large · slower</div></div>
+      </div>
+    </div></div></div>
+  </figure>
+)}
+
+{name === "apple-soc" && (
+  <figure class="fp ill asoc" tabindex="0" data-dwell="2900" data-captions='["Everything on an Apple chip shares one pool of unified memory.","Three kinds of compute sit on it: the CPU, the GPU, and the Neural Engine.","For an LLM the GPU does the work, and since the M5 each of its cores has a matrix unit. The Neural Engine is a separate block for the features Apple ships itself."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 176" role="img" aria-label="Apple Silicon: CPU, GPU and Neural Engine all share one unified memory pool">
+        <g class="units f2">
+          <line class="conn" x1="59" y1="58" x2="59" y2="116"></line>
+          <line class="conn" x1="160" y1="58" x2="160" y2="116"></line>
+          <line class="conn" x1="261" y1="58" x2="261" y2="116"></line>
+          <g class="unit cpu"><rect x="18" y="18" width="82" height="40" rx="8"></rect><text x="59" y="43">CPU</text></g>
+          <g class="unit gpu"><rect x="118" y="18" width="84" height="40" rx="8"></rect><text x="160" y="37">GPU</text><text class="sub" x="160" y="50">matrix units</text></g>
+          <g class="unit ne"><rect x="220" y="18" width="82" height="40" rx="8"></rect><text x="261" y="37">Neural</text><text x="261" y="50">Engine</text></g>
+        </g>
+        <rect class="pool" x="18" y="116" width="284" height="38" rx="10"></rect>
+        <text class="pl" x="160" y="140">unified memory · one shared pool</text>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "radix-attention" && (
+  <figure class="fp ill rdx" tabindex="0" data-dwell="3000" data-captions='["Request A: a long shared prefix, with its own ending computed and cached.","Request B begins the same way, so RadixAttention reuses the cached prefix and computes only the new ending for B.","And request C. The shared prefix lives once in a tree; every request that starts the same skips recomputing it."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 178" role="img" aria-label="A radix tree: a shared prefix computed once, with each request branching off its own suffix">
+        <text class="lab" x="90" y="62">shared prefix · computed once</text>
+        <g class="trunk">
+          <rect x="24" y="74" width="30" height="22" rx="4"></rect>
+          <rect x="58" y="74" width="30" height="22" rx="4"></rect>
+          <rect x="92" y="74" width="30" height="22" rx="4"></rect>
+          <rect x="126" y="74" width="30" height="22" rx="4"></rect>
+        </g>
+        <text class="reuse f2" x="90" y="112">reused · cache hit</text>
+        <g class="br">
+          <path class="edge" d="M156,84 C 178,84 180,44 198,44"></path>
+          <rect x="200" y="33" width="30" height="22" rx="4"></rect><rect x="234" y="33" width="30" height="22" rx="4"></rect>
+          <text x="268" y="49">req A</text>
+        </g>
+        <g class="br f2">
+          <path class="edge" d="M156,86 L198,86"></path>
+          <rect x="200" y="75" width="30" height="22" rx="4"></rect><rect x="234" y="75" width="30" height="22" rx="4"></rect>
+          <text x="268" y="91">req B</text>
+        </g>
+        <g class="br f3">
+          <path class="edge" d="M156,88 C 178,88 180,128 198,128"></path>
+          <rect x="200" y="117" width="30" height="22" rx="4"></rect><rect x="234" y="117" width="30" height="22" rx="4"></rect>
+          <text x="268" y="133">req C</text>
+        </g>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "paged-attention" && (
+  <figure class="fp ill pga" tabindex="0" data-dwell="3000" data-captions='["The naive way reserves one big contiguous slab per request, sized for its longest possible length, so most of it sits empty and only a few requests fit.","PagedAttention chops the cache into small fixed-size blocks handed out on demand, the way an operating system pages memory, so there is almost no waste and far more requests fit at once."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 172" role="img" aria-label="Contiguous KV cache slabs waste memory, while PagedAttention packs small blocks on demand">
+        <text class="cap" x="164" y="14">GPU memory · KV cache</text>
+        <g class="o1">
+          <g class="slab"><rect x="64" y="28" width="200" height="30" rx="5"></rect><rect class="used" x="64" y="28" width="56" height="30" rx="5"></rect><text class="rl" x="58" y="47">req A</text></g>
+          <g class="slab"><rect x="64" y="66" width="200" height="30" rx="5"></rect><rect class="used" x="64" y="66" width="44" height="30" rx="5"></rect><text class="rl" x="58" y="85">req B</text></g>
+          <g class="slab"><rect x="64" y="104" width="200" height="30" rx="5"></rect><rect class="used" x="64" y="104" width="70" height="30" rx="5"></rect><text class="rl" x="58" y="123">req C</text></g>
+          <text class="rt" x="200" y="152">reserved, mostly empty</text>
+        </g>
+        <g class="o2">
+          <rect class="blk" x="64" y="28" width="36" height="22" rx="4"></rect><rect class="blk2" x="105" y="28" width="36" height="22" rx="4"></rect><rect class="blk" x="146" y="28" width="36" height="22" rx="4"></rect><rect class="blk2" x="187" y="28" width="36" height="22" rx="4"></rect><rect class="blk" x="228" y="28" width="36" height="22" rx="4"></rect>
+          <rect class="blk2" x="64" y="56" width="36" height="22" rx="4"></rect><rect class="blk" x="105" y="56" width="36" height="22" rx="4"></rect><rect class="blk2" x="146" y="56" width="36" height="22" rx="4"></rect><rect class="blk" x="187" y="56" width="36" height="22" rx="4"></rect><rect class="blk2" x="228" y="56" width="36" height="22" rx="4"></rect>
+          <rect class="blk" x="64" y="84" width="36" height="22" rx="4"></rect><rect class="blk2" x="105" y="84" width="36" height="22" rx="4"></rect><rect class="blk" x="146" y="84" width="36" height="22" rx="4"></rect><rect class="blk2" x="187" y="84" width="36" height="22" rx="4"></rect><rect class="blk" x="228" y="84" width="36" height="22" rx="4"></rect>
+          <rect class="blk2" x="64" y="112" width="36" height="22" rx="4"></rect><rect class="blk" x="105" y="112" width="36" height="22" rx="4"></rect><rect class="empty" x="146" y="112" width="36" height="22" rx="4"></rect><rect class="empty" x="187" y="112" width="36" height="22" rx="4"></rect><rect class="empty" x="228" y="112" width="36" height="22" rx="4"></rect>
+          <text class="rt" x="164" y="152">small blocks on demand · almost no waste</text>
+        </g>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "mesh" && (
+  <figure class="fp ill mesh" tabindex="0" data-dwell="2900" data-captions='["NVIDIA wires its GPUs through a switch, so every GPU reaches every other at full speed, and it scales to seventy-two in a rack.","AMD wires them in a direct all-to-all mesh: fine for eight GPUs, but the links are shared and it stops at eight."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 320 200" role="img" aria-label="A switched interconnect fabric versus a direct all-to-all mesh">
+        <g class="o1">
+          <line class="sl" x1="70" y1="60" x2="160" y2="100"></line>
+          <line class="sl" x1="250" y1="60" x2="160" y2="100"></line>
+          <line class="sl" x1="70" y1="140" x2="160" y2="100"></line>
+          <line class="sl" x1="250" y1="140" x2="160" y2="100"></line>
+          <rect class="sw" x="128" y="86" width="64" height="28" rx="8"></rect><text class="swt" x="160" y="104">switch</text>
+        </g>
+        <g class="o2">
+          <line class="ml" x1="70" y1="60" x2="250" y2="60"></line>
+          <line class="ml" x1="70" y1="140" x2="250" y2="140"></line>
+          <line class="ml" x1="70" y1="60" x2="70" y2="140"></line>
+          <line class="ml" x1="250" y1="60" x2="250" y2="140"></line>
+          <line class="ml" x1="70" y1="60" x2="250" y2="140"></line>
+          <line class="ml" x1="250" y1="60" x2="70" y2="140"></line>
+        </g>
+        <g class="node"><rect x="46" y="45" width="48" height="30" rx="7"></rect><text x="70" y="64">GPU</text></g>
+        <g class="node"><rect x="226" y="45" width="48" height="30" rx="7"></rect><text x="250" y="64">GPU</text></g>
+        <g class="node"><rect x="46" y="125" width="48" height="30" rx="7"></rect><text x="70" y="144">GPU</text></g>
+        <g class="node"><rect x="226" y="125" width="48" height="30" rx="7"></rect><text x="250" y="144">GPU</text></g>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "engine-scorecard" && (
+  <figure class="fp ill pf esc" tabindex="0" data-dwell="2700" data-captions='["vLLM: the default. Broad reach, easy to run, fast enough.","SGLang: like vLLM, but pulls ahead on prefix-heavy and structured workloads.","TensorRT-LLM: the fastest on NVIDIA, once you pay the tuning cost.","llama.cpp: not really a server. The simplest way to run a model locally."]'>
+    <div class="fp-stage">
+      <svg viewBox="0 0 300 210" role="img" aria-label="Four inference engines placed by ease of use and peak throughput">
+        <line class="axis" x1="40" y1="178" x2="288" y2="178"></line>
+        <line class="axis" x1="40" y1="178" x2="40" y2="24"></line>
+        <text class="axlab" x="288" y="192" text-anchor="end">ease of use &rarr;</text>
+        <text class="axlab" x="34" y="22" text-anchor="start">throughput &uarr;</text>
+        <circle class="dot d3" cx="98" cy="46" r="6"></circle><text class="dlab l3" x="98" y="36" text-anchor="middle">TensorRT-LLM</text>
+        <circle class="dot d2" cx="238" cy="58" r="6"></circle><text class="dlab l2" x="238" y="48" text-anchor="middle">SGLang</text>
+        <circle class="dot d1" cx="210" cy="88" r="6"></circle><text class="dlab l1" x="210" y="107" text-anchor="middle">vLLM</text>
+        <circle class="dot d4" cx="252" cy="150" r="6"></circle><text class="dlab l4" x="252" y="168" text-anchor="middle">llama.cpp</text>
+      </svg>
+    </div>
+  </figure>
+)}
+
+{name === "vendor-scorecard" && (
+  <figure class="fp ill pf vsc" tabindex="0" data-dwell="3000" data-captions='["The four silicon vendors at a glance, against the three levers plus interconnect. AWS rents most of these by the hour."]'>
+    <div class="fp-stage"><div class="scene">
+      <div class="grid">
+        <span class="rl"></span><span class="h">capacity</span><span class="h">compute</span><span class="h">bandwidth</span><span class="h">interconnect</span><span class="h">get it</span>
+        <span class="rl">NVIDIA</span><span class="cell s2">mid</span><span class="cell s3">strong</span><span class="cell s3">strong</span><span class="cell s3">strong</span><span class="cell s3 txt">buy / cloud</span>
+        <span class="rl">AMD</span><span class="cell s3">strong</span><span class="cell s3">strong</span><span class="cell s3">strong</span><span class="cell s2">mid</span><span class="cell s3 txt">buy / cloud</span>
+        <span class="rl">Apple</span><span class="cell s3">strong</span><span class="cell s2">mid</span><span class="cell s1">weak</span><span class="cell s1">weak</span><span class="cell s3 txt">buy</span>
+        <span class="rl">Google</span><span class="cell s3">strong</span><span class="cell s3">strong</span><span class="cell s3">strong</span><span class="cell s3">strong</span><span class="cell s1 txt">GCP only</span>
+      </div>
+    </div></div>
+  </figure>
+)}

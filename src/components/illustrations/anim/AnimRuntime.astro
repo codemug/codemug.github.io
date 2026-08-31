@@ -693,6 +693,134 @@
   .moed .fill.total{width:100%;background:color-mix(in oklab,var(--color-accent) 32%,var(--color-surface-2))}
   .moed .fill.active{width:28%;background:var(--color-accent)}
   .moed .pv{font-family:var(--font-mono);font-size:12px;color:var(--color-accent);width:34px;font-variant-numeric:tabular-nums}
+
+  /* ===== Part 3: hardware / software figures ===== */
+  /* hwl: three levers (concrete panels) */
+  .hwl .caprow{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px}
+  .hwl .cl{width:52px;text-align:right;color:var(--color-text-dim)}
+  .hwl .vbox{width:148px;height:26px;border-radius:7px;border:1px solid var(--color-border-strong);background:var(--color-surface-deep);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted)}
+  .hwl .mbar{width:250px;height:26px;border-radius:7px;background:color-mix(in oklab,#e0645c 20%,var(--color-surface-2));border:1px solid color-mix(in oklab,#e0645c 55%,transparent);display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#e0645c}
+  .hwl .over{font-size:9px;opacity:.85}
+  .hwl .crow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+  .hwl .ctag{width:100px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim)}
+  .hwl .ctag.on{color:var(--color-accent)}
+  .hwl .brow{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px}
+  .hwl .bl{width:86px;text-align:right;color:var(--color-text-dim)}
+  .hwl .bt{width:230px;height:15px;border-radius:6px;background:var(--color-surface-deep);border:1px solid var(--color-border);overflow:hidden}
+  .hwl .bf{height:100%;border-radius:5px}
+  .hwl .bf.h{background:var(--color-accent)}
+  .hwl .bf.g{background:color-mix(in oklab,var(--color-text-dim) 55%,var(--color-surface-2))}
+  .hwl .bv{width:52px;color:var(--color-accent);font-variant-numeric:tabular-nums}
+
+  /* mbl: memory bandwidth ladder */
+  .mbl .bars{display:flex;flex-direction:column;gap:8px;width:100%;max-width:480px}
+  .mbl .brow{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:11px}
+  .mbl .bl{width:158px;text-align:right;color:var(--color-text-dim)}
+  .mbl .bt{flex:1;height:15px;border-radius:6px;background:var(--color-surface-deep);border:1px solid var(--color-border);overflow:hidden}
+  .mbl .bf{height:100%;border-radius:5px}
+  .mbl .bf.g{background:color-mix(in oklab,var(--color-text-dim) 55%,var(--color-surface-2))}
+  .mbl .bf.h{background:var(--color-accent)}
+  .mbl .bv{width:32px;color:var(--color-accent);font-variant-numeric:tabular-nums}
+
+  /* tpx: tensor parallelism (interconnect) */
+  .tpx .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .tpx svg{width:100%;max-width:340px;height:auto;font-family:var(--font-mono)}
+  .tpx .ib{fill:var(--color-surface-2);stroke:var(--color-border)}
+  .tpx .it{fill:var(--color-text-soft);font-size:11px;text-anchor:middle}
+  .tpx .feed{stroke:var(--color-text-dim);stroke-width:1.4;marker-end:url(#tpm)}
+  .tpx .gpu rect{fill:var(--color-surface-deep);stroke:var(--color-border);transition:stroke .4s}
+  .tpx .gpu text{fill:var(--color-text-soft);font-size:12px;text-anchor:middle}
+  .tpx .gpu .sub{fill:var(--color-text-dim);font-size:9px}
+  .tpx[data-frame="3"] .gpu rect,.tpx[data-frame="4"] .gpu rect{stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .tpx .partial{fill:var(--color-text-dim);font-size:9.5px;text-anchor:middle}
+  .tpx .xl{stroke:var(--color-accent);stroke-width:1.5;marker-end:url(#tpa)}
+  .tpx .arb{fill:color-mix(in oklab,var(--color-accent) 14%,transparent);stroke:color-mix(in oklab,var(--color-accent) 50%,transparent)}
+  .tpx .art{fill:var(--color-accent);font-size:11px;text-anchor:middle}
+  .tpx .loop{stroke:var(--color-accent);stroke-width:1.4;stroke-dasharray:4 4;fill:none;marker-end:url(#tpa)}
+  .tpx .rep{fill:var(--color-accent);font-size:9.5px}
+  .tpx .f2,.tpx .f3,.tpx .f4{opacity:0;transition:opacity .4s}
+  .tpx[data-frame="2"] .f2,.tpx[data-frame="3"] .f2,.tpx[data-frame="4"] .f2,.tpx[data-frame="3"] .f3,.tpx[data-frame="4"] .f3,.tpx[data-frame="4"] .f4{opacity:1}
+
+  /* dvu: dedicated vs unified */
+  .dvu .unit{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .dvu .pool{font-family:var(--font-mono);font-size:11px;border-radius:8px;padding:8px 12px;text-align:center}
+  .dvu .sys{background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text-dim);min-width:96px}
+  .dvu .vram{background:color-mix(in oklab,var(--color-accent) 10%,transparent);border:1px solid color-mix(in oklab,var(--color-accent) 40%,transparent);color:var(--color-accent);min-width:70px}
+  .dvu .unif{background:color-mix(in oklab,var(--color-accent) 10%,transparent);border:1px solid color-mix(in oklab,var(--color-accent) 40%,transparent);color:var(--color-accent);min-width:280px}
+  .dvu .mn2{font-family:var(--font-mono);font-size:9.5px;color:var(--color-text-dim);margin-top:3px}
+
+  /* asoc: apple soc (unified memory, 3 compute units) */
+  .asoc .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .asoc svg{width:100%;max-width:340px;height:auto;font-family:var(--font-mono)}
+  .asoc .unit rect{fill:var(--color-surface-deep);stroke:var(--color-border);transition:fill .4s,stroke .4s}
+  .asoc .unit text{fill:var(--color-text-soft);font-size:12px;text-anchor:middle}
+  .asoc .unit .sub{fill:var(--color-text-dim);font-size:9px}
+  .asoc .conn{stroke:var(--color-hairline);stroke-width:1.4}
+  .asoc .pool{fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-2));stroke:color-mix(in oklab,var(--color-accent) 35%,transparent)}
+  .asoc .pl{fill:var(--color-text-muted);font-size:11px;text-anchor:middle}
+  .asoc[data-frame="3"] .gpu rect{fill:color-mix(in oklab,var(--color-accent) 14%,transparent);stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .asoc[data-frame="3"] .gpu text{fill:var(--color-accent)}
+  .asoc[data-frame="3"] .ne{opacity:.4}
+  .asoc .f2{opacity:0;transition:opacity .4s}
+  .asoc[data-frame="2"] .f2,.asoc[data-frame="3"] .f2{opacity:1}
+
+  /* rdx: radix attention (shared prefix tree) */
+  .rdx .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .rdx svg{width:100%;max-width:340px;height:auto;font-family:var(--font-mono)}
+  .rdx .lab{fill:var(--color-text-dim);font-size:9.5px;text-anchor:middle}
+  .rdx .trunk rect{fill:color-mix(in oklab,var(--color-accent) 42%,var(--color-surface-2));stroke:none}
+  .rdx .br rect{fill:var(--color-surface-2);stroke:var(--color-border)}
+  .rdx .br text{fill:var(--color-text-muted);font-size:9.5px}
+  .rdx .edge{stroke:var(--color-border);stroke-width:1.4;fill:none}
+  .rdx .reuse{fill:var(--color-accent);font-size:9.5px;text-anchor:middle}
+  .rdx .f2,.rdx .f3{opacity:0;transition:opacity .4s}
+  .rdx[data-frame="2"] .f2,.rdx[data-frame="3"] .f2,.rdx[data-frame="3"] .f3{opacity:1}
+
+  /* pga: paged attention (KV cache blocks) */
+  .pga .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .pga svg{width:100%;max-width:340px;height:auto;font-family:var(--font-mono)}
+  .pga .cap{fill:var(--color-text-dim);font-size:10px;text-anchor:middle}
+  .pga .rl{fill:var(--color-text-dim);font-size:9.5px;text-anchor:end}
+  .pga .rt{fill:var(--color-text-dim);font-size:9.5px;text-anchor:middle}
+  .pga .slab rect{fill:none;stroke:var(--color-border)}
+  .pga .slab .used{fill:color-mix(in oklab,var(--color-accent) 45%,var(--color-surface-2));stroke:none}
+  .pga .blk{fill:color-mix(in oklab,var(--color-accent) 42%,var(--color-surface-2))}
+  .pga .blk2{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-2))}
+  .pga .empty{fill:var(--color-surface-deep);stroke:var(--color-hairline)}
+  .pga .o1,.pga .o2{opacity:0;transition:opacity .4s}
+  .pga[data-frame="1"] .o1,.pga[data-frame="2"] .o2{opacity:1}
+
+  /* mesh: switched fabric vs all-to-all mesh (AMD interconnect) */
+  .mesh .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .mesh svg{width:100%;max-width:320px;height:auto;font-family:var(--font-mono)}
+  .mesh .node rect{fill:var(--color-surface-deep);stroke:var(--color-border)}
+  .mesh .node text{fill:var(--color-text-soft);font-size:11px;text-anchor:middle}
+  .mesh .sl{stroke:var(--color-accent);stroke-width:1.6}
+  .mesh .sw{fill:color-mix(in oklab,var(--color-accent) 14%,transparent);stroke:color-mix(in oklab,var(--color-accent) 55%,transparent)}
+  .mesh .swt{fill:var(--color-accent);font-size:11px;text-anchor:middle}
+  .mesh .ml{stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);stroke-width:1.4}
+  .mesh .o1,.mesh .o2{opacity:0;transition:opacity .4s}
+  .mesh[data-frame="1"] .o1,.mesh[data-frame="2"] .o2{opacity:1}
+
+  /* esc: engine scorecard quadrant */
+  .esc .fp-stage{display:flex;justify-content:center;padding:6px 0}
+  .esc svg{width:100%;max-width:360px;height:auto;font-family:var(--font-mono)}
+  .esc .axis{stroke:var(--color-hairline);stroke-width:1}
+  .esc .axlab{fill:var(--color-text-dim);font-size:9px}
+  .esc .dot{fill:var(--color-surface-2);stroke:var(--color-border);transition:fill .4s,stroke .4s}
+  .esc .dlab{fill:var(--color-text-muted);font-size:10px;transition:fill .4s}
+  .esc[data-frame="1"] .d1,.esc[data-frame="2"] .d2,.esc[data-frame="3"] .d3,.esc[data-frame="4"] .d4{fill:var(--color-accent);stroke:var(--color-accent)}
+  .esc[data-frame="1"] .l1,.esc[data-frame="2"] .l2,.esc[data-frame="3"] .l3,.esc[data-frame="4"] .l4{fill:var(--color-accent)}
+
+  /* vsc: vendor scorecard grid */
+  .vsc .grid{display:grid;grid-template-columns:88px repeat(5,1fr);gap:6px;font-family:var(--font-mono);font-size:10.5px;align-items:center;min-width:440px}
+  .vsc .h{color:var(--color-text-dim);text-align:center}
+  .vsc .rl{color:var(--color-text-soft);text-align:right;padding-right:4px}
+  .vsc .cell{height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--color-text-dim);border:1px solid var(--color-hairline)}
+  .vsc .s3{background:color-mix(in oklab,var(--color-accent) 40%,var(--color-surface-2));border-color:transparent;color:var(--color-text)}
+  .vsc .s2{background:color-mix(in oklab,var(--color-accent) 18%,var(--color-surface-2));border-color:transparent}
+  .vsc .s1{background:var(--color-surface-2)}
+  .vsc .txt{color:var(--color-text-muted);font-size:9.5px}
 </style>
 
 <script is:inline>
