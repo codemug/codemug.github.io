@@ -27,7 +27,7 @@ const {
   canonicalOverride,
   ogImage: ogImageProp,
 } = Astro.props;
-const siteUrl = "https://codemug.github.io";
+const siteUrl = "https://usmanshahid.is-a.dev";
 const canonical = canonicalOverride ?? new URL(path, siteUrl).toString();
 const ogImage = new URL(ogImageProp ?? "/og-image.png", siteUrl).toString();
 
