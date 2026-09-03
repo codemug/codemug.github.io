@@ -17,7 +17,7 @@ I run a self-service AI Agent Platform at Careem (~200K requests/day, ~800 regis
 - **LinkedIn:** https://linkedin.com/in/u-manshahid
 - **GitHub:** https://github.com/codemug
 - **Medium:** https://medium.com/@usmanshahid
-- **Website:** https://codemug.github.io
+- **Website:** https://usmanshahid.is-a.dev
 
 ## Professional Summary
 
