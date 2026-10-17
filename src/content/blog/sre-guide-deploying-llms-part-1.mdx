@@ -2,15 +2,16 @@
 title: "An SRE's guide to deploying Large Language Models, Part 1: understand the workload"
 description: "Before you can deploy and serve LLMs reliably, you have to understand them as a workload. A ground-up tour of the transformer, from tokens to attention to the feed-forward step, for SREs."
 pubDate: 2026-08-01
+updatedDate: 2026-10-17
 tags: ["llms", "sre", "transformers", "inference"]
 draft: false
 ---
 
-import AnimRuntime from "../../components/illustrations/anim/AnimRuntime.astro";
-import Fig from "../../components/illustrations/anim/Fig.astro";
+import DeckRuntime from "../../components/illustrations/deck/DeckRuntime.astro";
+import DeckFig from "../../components/illustrations/deck/DeckFig.astro";
 import YouTubeGrid from "../../components/YouTubeGrid.astro";
 
-<AnimRuntime />
+<DeckRuntime />
 
 I work as an SRE at Careem, and I recently started exploring how to deploy and serve LLM workloads effectively. This is a series of guides on what I've learned so far, and this is part 1 of that guide.
 
@@ -43,25 +44,52 @@ On the surface, LLMs look like microservices, because invoking one looks like yo
   ]}
 />
 
-But today I'm only going to touch these subjects superficially, and try to explain them in the simplest terms I can.
+But today I'm only going to touch these subjects superficially, and try to explain them in the simplest terms I can. With one exception: a quick refresher on three mathematics concepts, small tools from linear algebra that everything inside a transformer is built out of. They take a couple of minutes, and once you have them, the rest of this article is just those three tools applied over and over.
 
-So what exactly is an LLM? It's just a collection of billions and billions of numbers. This is why, when you're told a model is "9B parameters", the 9 billion is really the count of numbers in that model. To be fair, they're not a bag of randomly placed numbers; they're arrays, or slices, or matrices, which means each number is part of an ordered group. The next natural question is: what do we do with these numbers? We use them inside an algorithm, and in this case that algorithm is the famous transformer.
+## Three Mathematics Concepts Refresher first
 
-<Fig name="tokenloop" />
+<DeckFig name="p1-vectors" />
+
+The first tool is the vector. A vector is just an array of numbers, and what makes it useful is that you can draw it. Two numbers, like `[3, 2]`, are a point on a plane, three along x and two up along y, and the arrow from the origin to that point is the vector. Three numbers are a point in 3D space, and nothing stops you from adding more. You can't draw a vector of 5,120 numbers, but the arithmetic doesn't care, and as we'll see shortly, that is exactly how long the vectors inside our model are.
+
+<DeckFig name="p1-matmul" />
+
+The second tool is the matrix, a grid of numbers. Multiply a vector by a matrix and you get a new vector: the matrix moves the arrow. This one shears `[1, 1]` sideways into `[1.5, 1]`; a different matrix would stretch it, squash it or rotate it instead. Every matrix is a particular transformation, and a big part of training, as we'll see, is finding the matrices that move vectors in useful ways.
+
+<DeckFig name="p1-dot" />
+
+The third tool is the dot product. It takes two vectors and gives back a single number: multiply the matching entries and add them up. That number tells you how much the two arrows point the same way. Pointing the same way gives a big positive number, at right angles you get zero, and pointing in opposite directions gives a negative number.
+
+<DeckFig name="p1-ideas" />
+
+Here's why these three tools matter for language. Imagine each dimension of a vector stands for an idea. Say the first number measures how desert-like something is (negative means forest) and the second how living it is (negative means non-living). Sand becomes `[0.80, -0.60]`, rock `[0.15, -0.95]` and fern `[-0.70, 0.60]`. The dot product of sand and rock is positive, because both are non-living, while the dot product of sand and fern comes out at -0.92, because they're opposite ideas. And a matrix can shear sand toward rock and land on sandstone, a new idea made out of two old ones. Real models never have dimensions this readable, but this is the whole game: words become vectors, dot products measure how related they are, and matrices transform them into new meanings. Keep these three in your pocket; everything that follows is built out of them.
+
+## The loop
+
+So what exactly is an LLM? It's just a collection of billions and billions of numbers. This is why, when you're told a model is "27B parameters", the 27 billion is really the count of numbers in that model. To be fair, they're not a bag of randomly placed numbers; they're vectors and matrices, which means each number is part of an ordered group. The next natural question is: what do we do with these numbers? We use them inside an algorithm, and in this case that algorithm is the famous transformer.
+
+<DeckFig name="p1-loop" />
 
 What does the transformer algorithm do? In simple terms, given a partial sentence, a single run of it predicts what the next most probable word (or partial word) would be. When we invoke these models, we're really running the transformer in a loop: given a sentence, generate the next word, append that word to the original sentence, and re-run the whole sentence through the transformer to generate the next word. We keep the loop running until the next word is one we've designated as the end of a sentence.
 
+## Tokens
+
+<DeckFig name="p1-not-words" />
+
 I've been talking about predicting words, but it's not really words, it's tokens, which differ from words. A token can be a word, but it can also be a piece of a word, and tokens also include spaces and punctuation marks. In other words, a token is a sequence of one or more Unicode characters. Transformers process tokens: input sentences are first broken down into tokens, passed through the transformer, and the transformer outputs the next probable token. The concept of tokens is so vital to large language models that both their performance (tokens/sec) and their cost (some $ per M tokens) are measured in tokens.
 
-At this point it's worth downloading an open-weight model, prying it open, and inspecting it. So make sure you have Python and pipx installed on your system, fire up a terminal, and run the following:
+<DeckFig name="p1-model-folder" />
+
+At this point it's worth downloading an open-weight model, prying it open, and inspecting it. I'll use Qwen3.8-27B throughout this series, because it's the model I run in production. The full download is 55.6 GB of numbers split across 18 files, but to follow along you only need two small files from it. Make sure you have Python and pipx installed on your system, fire up a terminal, and run the following:
 
 ```
 pipx install hf
-# Note: you'll have to open the model's page at huggingface.co/google/gemma-3-4b-it, log in, and accept the agreement to download it
-hf download google/gemma-3-4b-it --local-dir ./gemma
+hf download Qwen/Qwen3.8-27B config.json tokenizer.json --local-dir ./qwen
 ```
 
-Once downloaded, open the `gemma/tokenizer.json` file in a text editor. This is a JSON file; navigate to the `model.vocab` property. This is the full vocabulary of tokens, which means these are the possible tokens that can be generated from any sentence. A tokenizer is an algorithm that converts a sequence of characters into tokens. For example, the sentence:
+<DeckFig name="p1-vocab" />
+
+Once downloaded, open the `qwen/tokenizer.json` file in a text editor. This is a JSON file; navigate to the `model.vocab` property. This is the full vocabulary of tokens, which means these are the possible tokens that can be generated from any sentence: 248,044 of them, plus 33 special tokens the model uses for control. A tokenizer is an algorithm that converts a sequence of characters into tokens. For example, the sentence:
 
 ```
 I can reliably deploy LLMs
@@ -70,137 +98,127 @@ I can reliably deploy LLMs
 will be tokenized as:
 
 ```
-[236777, 740, 65372, 1162, 236758, 1088, 15292, 1356]
+[40, 628, 54488, 10204, 436, 10673, 82]
 ```
 
-<Fig name="tokenize" />
+<DeckFig name="p1-unknown-word" />
 
-The numbers are the values in the `model.vocab` dictionary, keyed against the actual tokens the sentence was broken down into. The interesting bit is that even though we have a five-word sentence, the token count is eight. This is because if a word doesn't have a direct mapping to a number, it's further broken down into smaller tokens. This is why `15292` is `▁ll` and `1356` is `ms`, which, when combined, make `_llms`. This is essentially the base idea of every tokenizer: keep breaking down the character sequence until each piece maps to something in the vocabulary.
+The numbers are the values in the `model.vocab` dictionary, keyed against the actual tokens the sentence was broken down into. The interesting bit is that even though we have a five-word sentence, the token count is seven. This is because if a word doesn't have a direct mapping to a number, it's further broken down into smaller tokens. This is why `436` is `ĠL`, `10673` is `LM` and `82` is `s`, which, when combined, make ` LLMs` with its leading space (in the vocabulary file a leading space shows up as `Ġ`; the figures mark it with a dot). This is essentially the base idea of every tokenizer: keep breaking down the character sequence until each piece maps to something in the vocabulary. Longer words simply take more tokens: "unbelievably" comes out as `un`, `belie` and `vably`, and "supercalifragilistic" takes seven pieces.
 
-<Fig name="config" />
+## Embeddings
 
-Next, what do these numbers mean, and how are they used? For that, open `gemma/config.json` and find a property named `hidden_size`. For our downloaded model, the value should be `2560`. Every model has an internal representation of each token in its vocabulary, and this representation is an array of numbers. What is the length of this array? That's right, it's equal to `2560`, the value of `hidden_size`. This array of 2560 numbers is called the embedding of that token. The embeddings of all possible tokens are stored as a huge table (a two-dimensional array) in one of the `.safetensors` files in the model we downloaded, and the numbers we got above as the output of tokenization are the indexes into that table. If I want the embedding for "can", I look at index `740` of that table.
+<DeckFig name="p1-embedding-table" />
 
-<Fig name="embeddings" />
+Next, what do these numbers mean, and how are they used? For that, open `qwen/config.json` and find a property named `hidden_size` under `text_config`. For our model, the value should be `5120`. Every model has an internal representation of each token in its vocabulary, and this representation is an array of numbers: a vector, our first tool. What is the length of this vector? That's right, it's equal to `5120`, the value of `hidden_size`. This vector of 5,120 numbers is called the embedding of that token. The embeddings of all possible tokens are stored as a huge table, 248,320 rows of 5,120 numbers each, in the model's `.safetensors` files, and the numbers we got above as the output of tokenization are the indexes into that table. If I want the embedding for " can", I look at row `628` of that table. That one table alone is 1.27 billion numbers, about 2.5 GB, before the model has done any thinking at all.
 
-Now, what exactly are embeddings, and why specifically 2560 numbers in each? For this I'll briefly go over how these models are trained. First, the trainers of the model decide what the dimensions of each embedding are going to be, which in our case is 2560. This size is decided based on how much the trainer wants to trade off between capability and efficiency. Each number in an embedding is a dimension value, and a dimension of a token is meant to represent some aspect, property, or idea related to that token. For example, if I say "camel", one dimension in its embedding might represent "animal", and the higher the value, the more "animal" the word is, while some other dimension might represent "desert". In our model we have 2560 dimensions per token, which means 2560 knobs or properties per token. But let me clarify that this example is never real, and only meant to give you a grasp of what a dimension is. In reality, each dimension rarely represents one clean idea or property, and we can see this clearly by looking at how we even come up with these values in the first place.
+<DeckFig name="p1-row-is-vector" />
 
-<Fig name="training" />
+Now, what exactly are embeddings, and why specifically 5,120 numbers in each? This is where the ideas-as-dimensions picture from earlier pays off. The trainers of the model decide what the dimensions of each embedding are going to be, which in our case is 5,120. This size is decided based on how much the trainer wants to trade off between capability and efficiency; smaller models in the same family use 2,560 or 4,096.
+
+That trade-off isn't guesswork. It follows what are called scaling laws. In 2020, researchers at OpenAI showed that a language model's error falls smoothly and predictably as you grow three things: the number of parameters, the amount of training text, and the compute spent on training. They also found that the total number of parameters matters far more than how it's spent, whether on longer vectors or on more layers. In 2022, DeepMind's Chinchilla study refined the recipe: for a fixed training budget, the parameters and the training text should grow together, at roughly 20 tokens of training text per parameter. That's why a bigger model in a family gets both a longer `hidden_size` and more layers: Qwen3-4B pairs 2,560 dimensions with 36 layers, while our model pairs 5,120 with 64. And here's the part that matters to an SRE: labs now deliberately train small models far past that recipe. Llama 3's 8B model was trained on about 15 trillion tokens, nearly a hundred times the Chinchilla figure, because a smaller model that knows more is cheaper to serve, and for a popular model the cost of serving it, paid on every request, soon outgrows the one-time cost of training it.
+
+Each number in an embedding is a dimension value, and a dimension of a token is meant to represent some aspect, property, or idea related to that token. For example, if I say "camel", one dimension in its embedding might represent "desert" and another "living", and the higher the value, the more of that idea the word carries: a camel might be 0.75 desert and 0.55 living. In our model we have 5,120 dimensions per token, which means 5,120 knobs or properties per token. But let me clarify that this example is never real, and only meant to give you a grasp of what a dimension is. In reality, each dimension rarely represents one clean idea or property, and we can see this clearly by looking at how we even come up with these values in the first place.
+
+## Training
+
+<DeckFig name="p1-training" />
 
 To train a large language model, we generally start with a large amount of textual data we intend to train the model on. We then initialize these embedding vectors with completely random numbers. At a high level, the training process is crudely the following:
 
 - First, break the textual data down into small sentences.
-- Each sentence is then split into two parts. The first part, along with all the random numbers, is fed into an algorithm (a neural network) whose job is to predict the second part of the sentence.
-- On the very first runs of this algorithm, we get very random predictions for what the second part is. When this happens, the algorithm checks how far off it is from the actual result and nudges the numbers in the embedding vectors in proportion to the difference it found. This is called gradient descent, and it's only possible because these embedding arrays are essentially 2560-dimensional vectors, which lets us perform geometric operations like the dot product between them; a dot product of two vectors gives a single number that tells us how much they point in the same direction, and therefore how similar they are.
-- The algorithm keeps going until we correctly guess the second part to an acceptable degree. Once we reach that state, the tuned number arrays become the embeddings of the tokens in that model.
+- Each sentence is then split into two parts. The first part, along with all the random numbers, is fed into an algorithm (a neural network) whose job is to predict the second part of the sentence. Feed it "The cat sat on the" and an untrained model might guess "dog", when the real next word is "mat".
+- On the very first runs of this algorithm, we get very random predictions for what the second part is. When this happens, the algorithm checks how far off it is from the actual result: if the model gave "mat" only 12% when the answer was "mat" with certainty, the error is large.
+
+<DeckFig name="p1-gradient" />
+
+Then comes the step that makes it learn. The algorithm nudges every number in proportion to how much it contributed to the error. For each number, the slope of the error says which way to move it and by how much: a steep slope means a big nudge, a flat one means it's almost right. This is called gradient descent. Repeat it millions of times and the numbers stop being random: similar tokens end up pointing similar ways, animals near animals and vehicles near vehicles. Once the guesses are right to an acceptable degree, the tuned arrays become the embeddings of the tokens in that model.
 
 Notice how the tuning of these dimensions depends solely on the large amount of textual data they were trained on; they've been tuned to predict that specific data. For a completely different dataset, these embeddings would come out completely different. Now, what do we do with these embeddings? We use them to predict what comes next, but that alone is not enough.
 
-The natural question here is: we already have these tuned embeddings per token, so aren't they enough to guess the next token? Well, no. Consider the following sets of tokens: `["golf", "ball"]` vs `["odd", "ball"]` vs `["tar", "ball"]`. "ball" alone can mean any of the three; it's only when another token like "odd", "tar", or "golf" is used with it in a sentence that we understand what kind of "ball" we're talking about. Words change what they infer based on the other words they're used with in a sentence. So when the transformer is guessing what comes next, it needs not just a numerical representation of the tokens, but also a numerical representation of how each token is influencing the meaning of every other token.
+## Inside the transformer
 
-This problem is one of the keys that the transformer addresses. Specifically, the algorithm introduces three different representations of a token's embedding, colloquially called the Q, K, and V vectors. Here's what each of them represents about the token embedding they're generated from:
+<DeckFig name="p1-four-stages" />
 
-- Q, called the query, represents what this token is looking for in the rest of the sentence.
-- K, called the key, represents what this token has to offer, i.e. what it can be matched against.
-- V, called the value, represents the influence this token will potentially have on other tokens.
+Before going further, here's the map of where we're heading. Open up the transformer and there are four stages. The embedder is what we just covered: tokenize the text and look each token's vector up in the table. Then come two stages that do the actual thinking, attention and feed-forward, which repeat together as one block, 64 times in our model. Finally, sampling picks the next token. Let's take the middle two in turn.
 
-During training, a set of projection vectors is inserted into the neural network to produce these, one for each, called Wq, Wk, and Wv. These are tuned during training just like everything else, in proportion to how far off the guess for the next token was. The one difference is this: an embedding is only tuned when its respective token appears in the first part of a training sentence, whereas the projection vectors are tuned for all sentences. Because of that, they end up capturing the relationships between tokens in a sequence rather than any single token.
+## Attention
 
-<Fig name="attention" />
+<DeckFig name="p1-ball" />
 
-At inference time, these projection vectors are used to generate the Q, K, and V vectors for each token, by multiplying each token by each projection vector. Now, remember that Q holds what a token is looking for, and K holds what a token has to offer. We take the K vector of each token and multiply it with the Q vector of every other token. This is a dot product, and the result is a single number that represents how much one token (its K) has to offer to another (its Q); the higher the number, the more shared context the two tokens have.
+The natural question here is: we already have these tuned embeddings per token, so aren't they enough to guess the next token? Well, no. Take the sentence "I'm tarballing the oddball photos of golf balls". The tokenizer splits it into `tar` and `ball`, `odd` and `ball`, and `golf` and `balls`, and both of those `ball`s are the same token, 3826. They start out as the very same row of the embedding table, the very same vector. Yet one is a tarball, the other an oddball, and the last is golf balls: same word, three different meanings. Words change what they mean based on the other words they're used with in a sentence. So when the transformer is guessing what comes next, it needs not just a numerical representation of the tokens, but also a numerical representation of how each token is influencing the meaning of every other token. In vector terms, each `ball` has to be pushed in its own direction by the tokens around it.
 
-To ground this, take the sentence: "My cat doesn't feel like going outside because it's raining." In the sentence, we know that "it's" is referring to "raining", not the "cat". That shows up directly in the numbers: the dot product of the query from "it's" with the key from "raining" scores higher than the dot product of the same query with the key from "cat".
+<DeckFig name="p1-qkv" />
 
-Once we have the dot product of all K and Q vectors, the next step is to multiply that dot-product number by the V vector of the token that supplied the K used in the dot product. Remember that V represents the influence a token has on others, so multiplying by the dot-product number gives how much of this influence should be applied to the embedding. (I've glossed over a softmax operation here, which is a way to normalize the dot-product results into proportions between 0 and 1.) Finally, these weighted V vectors are added together, and the result is added onto the original token's embedding. Now this token represents not just itself, but also bits of information from the other tokens in the sequence. The algorithm we just followed is called attention. I'd love to give an intuitive understanding of why it works, but I opened this article by saying I wouldn't go deep into the details, so I've put that bit under a separate appendix at the end.
+This problem is one of the keys that the transformer addresses. Specifically, the algorithm introduces three more matrices, Wq, Wk and Wv, initialized randomly and tuned during training just like everything else. Each is applied to the same embedding and gives a different vector. Multiplying a token's embedding by Wq gives its query, Q, which represents what this token is looking for in the rest of the sentence. With toy numbers in two dimensions, the first `ball` is `[1.00, 0.00]`, and multiplying it by Wq gives the query `[0.95, 0.10]`, which you can read as: I'm looking for a word that modifies me.
 
-But there's a second problem. Sometimes, part of a sentence is going to be a fact. For example, consider the sentence: "Who won the 2026 FIFA World Cup?". We know it was Spain, but if you look at the original sentence, it doesn't contain "spain" as a token anywhere. So just making tokens attend to each other is not going to magically lead us to Spain; something has to orient our existing tokens toward the "spain" token that sits somewhere in the vocabulary. What we do know is that during training there would have been many sample sentences carrying this relationship as context. We already have a way to extract context, by training the Q, K, and V projection vectors, so after the part that does attention, we introduce another pair of arrays, called Wu and Wd.
+<DeckFig name="p1-key-value" />
 
-Before we walk it, one thing about Wu and Wd themselves. Every weight we've introduced so far (the embeddings, and Wq, Wk, Wv), you could picture as a vector, a single row of numbers. Wu and Wd are the first that are genuinely two-dimensional: matrices, full grids of numbers. Each is built from two sizes we've already met: the embedding width (`hidden_size`, 2560) on one side, and a much larger `intermediate_size` (10240, sitting right next to it in `config.json`) on the other.
+Multiplying by Wk gives the key, K, which represents what influence this token has to offer, i.e. what it can be matched against: `tar`'s key comes out as `[0.90, 0.15]`, which reads as: I am a modifier. And multiplying by Wv gives the value, V, the influence this token will have on another token if the two match: `tar`'s value, `[0.20, 0.60]`, is what would make a ball tar-like. There's one difference between these matrices and the embeddings: an embedding is only tuned when its own token appears in a training sentence, whereas Wq, Wk and Wv are tuned on every sentence. Because of that, they end up capturing the relationships between tokens in a sequence rather than any single token.
 
-<Fig name="ffn-matrix" />
+<DeckFig name="p1-scores" />
 
-Now, how a token's vector moves through them. First, we multiply the token's vector, the one attention has just updated, by Wu; out comes a 1D array of 10240 numbers. Second, we move every number in this 10240 array that is below a particular threshold to 0. This is called activation, the specific algorithm of moving to 0 is called ReLU. Third, we multiply that by Wd; out comes a 2560-long array, the same width as the token, and we add it straight onto the original token. That's the entire feed-forward step.
+At inference time, every token gets its query, key and value from these matrices. Now, remember that Q holds what a token is looking for, and K holds what influence a token has to offer. We take the query of each token and compute its dot product, our third tool, with the key of every other token. The result is a single number that represents how much one token has to offer to another; the higher the number, the more shared context the two tokens have. That's exactly what the score table shows: the first `ball`'s query lines up best with `tar`'s key at 0.87, the second `ball`'s with `odd`'s, and `balls` with `golf`. Those raw scores then go through a softmax, a way of normalizing them into proportions: raise e to each score and divide by the total, so they're all positive and add up to 1. For the first `ball`, `tar` gets a weight of 0.46, `odd` 0.24, `golf` 0.09 and the token itself 0.21.
 
-<Fig name="ffn-relu" />
+<DeckFig name="p1-blend" />
 
-So what did training actually put into these two matrices? Two complementary halves of the same fact. Wu became a rack of detectors: each of its 10240 columns is a pattern of context, and multiplying the token by Wu scores how strongly each pattern is present right now, where a large positive number means "this pattern is here," and anything negative means "not this one." We use ReLU to be more accurate about which patterns we want activated. Not activating patterns with weak strength removes noise. Wd is the paired write-back: for every detector in Wu, Wd stores a direction, the information to add into the token when that detector fires. Put plainly, **Wu asks "what situation is this?" and Wd answers "then write this in."**
+The next step is to multiply each of those weights by the value of the token that supplied the key. Remember that V represents the influence a token has on others, so scaling it by the weight gives how much of that influence should be applied: `tar`'s value counts the most, `golf`'s barely at all. Finally, these weighted values are added together, and the result is added onto the original token's embedding: the first `ball` moves from `[1.00, 0.00]` to `[1.23, 0.25]`, toward tarball. Run the same process for the other two, and the second `ball` becomes an oddball while `balls` moves toward golf. Both `ball`s started as the very same vector, and context made them different. Now each token represents not just itself, but also bits of information from the other tokens in the sequence. The algorithm we just followed is called attention. (I've simplified a few things. Real queries, keys and values have thousands of numbers. Real models also take token positions into account, so nearby words weigh more, and a token only ever looks back at the tokens before it, never ahead, which the toy ignores to keep the numbers small; part 2 leans on that rule. And in Qwen3.8-27B most attention layers use a cheaper linear-attention variant. The idea is the same.)
 
-Walk our example through it. Somewhere in training, "spain" kept turning up in the neighbourhood of "the 2026 FIFA World Cup … won by". Gradient descent settles one of Wu's columns into a detector that lights up on exactly that "who won the 2026 World Cup" situation, and settles the paired Wd direction to point toward the "spain" token. Nobody labels either slot; it falls out of the model getting better at predicting the training text. At inference, the token reaching this layer already carries, from attention, something like "the winner of the 2026 FIFA World Cup is being asked for". Multiplying by Wu lights that one detector up with a large magnitude while the rest stay small or go negative and get floored away. Multiplying by Wd turns that magnitude into a delta pointing in the "spain" direction, and adding it on orients the token toward "spain", pulled straight from the model's weights, with no help from the sentence itself.
+## Feed-forward
 
-<Fig name="ffn-detector" />
+<DeckFig name="p1-world-cup" />
 
-The same honest caveat applies as with the "animal" and "desert" dimensions earlier: "one detector equals one fact" is a way to build intuition, not the literal truth, because in a real model a single fact is smeared across many patterns and a single pattern takes part in many facts. As with attention, I've put a small worked example of why this step recalls the right fact in the appendix.
+But there's a second problem. Sometimes, part of a sentence is going to be a fact. For example, consider the sentence: "Who won the 2026 FIFA World Cup?". We know it was Spain, but if you look at the original sentence, it doesn't contain "Spain" as a token anywhere. So just making tokens attend to each other is not going to magically lead us to Spain; something has to move the token's vector toward Spain, using knowledge from somewhere other than the sentence. What we do know is that during training there would have been many sample sentences carrying this relationship as context. So after the part that does attention, we introduce another pair of matrices, called Wu and Wd. They're the biggest matrices in each layer: Wu has 17,408 columns of 5,120 numbers each (`intermediate_size`, sitting right next to `hidden_size` in `config.json`), and Wd maps back the other way.
+
+<DeckFig name="p1-detectors" />
+
+So what did training actually put into these two matrices? Two complementary halves of the same fact. Wu became a rack of detectors: each of its 17,408 columns is a pattern of context, a question about the token, and multiplying the token by Wu scores how strongly each pattern is present right now, one dot product per column. A large positive number means "this pattern is here", and anything small means "not this one". Silencing the weak matches removes the noise, so only the patterns that really fire get through. Wd is the paired write-back: for every detector in Wu, Wd stores a direction, the information to add into the token when that detector fires. Put plainly, **Wu asks "what situation is this?" and Wd answers "then write this in."**
+
+Walk our example through it. Somewhere in training, "Spain" kept turning up in the neighbourhood of "the 2026 FIFA World Cup … won by". Gradient descent settles one of Wu's columns into a detector that lights up on exactly that "who won the 2026 World Cup" situation, and settles the paired Wd direction to point toward Spain. Nobody labels either slot; it falls out of the model getting better at predicting the training text. At inference, the token at the end of our question already carries, from attention, something like "the winner of the 2026 FIFA World Cup is being asked for". Multiplying by Wu lights the Spain detector up at 0.93, while detectors for things like capital cities or food stay small and get silenced. Multiplying by Wd turns the surviving strengths into a change of direction, and adding it on moves the token from `[0.10, 0.20]` to `[0.77, 0.94]`, toward Spain, pulled straight from the model's weights, with no help from the sentence itself.
+
+The same honest caveat applies as with the "desert" and "living" dimensions earlier: "one detector equals one fact" is a way to build intuition, not the literal truth, because in a real model a single fact is smeared across many patterns and a single pattern takes part in many facts. The silencing is simplified too: Qwen3.8-27B uses a third matrix, a gate, and a smooth function called SiLU instead of a hard cut-off, so weak matches fade out rather than switch off. The idea is the same.
+
+<DeckFig name="p1-ffn-flow" />
+
+Put together, here is how a token's vector moves through the feed-forward step. First, we multiply the token's vector, the one attention has just updated, by Wu; out comes an array of 17,408 numbers, one score per detector. Second, we silence the weak ones. Third, we multiply what's left by Wd; out comes an array of 5,120 numbers, the same width as the token, and we add it straight onto the original token. That's the entire feed-forward step.
+
+<DeckFig name="p1-ffn-recap" />
 
 It's worth pinning down the difference between these two steps, because they're easy to blur together. Attention is the one and only place where tokens look at each other; it's about this specific sentence, which token is shaping which. The feed-forward step runs on each token on its own, with the same numbers applied at every position; it's about everything the model memorized across all of its training. One handles the current sentence, the other handles stored knowledge.
 
-So far I've described one attention step followed by one feed-forward step. Together, these form a single layer, or block, and a real model doesn't have just one; it stacks many of them, and the count sits in `config.json` as `num_hidden_layers`. A few things are worth knowing about the stack. Each layer has its own Wq, Wk, Wv, Wu, and Wd; they're not shared between layers, which is where most of those billions of numbers actually live, the per-layer count multiplied by the number of layers. Each layer works on the output of the layer before it: a token's vector flows straight down the stack, and every layer reads the current vector, mixes in context again with attention, recalls and transforms again with the feed-forward step, and writes an updated vector back. Roughly speaking, earlier layers settle simpler, more local structure, and later layers build up more abstract meaning, though that's a tendency rather than a strict rule. After the final layer, the vector sitting at the last position, the one after the last token of our input, is the vector we read the prediction from.
+## Layers
 
-<Fig name="nextword" />
+<DeckFig name="p1-layers" />
 
-Which brings us to the final step: turning that one vector into an actual next token. First, we score every token in the vocabulary. We take the last vector in the squence and, for each token in the vocabulary, compute the dot product between the last vector and that token's own vector. Each dot product is a single number, a score, and there is one score per vocabulary token. These scores are called logits. The token vectors we score against are the rows of an output table, and in many models that table is simply the embedding table from the very start, reused in reverse (you can check `tie_word_embeddings` in `config.json`). So the same table can do double duty: it turns tokens into vectors on the way in, and scores candidate tokens on the way out.
+So far I've described one attention step followed by one feed-forward step. Together, these form a single layer, or block, and notice that neither step replaces the token's vector: each one only adds a change onto it. A real model doesn't have just one layer; it stacks many of them, and the count sits in `config.json` as `num_hidden_layers`: 64 for Qwen3.8-27B. A few things are worth knowing about the stack. Each layer has its own Wq, Wk, Wv, Wu and Wd; they're not shared between layers, which is where most of those 27 billion numbers actually live, the per-layer count multiplied by the number of layers. Each layer works on the output of the layer before it: a token's vector flows straight down the stack, and every layer reads the current vector, mixes in context again with attention, recalls and transforms again with the feed-forward step, and adds its changes back. Roughly speaking, earlier layers settle simpler, more local structure, and later layers build up more abstract meaning, though that's a tendency rather than a strict rule. After the final layer, the vector sitting at the last position, the one belonging to the last token of our input, is the vector we read the prediction from.
 
-<Fig name="temperature" />
+## Picking the next token
 
-Now we have a score for every possible next token, but scores are not probabilities, and two steps fix that. First, temperature: we divide every logit by a number `T`, the temperature. If `T` is less than 1, the gaps between scores grow, which makes the model more decisive and more repetitive; if `T` is greater than 1, the gaps shrink, which makes it more varied and more random; and as `T` approaches 0, the model simply always takes the top-scoring token. Second, softmax: this turns the temperature-adjusted scores into proper probabilities, all positive and adding up to 1. (It's the same "normalize into proportions" step I glossed over inside attention.) Now every possible next token has a probability.
+<DeckFig name="p1-logits" />
 
-Finally, we sample: we draw one token at random using those probabilities as weights, so a token with probability 0.6 is picked about 60% of the time. That randomness is why the same prompt can give different answers. A few common variations sit on top of this: greedy skips the randomness and always takes the highest-scoring token; top-k keeps only the `k` highest-probability tokens and samples from just those; and top-p sorts tokens by probability, keeps the smallest group whose probabilities add up to at least `p`, and samples from just those. Then we do the only thing left: append the token we picked to the input, and run the whole model again for the next one. That is the loop from the very beginning of this guide, now with every step underneath it filled in. (There's a small worked example of temperature and softmax in the appendix.)
+Which brings us to the final step: turning that one vector into an actual next token. First, we score every token in the vocabulary. We take the last vector in the sequence and, for each token in the vocabulary, compute the dot product between the last vector and that token's own vector. Each dot product is a single number, a score, and there is one score per vocabulary token, 248,320 of them. These scores are called logits. The token vectors we score against are the rows of an output table, `lm_head`. In some models that table is simply the embedding table from the very start, reused in reverse, and `tie_word_embeddings` in `config.json` tells you which: for Qwen3.8-27B it's `false`, so the output table is a separate set of numbers, trained for scoring.
 
-<Fig name="forward" />
+<DeckFig name="p1-temperature" />
 
-That is the whole forward pass: text becomes tokens, tokens become embeddings, attention lets them influence each other, the feed-forward step folds in learned facts, a stack of these layers refines the result, and a final scoring-and-sampling step picks the next token, on repeat.
+Now we have a score for every possible next token, but scores are not probabilities, and two steps fix that. First, temperature: we divide every score by a number `T`, the temperature. If `T` is less than 1, the gaps between scores grow, which makes the model more decisive and more repetitive; if `T` is greater than 1, the gaps shrink, which makes it more varied and more random; and as `T` approaches 0, the model simply always takes the top-scoring token. Second, softmax, the same normalizing step we met inside attention: it turns the temperature-adjusted scores into proper probabilities, all positive and adding up to 1. With scores of `2.0` for "mat", `1.4` for "rug", `1.1` for "floor", `0.6` for "chair" and `0.3` for "table", softmax at `T = 1` gives mat 0.419, rug 0.230, floor 0.170, chair 0.103 and table 0.077.
 
-<Fig name="trainpass" />
+Finally, we sample: we draw one token at random using those probabilities as weights, so a token with probability 0.42 is picked about 42% of the time. That randomness is why the same prompt can give different answers. A few common variations sit on top of this. Greedy skips the randomness and always takes the highest-scoring token. Top-k keeps only the `k` highest-probability tokens and samples from just those: with `k = 3` we keep mat, rug and floor, rescale them to 0.51, 0.28 and 0.21, and roll. Top-p sorts tokens by probability, keeps the smallest group whose probabilities add up to at least `p`, and samples from just those: with `p = 0.8`, mat and rug only reach 0.649, adding floor takes us to 0.819, and we end up with the same three.
 
-Now step back and notice one thing about all of this. Everything we've walked through, the embedding lookup, then attention and the feed-forward step repeated across every layer, then the final scoring, is the structure of the transformer. And here's the point I want to land: this exact same structure is what runs during training. There's no separate training-time machine. At the start, every number in it is random: the embedding table, the Wq, Wk, Wv, Wu, and Wd in each layer, and the output table. We run this structure forward on a piece of training text to predict the next token, we measure how far off that prediction is from the token that actually came next, and we push that single "how off we are" number back through the whole structure, nudging every number in it in proportion to how much it contributed to the error. That's gradient descent, the same mechanism I described for the embeddings, except now you can see it's tuning everything at once, in one pass, repeated over and over across enormous amounts of text. Inference, the thing that actually serves your request, is just this same forward pass with all of those numbers now frozen in place.
+<DeckFig name="p1-sampling-board" />
+
+Temperature is the knob you'll touch most, so here it is to play with. At `T = 1` mat wins 42% of the draws; at `T = 0.5` that climbs to 64%; at `T = 2` it drops to 30%, with the other four catching up.
+
+## Closing the loop
+
+<DeckFig name="p1-loop-closed" />
+
+Then we do the only thing left: append the token we picked to the input, and run the whole model again for the next one. That is the loop from the very beginning of this guide, now with every step underneath it filled in: text becomes tokens, tokens become embeddings, attention lets them influence each other, the feed-forward step folds in learned facts, a stack of 64 of these layers refines the result, and a final scoring-and-sampling step picks the next token, on repeat.
+
+<DeckFig name="p1-trainpass" />
+
+Now step back and notice one thing about all of this. Everything we've walked through, the embedding lookup, then attention and the feed-forward step repeated across every layer, then the final scoring, is the structure of the transformer. And here's the point I want to land: this exact same structure is what runs during training. There's no separate training-time machine. At the start, every number in it is random: the embedding table, the Wq, Wk, Wv, Wu and Wd in each layer, and the output table. We run this structure forward on a piece of training text to predict the next token, we measure how far off that prediction is from the token that actually came next, and we push that single "how off we are" number back through the whole structure, nudging every number in it in proportion to how much it contributed to the error. That's gradient descent, the same mechanism I described for the embeddings, except now you can see it's tuning everything at once, in one pass, repeated over and over across enormous amounts of text. Inference, the thing that actually serves your request, is just this same forward pass with all of those numbers now frozen in place.
+
+<DeckFig name="p1-recap" />
+
+And look at what it was all built from: vectors holding meaning, matrices transforming them, dot products measuring how related they are, a softmax turning scores into weights and odds, and a silencing step switching off weak matches. The three tools from the start of this article, repeated at enormous scale, are the whole trick.
 
 And this is exactly why an LLM is nothing like the microservice it resembles from the outside. A single response is not one cheap request; it's this entire stack run once per token, looping until the model decides to stop. That one fact, that the unit of work is a token and not a request, is what reshapes everything an SRE cares about: latency, throughput, batching, memory, and cost. [Part 2](/blog/sre-guide-deploying-llms-part-2/) picks up from here: how a raw base model is turned into one that follows instructions and reasons, and the GPU, memory, and quantization mechanics underneath serving it.
-
----
-
-**Appendix**
-
-These sections are for readers who want to see the mechanics with actual numbers. The main article stands without them.
-
-**A. Why attention works.** Multiplying a vector by a projection vector (really a small matrix) is a linear transformation: it rotates, scales, and shears the vector into a new position. Wq, Wk, and Wv are three different learned transformations, so the same token lands in three different places, its query, its key, and its value.
-
-<Fig name="whyattention" />
-
-Let's see it small. Suppose our embeddings were only 2-dimensional. Let one axis loosely mean "ball-like noun" and the other "sport or modifier", and take two tokens:
-
-- `ball = [1, 0]`
-- `golf = [0, 1]`
-
-They're perpendicular, so their raw dot product is `[1,0] · [0,1] = 0`; compared directly, the model would think they're unrelated. The projections are what fix that. Say training landed on these:
-
-- `Wq = [[0, 1], [-1, 0]]`
-- `Wk = [[1, 0], [0, 1]]`
-
-Push the tokens through:
-
-- `query(ball) = [1,0] × Wq = [0, 1]`, ball's vector got rotated to point along the second axis
-- `key(golf)  = [0,1] × Wk = [0, 1]`
-
-And the score:
-
-- `query(ball) · key(golf) = [0,1] · [0,1] = 1`
-
-The two embeddings started perpendicular (score 0), but Wq rotated ball's query so that it points the same way as golf's key, and the score jumps to 1: golf is highly relevant to ball. That's what the projections are for; they reshape each token so that queries land on top of the keys of the tokens they should attend to. With `Wv = [[1,0],[0,1]]`, golf's value is `[0, 1]`, and ball's updated vector moves toward it: ball goes from `[1, 0]` to about `[1, 1]`, now carrying both its own meaning and golf's. And nobody set those matrices by hand; gradient descent settled them into the rotation that makes the right tokens line up.
-
-Two footnotes: in a real model these projection vectors also shrink the vector, mapping the big 2560-dimensional embedding down to a smaller space, which is why they're called projections; and there's usually a fourth array that maps the blended values back into the embedding's space before they're added on.
-
-**B. Why the feed-forward step recalls the right fact.** Keep the vectors small again. Say a token's vector is 2-dimensional, where the first number means "looks like the FIFA-2026-winner question" and the second means "spain". (As before, real dimensions are not this clean; this is only to make the mechanism visible.) Our token, at the end of the question, is `x = [1, 0]`: it's in the question, and "spain" is not there yet.
-
-<Fig name="whyffn" />
-
-Give Wu a single pattern to detect, the direction `[1, 0]`, "is this the FIFA-winner question?". Multiplying gives its score: `[1,0] · [1,0] = 1`, so it fires. Now imagine a second pattern aimed at some other situation, the direction `[0, 1]`; its score is `[1,0] · [0,1] = 0`, so it stays silent. The keep-the-strong step leaves the first pattern at `1` and the second at `0`.
-
-Now Wu's first pattern has a partner in Wd, a write-back vector `[0, 1]`, "spain". The final step multiplies each pattern's firing strength by its write-back vector and adds them up: `1 × [0,1]` from the pattern that fired, plus `0 × (whatever)` from the one that didn't. The result is `[0, 1]`. Add it onto the token: `[1, 0] + [0, 1] = [1, 1]`. The token now carries both the question and "spain", so it's oriented toward predicting Spain.
-
-The reason it works: the pattern whose direction lines up with the token gets a big dot product and fires, and its write-back vector is what writes the fact in; patterns that don't line up score zero and contribute nothing, which is exactly why the keep-the-strong, drop-the-weak step has to be there. A different input, say `[0, 1]`, would fire a different pattern and write back a different fact, through the very same machinery.
-
-**C. Temperature and softmax with real numbers.** Say the vocabulary has just three tokens, A, B, and C, and scoring produced the logits `[2.0, 1.0, 0.1]`. Softmax at temperature 1 works in two moves: exponentiate each score (`e^2.0 ≈ 7.39`, `e^1.0 ≈ 2.72`, `e^0.1 ≈ 1.11`), then divide each by their total (`≈ 11.2`). You get the probabilities `[0.66, 0.24, 0.10]`, all positive and adding up to 1.
-
-Now watch temperature. At `T = 0.5` we divide the logits first, giving `[4.0, 2.0, 0.2]`, and softmax turns that into `[0.86, 0.12, 0.02]`; A now dominates. At `T = 2` we get `[1.0, 0.5, 0.05]`, and softmax gives `[0.50, 0.30, 0.19]`, much more spread out. As `T` approaches 0, the probabilities approach `[1, 0, 0]`: the model always picks A.
-
-To actually choose, we sample, picking a token at random with those probabilities as weights. top-k with `k = 2` would first drop C and renormalize `[0.66, 0.24]` into `[0.73, 0.27]`, then sample between A and B. top-p with `p = 0.9` keeps A and B, because `0.66 + 0.24 = 0.90` reaches the threshold, and drops C. That's the entire knob set for how "creative" a model is: temperature reshapes the gaps, softmax turns them into probabilities, and top-k or top-p decide how many candidates stay in the running.
