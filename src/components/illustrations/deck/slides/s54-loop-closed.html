@@ -1,0 +1,131 @@
+<section class="slide" id="s54-loop-closed" data-steps="4">
+  <p class="kicker reveal">predicting the token</p>
+  <p class="statement reveal">Append the token. Run it all again.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 440" role="img" aria-labelledby="s54-loop-closed-t s54-loop-closed-d">
+      <title id="s54-loop-closed-t">One full pass of the loop</title>
+      <desc id="s54-loop-closed-d">The sentence The cat sat on the goes into the embedder, then through attention plus feed-forward repeated 64 times, then into sampling. Sampling produces the token mat, which drops onto the end of the sentence. The longer sentence is then fed in again.</desc>
+      <g id="s54-loop-closed-all"></g>
+    </svg>
+  </div>
+
+  <style>
+    #s54-loop-closed svg.diagram{max-width:min(1203.2px,1100px);}
+    #s54-loop-closed .blk, #s54-loop-closed .arr{color:var(--color-text-dim);transition:color .5s ease;}
+    #s54-loop-closed .blk.done, #s54-loop-closed .arr.done{color:var(--color-text-muted);}
+    #s54-loop-closed .blk.lit, #s54-loop-closed .arr.lit{color:var(--color-accent);}
+    #s54-loop-closed .bk{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease,fill .5s ease;}
+    #s54-loop-closed .blk.done .bk{stroke:var(--color-border-strong);}
+    #s54-loop-closed .blk.lit .bk{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));}
+    #s54-loop-closed .back{fill:var(--color-bg);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease;}
+    #s54-loop-closed .blk.done .back{stroke:var(--color-border-strong);}
+    #s54-loop-closed .blk.lit .back{stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);}
+    #s54-loop-closed .wd{font-size:29px;fill:var(--color-text-dim);text-anchor:middle;transition:fill .5s ease;}
+    #s54-loop-closed .blk.done .wd{fill:var(--color-text);}
+    #s54-loop-closed .blk.lit .wd{fill:var(--color-accent);}
+    #s54-loop-closed .rep{font-size:28px;fill:currentColor;text-anchor:middle;}
+    #s54-loop-closed .shaft{stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;fill:none;transition:stroke .5s ease;}
+    #s54-loop-closed .arr.dash .shaft.sh{stroke-dasharray:9 8;}
+    #s54-loop-closed .cr{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;transition:stroke .5s ease;}
+    #s54-loop-closed .strip.lit .cr{stroke:color-mix(in oklab,var(--color-accent) 60%,transparent);}
+    #s54-loop-closed .cr.slot{stroke:var(--color-text-faint);stroke-dasharray:8 6;fill:none;}
+    #s54-loop-closed .cr.hot{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));}
+    #s54-loop-closed .ct{font-size:27px;fill:var(--color-text);text-anchor:middle;}
+    #s54-loop-closed .ct.q{fill:var(--color-text-faint);}
+    #s54-loop-closed .ct.hot{fill:var(--color-accent);}
+    #s54-loop-closed .note{font-size:22px;fill:var(--color-accent);transition:opacity .5s ease;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's54-loop-closed';
+      var root = document.getElementById(ID + '-all'), NS = root.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        (parent || root).appendChild(e); return e;
+      }
+      var BY = 28, BH = 170, MY = BY + BH / 2;
+      var SY = 366, CW = 116, CH = 52, SPITCH = 142, SX0 = 107;
+      var BLOCKS = [
+        { x: 30, w: 240, lines: ['embedder'] },
+        { x: 330, w: 360, lines: ['attention', '+ feed-forward'], layers: true },
+        { x: 776, w: 234, lines: ['sampling'] }
+      ];
+
+      // arrows first so the blocks sit on top of their ends
+      function arrow(x1, y1, x2, y2, cls) {
+        var g = mk('g', { 'class': 'arr ' + cls });
+        mk('line', { 'class': 'shaft sh', x1: x1, y1: y1, x2: x2, y2: y2 }, g);
+        var dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy), ux = dx / len, uy = dy / len;
+        var bx = x2 - ux * 13, by = y2 - uy * 13;
+        mk('path', { 'class': 'shaft', d: 'M' + (bx - uy * 9) + ' ' + (by + ux * 9) + 'L' + x2 + ' ' + y2 + 'L' + (bx + uy * 9) + ' ' + (by - ux * 9) }, g);
+        return g;
+      }
+      var arrIn = arrow(165, SY - 6, 165, BY + BH + 6, 'pend');           // sentence -> embedder
+      var arrAB = arrow(278, MY, 322, MY, 'pend');
+      var arrBC = arrow(722, MY, 768, MY, 'pend');
+      var arrOut = arrow(875, BY + BH + 6, 875, SY - 6, 'pend');          // sampling -> end of sentence
+      var againLab = mk('text', { 'class': 'note', x: 184, y: 296 }, root, 'run again');
+      var appendLab = mk('text', { 'class': 'note', x: 944, y: 300 }, root, 'append');
+
+      var blks = BLOCKS.map(function (b) {
+        var g = mk('g', { 'class': 'blk pend' });
+        if (b.layers) {
+          mk('rect', { 'class': 'back', x: b.x + 24, y: BY - 24, width: b.w, height: BH, rx: 18 }, g);
+          mk('rect', { 'class': 'back', x: b.x + 12, y: BY - 12, width: b.w, height: BH, rx: 18 }, g);
+        }
+        mk('rect', { 'class': 'bk', x: b.x, y: BY, width: b.w, height: BH, rx: 18 }, g);
+        var n = b.lines.length;
+        b.lines.forEach(function (ln, i) { mk('text', { 'class': 'wd', x: b.x + b.w / 2, y: MY + 10 + (i - (n - 1) / 2) * 40 }, g, ln); });
+        if (b.layers) mk('text', { 'class': 'rep', x: b.x + b.w / 2, y: BY + BH + 50 }, g, '× 64 layers');
+        return g;
+      });
+
+      // the sentence strip and the new token
+      var strip = mk('g', { 'class': 'strip' });
+      ['The', 'cat', 'sat', 'on', 'the'].forEach(function (w, i) {
+        var g = mk('g', { transform: 'translate(' + (SX0 + i * SPITCH) + ' ' + SY + ')' }, strip);
+        mk('rect', { 'class': 'cr', width: CW, height: CH, rx: 11 }, g);
+        mk('text', { 'class': 'ct', x: CW / 2, y: 36 }, g, w);
+      });
+      var SLOT = { x: SX0 + 5 * SPITCH, y: SY };
+      var slot = mk('g', { transform: 'translate(' + SLOT.x + ' ' + SLOT.y + ')' }, strip);
+      mk('rect', { 'class': 'cr slot', width: CW, height: CH, rx: 11 }, slot);
+      mk('text', { 'class': 'ct q', x: CW / 2, y: 37 }, slot, '?');
+      var chip = mk('g', { opacity: 0 });
+      mk('rect', { 'class': 'cr hot', width: CW, height: CH, rx: 11 }, chip);
+      mk('text', { 'class': 'ct hot', x: CW / 2, y: 36 }, chip, 'mat');
+
+      var Y0 = BY + BH + 36;                      // where the new token appears, just under sampling
+      var P = 0;
+      function sm(v) { v = v < 0 ? 0 : v > 1 ? 1 : v; return v * v * (3 - 2 * v); }
+      function drawChip() {
+        var y = P <= 1 ? Y0 : Deck.lerp(Y0, SLOT.y, sm(P - 1));
+        chip.setAttribute('transform', 'translate(' + SLOT.x + ' ' + y.toFixed(1) + ')');
+        chip.setAttribute('opacity', (P > 1 ? 1 : P).toFixed(3));
+      }
+      function cls(el, base, state, extra) { el.setAttribute('class', base + ' ' + state + (extra ? ' ' + extra : '')); }
+      function show(n) {
+        strip.setAttribute('class', 'strip' + (n === 0 ? ' lit' : ''));
+        blks.forEach(function (b, i) { cls(b, 'blk', i + 1 === n ? 'lit' : i + 1 < n ? 'done' : 'pend'); });
+        cls(arrIn, 'arr', n === 1 ? 'lit' : n === 4 ? 'lit' : n > 1 ? 'done' : 'pend', n === 4 ? 'dash' : '');
+        cls(arrAB, 'arr', n === 2 ? 'lit' : n > 2 ? 'done' : 'pend');
+        cls(arrBC, 'arr', n === 3 ? 'lit' : n > 3 ? 'done' : 'pend');
+        cls(arrOut, 'arr', n === 4 ? 'lit' : 'pend', 'dash');
+        againLab.style.opacity = n === 4 ? 1 : 0;
+        appendLab.style.opacity = n === 4 ? 1 : 0;
+      }
+
+      Deck.slide('s54-loop-closed', {
+        enter: function () { P = 0; drawChip(); show(0); },
+        step: function (n, prev, c) {
+          show(n);
+          var to = n >= 4 ? 2 : n >= 3 ? 1 : 0, from = P;
+          if (c.instant) { P = to; drawChip(); return; }
+          Deck.tween(to === 2 || from === 2 ? 1100 : 700, function (t) { P = Deck.lerp(from, to, t); drawChip(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,111 @@
+<section class="slide" id="s02-vec2d" data-steps="2" data-tool="vector">
+  <p class="kicker reveal">refresher 1</p>
+  <p class="statement reveal">An array of 2 numbers is a vector in 2D space.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 900 420" role="img" aria-labelledby="s02-vec2d-t s02-vec2d-d">
+      <title id="s02-vec2d-t">An array of two numbers is a vector in 2D space</title>
+      <desc id="s02-vec2d-d">The array three, two on the left and a plane with x and y axes on the right. A cyan arrow grows from the origin to the point three, two, and dashed guides drop to the axes labelled three and two. Two grey ghost arrows show that other arrays are other points.</desc>
+      <defs>
+        <marker id="s02-vec2d-ah" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" refX="15" refY="10" orient="auto"><path d="M0,0 L17,10 L0,20 z" fill="var(--color-accent)"/></marker>
+        <marker id="s02-vec2d-ahg" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="13" refY="9" orient="auto"><path d="M0,0 L15,9 L0,18 z" fill="var(--color-text-faint)"/></marker>
+      </defs>
+
+      <!-- the array (left) -->
+      <path class="brk" d="M64 150 H44 V270 H64"/>
+      <path class="brk" d="M240 150 H260 V270 H240"/>
+      <text id="s02-vec2d-n1" class="num" x="110" y="238">3</text>
+      <text id="s02-vec2d-n2" class="num" x="194" y="238">2</text>
+
+      <!-- the plane (right): origin (596,276), 64 units per unit, x -2..4, y -2..3 -->
+      <line class="axis" x1="468" y1="276" x2="852" y2="276"/>
+      <line class="axis" x1="596" y1="404" x2="596" y2="84"/>
+      <path class="tick" d="M468 273v6M532 273v6M660 273v6M724 273v6M788 273v6M852 273v6M593 404h6M593 340h6M593 212h6M593 148h6M593 84h6"/>
+      <text class="axl" x="860" y="294">x</text>
+      <text class="axl" x="612" y="88">y</text>
+
+      <!-- step 2: other arrays are other points -->
+      <g data-from="2">
+        <line class="ghost" x1="596" y1="276" x2="468" y2="212" marker-end="url(#s02-vec2d-ahg)"/>
+        <text class="glab dim" x="468" y="194" text-anchor="middle">[-2, 1]</text>
+        <line class="ghost" x1="596" y1="276" x2="660" y2="404" marker-end="url(#s02-vec2d-ahg)"/>
+        <text class="glab dim" x="668" y="396">[1, -2]</text>
+      </g>
+
+      <!-- step 1: guides and labels (JS-driven) -->
+      <line id="s02-vec2d-gx" class="guide" x1="788" y1="148" x2="788" y2="148"/>
+      <line id="s02-vec2d-gy" class="guide" x1="788" y1="148" x2="788" y2="148"/>
+      <text id="s02-vec2d-l3" class="glab" x="788" y="298" text-anchor="middle">3</text>
+      <text id="s02-vec2d-l2" class="glab" x="574" y="152" text-anchor="end">2</text>
+
+      <!-- step 1: the arrow grows from the origin to (3,2) -->
+      <line id="s02-vec2d-vec" class="vec" stroke="var(--color-accent)" stroke-width="4" x1="596" y1="276" x2="596" y2="276" marker-end="url(#s02-vec2d-ah)"/>
+      <text id="s02-vec2d-tip" class="tip" x="800" y="136">[3, 2]</text>
+    </svg>
+  </div>
+
+  <style>
+    #s02-vec2d svg.diagram{max-width:min(1177.6px,1040px);}
+    #s02-vec2d .brk{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s02-vec2d .num{font-family:var(--font-mono);font-size:64px;fill:var(--color-accent);text-anchor:middle;}
+    #s02-vec2d .axis{stroke:var(--color-text-faint);stroke-width:1.5;}
+    #s02-vec2d .tick{stroke:var(--color-hairline);stroke-width:1;fill:none;}
+    #s02-vec2d .axl{font-family:var(--font-mono);font-size:20px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s02-vec2d .guide{stroke:var(--color-accent);stroke-width:2;stroke-dasharray:5 5;fill:none;}
+    #s02-vec2d .glab{font-family:var(--font-mono);font-size:22px;fill:var(--color-accent);}
+    #s02-vec2d .glab.dim{fill:var(--color-text-faint);font-size:20px;}
+    #s02-vec2d .ghost{stroke:var(--color-text-faint);stroke-width:2;fill:none;stroke-linecap:round;}
+    #s02-vec2d .tip{font-family:var(--font-mono);font-size:24px;fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var OX = 596, OY = 276, U = 64;
+      var S = { a: 0, gx: 0, gy: 0, l3: 0, l2: 0, tip: 0 };
+      var el = {};
+      function $(id) { return document.getElementById('s02-vec2d-' + id); }
+      function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+      function draw() {
+        el.vec.setAttribute('x2', OX + 3 * U * S.a);
+        el.vec.setAttribute('y2', OY - 2 * U * S.a);
+        el.vec.style.opacity = S.a > 0.02 ? 1 : 0;
+        el.tip.style.opacity = S.tip;
+        el.gx.setAttribute('y2', OY - 2 * U + S.gx * 2 * U);
+        el.gx.style.opacity = S.gx > 0.02 ? 0.75 : 0;
+        el.gy.setAttribute('x2', OX + 3 * U - S.gy * 3 * U);
+        el.gy.style.opacity = S.gy > 0.02 ? 0.75 : 0;
+        el.l3.style.opacity = S.l3;
+        el.l2.style.opacity = S.l2;
+        // the matching array entry pulses while its guide draws
+        el.n1.style.opacity = 1 - 0.55 * Math.sin(Math.PI * S.gx);
+        el.n2.style.opacity = 1 - 0.55 * Math.sin(Math.PI * S.gy);
+      }
+      function target(n) { return n >= 1 ? { a: 1, gx: 1, gy: 1, l3: 1, l2: 1, tip: 1 } : { a: 0, gx: 0, gy: 0, l3: 0, l2: 0, tip: 0 }; }
+      function snap(T) { for (var k in T) S[k] = T[k]; draw(); }
+      function tweenTo(B, ms) {
+        var A = { a: S.a, gx: S.gx, gy: S.gy, l3: S.l3, l2: S.l2, tip: S.tip };
+        Deck.tween(ms, function (t) { for (var k in B) S[k] = Deck.lerp(A[k], B[k], t); draw(); });
+      }
+      Deck.slide('s02-vec2d', {
+        enter: function (c) {
+          ['vec', 'tip', 'gx', 'gy', 'l3', 'l2', 'n1', 'n2'].forEach(function (k) { el[k] = $(k); });
+          snap(target(0));
+        },
+        step: function (n, prev, c) {
+          if (c.instant) { snap(target(n)); return; }
+          if (n >= 1 && prev < 1) {
+            // sequence: arrow grows, then x guide (+entry 3 pulses), then y guide (+entry 2 pulses)
+            Deck.tween(1500, function (t) {
+              S.a = clamp01(t / 0.27);
+              S.tip = clamp01((t - 0.27) / 0.13);
+              S.gx = clamp01((t - 0.33) / 0.22);
+              S.gy = clamp01((t - 0.55) / 0.22);
+              S.l3 = S.gx; S.l2 = S.gy;
+              draw();
+            });
+          } else {
+            tweenTo(target(n), 650);
+          }
+        }
+      });
+    })();
+  </script>
+</section>

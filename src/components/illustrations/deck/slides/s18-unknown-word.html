@@ -1,0 +1,166 @@
+<section class="slide" id="s18-unknown-word" data-steps="4">
+  <p class="kicker reveal">tokens</p>
+  <p class="statement reveal">A word that is not in the vocabulary is split into smaller pieces.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1100 500" role="img" aria-labelledby="s18-unknown-word-t s18-unknown-word-d">
+      <title id="s18-unknown-word-t">Unknown words are split into known pieces</title>
+      <desc id="s18-unknown-word-d">Four words, Careemify, unbelievably, supercalifragilistic and an Arabic greeting, each shown as one chip that cracks apart into the pieces the real Qwen3.8-27B tokenizer uses, with the vocabulary id of every piece underneath. Earlier words stay above in a smaller size.</desc>
+      <g id="s18-unknown-word-root"></g>
+    </svg>
+  </div>
+
+  <style>
+    #s18-unknown-word svg.diagram{max-width:min(1203.2px,1280px);}
+    #s18-unknown-word .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;transition:fill .6s ease,stroke .6s ease;}
+    #s18-unknown-word .chip text{font-family:var(--font-mono);font-size:38px;fill:var(--color-text);text-anchor:middle;transition:fill .6s ease;}
+    #s18-unknown-word .part text.idn{font-size:32px;fill:var(--color-text-dim);}
+    #s18-unknown-word .grp.cur .part rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #s18-unknown-word .grp.cur .part text.pt, #s18-unknown-word .grp.cur .part text.idn{fill:var(--color-accent);}
+    #s18-unknown-word .link{fill:none;stroke:var(--color-text-faint);stroke-width:2;stroke-linecap:round;transition:stroke .6s ease;}
+    #s18-unknown-word .grp.cur .link{stroke:var(--color-accent);}
+    #s18-unknown-word .sarr{fill:none;stroke:var(--color-text-dim);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+  </style>
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      // REAL: deck/data/qwen38.json tokenization.examples (Qwen3.8-27B tokenizer): word text and its pieces as [id, text]
+      var WORDS = [
+        ["Careemify",[[30945,"Care"],[334,"em"],[1386,"ify"]]],
+        ["unbelievably",[[354,"un"],[30754,"belie"],[85098,"vably"]]],
+        ["supercalifragilistic",[[12410,"sup"],[2867,"erc"],[278,"al"],[331,"if"],[3965,"rag"],[319,"il"],[4384,"istic"]]],
+        ["\u0645\u0631\u062d\u0628\u0627",[[148739,"\u0645\u0631"],[28850,"\u062d"],[150027,"\u0628\u0627"]]]
+      ];
+      var FS = 38, CW = FS * 0.6, PAD = 20, H = 72, CX = 550, GAP = 14, SM = 0.6, ARROW = 46;
+      var DROP = 128, ID_DY = 58, ID_DY_S = 50, PITCH = 74; // pieces row below the word chip; ids below the pieces; row pitch of the small rows
+      var groups = [], S = [], stop = null;
+
+      function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function textW(s) {
+        var w = 0;
+        for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); w += c < 0x250 ? 0.6 : (c >= 0x2e80 ? 1 : 0.65); }
+        return w * FS;
+      }
+      function chipW(s) { return Math.max(FS * 1.65, textW(s) + 2 * PAD); }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function sub(v, a, b) { return Deck.ease.inOut(clamp((v - a) / (b - a))); }
+      function pt(x, y) { return x.toFixed(1) + ' ' + y.toFixed(1); }
+
+      // vertical layout: m earlier words are stacked small above the current one; the block is centred
+      function total(m) { return m === 0 ? 36 + DROP + 74 : PITCH * m + 40 + DROP + 74; }
+      function top(m) { return (500 - total(m)) / 2; }
+      function yCur(m) { return m === 0 ? top(0) + 36 : top(m) + PITCH * m + 40; }
+      function ySmall(j, m) { return top(m) + 22 + PITCH * j; }
+      // earlier words are laid out as aligned rows: word chip, arrow, pieces; X is where the pieces start. The block of rows is centred.
+      function pieces0(m) {
+        var w = 0, p = 0;
+        for (var j = 0; j < m; j++) { w = Math.max(w, groups[j].wholeW); p = Math.max(p, groups[j].total); }
+        return m === 0 ? CX : CX + (ARROW + w - p) * SM / 2;
+      }
+      function target(n) {
+        var cw = n < 2 ? 0 : n - 1, X = pieces0(cw);
+        return WORDS.map(function (w, j) {
+          if (j > cw) return { a: 0, c: 0, s: 0, Y: yCur(j), X: X };
+          if (j === cw) return { a: 1, c: n >= 1 ? 1 : 0, s: 0, Y: yCur(cw), X: X };
+          return { a: 1, c: 1, s: 1, Y: ySmall(j, cw), X: X };
+        });
+      }
+
+      function build(root) {
+        while (root.firstChild) root.removeChild(root.firstChild);
+        groups = WORDS.map(function (w) {
+          var rtl = /[\u0590-\u08ff]/.test(w[0]), toks = w[1], n = toks.length;
+          var g = { rtl: rtl, wholeW: chipW(w[0]), pw: toks.map(function (t) { return Math.max(chipW(t[1]), String(t[0]).length * CW * 32 / FS + 18); }) };
+          g.el = el('g', { class: 'grp' }, root);
+          g.links = toks.map(function () { return el('path', { class: 'link' }, g.el); });
+          g.arrow = el('path', { class: 'sarr', d: 'M-11 0H11M4 -8L11 0L4 8' }, g.el);
+          g.whole = el('g', { class: 'chip whole' }, g.el);
+          el('rect', { x: -g.wholeW / 2, y: -H / 2, width: g.wholeW, height: H, rx: 12 }, g.whole);
+          el('text', { x: 0, y: 0, dy: rtl ? '.26em' : '.35em' }, g.whole).textContent = w[0];
+          g.parts = toks.map(function (t, i) {
+            var p = el('g', { class: 'chip part' }, g.el);
+            el('rect', { x: -g.pw[i] / 2, y: -H / 2, width: g.pw[i], height: H, rx: 12 }, p);
+            el('text', { class: 'pt', x: 0, y: 0, dy: rtl ? '.26em' : '.35em' }, p).textContent = t[1];
+            el('text', { class: 'idn', x: 0, y: ID_DY, dy: '.35em' }, p).textContent = String(t[0]);
+            return p;
+          });
+          // where each piece sits in a row (display order: right to left for Arabic), big and small
+          var order = toks.map(function (t, i) { return rtl ? n - 1 - i : i; });
+          var byDisplay = []; order.forEach(function (d, i) { byDisplay[d] = i; });
+          var total = 0, offs = [];
+          byDisplay.forEach(function (i) { offs[i] = total; total += g.pw[i] + GAP; });
+          total -= GAP;
+          g.total = total; g.offs = offs;
+          g.xb = toks.map(function (t, i) { return CX - total / 2 + offs[i] + g.pw[i] / 2; });
+          // crack origin: the letters' own positions inside the word chip
+          var len = 0, from = [], chW = textW(w[0]) / w[0].length;
+          toks.forEach(function (t, i) { from[i] = len; len += t[1].length; });
+          g.x0 = toks.map(function (t, i) {
+            var d = (from[i] + t[1].length / 2 - len / 2) * chW;
+            return CX + (rtl ? -d : d);
+          });
+          return g;
+        });
+      }
+
+      function renderGroup(g, st) {
+        var k = Deck.lerp(1, SM, st.s), a = st.a, c = st.c, s = st.s, Y = st.Y;
+        var X = st.X, wx = Deck.lerp(CX, X - ARROW * SM - g.wholeW * SM / 2, s), pY = Deck.lerp(Y + DROP, Y, s), ce = 1 - Math.pow(1 - c, 3);
+        g.whole.setAttribute('transform', 'translate(' + pt(wx, Y) + ') scale(' + k.toFixed(3) + ')');
+        g.whole.setAttribute('opacity', (a * (1 - 0.45 * c)).toFixed(3));
+        g.arrow.setAttribute('transform', 'translate(' + pt(X - ARROW * SM / 2, Y) + ') scale(' + SM + ')');
+        g.arrow.setAttribute('opacity', (a * s).toFixed(3));
+        g.parts.forEach(function (p, i) {
+          var x = Deck.lerp(Deck.lerp(g.x0[i], g.xb[i], ce), X + (g.offs[i] + g.pw[i] / 2) * SM, s), y = Deck.lerp(Y, pY, c);
+          p.setAttribute('transform', 'translate(' + pt(x, y) + ') scale(' + k.toFixed(3) + ')');
+          p.setAttribute('opacity', (a * clamp((c - 0.4) / 0.3)).toFixed(3));
+          var idn = p.querySelector('.idn');
+          idn.setAttribute('opacity', clamp((c - 0.75) / 0.25).toFixed(3));
+          idn.setAttribute('y', Deck.lerp(ID_DY, ID_DY_S, s).toFixed(1));
+          var y1 = Y + (H / 2 + 5) * k, y2 = y - (H / 2 + 5) * k, ym = (y1 + y2) / 2;
+          g.links[i].setAttribute('d', 'M' + pt(wx, y1) + ' C' + pt(wx, ym) + ' ' + pt(x, ym) + ' ' + pt(x, y2));
+          g.links[i].setAttribute('opacity', (a * clamp((c - 0.5) / 0.4) * (1 - s)).toFixed(3));
+        });
+      }
+      function render() { groups.forEach(function (g, j) { renderGroup(g, S[j]); }); }
+      function mark(n) {
+        var cw = n < 2 ? 0 : n - 1;
+        groups.forEach(function (g, j) { g.el.setAttribute('class', 'grp' + (j === cw ? ' cur' : '')); });
+      }
+
+      Deck.slide('s18-unknown-word', {
+        enter: function (c) {
+          build(c.qs('#s18-unknown-word-root'));
+          S = target(0); mark(0); render();
+        },
+        step: function (n, prev, c) {
+          var tg = target(n);
+          if (stop) { stop(); stop = null; }
+          mark(n);
+          if (c.instant) { S = tg; render(); return; }
+          var from = S.map(function (o) { return { a: o.a, c: o.c, s: o.s, Y: o.Y, X: o.X }; });
+          var lay = false, crk = false;
+          from.forEach(function (o, j) {
+            if (o.a !== tg[j].a || o.s !== tg[j].s || Math.abs(o.Y - tg[j].Y) > 0.5 || Math.abs(o.X - tg[j].X) > 0.5) lay = true;
+            if (o.c !== tg[j].c) crk = true;
+          });
+          var staged = lay && crk, fwd = n > prev;
+          // a new word: first the layout moves (earlier words shrink up), then the new chip appears, then it cracks apart
+          var W = !staged ? { l: [0, 1], a: [0, 1], c: [0, 1] }
+            : (fwd ? { l: [0, 0.45], a: [0.3, 0.5], c: [0.5, 1] } : { c: [0, 0.5], a: [0.45, 0.6], l: [0.55, 1] });
+          stop = Deck.tween(staged ? 1500 : 900, function (k) {
+            var tl = sub(k, W.l[0], W.l[1]), ta = sub(k, W.a[0], W.a[1]), tc = sub(k, W.c[0], W.c[1]);
+            S = from.map(function (o, j) {
+              return { a: Deck.lerp(o.a, tg[j].a, ta), s: Deck.lerp(o.s, tg[j].s, tl), Y: Deck.lerp(o.Y, tg[j].Y, tl), X: Deck.lerp(o.X, tg[j].X, tl), c: Deck.lerp(o.c, tg[j].c, tc) };
+            });
+            render();
+          }, { ease: Deck.ease.linear });
+        }
+      });
+    })();
+  </script>
+</section>

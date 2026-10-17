@@ -1,0 +1,155 @@
+<section class="slide" id="s09-ideas-axes" data-steps="3" data-tool="vector">
+  <p class="kicker reveal">refresher 3</p>
+  <p class="statement reveal">What if each dimension is an idea?</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s09-ideas-axes-t s09-ideas-axes-d">
+      <title id="s09-ideas-axes-t">Ideas as dimensions</title>
+      <desc id="s09-ideas-axes-d">A plane whose horizontal axis runs from forest to desert and whose vertical axis runs from non-living to living. Sand is a cyan arrow into the lower right (desert and non-living), rock is a cyan arrow pointing almost straight down (non-living), and fern is a grey arrow into the upper left (forest and living). Each arrow is also shown as a small mix of its two ideas.</desc>
+    </svg>
+  </div>
+
+  <style>
+    #s09-ideas-axes .statement{max-width:1120px;}
+    #s09-ideas-axes svg.diagram{width:100%;height:100%;max-width:none;}
+    #s09-ideas-axes text{font-family:var(--font-mono);}
+    #s09-ideas-axes .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #s09-ideas-axes .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s09-ideas-axes .axh{fill:var(--color-text-faint);}
+    #s09-ideas-axes .ax{font-size:24px;fill:var(--color-text-soft);}
+    #s09-ideas-axes .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s09-ideas-axes .vg{transition:color .6s,opacity .5s ease;}
+    #s09-ideas-axes .tg{transition:color .6s,opacity .5s ease .4s;}
+    #s09-ideas-axes .cy{color:var(--color-accent);}
+    #s09-ideas-axes .gr{color:var(--color-text-dim);}
+    #s09-ideas-axes .tg.gr{color:var(--color-text-muted);}
+    #s09-ideas-axes .sh{stroke:currentColor;stroke-width:4.5;stroke-linecap:round;fill:none;}
+    #s09-ideas-axes .hd{fill:currentColor;stroke:none;}
+    #s09-ideas-axes .nm{font-size:24px;font-weight:600;fill:currentColor;}
+    #s09-ideas-axes .av{font-size:20px;fill:currentColor;}
+    #s09-ideas-axes .tpl{font-size:38px;fill:var(--color-text-soft);}
+    #s09-ideas-axes .hint{font-size:20px;fill:var(--color-text-muted);}
+    #s09-ideas-axes .rule{stroke:var(--color-border);stroke-width:1;}
+    #s09-ideas-axes .idea{font-size:20px;fill:var(--color-text-soft);}
+    #s09-ideas-axes .track{fill:var(--color-hairline);}
+    #s09-ideas-axes .fill{fill:currentColor;}
+    #s09-ideas-axes .wt{font-size:20px;fill:currentColor;}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s09-ideas-axes');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // one plane for s09, s10 and s11: same origin, same scale, same positions
+      var OX = 330, OY = 262, U = 190, EXT = 1.1, R = EXT * U;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+      var SAND = [0.80, -0.60], ROCK = [0.15, -0.95], FERN = [-0.70, 0.60];
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(x) { var s = Math.abs(x).toFixed(2); return (x < 0 && s !== '0.00' ? '−' : '') + s; }
+      function arr(v) { return '[' + f2(v[0]) + ', ' + f2(v[1]) + ']'; }
+
+      function buildPlane() {
+        var g = el('g', {}, svg);
+        [-1, -0.5, 0.5, 1].forEach(function (k) {
+          el('line', { 'class': 'grd', x1: P.X(k), y1: P.Y(-EXT), x2: P.X(k), y2: P.Y(EXT) }, g);
+          el('line', { 'class': 'grd', x1: P.X(-EXT), y1: P.Y(k), x2: P.X(EXT), y2: P.Y(k) }, g);
+        });
+        el('line', { 'class': 'axl', x1: OX - R + 10, y1: OY, x2: OX + R - 10, y2: OY }, g);
+        el('line', { 'class': 'axl', x1: OX, y1: OY - R + 10, x2: OX, y2: OY + R - 10 }, g);
+        // arrowheads at both ends of both axes: tip x, tip y, unit vector towards the head's base
+        [[OX + R, OY, -1, 0], [OX - R, OY, 1, 0], [OX, OY - R, 0, 1], [OX, OY + R, 0, -1]].forEach(function (h) {
+          var bx = h[0] + h[2] * 14, by = h[1] + h[3] * 14, nx = -h[3] * 6, ny = h[2] * 6;
+          el('polygon', { 'class': 'axh', points: [h[0], h[1], bx + nx, by + ny, bx - nx, by - ny].join(' ') }, g);
+        });
+        el('text', { 'class': 'ax', x: OX - R - 14, y: OY + 8, 'text-anchor': 'end' }, g, 'forest');
+        el('text', { 'class': 'ax', x: OX + R + 14, y: OY + 8 }, g, 'desert');
+        el('text', { 'class': 'ax', x: OX, y: OY - R - 18, 'text-anchor': 'middle' }, g, 'living');
+        el('text', { 'class': 'ax', x: OX, y: OY + R + 34, 'text-anchor': 'middle' }, g, 'non-living');
+      }
+
+      // an arrow from the origin to a tip given in math coordinates; head and shaft are redrawn on every call
+      function arrow(parent, cls) {
+        var g = el('g', { 'class': 'vg ' + cls }, parent);
+        var shaft = el('line', { 'class': 'sh' }, g);
+        var head = el('polygon', { 'class': 'hd' }, g);
+        return {
+          g: g,
+          set: function (v, alpha) {
+            var t = P.P(v[0], v[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy);
+            g.style.opacity = len < 4 ? 0 : alpha;
+            if (len < 4) return;
+            var ux = dx / len, uy = dy / len, L = Math.min(22, len * 0.5), bx = t[0] - ux * L, by = t[1] - uy * L;
+            shaft.setAttribute('x1', OX); shaft.setAttribute('y1', OY);
+            shaft.setAttribute('x2', t[0] - ux * (L - 3)); shaft.setAttribute('y2', t[1] - uy * (L - 3));
+            head.setAttribute('points', [t[0], t[1], bx - uy * 10, by + ux * 10, bx + uy * 10, by - ux * 10].join(' '));
+          }
+        };
+      }
+
+      // name + array next to a tip (x, y = position of the name baseline)
+      function tag(parent, cls, step, x, y, anchor, name, v) {
+        var g = el('g', { 'class': 'vg tg ' + cls, 'data-from': step }, parent);
+        el('text', { 'class': 'nm halo', x: x, y: y, 'text-anchor': anchor }, g, name);
+        el('text', { 'class': 'av halo', x: x, y: y + 24, 'text-anchor': anchor }, g, arr(v));
+        return g;
+      }
+
+      buildPlane();
+      var gv = el('g', {}, svg);
+      var items = [
+        { v: SAND, cls: 'cy', name: 'sand' },
+        { v: ROCK, cls: 'cy', name: 'rock' },
+        { v: FERN, cls: 'gr', name: 'fern' }
+      ];
+      items.forEach(function (o) { o.a = arrow(gv, o.cls); });
+      var tip = function (v) { return P.P(v[0], v[1]); };
+      tag(gv, 'cy', 1, tip(SAND)[0] + 18, tip(SAND)[1] - 4, 'start', 'sand', SAND);
+      tag(gv, 'cy', 2, OX - 14, tip(ROCK)[1] - 4, 'end', 'rock', ROCK);
+      tag(gv, 'gr', 3, tip(FERN)[0] - 18, tip(FERN)[1] - 4, 'end', 'fern', FERN);
+
+      // right panel: how to read an array, then each vector as a mix of its two ideas
+      var PX = 716, BX = 926, BW = 100;
+      var panel = el('g', {}, svg);
+      el('text', { 'class': 'tpl', x: PX, y: 100 }, panel, '[ x ,  y ]');
+      el('text', { 'class': 'hint', x: PX, y: 140 }, panel, 'x = desert   (minus: forest)');
+      el('text', { 'class': 'hint', x: PX, y: 170 }, panel, 'y = living   (minus: non-living)');
+      el('line', { 'class': 'rule', x1: PX, y1: 196, x2: 1090, y2: 196 }, panel);
+      items.forEach(function (o, i) {
+        var y0 = 238 + i * 88;
+        var g = el('g', { 'class': 'vg tg ' + o.cls, 'data-from': i + 1 }, panel);
+        el('text', { 'class': 'nm', x: PX, y: y0 }, g, o.name);
+        [[o.v[0], o.v[0] >= 0 ? 'desert' : 'forest'], [o.v[1], o.v[1] >= 0 ? 'living' : 'non-living']].forEach(function (m, k) {
+          var y = y0 + k * 32;
+          el('text', { 'class': 'idea', x: PX + 72, y: y }, g, m[1]);
+          el('rect', { 'class': 'track', x: BX, y: y - 14, width: BW, height: 12, rx: 6 }, g);
+          el('rect', { 'class': 'fill', x: BX, y: y - 14, width: Math.abs(m[0]) * BW, height: 12, rx: 6 }, g);
+          el('text', { 'class': 'wt', x: BX + BW + 14, y: y }, g, Math.abs(m[0]).toFixed(2));
+        });
+      });
+
+      var prog = [0, 0, 0], cancel = null;
+      function draw() {
+        items.forEach(function (o, i) { o.a.set(Deck.lerp([0, 0], o.v, prog[i]), Math.min(1, prog[i] * 10)); });
+      }
+      draw();
+
+      Deck.slide('s09-ideas-axes', {
+        enter: function () { prog = [0, 0, 0]; draw(); },
+        step: function (n, prev, c) {
+          var target = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0, n >= 3 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { prog = target; draw(); return; }
+          var from = prog.slice();
+          cancel = Deck.tween(800, function (t) { prog = Deck.lerp(from, target, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

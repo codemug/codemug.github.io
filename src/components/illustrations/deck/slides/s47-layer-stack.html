@@ -1,0 +1,184 @@
+<section class="slide" id="s47-layer-stack" data-steps="2">
+  <p class="kicker reveal">layers</p>
+  <p class="statement reveal">Stack many layers: 64 in Qwen3.8-27B.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s47-layer-stack-t s47-layer-stack-d">
+      <title id="s47-layer-stack-t">The token vector flows down a stack of 64 layers</title>
+      <desc id="s47-layer-stack-d">On the left a tall stack of layer slabs: layers 1 to 4, a gap marked 57 more, and layers 62 to 64, with a brace labelled 64 layers. A small vector strip flows down beside the stack and lights each slab it passes. On the right, an idea plane with the axes a country and football shows the last token's vector as an arrow that changes direction layer by layer, leaving a dotted trail, and ends up pointing at Spain. At the bottom the final vector is ringed with the caption now carries the context.</desc>
+      <g id="s47-layer-stack-plane"></g>
+      <g id="s47-layer-stack-stack"></g>
+      <g id="s47-layer-stack-fx"></g>
+    </svg>
+  </div>
+
+  <style>
+    #s47-layer-stack svg.diagram{width:100%;height:100%;max-width:none;}
+    #s47-layer-stack text{font-family:var(--font-mono);}
+    #s47-layer-stack .nd{color:var(--color-text-dim);transition:color .4s;}
+    #s47-layer-stack .nd.done{color:var(--color-text-muted);}
+    #s47-layer-stack .nd.act{color:var(--color-accent);}
+    #s47-layer-stack .sb{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:2.5;}
+    #s47-layer-stack .nd.act .sb{fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));}
+    #s47-layer-stack .stx{font-size:24px;fill:currentColor;}
+    #s47-layer-stack .tick{stroke:currentColor;stroke-width:3;stroke-linecap:round;}
+    #s47-layer-stack .stream{stroke:var(--color-border-strong);stroke-width:3;stroke-dasharray:3 9;stroke-linecap:round;}
+    #s47-layer-stack .dot{fill:var(--color-text-dim);}
+    #s47-layer-stack .more{font-size:20px;fill:var(--color-text-dim);}
+    #s47-layer-stack .brace{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s47-layer-stack .big{font-size:60px;font-weight:700;fill:var(--color-accent);text-anchor:end;}
+    #s47-layer-stack .lab{font-size:22px;fill:var(--color-text-muted);text-anchor:end;}
+    #s47-layer-stack .mk{fill:var(--color-accent);}
+    #s47-layer-stack .mkr{fill:none;stroke:var(--color-accent);stroke-width:3;}
+    #s47-layer-stack .cnt{font-size:24px;font-weight:600;fill:var(--color-accent);}
+    #s47-layer-stack .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #s47-layer-stack .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s47-layer-stack .axh{fill:var(--color-text-faint);}
+    #s47-layer-stack .ax{font-size:22px;fill:var(--color-text-soft);}
+    #s47-layer-stack .trail{fill:none;stroke:var(--color-text-dim);stroke-width:3;stroke-dasharray:2 9;stroke-linecap:round;transition:opacity .6s;}
+    #s47-layer-stack .sp-ring{fill:none;stroke:var(--color-text-dim);stroke-width:3;stroke-dasharray:6 6;}
+    #s47-layer-stack .sp-lab{font-size:22px;fill:var(--color-text-dim);}
+    #s47-layer-stack .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s47-layer-stack .fin{fill:none;stroke:var(--color-accent);stroke-width:3.5;}
+    #s47-layer-stack .fcap{font-size:24px;fill:var(--color-accent);text-anchor:end;transition:fill .6s;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 's47-layer-stack';
+      var root = document.getElementById(ID);
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+      var N = 64;                                  // REAL: config.num_hidden_layers of Qwen3.8-27B
+      var FIRST = [1, 2, 3, 4], LAST = [62, 63, 64], HIDDEN = N - FIRST.length - LAST.length;
+
+      // ------------------------------------------------ the stack (left)
+      var gs = $('stack');
+      var SX = 170, SW = 270, SH = 48, PITCH = 60, STREAM = 504;
+      var slabs = [];
+      function slab(layer, y) {
+        var g = el('g', { 'class': 'nd todo' }, gs), cy = y + SH / 2;
+        el('rect', { 'class': 'sb', x: SX, y: y, width: SW, height: SH, rx: 12 }, g);
+        el('text', { 'class': 'stx', x: SX + 22, y: cy, dy: '.35em' }, g, 'layer ' + layer);
+        el('line', { 'class': 'tick', x1: SX + SW + 4, y1: cy, x2: STREAM - 6, y2: cy }, g);
+        slabs.push({ g: g, cy: cy, state: 'todo' });
+      }
+      FIRST.forEach(function (l, i) { slab(l, 22 + i * PITCH); });
+      var Y_GAP0 = 22 + FIRST.length * PITCH - (PITCH - SH), Y_GAP1 = Y_GAP0 + 82;      // the gap: 250 .. 332
+      LAST.forEach(function (l, i) { slab(l, Y_GAP1 + i * PITCH); });
+      [0, 1, 2].forEach(function (k) { el('circle', { 'class': 'dot', cx: SX + SW / 2, cy: Y_GAP0 + 22 + k * 19, r: 5 }, gs); });
+      el('text', { 'class': 'more', x: SX + SW / 2 + 20, y: Y_GAP0 + 48 }, gs, HIDDEN + ' more');
+      el('line', { 'class': 'stream', x1: STREAM, y1: 8, x2: STREAM, y2: 512 }, gs);
+      // brace and the real count
+      var bt = slabs[0].cy - SH / 2, bb = slabs[slabs.length - 1].cy + SH / 2, bm = (bt + bb) / 2, bx = 144;
+      el('path', { 'class': 'brace', d: 'M' + bx + ' ' + bt + 'q-14 0 -14 14V' + (bm - 14) + 'q0 12 -14 14q14 2 14 14V' + (bb - 14) + 'q0 14 14 14' }, gs);
+      el('text', { 'class': 'big', x: 96, y: bm + 12 }, gs, String(N));
+      el('text', { 'class': 'lab', x: 96, y: bm + 42 }, gs, 'layers');
+
+      // the vector that flows down beside the stack: a small strip of cells
+      var Y0 = 20, Y1 = 494;                         // top and bottom of its path
+      var mk = el('g', {}, gs), cells = [];
+      for (var k = 0; k < 11; k++) cells.push(el('rect', { 'class': 'mk', x: STREAM - 30 + k * 5.5, width: 4, rx: 1 }, mk));
+      var ring = el('rect', { 'class': 'mkr', x: STREAM - 38, y: 0, width: 76, height: 40, rx: 9 }, mk);
+      var cnt = el('text', { 'class': 'cnt', x: STREAM + 52, dy: '.35em' }, gs);
+      // layer number the flow has reached; the gap counts through the hidden layers
+      function layerAt(y) {
+        if (y < Y_GAP0) return 1 + (y - slabs[0].cy) / PITCH;
+        var top = 1 + (Y_GAP0 - slabs[0].cy) / PITCH;
+        if (y < Y_GAP1) return top + (y - Y_GAP0) / (Y_GAP1 - Y_GAP0) * (LAST[0] - 0.4 - top);
+        return LAST[0] - 0.4 + (y - Y_GAP1) / PITCH;
+      }
+
+      // ------------------------------------------------ the idea plane (right): toy drift of the last token's vector
+      var gp = $('plane');
+      var OX = 724, OY = 486, U = 360, EXT = 1.03, P = Deck.plane({ ox: OX, oy: OY, u: U });
+      [0.5, 1].forEach(function (k) {
+        el('line', { 'class': 'grd', x1: OX, y1: P.Y(k), x2: P.X(EXT), y2: P.Y(k) }, gp);
+        el('line', { 'class': 'grd', x1: P.X(k), y1: OY, x2: P.X(k), y2: P.Y(EXT) }, gp);
+      });
+      el('line', { 'class': 'axl', x1: OX - 8, y1: OY, x2: P.X(EXT) - 8, y2: OY }, gp);
+      el('line', { 'class': 'axl', x1: OX, y1: OY + 8, x2: OX, y2: P.Y(EXT) + 8 }, gp);
+      el('polygon', { 'class': 'axh', points: [P.X(EXT), OY, P.X(EXT) - 14, OY - 6, P.X(EXT) - 14, OY + 6].join(' ') }, gp);
+      el('polygon', { 'class': 'axh', points: [OX, P.Y(EXT), OX - 6, P.Y(EXT) + 14, OX + 6, P.Y(EXT) + 14].join(' ') }, gp);
+      el('text', { 'class': 'ax', x: P.X(EXT) - 6, y: OY - 14, 'text-anchor': 'end' }, gp, 'a country');
+      el('text', { 'class': 'ax', x: OX + 16, y: P.Y(EXT) + 14 }, gp, 'football');
+
+      // FEED-FORWARD TOY numbers: x0, the surviving magnitudes, the Wd rows; the drift ends at x0 + Delta (Spain)
+      var X0 = [0.10, 0.20], SPAIN = [0.78, 0.95];
+      var DM = [0.93, 0.81, 0.64, 0.58], DR = [[0.60, 0.50], [0.10, 0.15], [0.05, 0.20], [0.00, 0.05]];
+      var RES = [X0[0], X0[1]]; DR.forEach(function (r, i) { RES[0] += DM[i] * r[0]; RES[1] += DM[i] * r[1]; });
+      var W = [[0.22, 0.08], [0.12, 0.24], [0.30, 0.34], [0.38, 0.55], [0.56, 0.58], [0.62, 0.80], RES];   // invented waypoints
+      function cr(a, b, c, d, t) { return 0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t); }
+      function tipAt(s) {
+        var u = clamp(s, 0, 1) * (W.length - 1), i = Math.min(Math.floor(u), W.length - 2), t = u - i;
+        function pt(j) { return W[clamp(j, 0, W.length - 1)]; }
+        return [0, 1].map(function (a) { return cr(pt(i - 1)[a], pt(i)[a], pt(i + 1)[a], pt(i + 2)[a], t); });
+      }
+      var sp = P.P(SPAIN[0], SPAIN[1]);
+      el('circle', { 'class': 'sp-ring', cx: sp[0], cy: sp[1], r: 18 }, gp);
+      el('text', { 'class': 'sp-lab halo', x: sp[0] + 32, y: sp[1] + 8 }, gp, 'Spain');
+
+      var gx = $('fx');
+      var trail = el('polyline', { 'class': 'trail' }, gx);
+      var gh = el('g', {}, gx), gl = el('g', {}, gx);
+      function mkArrow(parent) { return { sh: el('line', { 'stroke-linecap': 'round' }, parent), hd: el('polygon', {}, parent) }; }
+      function setArrow(a, tip, w, color) {
+        var t = P.P(tip[0], tip[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len, L = Math.min(8 + w * 2.4, len * 0.55), bx2 = t[0] - ux * L, by2 = t[1] - uy * L, hw = L * 0.45;
+        a.sh.setAttribute('x1', OX); a.sh.setAttribute('y1', OY); a.sh.setAttribute('x2', t[0] - ux * (L - 3)); a.sh.setAttribute('y2', t[1] - uy * (L - 3));
+        a.sh.setAttribute('stroke', color); a.sh.setAttribute('stroke-width', w);
+        a.hd.setAttribute('points', [t[0], t[1], bx2 - uy * hw, by2 + ux * hw, bx2 + uy * hw, by2 - ux * hw].join(' ')); a.hd.setAttribute('fill', color);
+      }
+      var ghost = mkArrow(gh), live = mkArrow(gl);
+      setArrow(ghost, W[0], 5, '#4a4a52');
+      // step 2: the final vector is ringed and captioned
+      var end = P.P(RES[0], RES[1]), st = P.P(W[0][0], W[0][1]);
+      var g2 = el('g', { 'data-from': 2 }, gx);
+      el('circle', { 'class': 'fin', cx: end[0], cy: end[1], r: 24 }, g2);
+      el('text', { 'class': 'fcap halo', x: 1100, y: 392 }, g2, 'now carries');
+      el('text', { 'class': 'fcap halo', x: 1100, y: 422 }, g2, 'the context');
+
+      // ------------------------------------------------ drawing
+      var S = 0, cancel = null;
+      function draw() {
+        var y = Y0 + (Y1 - Y0) * S;
+        cells.forEach(function (c, i) {
+          var h = 10 + 22 * (0.5 + 0.5 * Math.sin(i * 1.3 + S * 16));
+          c.setAttribute('y', y - h / 2); c.setAttribute('height', h);
+        });
+        ring.setAttribute('y', y - 20); ring.style.opacity = root.getAttribute('data-cur') >= 2 ? 1 : 0;
+        var L = layerAt(y);
+        cnt.setAttribute('y', y); cnt.textContent = 'layer ' + clamp(Math.round(L), 1, N); cnt.style.opacity = S > 0.004 ? 1 : 0;
+        slabs.forEach(function (s) {
+          var st2 = S < 0.004 ? 'todo' : y > s.cy + 24 ? 'done' : y > s.cy - 24 ? 'act' : 'todo';
+          if (st2 !== s.state) { s.g.setAttribute('class', 'nd ' + st2); s.state = st2; }
+        });
+        // the vector in the plane, and its dotted trail
+        setArrow(live, tipAt(S), 6, 'var(--color-accent)');
+        var pts = [], steps = Math.max(1, Math.round(S * 120));
+        for (var i = 0; i <= steps; i++) { var q = P.P.apply(null, tipAt(S * i / steps)); pts.push(q[0].toFixed(1) + ',' + q[1].toFixed(1)); }
+        trail.setAttribute('points', pts.join(' '));
+      }
+      draw();
+
+      Deck.slide('s47-layer-stack', {
+        enter: function () { S = 0; draw(); },
+        step: function (n, prev, c) {
+          var target = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant || target === S) { S = target; draw(); return; }
+          var from = S, d = Math.abs(target - from);
+          cancel = Deck.tween(target > from ? 3600 * d : 1500 * d + 400, function (t) { S = Deck.lerp(from, target, t); draw(); },
+            { ease: function (t) { return 0.45 * t + 0.55 * Deck.ease.inOut(t); } });
+        }
+      });
+    })();
+  </script>
+</section>

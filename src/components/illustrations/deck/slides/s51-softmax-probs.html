@@ -1,0 +1,125 @@
+<section class="slide" id="s51-softmax-probs" data-steps="2" data-tool="softmax">
+  <p class="kicker reveal">predicting the token</p>
+  <p class="statement reveal">Softmax turns the scores into probabilities between 0 and 1.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 470" role="img" aria-labelledby="s51-softmax-probs-t s51-softmax-probs-d">
+      <title id="s51-softmax-probs-t">Softmax turns five scores into probabilities that sum to one</title>
+      <desc id="s51-softmax-probs-d">Five score bars for mat, rug, floor, chair and table (2.00, 1.40, 1.10, 0.60, 0.30) change into the probabilities 0.419, 0.230, 0.170, 0.103 and 0.077, then stack into a single column whose total height is exactly 1.00.</desc>
+
+      <line class="base" x1="48" y1="410" x2="990" y2="410"/>
+
+      <!-- what the numbers are -->
+      <g data-from="0" data-until="1"><text class="mode" x="520" y="38" text-anchor="middle">scores</text></g>
+      <g data-from="1"><text class="mode a" x="520" y="38" text-anchor="middle">probabilities</text></g>
+
+      <!-- step 1: the 0..1 axis the probabilities live on -->
+      <g data-from="1">
+        <line class="axl" x1="70" y1="410" x2="70" y2="70"/>
+        <line class="axl" x1="62" y1="70" x2="78" y2="70"/>
+        <text class="axt" x="52" y="418" text-anchor="end">0</text>
+        <text class="axt" x="52" y="78" text-anchor="end">1</text>
+        <line class="guide" x1="86" y1="70" x2="466" y2="70"/>
+      </g>
+
+      <g id="s51-softmax-probs-bars"></g>
+      <g id="s51-softmax-probs-vals"></g>
+
+      <!-- words under the bars (steps 0-1) -->
+      <g id="s51-softmax-probs-wb" data-from="0" data-until="2"></g>
+      <!-- words beside the stack (step 2) and the total -->
+      <g id="s51-softmax-probs-ws" data-from="2"></g>
+      <g id="s51-softmax-probs-sum" data-from="2">
+        <path id="s51-softmax-probs-brk" class="brk" d=""/>
+        <text class="sumw" x="722" y="228">sum</text>
+        <text class="sumv" x="722" y="268">1.00</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s51-softmax-probs svg.diagram{max-width:min(1203.2px,1100px);}
+    #s51-softmax-probs .base{stroke:var(--color-border-strong);stroke-width:2;}
+    #s51-softmax-probs .mode{font-size:26px;fill:var(--color-text-dim);}
+    #s51-softmax-probs .mode.a{fill:var(--color-accent);}
+    #s51-softmax-probs .axl{stroke:var(--color-text-dim);stroke-width:2.5;stroke-linecap:round;}
+    #s51-softmax-probs .axt{font-size:24px;fill:var(--color-text-muted);}
+    #s51-softmax-probs .guide{stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:6 5;}
+    #s51-softmax-probs .val{font-size:25px;}
+    #s51-softmax-probs .w{font-size:26px;fill:var(--color-text-muted);}
+    #s51-softmax-probs .w.top{fill:var(--color-accent);}
+    #s51-softmax-probs .brk{fill:none;stroke:var(--color-text-dim);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s51-softmax-probs .sumw{font-size:24px;fill:var(--color-text-dim);}
+    #s51-softmax-probs [data-from="2"].on{transition-delay:.7s;}
+    #s51-softmax-probs .sumv{font-size:36px;fill:var(--color-accent);font-weight:600;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's51-softmax-probs';
+      var WORDS = ['mat', 'rug', 'floor', 'chair', 'table'];
+      var S = [2.0, 1.4, 1.1, 0.6, 0.3];                       // SAMPLING TOY, T = 1
+      var E = S.map(function (x) { return Math.exp(x); });
+      var SUM = E.reduce(function (a, b) { return a + b; }, 0);
+      var P = E.map(function (x) { return x / SUM; });          // .419 .230 .170 .103 .077
+      var BASE = 410, U1 = 100, U2 = 340, W = 90, SX = 520, LXX = 428;
+      var CX = [220, 370, 520, 670, 820];
+      var H0 = S.map(function (s) { return s * U1; });
+      var H1 = P.map(function (p) { return p * U2; });
+      var OFF = [0]; for (var q = 1; q < P.length; q++) OFF.push(OFF[q - 1] + H1[q - 1]);
+      var OP = P.map(function (p) { return 0.28 + 0.72 * Math.sqrt(p / P[0]); });
+      var GREY = Deck.rgb('--color-text-faint'), CYAN = Deck.rgb('--color-accent');
+      var LGREY = Deck.rgb('--color-text-muted');                             // label grey (lighter than the bar grey, so the numbers stay readable)
+      function mixOf(a, t) {
+        return 'rgb(' + [0, 1, 2].map(function (k) { return Math.round(a[k] + (CYAN[k] - a[k]) * t); }).join(',') + ')';
+      }
+      function mix(t) { return mixOf(GREY, t); }
+
+      var barsG = document.getElementById(ID + '-bars'), NS = barsG.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e); return e;
+      }
+      var valsG = document.getElementById(ID + '-vals'), wb = document.getElementById(ID + '-wb'), ws = document.getElementById(ID + '-ws');
+      var rs = [], vs = [];
+      WORDS.forEach(function (w, i) {
+        rs.push(mk('rect', { x: CX[i] - W / 2, y: BASE, width: W, height: 0, rx: 5 }, barsG));
+        vs.push(mk('text', { 'class': 'val', 'text-anchor': 'middle', x: CX[i], y: BASE - 12 }, valsG, ''));
+        mk('text', { 'class': 'w' + (i === 0 ? ' top' : ''), 'text-anchor': 'middle', x: CX[i], y: BASE + 38 }, wb, w);
+        mk('text', { 'class': 'w' + (i === 0 ? ' top' : ''), x: SX + W / 2 + 20, y: (BASE - OFF[i] - H1[i] / 2 + 9).toFixed(1) }, ws, w);
+      });
+      var yTop = BASE - U2;
+      document.getElementById(ID + '-brk').setAttribute('d', 'M700 ' + yTop + 'H710V' + BASE + 'H700');
+
+      function sm(v) { v = v < 0 ? 0 : v > 1 ? 1 : v; return v * v * (3 - 2 * v); }
+      var A = 0, B = 0;
+      function draw() {
+        for (var i = 0; i < 5; i++) {
+          var v = Deck.lerp(S[i], P[i], A), h = Deck.lerp(H0[i], H1[i], A);
+          var lift = sm(B / 0.5), slide = sm((B - 0.5) / 0.5);   // first the bars step up into a staircase, then slide together
+          var x = Deck.lerp(CX[i], SX, slide), off = Deck.lerp(0, OFF[i], lift);
+          var col = mix(i === 0 ? 1 : A);                      // the biggest score is cyan from the start
+          rs[i].setAttribute('x', (x - W / 2).toFixed(1));
+          rs[i].setAttribute('y', (BASE - h - off).toFixed(1));
+          rs[i].setAttribute('height', h.toFixed(1));
+          rs[i].setAttribute('fill', col);
+          rs[i].setAttribute('fill-opacity', Deck.lerp(1, OP[i], A).toFixed(3));
+          vs[i].setAttribute('x', Deck.lerp(CX[i], LXX, slide).toFixed(1));
+          vs[i].setAttribute('y', Deck.lerp(BASE - h - off - 12, BASE - OFF[i] - H1[i] / 2 + 9, slide).toFixed(1));
+          vs[i].style.fill = mixOf(LGREY, i === 0 ? 1 : A);
+          vs[i].style.opacity = (1 - 0.85 * Math.sin(Math.PI * slide)).toFixed(2);   // numbers dim while the bars slide, so they never fight the bars
+          vs[i].textContent = v.toFixed(A >= 1 ? 3 : 2);
+        }
+      }
+
+      Deck.slide('s51-softmax-probs', {
+        enter: function () { A = 0; B = 0; draw(); },
+        step: function (n, prev, c) {
+          var tA = n >= 1 ? 1 : 0, tB = n >= 2 ? 1 : 0, fA = A, fB = B;
+          if (c.instant) { A = tA; B = tB; draw(); return; }
+          Deck.tween(900, function (t) { A = Deck.lerp(fA, tA, t); B = Deck.lerp(fB, tB, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

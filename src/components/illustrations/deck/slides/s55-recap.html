@@ -1,0 +1,34 @@
+<section class="slide" id="s55-recap" data-steps="3" data-tool="all">
+  <p class="kicker reveal">recap</p>
+  <p class="statement reveal">Vectors, matrices and dot products: that is the whole trick.</p>
+  <div class="stage reveal">
+    <div class="tiles">
+      <div class="tile" data-row="1"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#tool-vector"/></svg><div class="tx"><span class="nm">vector</span><span class="wh">embeddings</span></div></div>
+      <div class="tile" data-row="1"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#tool-matrix"/></svg><div class="tx"><span class="nm">matrix</span><span class="wh">Wq Wk Wv Wu Wd</span></div></div>
+      <div class="tile" data-row="2"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#tool-dot"/></svg><div class="tx"><span class="nm">dot product</span><span class="wh">attention scores</span><span class="wh">output scores</span></div></div>
+      <div class="tile" data-row="2"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#tool-blend"/></svg><div class="tx"><span class="nm">blend</span><span class="wh">attention values</span><span class="wh">feed-forward</span></div></div>
+      <div class="tile" data-row="3"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#tool-softmax"/></svg><div class="tx"><span class="nm">softmax</span><span class="wh">attention weights</span><span class="wh">token probabilities</span></div></div>
+      <div class="tile" data-row="3"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#tool-relu"/></svg><div class="tx"><span class="nm">ReLU</span><span class="wh">silence the weak</span><span class="wh">feed-forward</span></div></div>
+    </div>
+  </div>
+
+  <style>
+    #s55-recap .tiles{display:grid;grid-auto-rows:1fr;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(10px,12.96px,18px) clamp(14px,25.6px,24px);width:min(100%,1060px);}
+    #s55-recap .tile{display:flex;align-items:center;gap:clamp(18px,33.28px,32px);padding:clamp(12px,15.84px,22px) clamp(20px,33.28px,34px);
+      border:1px solid var(--color-border);background:var(--color-surface-deep);border-radius:16px;color:var(--color-text-faint);
+      transition:color .5s ease,border-color .5s ease,background .5s ease;}
+    #s55-recap .tile svg{flex:none;width:clamp(56px,64.8px,88px);height:clamp(56px,64.8px,88px);}
+    #s55-recap .tx{display:flex;flex-direction:column;gap:2px;min-width:0;}
+    #s55-recap .nm{font-family:var(--font-mono);font-size:clamp(20px,29.44px,30px);color:var(--color-text-dim);transition:color .5s ease;}
+    #s55-recap .wh{font-family:var(--font-mono);font-size:clamp(17px,21.76px,22px);line-height:1.4;color:var(--color-text-faint);transition:color .5s ease;white-space:nowrap;}
+    
+    #s55-recap[data-cur="2"] .tile[data-row="1"], #s55-recap[data-cur="3"] .tile[data-row="1"], #s55-recap[data-cur="3"] .tile[data-row="2"]{color:var(--color-text-muted);}
+    #s55-recap[data-cur="2"] .tile[data-row="1"] .nm, #s55-recap[data-cur="3"] .tile[data-row="1"] .nm, #s55-recap[data-cur="3"] .tile[data-row="2"] .nm{color:var(--color-text);}
+    #s55-recap[data-cur="2"] .tile[data-row="1"] .wh, #s55-recap[data-cur="3"] .tile[data-row="1"] .wh, #s55-recap[data-cur="3"] .tile[data-row="2"] .wh{color:var(--color-text-muted);}
+    
+    #s55-recap[data-cur="1"] .tile[data-row="1"], #s55-recap[data-cur="2"] .tile[data-row="2"], #s55-recap[data-cur="3"] .tile[data-row="3"]{color:var(--color-accent);border-color:color-mix(in oklab,var(--color-accent) 45%,transparent);background:color-mix(in oklab,var(--color-accent) 6%,var(--color-surface-deep));}
+    #s55-recap[data-cur="1"] .tile[data-row="1"] .nm, #s55-recap[data-cur="2"] .tile[data-row="2"] .nm, #s55-recap[data-cur="3"] .tile[data-row="3"] .nm{color:var(--color-text);}
+    #s55-recap[data-cur="1"] .tile[data-row="1"] .wh, #s55-recap[data-cur="2"] .tile[data-row="2"] .wh, #s55-recap[data-cur="3"] .tile[data-row="3"] .wh{color:var(--color-text-soft);}
+    @media(prefers-reduced-motion:reduce){#s55-recap .tile, #s55-recap .nm, #s55-recap .wh{transition:none!important;}}
+  </style>
+</section>

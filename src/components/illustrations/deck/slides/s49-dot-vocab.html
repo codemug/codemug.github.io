@@ -1,0 +1,159 @@
+<section class="slide" id="s49-dot-vocab" data-steps="3" data-tool="dot">
+  <p class="kicker reveal">predicting the token</p>
+  <p class="statement reveal">Dot product with every token in the vocabulary.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 490" role="img" aria-labelledby="s49-dot-vocab-t s49-dot-vocab-d">
+      <title id="s49-dot-vocab-t">The last vector is dotted with every token of the vocabulary</title>
+      <desc id="s49-dot-vocab-d">On the left the last token's vector as a column of numbers. On the right a long scrolling list of real vocabulary tokens, each with its id. A scan line runs down the list and a score appears for every token. The five candidate words mat, rug, floor, chair and table have the biggest scores; they then rise to the top of the list, sorted.</desc>
+      <defs>
+        <marker id="s49-dot-vocab-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,1 L14,8 L0,15 Z" fill="var(--color-text-dim)"/></marker>
+      </defs>
+
+      <!-- the last vector -->
+      <g id="s49-dot-vocab-vec"></g>
+      <text class="cap" x="105" y="428" text-anchor="middle">last vector</text>
+      <text class="cap dim" x="105" y="458" text-anchor="middle">5,120 numbers</text>
+
+      <!-- vector -> list -->
+      <line class="shaft" x1="172" y1="250" x2="318" y2="250" marker-end="url(#s49-dot-vocab-ah)"/>
+      <circle class="dotc" cx="245" cy="250" r="10"/>
+
+      <!-- list headers -->
+      <text class="hd" x="462" y="44" text-anchor="end">id</text>
+      <text class="hd" x="490" y="44">token</text>
+      <text class="hd" x="1006" y="44" text-anchor="end">score</text>
+
+      <!-- the vocabulary rows, built by the script -->
+      <g id="s49-dot-vocab-rows"></g>
+      <line id="s49-dot-vocab-scan" class="scan" x1="330" y1="60" x2="1020" y2="60" opacity="0"/>
+
+      <!-- step 2: what is left of the list -->
+      <g id="s49-dot-vocab-more">
+        <text class="more" x="490" y="292">+ 248,315 more, all lower</text>
+      </g>
+      <!-- step 3: the name for the whole list -->
+      <g data-from="3">
+        <text class="more a" x="490" y="292">248,320 scores in all:</text>
+        <text class="more a" x="490" y="326">the logits</text>
+      </g>
+
+      <text class="cap" x="675" y="482" text-anchor="middle">lm_head.weight  [248,320 x 5,120]</text>
+    </svg>
+  </div>
+
+  <style>
+    #s49-dot-vocab svg.diagram{max-width:min(1203.2px,1100px);}
+    #s49-dot-vocab .cell{fill:var(--color-accent);}
+    #s49-dot-vocab .cap{font-size:24px;fill:var(--color-text-soft);}
+    #s49-dot-vocab .cap.dim{fill:var(--color-text-dim);}
+    #s49-dot-vocab .hd{font-size:20px;fill:var(--color-text-faint);}
+    #s49-dot-vocab .shaft{stroke:var(--color-text-dim);stroke-width:3.5;stroke-linecap:round;fill:none;}
+    #s49-dot-vocab .dotc{fill:var(--color-accent);}
+    #s49-dot-vocab .scan{stroke:var(--color-accent);stroke-width:2.5;}
+    #s49-dot-vocab .band{fill:color-mix(in oklab,var(--color-accent) 11%,var(--color-bg));stroke:color-mix(in oklab,var(--color-accent) 45%,transparent);stroke-width:1.5;}
+    #s49-dot-vocab .rid{font-size:20px;fill:var(--color-text-faint);text-anchor:end;}
+    #s49-dot-vocab .rtok{font-size:24px;fill:var(--color-text-soft);}
+    #s49-dot-vocab .rtok .sp{fill:var(--color-text-faint);}
+    #s49-dot-vocab .rsc{font-size:24px;fill:var(--color-text-dim);text-anchor:end;}
+    #s49-dot-vocab .rgap{font-size:24px;fill:var(--color-text-faint);}
+    #s49-dot-vocab .row.cand .rtok{fill:var(--color-text);}
+    #s49-dot-vocab .row.cand .rsc{fill:var(--color-accent);font-weight:600;}
+    #s49-dot-vocab .more{font-size:24px;fill:var(--color-text-dim);}
+    #s49-dot-vocab .more.a{fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 's49-dot-vocab';
+      // REAL vocabulary entries (deck/data/qwen38.json, tokenization.windows) and the five candidate words (real ids of " table", " mat", " floor", " chair", " rug")
+      var START = [[0, '!'], [1, '"'], [2, '#'], [3, '$'], [4, '%'], [5, '&'], [6, "'"], [7, '(']];
+      var MID = [[100000, '怎样'], [100001, '衣服'], [100002, '农民'], [100003, '广场'], [100004, '金额'], [100005, '人在']];
+      var LATE = [[240000, ' contemporaine'], [240001, ' informatiques'], [240002, 'גר'], [240003, ' ／'], [240004, 'さわ'], [240005, 'Beg'], [240006, 'يغة'], [240007, 'ทัด']];
+      var CAND = { ' table': [1898, 0.3], ' mat': [5344, 2.0], ' floor': [6220, 1.1], ' chair': [10183, 0.6], ' rug': [27706, 1.4] };
+      var TOP = 60, RH = 38, VIEW = 10, H = RH * VIEW;
+
+      var list = [];
+      function push(id, text, score) { list.push({ id: id, text: text, cand: score !== undefined, score: score }); }
+      function gap() { list.push({ gap: true }); }
+      function seeded(i) { var s = Math.sin(i * 91.7 + 13.3) * 43758.5453; return s - Math.floor(s); }
+      function plain(a) { a.forEach(function (e) { push(e[0], e[1]); }); }
+      plain(START); gap();
+      push(CAND[' table'][0], ' table', CAND[' table'][1]); gap();
+      push(CAND[' mat'][0], ' mat', CAND[' mat'][1]);
+      push(CAND[' floor'][0], ' floor', CAND[' floor'][1]); gap();
+      push(CAND[' chair'][0], ' chair', CAND[' chair'][1]); gap();
+      push(CAND[' rug'][0], ' rug', CAND[' rug'][1]); gap();
+      plain(MID); gap(); plain(LATE);
+      list.forEach(function (r, i) { if (!r.gap && !r.cand) r.score = -1.0 + 1.2 * seeded(i); });
+      // rank of the candidates by score (mat first)
+      list.filter(function (r) { return r.cand; }).sort(function (a, b) { return b.score - a.score; }).forEach(function (r, k) { r.rank = k; });
+
+      var N = list.length, SMAX = (N - VIEW) * RH, L = SMAX + H;
+      var iTable = 0; list.forEach(function (r, i) { if (r.cand && r.text === ' table') iTable = i; });
+      var SC = (iTable - 1) * RH; // scroll position where the five candidates are in view
+      function fmt(v) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(1); }
+
+      var rowsG = document.getElementById(ID + '-rows'), vecG = document.getElementById(ID + '-vec'), NS = rowsG.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e); return e;
+      }
+      // the last vector (same illustrative values as the previous slide)
+      function val(i, k) { var s = Math.sin((i + 1) * 12.9898 + (k + 1) * 78.233) * 43758.5453; return s - Math.floor(s); }
+      for (var k = 0; k < 8; k++) {
+        mk('rect', { 'class': 'cell', x: 70, y: 100 + k * 38, width: 70, height: 32, rx: 5, 'fill-opacity': (0.22 + 0.78 * val(4, k)).toFixed(3) }, vecG);
+      }
+
+      list.forEach(function (r) {
+        var g = mk('g', { 'class': 'row' + (r.cand ? ' cand' : '') }, rowsG);
+        r.g = g;
+        if (r.gap) { mk('text', { 'class': 'rgap', x: 490, y: 8 }, g, '...'); return; }
+        if (r.cand) mk('rect', { 'class': 'band', x: 330, y: -RH / 2 + 2, width: 690, height: RH - 4, rx: 7 }, g);
+        mk('text', { 'class': 'rid', x: 462, y: 7 }, g, String(r.id));
+        var t = mk('text', { 'class': 'rtok', x: 490, y: 8 }, g);
+        var sp = r.text.charAt(0) === ' ';
+        if (sp) mk('tspan', { 'class': 'sp' }, t, '·');
+        t.appendChild(document.createTextNode(sp ? r.text.slice(1) : r.text));
+        r.sc = mk('text', { 'class': 'rsc', x: 1006, y: 8 }, g, fmt(r.score));
+        if (r.cand) r.band = g.firstChild;
+      });
+
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function sm(v) { v = clamp(v); return v * v * (3 - 2 * v); }
+      var T = 0, R = 0, scan = null, more = null, S3 = false;
+      function draw() {
+        var scroll = Deck.lerp(Deck.lerp(0, SMAX, T), SC, sm(R / 0.5));
+        var fade = sm((R - 0.2) / 0.4), mv = sm((R - 0.5) / 0.5), q = T * L;
+        list.forEach(function (r, i) {
+          var yc = TOP + i * RH + RH / 2 - scroll;
+          if (r.rank !== undefined) yc = Deck.lerp(yc, TOP + r.rank * RH + RH / 2, mv);
+          var edge = Math.min(clamp((yc - TOP) / (RH / 2)), clamp((TOP + H - yc) / (RH / 2)));
+          var vis = edge * (r.cand ? 1 : 1 - fade);
+          if (vis < 0.02) { r.g.style.display = 'none'; return; }
+          r.g.style.display = '';
+          r.g.setAttribute('transform', 'translate(0 ' + yc.toFixed(1) + ')');
+          r.g.style.opacity = vis.toFixed(3);
+          if (r.gap) return;
+          var a = clamp((q - i * RH) / RH);
+          r.sc.style.opacity = a.toFixed(3);
+          if (r.band) r.band.style.opacity = a.toFixed(3);
+        });
+        more.style.opacity = S3 ? 0 : clamp((R - 0.85) / 0.15).toFixed(3);
+        scan.setAttribute('y1', TOP + T * H); scan.setAttribute('y2', TOP + T * H);
+        scan.setAttribute('opacity', (T > 0.001 && T < 0.999 && R === 0 ? 0.8 : 0).toFixed(2));
+      }
+
+      Deck.slide('s49-dot-vocab', {
+        enter: function (c) { scan = c.qs('#' + ID + '-scan'); more = c.qs('#' + ID + '-more'); T = 0; R = 0; S3 = false; draw(); },
+        step: function (n, prev, c) {
+          var tT = n >= 1 ? 1 : 0, tR = n >= 2 ? 1 : 0, fT = T, fR = R;
+          S3 = n >= 3;
+          if (c.instant) { T = tT; R = tR; draw(); return; }
+          if (tT === fT && tR === fR) { draw(); return; }
+          Deck.tween(tR !== fR && tT === fT ? 1900 : 2800, function (t) { T = Deck.lerp(fT, tT, t); R = Deck.lerp(fR, tR, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

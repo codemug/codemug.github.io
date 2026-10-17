@@ -1,0 +1,164 @@
+<section class="slide" id="s45-ffn-recap" data-steps="1">
+  <p class="kicker reveal">feed-forward</p>
+  <p class="statement reveal">Attention reads the sentence. Feed-forward recalls what training stored.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s45-ffn-recap-t s45-ffn-recap-d">
+      <title id="s45-ffn-recap-t">Attention versus feed-forward</title>
+      <desc id="s45-ffn-recap-d">Two panels. The left panel, attention, shows the tokens of the question with arcs of different thickness carrying influence from the other tokens into the question mark; its caption reads context from this sentence. The right panel, feed-forward, shows one token vector passing a bank of detectors and being moved toward Spain in the idea plane; its caption reads knowledge from training.</desc>
+      <g id="s45-ffn-recap-left" class="pn act"></g>
+      <g id="s45-ffn-recap-right" class="pn todo"></g>
+      <g id="s45-ffn-recap-capl" class="pn act"><text class="cap" x="284" y="474">context from this sentence</text></g>
+      <g id="s45-ffn-recap-capr" class="pn todo" data-from="1"><text class="cap" x="836" y="474">knowledge from training</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #s45-ffn-recap .statement{max-width:1120px;}
+    #s45-ffn-recap svg.diagram{width:100%;height:100%;max-width:none;}
+    #s45-ffn-recap text{font-family:var(--font-mono);}
+    #s45-ffn-recap .pn{color:#5a5a63;transition:color .6s;}
+    #s45-ffn-recap .pn.done{color:var(--color-text-muted);}
+    #s45-ffn-recap .pn.act{color:var(--color-accent);}
+    #s45-ffn-recap .frame{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:2.5;}
+    #s45-ffn-recap .ttl{font-size:28px;font-weight:600;fill:currentColor;}
+    #s45-ffn-recap .cap{font-size:26px;fill:currentColor;text-anchor:middle;}
+    #s45-ffn-recap .tk{fill:var(--color-bg);stroke:var(--color-border-strong);stroke-width:2;}
+    #s45-ffn-recap .ct{font-size:22px;fill:var(--color-text-soft);text-anchor:middle;}
+    #s45-ffn-recap .ct.q{fill:currentColor;}
+    #s45-ffn-recap .tk.q{stroke:currentColor;}
+    #s45-ffn-recap .arc{fill:none;stroke:currentColor;stroke-linecap:round;}
+    #s45-ffn-recap .hd{fill:currentColor;}
+    #s45-ffn-recap .cell{fill:currentColor;}
+    #s45-ffn-recap .trk{fill:var(--color-hairline);}
+    #s45-ffn-recap .fill{fill:currentColor;}
+    #s45-ffn-recap .lnk{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s45-ffn-recap .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s45-ffn-recap .axh{fill:var(--color-text-faint);}
+    #s45-ffn-recap .al{font-size:20px;fill:var(--color-text-muted);}
+    #s45-ffn-recap .sh{fill:none;stroke-linecap:round;}
+    #s45-ffn-recap .ring{fill:none;stroke:currentColor;stroke-width:2.5;stroke-dasharray:5 5;}
+    #s45-ffn-recap .sl{font-size:20px;fill:currentColor;}
+    #s45-ffn-recap .sm{font-size:20px;fill:currentColor;text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 's45-ffn-recap';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seeded(i) { var s = Math.sin(i * 12.9898 + 2.3) * 43758.5453; return s - Math.floor(s); }
+
+      var PW = 520, PH = 388, PY = 36, LX = 24, RX = 576;
+      var MUTED = Deck.rgb('--color-text-muted'), ACC = Deck.rgb('--color-accent');
+      function mix(c) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(MUTED[i] + (ACC[i] - MUTED[i]) * c); }).join(',') + ')'; }
+
+      // ================= left: attention (real tokens of the question, shortened; influence is illustrative)
+      var gl = $('left');
+      el('rect', { 'class': 'frame', x: LX, y: PY, width: PW, height: PH, rx: 18 }, gl);
+      el('text', { 'class': 'ttl', x: LX + 28, y: PY + 46 }, gl, 'attention');
+      var WORDS = [['won', 0.25], ['2026', 0.55], ['FIFA', 0.35], ['World', 0.6], ['Cup', 0.9], ['?', 0]];
+      var FS = 22, ADV = FS * 0.6, CH = 42, CYC = PY + PH - 46, GAP = 8;
+      var ws = WORDS.map(function (w) { return Math.max(34, w[0].length * ADV + 24); });
+      var tot = ws.reduce(function (a, b) { return a + b; }, 0) + GAP * (ws.length - 1), cx = LX + (PW - tot) / 2, xs = [];
+      WORDS.forEach(function (w, i) {
+        var last = i === WORDS.length - 1;
+        el('rect', { 'class': 'tk' + (last ? ' q' : ''), x: cx, y: CYC - CH / 2, width: ws[i], height: CH, rx: 9 }, gl);
+        el('text', { 'class': 'ct' + (last ? ' q' : ''), x: cx + ws[i] / 2, y: CYC, dy: '.35em' }, gl, w[0]);
+        xs.push(cx + ws[i] / 2); cx += ws[i] + GAP;
+      });
+      var top = CYC - CH / 2 - 8, qx = xs[xs.length - 1];
+      WORDS.slice(0, -1).forEach(function (w, i) {
+        var ex = qx - 12 + i * 5, dx = Math.abs(ex - xs[i]), h = Math.min(1.3 * dx, 380), cxp = (xs[i] + ex) / 2;
+        var sw = 2.5 + w[1] * 6, ey = top - 1;
+        el('path', { 'class': 'arc', d: 'M' + xs[i] + ' ' + top + 'Q' + cxp + ' ' + (top - h) + ' ' + ex + ' ' + ey, 'stroke-width': sw, opacity: 0.45 + 0.55 * w[1] }, gl);
+      });
+
+      // ================= right: feed-forward (toy numbers from the FEED-FORWARD TOY)
+      var gr = $('right');
+      el('rect', { 'class': 'frame', x: RX, y: PY, width: PW, height: PH, rx: 18 }, gr);
+      el('text', { 'class': 'ttl', x: RX + 28, y: PY + 46 }, gr, 'feed-forward');
+      var X0 = [0.10, 0.20], SPAIN = [0.78, 0.95];
+      var MAG = [0.93, 0.81, 0.64, 0.58, 0.12, 0.03];
+      var DX = [0.60, 0.50], DM = [0.93, 0.81, 0.64, 0.58], DR = [[0.60, 0.50], [0.10, 0.15], [0.05, 0.20], [0.00, 0.05]];
+      var D = [0, 0]; DR.forEach(function (r, i) { D[0] += DM[i] * r[0]; D[1] += DM[i] * r[1]; });
+      var RES = [X0[0] + D[0], X0[1] + D[1]];                     // x0 + Delta, lands on Spain
+      // the vector x
+      var sy = 250;
+      for (var k = 0; k < 11; k++) {
+        var hh = 16 + 40 * seeded(k);
+        el('rect', { 'class': 'cell', x: RX + 28 + k * 5.5, y: sy - hh / 2, width: 4, height: hh, rx: 1 }, gr);
+      }
+      el('text', { 'class': 'sm', x: RX + 28 + 30, y: sy + 56 }, gr, 'x');
+      el('path', { 'class': 'lnk', d: 'M' + (RX + 96) + ' ' + sy + 'H' + (RX + 120) + 'm-8 -8l8 8l-8 8' }, gr);
+      // the detector bank: six bars, grown from zero
+      var BX = RX + 132, BWD = 110, bars = [];
+      MAG.forEach(function (m, i) {
+        var y = 168 + i * 30;
+        el('rect', { 'class': 'trk', x: BX, y: y, width: BWD, height: 14, rx: 7 }, gr);
+        bars.push(el('rect', { 'class': 'fill', x: BX, y: y, width: 0, height: 14, rx: 7 }, gr));
+      });
+      el('text', { 'class': 'sm', x: BX + BWD / 2, y: 168 + 6 * 30 + 24 }, gr, 'detectors');
+      el('path', { 'class': 'lnk', d: 'M' + (BX + BWD + 12) + ' ' + sy + 'H' + (BX + BWD + 36) + 'm-8 -8l8 8l-8 8' }, gr);
+      // the idea plane (same axes as s40 and s44), smaller
+      var OX = RX + 312, OY = PY + PH - 36, U = 175, P = Deck.plane({ ox: OX, oy: OY, u: U });
+      el('line', { 'class': 'axl', x1: OX - 6, y1: OY, x2: P.X(1.05), y2: OY }, gr);
+      el('line', { 'class': 'axl', x1: OX, y1: OY + 6, x2: OX, y2: P.Y(1.05) }, gr);
+      el('polygon', { 'class': 'axh', points: [P.X(1.05) + 8, OY, P.X(1.05) - 6, OY - 6, P.X(1.05) - 6, OY + 6].join(' ') }, gr);
+      el('polygon', { 'class': 'axh', points: [OX, P.Y(1.05) - 8, OX - 6, P.Y(1.05) + 6, OX + 6, P.Y(1.05) + 6].join(' ') }, gr);
+      el('text', { 'class': 'al', x: P.X(1.05) + 4, y: OY - 12, 'text-anchor': 'end' }, gr, 'a country');
+      el('text', { 'class': 'al', x: OX + 12, y: P.Y(1.05) + 14 }, gr, 'football');
+      var sp = P.P(SPAIN[0], SPAIN[1]);
+      el('circle', { 'class': 'ring', cx: sp[0], cy: sp[1], r: 13 }, gr);
+      el('text', { 'class': 'sl', x: sp[0] - 8, y: sp[1] + 38 }, gr, 'Spain');
+      function mkArrow(parent, color) {
+        var g = el('g', {}, parent);
+        return { sh: el('line', { 'class': 'sh' }, g), hd: el('polygon', {}, g), g: g };
+      }
+      function setArrow(a, tip, w, color) {
+        var t = P.P(tip[0], tip[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len, L = Math.min(8 + w * 2.4, len * 0.55), bx = t[0] - ux * L, by = t[1] - uy * L, hw = L * 0.45;
+        a.sh.setAttribute('x1', OX); a.sh.setAttribute('y1', OY); a.sh.setAttribute('x2', t[0] - ux * (L - 3)); a.sh.setAttribute('y2', t[1] - uy * (L - 3));
+        a.sh.setAttribute('stroke', color); a.sh.setAttribute('stroke-width', w);
+        a.hd.setAttribute('points', [t[0], t[1], bx - uy * hw, by + ux * hw, bx + uy * hw, by - ux * hw].join(' ')); a.hd.setAttribute('fill', color);
+      }
+      var ghost = mkArrow(gr), live = mkArrow(gr);
+      setArrow(ghost, X0, 4, '#4a4a52'); ghost.sh.style.stroke = ghost.hd.style.fill = 'var(--color-text-faint)';
+
+      var T = 0, C = 0, cancel = null;   // T: the feed-forward work done (0..1), C: colour of the right panel (0 grey .. 1 cyan)
+      function draw() {
+        bars.forEach(function (b, i) { b.setAttribute('width', MAG[i] * BWD * Math.max(0, Math.min(1, T * 1.4 - i * 0.05))); });
+        var tip = [Deck.lerp(X0[0], RES[0], T), Deck.lerp(X0[1], RES[1], T)];
+        setArrow(live, tip, 5, T > 0.02 ? mix(1) : '#9a9aa3');
+        live.g.style.opacity = 1;
+      }
+      draw();
+
+      function state(id, st) {
+        var g = $(id);
+        g.classList.remove('act'); g.classList.remove('done'); g.classList.remove('todo'); g.classList.add(st);
+      }
+      function paint(n) {
+        state('left', n === 1 ? 'done' : 'act'); state('capl', n === 1 ? 'done' : 'act');
+        state('right', n >= 1 ? 'act' : 'todo'); state('capr', n >= 1 ? 'act' : 'todo');
+      }
+
+      Deck.slide('s45-ffn-recap', {
+        enter: function () { T = 0; draw(); paint(0); },
+        step: function (n, prev, c) {
+          paint(n);
+          var target = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { T = target; draw(); return; }
+          var from = T;
+          cancel = Deck.tween(1000, function (t) { T = Deck.lerp(from, target, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,167 @@
+<section class="slide" id="s16-vocab-file" data-steps="3">
+  <p class="kicker reveal">tokens</p>
+  <p class="statement reveal">The vocabulary: every token the model can read or write.</p>
+  <div class="stage reveal">
+    <div class="term" id="s16-vocab-file-term">
+      <div class="term-bar"><i></i><i></i><i></i></div>
+      <div class="term-body" id="s16-vocab-file-body"></div>
+    </div>
+  </div>
+
+  <style>
+    #s16-vocab-file .stage{margin-top:12px;}
+    #s16-vocab-file .term{width:min(100%,1000px);}
+    #s16-vocab-file .term-body{font-size:clamp(19px,19.2px,22px);line-height:1.4;padding:14px 26px 18px;}
+    #s16-vocab-file .ln{display:block;height:1.4em;opacity:0;}
+    #s16-vocab-file .ln.on{opacity:1;}
+    #s16-vocab-file .cur{display:inline-block;width:.55em;height:1.05em;margin-left:2px;vertical-align:text-bottom;background:var(--color-text-muted);}
+    #s16-vocab-file .hero{font-size:3.3em;line-height:1.2;color:var(--color-accent);font-weight:600;opacity:0;}
+    #s16-vocab-file .grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(8,1.4em);grid-auto-flow:column;column-gap:1.5em;margin-top:.7em;}
+    #s16-vocab-file .ent{opacity:0;white-space:pre;}
+    #s16-vocab-file .ent.on{opacity:1;}
+    #s16-vocab-file .ent .id{display:inline-block;width:6ch;text-align:right;margin-right:1.2ch;color:var(--color-text-dim);}
+    #s16-vocab-file .ent .tk{color:var(--color-text);unicode-bidi:isolate;}
+    #s16-vocab-file .sp{display:inline-block;width:1ch;height:1em;position:relative;vertical-align:text-bottom;}
+    #s16-vocab-file .sp::after{content:"";position:absolute;left:calc(50% - .12em);top:.3em;width:.24em;height:.24em;border-radius:50%;background:var(--color-text-muted);}
+  </style>
+  <script>
+    (function () {
+      // REAL: deck/data/qwen38.json tokenization (Qwen3.8-27B): bpe_vocab_size, tokenizer_vocab_size, windows.{start,mid,late} as [id, text]
+      var BPE = 248044, TOTAL = 248077;
+      var WINS = [
+        [[0,"!"],[1,"\""],[2,"#"],[3,"$"],[4,"%"],[5,"&"],[6,"'"],[7,"("],[8,")"],[9,"*"],[10,"+"],[11,","],[12,"-"],[13,"."],[14,"/"],[15,"0"],[16,"1"],[17,"2"],[18,"3"],[19,"4"],[20,"5"],[21,"6"],[22,"7"],[23,"8"]],
+        [[100000,"\u600e\u6837"],[100001,"\u8863\u670d"],[100002,"\u519c\u6c11"],[100003,"\u5e7f\u573a"],[100004,"\u91d1\u989d"],[100005,"\u4eba\u5728"],[100006,"\u6218\u6597"],[100007,"\u795d\u798f"],[100008,"\u5b9a\u671f"],[100009,"\u52a0\u76df"],[100010,"\u4e61\u6751"],[100011,"\u591a\u5e74"],[100012,"\u79f0\u4e3a"],[100013,"\u4e3b\u5e2d"],[100014,"\u5929\u7136"],[100015,"\u5206\u5e03"],[100016,"\u5f02\u5e38"],[100017,"\u8986\u76d6"],[100018,"\u533b\u836f"],[100019,"\u8bf4\u7684"],[100020,"\u4f11\u606f"],[100021,"\u8def\u4e0a"],[100022,"\u66f4\u597d\u7684"],[100023,"\u5468\u8fb9"]],
+        [[240000," contemporaine"],[240001," informatiques"],[240002,"\u05d2\u05e8"],[240003," \uff0f"],[240004,"\u3055\u308f"],[240005,"Beg"],[240006,"\u064a\u063a\u0629"],[240007,"\u0e17\u0e31\u0e14"],[240008,"\u4e8b\u3067\u3059"],[240009,"\uc18c\uc5d0\uc11c"],[240010,"carb"],[240011,"ptos"],[240012,"\u0e40\u0e2b\u0e23\u0e2d"],[240013," SAV"],[240014," \u0631\u0628\u0639"],[240015,"visto"],[240016," guan"],[240017," k\u00f8be"],[240018," raad"],[240019," \u0439\u043e\u043c\u0443"],[240020," \uc640\uc774\ud30c\uc774"],[240021,"egeven"],[240022," Frais"],[240023," funda"]]
+      ];
+      var CMD1 = "jq '.model.vocab | length' tokenizer.json";
+      var BASE = 'python3 peek.py tokenizer.json ', COUNT = ' 24';
+      var body = null, c1 = null, cur1 = null, line2 = null, c2 = null, cur2 = null, hero = null, note = null, ents = [];
+      var T = -1, stop = null;
+
+      function span(parent, cls, text) {
+        var s = document.createElement('span');
+        if (cls) s.className = cls;
+        if (text !== undefined) s.textContent = text;
+        parent.appendChild(s);
+        return s;
+      }
+      function div(parent, cls) {
+        var d = document.createElement('div');
+        d.className = cls;
+        parent.appendChild(d);
+        return d;
+      }
+      function pad(n, w) { var s = String(n); while (s.length < w) s = ' ' + s; return s; }
+
+      function build() {
+        while (body.firstChild) body.removeChild(body.firstChild);
+        var l1 = div(body, 'ln on');
+        span(l1, 'p', '$ '); c1 = span(l1, 'c', ''); cur1 = span(l1, 'cur');
+        hero = div(body, 'hero');
+        hero.textContent = String(BPE);
+        note = div(body, 'ln note');
+        span(note, 'dim', '# + ' + (TOTAL - BPE) + ' special tokens = ' + TOTAL.toLocaleString('en-US'));
+        line2 = div(body, 'ln');
+        line2.style.marginTop = '.7em';
+        span(line2, 'p', '$ '); c2 = span(line2, 'c', ''); cur2 = span(line2, 'cur');
+        var grid = div(body, 'grid');
+        ents = [];
+        for (var i = 0; i < 24; i++) {
+          var e = div(grid, 'ent');
+          ents.push({ el: e, id: span(e, 'id'), tk: span(e, 'tk') });
+        }
+      }
+      function cmd2Text(w) { return BASE + WINS[w][0][0] + COUNT; }
+      function setCmd1(f) { c1.textContent = CMD1.slice(0, Math.round(f * CMD1.length)); }
+      // the count and the comment fade in with a timer-driven opacity (f = 0..1)
+      function setNote(f) { hero.style.opacity = f; note.style.opacity = f; }
+      function cursor(which) { cur1.style.visibility = which === 1 ? 'visible' : 'hidden'; cur2.style.visibility = which === 2 ? 'visible' : 'hidden'; }
+      function fill(w) {
+        ents.forEach(function (e, i) {
+          var t = WINS[w][i][1], lead = t.charAt(0) === ' ';
+          e.id.textContent = pad(WINS[w][i][0], 6);
+          while (e.tk.firstChild) e.tk.removeChild(e.tk.firstChild);
+          if (lead) span(e.tk, 'sp');
+          e.tk.appendChild(document.createTextNode(lead ? t.slice(1) : t));
+        });
+      }
+      function rows(f) {
+        var n = Math.round(f * ents.length);
+        ents.forEach(function (e, i) { e.el.classList.toggle('on', i < n); });
+      }
+      // the settled picture for window w (-1 = only the first command)
+      function settle(w) {
+        setCmd1(1); setNote(1);
+        line2.classList.toggle('on', w >= 0);
+        if (w >= 0) { c2.textContent = cmd2Text(w); fill(w); rows(1); } else { c2.textContent = ''; rows(0); }
+        cursor(w >= 0 ? 2 : 1);
+      }
+
+      // linear tween on timers (also advances under the headless screenshot clock)
+      function run(ms, fn, done) {
+        if (Deck.reduced || ms <= 0) { fn(1); if (done) done(); return null; }
+        var t0 = performance.now(), id = setInterval(function () {
+          var k = Math.min(1, (performance.now() - t0) / ms);
+          fn(k);
+          if (k >= 1) { clearInterval(id); if (done) done(); }
+        }, 16);
+        return function () { clearInterval(id); };
+      }
+      function seq(list) {
+        var dead = false, cancel = null, i = 0;
+        (function next() {
+          if (dead || i >= list.length) return;
+          var it = list[i++];
+          cancel = run(it[0], it[1], next);
+        })();
+        return function () { dead = true; if (cancel) cancel(); };
+      }
+      function cancel() { if (stop) { stop(); stop = null; } }
+
+      // animated move from the settled window `a` to window `b`
+      function plan(a, b) {
+        var list = [];
+        if (a === -1 && b >= 0) {
+          var full = cmd2Text(b);
+          list.push([1, function () { line2.classList.add('on'); cursor(2); fill(b); rows(0); }]);
+          list.push([800, function (k) { c2.textContent = full.slice(0, Math.round(k * full.length)); }]);
+          list.push([700, rows]);
+        } else if (a >= 0 && b === -1) {
+          var old = cmd2Text(a);
+          list.push([350, function (k) { rows(1 - k); }]);
+          list.push([450, function (k) { c2.textContent = old.slice(0, Math.round((1 - k) * old.length)); }]);
+          list.push([1, function () { line2.classList.remove('on'); cursor(1); }]);
+        } else if (a >= 0 && b >= 0) {
+          var from = String(WINS[a][0][0]), to = String(WINS[b][0][0]);
+          list.push([250, function (k) { rows(1 - k); }]);
+          list.push([300, function (k) { c2.textContent = BASE + from.slice(0, Math.round((1 - k) * from.length)) + COUNT; }]);
+          list.push([1, function () { fill(b); }]);
+          list.push([350, function (k) { c2.textContent = BASE + to.slice(0, Math.round(k * to.length)) + COUNT; }]);
+          list.push([700, rows]);
+        }
+        return seq(list);
+      }
+
+      Deck.slide('s16-vocab-file', {
+        enter: function (c) {
+          body = c.qs('#s16-vocab-file-body');
+          build(); T = -1; settle(-1); setCmd1(0); setNote(0);
+        },
+        leave: cancel,
+        step: function (n, prev, c) {
+          var w = n - 1;
+          cancel();
+          if (prev === -1 && n === 0) {                       // arriving: type the first command, then show the count
+            settle(-1); setCmd1(0); setNote(0); T = -1;
+            stop = seq([[700, setCmd1], [500, setNote]]);
+            return;
+          }
+          if (c.instant) { settle(w); T = w; return; }
+          settle(T);                                          // snap an interrupted move to its settled picture first
+          var from = T; T = w;
+          stop = plan(from, w);
+        }
+      });
+    })();
+  </script>
+</section>

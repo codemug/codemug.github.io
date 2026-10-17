@@ -1,0 +1,184 @@
+<section class="slide" id="s30-ball-3d" data-steps="4" data-tool="vector matrix">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Each ball is the same vector, transformed in a different direction.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s30-ball-3d-t s30-ball-3d-d">
+      <title id="s30-ball-3d-t">One vector, three transformations in 3D</title>
+      <desc id="s30-ball-3d-d">A 3D scene with x, y and z axes, tick marks and a faint floor grid. A grey arrow, ball, leaves the origin. One after another, the arrow is sheared into three cyan arrows pointing in three different directions: golf ball, oddball and tarball, each with a dashed trail from the tip of ball. Finally all three are shown together and the camera turns gently so that the three directions can be told apart.</desc>
+    </svg>
+  </div>
+
+  <style>
+    #s30-ball-3d .statement{max-width:1120px;}
+    #s30-ball-3d svg.diagram{width:100%;height:100%;max-width:none;}
+    #s30-ball-3d text{font-family:var(--font-mono);}
+    #s30-ball-3d .floor{stroke:var(--color-hairline);stroke-width:1.2;fill:none;}
+    #s30-ball-3d .ax{stroke:var(--color-text-faint);stroke-width:2;stroke-linecap:round;fill:none;}
+    #s30-ball-3d .tk{stroke:var(--color-text-dim);stroke-width:1.6;stroke-linecap:round;fill:none;}
+    #s30-ball-3d .axl{font-size:22px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s30-ball-3d .sh{stroke:currentColor;stroke-width:5;stroke-linecap:round;fill:none;}
+    #s30-ball-3d .hd{fill:currentColor;stroke:none;}
+    #s30-ball-3d .trail{stroke:currentColor;stroke-width:2.5;stroke-dasharray:6 6;stroke-linecap:round;fill:none;}
+    #s30-ball-3d .drop{stroke:currentColor;stroke-width:1.6;stroke-dasharray:2 5;stroke-linecap:round;fill:none;}
+    #s30-ball-3d .shadow{fill:currentColor;stroke:none;}
+    #s30-ball-3d .nm{font-size:26px;font-weight:600;fill:currentColor;}
+    #s30-ball-3d .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s30-ball-3d .origin{fill:var(--color-text-muted);}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s30-ball-3d');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      var AZ0 = -0.5, AZ1 = -1.0, EL = 0.35, FLOOR = -0.6;
+      var cam = Deck.cam3({ ox: 560, oy: 254, u: 215, az: AZ0, el: EL });
+      var P = function (x, y, z) { return cam.P(x, y, z); };
+      // the base vector and the three transformed vectors (3D toy choices)
+      var B = [1, 0, 0];
+      var V = [[1.0, 0.5, -0.3], [0.8, -0.4, 0.4], [0.2, 0.6, 0.7]];
+      var NAMES = ['ball', 'golf ball', 'oddball', 'tarball'];
+      // screen-space label offsets from the tip: [dx, dy, anchor]
+      var OFF = [[18, 8, 'start'], [18, -6, 'start'], [14, 26, 'start'], [-16, -14, 'end']];
+      var CY = Deck.rgb('--color-accent'), GHOST = Deck.rgb('--color-text-dim'), BASE = Deck.rgb('--color-text-muted');
+
+      function mix(a, b, t) { t = Math.max(0, Math.min(1, t)); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }).join(',') + ')'; }
+      function clamp(x) { return Math.max(0, Math.min(1, x)); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seg(line, a, b) { line.setAttribute('x1', a[0].toFixed(1)); line.setAttribute('y1', a[1].toFixed(1)); line.setAttribute('x2', b[0].toFixed(1)); line.setAttribute('y2', b[1].toFixed(1)); }
+
+      // ---- layers: floor (always behind), depth-sorted objects, labels (always on top) ----
+      var gFloor = el('g', {}, svg), gDepth = el('g', {}, svg), gLab = el('g', {}, svg);
+
+      // floor grid
+      var FX = [], FZ = [], floorLines = [];
+      for (var a = -1.2; a <= 1.2001; a += 0.4) FX.push(+a.toFixed(2));
+      for (var b = -0.8; b <= 0.8001; b += 0.4) FZ.push(+b.toFixed(2));
+      FX.forEach(function () { floorLines.push(el('line', { 'class': 'floor' }, gFloor)); });
+      FZ.forEach(function () { floorLines.push(el('line', { 'class': 'floor' }, gFloor)); });
+      // drop lines and floor shadows for the four arrows
+      var drops = [0, 1, 2, 3].map(function () {
+        var g = el('g', {}, gFloor);
+        return { g: g, line: el('line', { 'class': 'drop' }, g), dot: el('ellipse', { 'class': 'shadow', rx: 7, ry: 3.2 }, g) };
+      });
+
+      // axes: each half is one depth-sorted object (a line plus its tick marks)
+      var AXES = [
+        { a: [-1.1, 0, 0], b: [0, 0, 0], ticks: [-1, -0.5], dir: [0, 0.05, 0] },
+        { a: [0, 0, 0], b: [1.35, 0, 0], ticks: [0.5, 1], dir: [0, 0.05, 0], axis: 0 },
+        { a: [0, FLOOR, 0], b: [0, 0, 0], ticks: [-0.5], dir: [0.05, 0, 0] },
+        { a: [0, 0, 0], b: [0, 0.95, 0], ticks: [0.5], dir: [0.05, 0, 0], axis: 1 },
+        { a: [0, 0, -0.85], b: [0, 0, 0], ticks: [-0.5], dir: [0.05, 0, 0] },
+        { a: [0, 0, 0], b: [0, 0, 0.9], ticks: [0.5], dir: [0.05, 0, 0], axis: 2 }
+      ];
+      AXES.forEach(function (ax) {
+        ax.g = el('g', {}, gDepth);
+        ax.line = el('line', { 'class': 'ax' }, ax.g);
+        ax.tk = el('path', { 'class': 'tk' }, ax.g);
+        ax.unit = ax.a[0] + ax.a[1] + ax.a[2] < 0 || (ax.b[0] + ax.b[1] + ax.b[2]) === 0 && false ? 0 : 0;
+      });
+      // which axis does a half run along? (0 = x, 1 = y, 2 = z); used to place the ticks
+      var AXDIR = [0, 0, 1, 1, 2, 2];
+      var AXLAB = [{ t: 'x', p: [1.55, 0, 0] }, { t: 'y', p: [0, 1.12, 0] }, { t: 'z', p: [0, 0, 1.08] }].map(function (o) {
+        return { p: o.p, e: el('text', { 'class': 'axl', 'dy': '.35em' }, gLab, o.t) };
+      });
+      var origin = el('circle', { 'class': 'origin', r: 4.5 }, gDepth);
+
+      // arrows: ball (grey) and the three transformed vectors
+      var arrows = NAMES.map(function (n, i) {
+        var g = el('g', {}, gDepth);
+        var trail = i > 0 ? el('line', { 'class': 'trail' }, gDepth) : null;
+        var shaft = el('line', { 'class': 'sh' }, g);
+        var head = el('polygon', { 'class': 'hd' }, g);
+        var lab = el('text', { 'class': 'nm halo', 'text-anchor': OFF[i][2] }, gLab, n);
+        return { g: g, trail: trail, shaft: shaft, head: head, lab: lab };
+      });
+
+      // ---- state: A[i] = how far arrow i has moved from ball to its target; C[i] = 1 cyan, 0 grey ghost; AZ = camera ----
+      var st = { A: [0, 0, 0], C: [0, 0, 0], AZ: AZ0 }, cancel = null;
+      function TARGET(n) {
+        return {
+          A: [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0, n >= 3 ? 1 : 0],
+          C: n === 4 ? [1, 1, 1] : [n === 1 ? 1 : 0, n === 2 ? 1 : 0, n === 3 ? 1 : 0],
+          AZ: n >= 4 ? AZ1 : AZ0
+        };
+      }
+
+      function draw() {
+        cam.set(st.AZ, EL);
+        var o = P(0, 0, 0), items = [];
+        // floor grid
+        var li = 0;
+        FX.forEach(function (x) { seg(floorLines[li++], P(x, FLOOR, FZ[0]), P(x, FLOOR, FZ[FZ.length - 1])); });
+        FZ.forEach(function (z) { seg(floorLines[li++], P(FX[0], FLOOR, z), P(FX[FX.length - 1], FLOOR, z)); });
+        // axes and ticks
+        AXES.forEach(function (ax, k) {
+          var pa = P(ax.a[0], ax.a[1], ax.a[2]), pb = P(ax.b[0], ax.b[1], ax.b[2]);
+          seg(ax.line, pa, pb);
+          var d = '';
+          ax.ticks.forEach(function (t) {
+            var c = AXDIR[k] === 0 ? [t, 0, 0] : AXDIR[k] === 1 ? [0, t, 0] : [0, 0, t];
+            var q1 = P(c[0] - ax.dir[0], c[1] - ax.dir[1], c[2] - ax.dir[2]), q2 = P(c[0] + ax.dir[0], c[1] + ax.dir[1], c[2] + ax.dir[2]);
+            d += 'M' + q1[0].toFixed(1) + ' ' + q1[1].toFixed(1) + 'L' + q2[0].toFixed(1) + ' ' + q2[1].toFixed(1);
+          });
+          ax.tk.setAttribute('d', d);
+          items.push({ g: ax.g, z: (pa[2] + pb[2]) / 2 });
+        });
+        AXLAB.forEach(function (l) { var p = P(l.p[0], l.p[1], l.p[2]); l.e.setAttribute('x', p[0].toFixed(1)); l.e.setAttribute('y', p[1].toFixed(1)); });
+        origin.setAttribute('cx', o[0].toFixed(1)); origin.setAttribute('cy', o[1].toFixed(1));
+        items.push({ g: origin, z: 0.001 });
+
+        // arrows
+        var pb = P(B[0], B[1], B[2]);
+        arrows.forEach(function (ar, i) {
+          var tip3, alpha, col;
+          if (i === 0) { tip3 = B; alpha = 1; col = mix(BASE, GHOST, clamp(st.A[0] + st.A[1] + st.A[2])); }
+          else {
+            var k = i - 1, v = V[k], t = st.A[k];
+            tip3 = [B[0] + (v[0] - B[0]) * t, B[1] + (v[1] - B[1]) * t, B[2] + (v[2] - B[2]) * t];
+            alpha = clamp(t * 12); col = mix(GHOST, CY, st.C[k]);
+          }
+          var tp = P(tip3[0], tip3[1], tip3[2]), dx = tp[0] - o[0], dy = tp[1] - o[1], len = Math.hypot(dx, dy) || 1;
+          var ux = dx / len, uy = dy / len, L = Math.min(24, len * 0.5), bx = tp[0] - ux * L, by = tp[1] - uy * L;
+          ar.g.style.color = col; ar.g.style.opacity = alpha;
+          seg(ar.shaft, o, [tp[0] - ux * (L - 3), tp[1] - uy * (L - 3)]);
+          ar.head.setAttribute('points', [tp[0], tp[1], bx - uy * 10, by + ux * 10, bx + uy * 10, by - ux * 10].map(function (n) { return n.toFixed(1); }).join(' '));
+          ar.lab.setAttribute('x', (tp[0] + OFF[i][0]).toFixed(1)); ar.lab.setAttribute('y', (tp[1] + OFF[i][1]).toFixed(1));
+          ar.lab.style.fill = col; ar.lab.style.opacity = i === 0 ? 1 : clamp((st.A[i - 1] - 0.55) / 0.45);
+          if (ar.trail) { ar.trail.style.color = col; ar.trail.style.opacity = alpha * 0.8; seg(ar.trail, pb, tp); }
+          // drop line and shadow on the floor
+          var f = P(tip3[0], FLOOR, tip3[2]), dr = drops[i];
+          dr.g.style.color = col; dr.g.style.opacity = alpha * 0.55;
+          seg(dr.line, tp, f);
+          dr.dot.setAttribute('cx', f[0].toFixed(1)); dr.dot.setAttribute('cy', f[1].toFixed(1));
+          items.push({ g: ar.g, z: tp[2] });
+          if (ar.trail) items.push({ g: ar.trail, z: (tp[2] + pb[2]) / 2 - 0.0001 });
+        });
+
+        // painter's algorithm: far objects first, near objects last
+        items.sort(function (p, q) { return p.z - q.z; }).forEach(function (it) { gDepth.appendChild(it.g); });
+      }
+      draw();
+
+      Deck.slide('s30-ball-3d', {
+        enter: function () { st = TARGET(0); draw(); },
+        step: function (n, prev, c) {
+          var to = TARGET(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { st = to; draw(); return; }
+          var from = st, turn = to.AZ !== from.AZ;
+          cancel = Deck.tween(turn ? 2400 : 900, function (t) {
+            st = { A: Deck.lerp(from.A, to.A, t), C: Deck.lerp(from.C, to.C, t), AZ: Deck.lerp(from.AZ, to.AZ, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

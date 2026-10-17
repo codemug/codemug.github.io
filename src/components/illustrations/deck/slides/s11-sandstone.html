@@ -1,0 +1,205 @@
+<section class="slide" id="s11-sandstone" data-steps="3" data-tool="matrix">
+  <p class="kicker reveal">refresher 3</p>
+  <p class="statement reveal">Sandstone sits between sand and rock. A transformation gets us there.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s11-sandstone-t s11-sandstone-d">
+      <title id="s11-sandstone-t">A transformation moves sand to sandstone</title>
+      <desc id="s11-sandstone-d">The same plane of ideas, with a dashed target marked sandstone between sand and rock. Multiplying the sand arrow by the matrix M1 shears it toward rock until it lands on sandstone. Resetting and multiplying the rock arrow by a second matrix M2 shears it toward sand and lands on the same point. Both routes end as dashed grey trails on sandstone.</desc>
+    </svg>
+  </div>
+
+  <style>
+    #s11-sandstone .statement{max-width:1120px;}
+    #s11-sandstone svg.diagram{width:100%;height:100%;max-width:none;}
+    #s11-sandstone text{font-family:var(--font-mono);}
+    #s11-sandstone .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #s11-sandstone .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s11-sandstone .axh{fill:var(--color-text-faint);}
+    #s11-sandstone .ax{font-size:24px;fill:var(--color-text-soft);}
+    #s11-sandstone .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s11-sandstone .vg{transition:color .6s,opacity .5s ease;}
+    #s11-sandstone .tg{transition:color .6s,opacity .5s ease .4s;}
+    #s11-sandstone .cy{color:var(--color-accent);}
+    #s11-sandstone .gr{color:var(--color-text-dim);}
+    #s11-sandstone .tg.gr{color:var(--color-text-muted);}
+    #s11-sandstone .sh{stroke:currentColor;stroke-width:4.5;stroke-linecap:round;fill:none;}
+    #s11-sandstone .hd{fill:currentColor;stroke:none;}
+    #s11-sandstone .nm{font-size:24px;font-weight:600;fill:currentColor;}
+    #s11-sandstone .av{font-size:20px;fill:currentColor;}
+    #s11-sandstone .trail{stroke:var(--color-text-dim);stroke-width:3;stroke-dasharray:7 6;stroke-linecap:round;fill:none;}
+    #s11-sandstone .ring{fill:none;stroke-width:2.5;}
+    #s11-sandstone .ring.q{stroke:var(--color-text-dim);stroke-dasharray:5 4;}
+    #s11-sandstone .ring.ok{stroke:var(--color-accent);}
+    #s11-sandstone .qm{font-size:24px;font-weight:600;fill:var(--color-text-dim);}
+    #s11-sandstone .brk{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s11-sandstone .mname{font-size:28px;fill:var(--color-text-soft);}
+    #s11-sandstone .ent{font-size:28px;fill:currentColor;text-anchor:middle;}
+    #s11-sandstone .ent.q{fill:var(--color-text-dim);}
+    #s11-sandstone .cap{font-size:22px;fill:currentColor;}
+    #s11-sandstone .cap.q{fill:var(--color-text-dim);}
+    #s11-sandstone .word{font-size:30px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s11-sandstone');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // one plane for s09, s10 and s11: same origin, same scale, same positions
+      var OX = 330, OY = 262, U = 190, EXT = 1.1, R = EXT * U;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+      var SAND = [0.80, -0.60], ROCK = [0.15, -0.95], SANDSTONE = [0.45, -0.85];
+      var M1 = [0.90, -0.31, 0.45, 1.00], M2 = [1.00, 0.00, -0.32, 0.89];
+      var S1 = Deck.vmul(SAND, M1), S2 = Deck.vmul(ROCK, M2);   // both land on sandstone
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(x) { var s = Math.abs(x).toFixed(2); return (x < 0 && s !== '0.00' ? '−' : '') + s; }
+      function arr(v) { return '[' + f2(v[0]) + ', ' + f2(v[1]) + ']'; }
+
+      function buildPlane() {
+        var g = el('g', {}, svg);
+        [-1, -0.5, 0.5, 1].forEach(function (k) {
+          el('line', { 'class': 'grd', x1: P.X(k), y1: P.Y(-EXT), x2: P.X(k), y2: P.Y(EXT) }, g);
+          el('line', { 'class': 'grd', x1: P.X(-EXT), y1: P.Y(k), x2: P.X(EXT), y2: P.Y(k) }, g);
+        });
+        el('line', { 'class': 'axl', x1: OX - R + 10, y1: OY, x2: OX + R - 10, y2: OY }, g);
+        el('line', { 'class': 'axl', x1: OX, y1: OY - R + 10, x2: OX, y2: OY + R - 10 }, g);
+        [[OX + R, OY, -1, 0], [OX - R, OY, 1, 0], [OX, OY - R, 0, 1], [OX, OY + R, 0, -1]].forEach(function (h) {
+          var bx = h[0] + h[2] * 14, by = h[1] + h[3] * 14, nx = -h[3] * 6, ny = h[2] * 6;
+          el('polygon', { 'class': 'axh', points: [h[0], h[1], bx + nx, by + ny, bx - nx, by - ny].join(' ') }, g);
+        });
+        el('text', { 'class': 'ax', x: OX - R - 14, y: OY + 8, 'text-anchor': 'end' }, g, 'forest');
+        el('text', { 'class': 'ax', x: OX + R + 14, y: OY + 8 }, g, 'desert');
+        el('text', { 'class': 'ax', x: OX, y: OY - R - 18, 'text-anchor': 'middle' }, g, 'living');
+        el('text', { 'class': 'ax', x: OX, y: OY + R + 34, 'text-anchor': 'middle' }, g, 'non-living');
+      }
+
+      // an arrow from the origin to a tip given in math coordinates; head and shaft are redrawn on every call
+      function arrow(parent, cls) {
+        var g = el('g', { 'class': 'vg ' + cls }, parent);
+        var shaft = el('line', { 'class': 'sh' }, g);
+        var head = el('polygon', { 'class': 'hd' }, g);
+        return {
+          g: g,
+          set: function (v, alpha) {
+            var t = P.P(v[0], v[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy);
+            g.style.opacity = len < 4 ? 0 : alpha;
+            if (len < 4) return;
+            var ux = dx / len, uy = dy / len, L = Math.min(22, len * 0.5), bx = t[0] - ux * L, by = t[1] - uy * L;
+            shaft.setAttribute('x1', OX); shaft.setAttribute('y1', OY);
+            shaft.setAttribute('x2', t[0] - ux * (L - 3)); shaft.setAttribute('y2', t[1] - uy * (L - 3));
+            head.setAttribute('points', [t[0], t[1], bx - uy * 10, by + ux * 10, bx + uy * 10, by - ux * 10].join(' '));
+          }
+        };
+      }
+
+      // name + array next to a tip (x, y = position of the name baseline)
+      function tag(parent, cls, x, y, anchor, name, v) {
+        var g = el('g', { 'class': 'vg tg ' + cls }, parent);
+        el('text', { 'class': 'nm halo', x: x, y: y, 'text-anchor': anchor }, g, name);
+        el('text', { 'class': 'av halo', x: x, y: y + 24, 'text-anchor': anchor }, g, arr(v));
+        return g;
+      }
+
+      buildPlane();
+      var tip = function (v) { return P.P(v[0], v[1]); };
+      var gp = el('g', {}, svg);
+
+      // the sandstone target: a dashed ghost with a "?" at first, a solid cyan ring once something lands on it
+      var ss = tip(SANDSTONE);
+      el('circle', { 'class': 'ring q vg', cx: ss[0], cy: ss[1], r: 19, 'data-from': 0, 'data-until': 1 }, gp);
+      el('circle', { 'class': 'ring ok vg', cx: ss[0], cy: ss[1], r: 19, 'data-from': 1 }, gp);
+      el('text', { 'class': 'qm halo vg', x: ss[0] + 26, y: ss[1] + 8, 'data-from': 0, 'data-until': 1 }, gp, '?');
+      el('text', { 'class': 'nm halo vg cy', x: ss[0] + 26, y: ss[1] + 8, 'data-from': 1 }, gp, 'sandstone');
+
+      // ghost trails of the two routes (dashed), drawn under the arrows
+      var trS = el('line', { 'class': 'trail' }, gp), trR = el('line', { 'class': 'trail' }, gp);
+      var sandA = arrow(gp, 'cy'), rockA = arrow(gp, 'cy');     // the originals: cyan at first, grey ghosts afterwards
+      var mvS = arrow(gp, 'cy'), mvR = arrow(gp, 'cy');         // the arrows that get transformed
+      sandA.set(SAND, 1); rockA.set(ROCK, 1);
+      var sandT = tag(gp, 'cy', tip(SAND)[0] + 18, tip(SAND)[1] - 4, 'start', 'sand', SAND);
+      var rockT = tag(gp, 'cy', OX - 14, tip(ROCK)[1] - 4, 'end', 'rock', ROCK);
+
+      // right panel: M1 and M2 as real matrices, with the arithmetic of the product
+      var PX = 716, C1 = 874, C2 = 992;
+      var panel = el('g', {}, svg);
+      // block 1 (M1): "?" scaffold at step 0, the numbers from step 1, grey from step 2
+      var T1 = 50, T2 = 258;
+      el('text', { 'class': 'mname', x: PX, y: T1 + 56 }, panel, 'M1 =');
+      el('path', { 'class': 'brk', d: 'M820 ' + T1 + 'H812V' + (T1 + 94) + 'H820M1046 ' + T1 + 'H1054V' + (T1 + 94) + 'H1046' }, panel);
+      var q0 = el('g', { 'class': 'vg q', 'data-from': 0, 'data-until': 1 }, panel);
+      [[C1, T1 + 32], [C2, T1 + 32], [C1, T1 + 78], [C2, T1 + 78]].forEach(function (e) {
+        el('text', { 'class': 'ent q', x: e[0], y: e[1] }, q0, '?');
+      });
+      el('text', { 'class': 'cap q', x: PX, y: T1 + 138 }, q0, 'sand × M1 = sandstone');
+      var blk1 = el('g', { 'class': 'vg tg cy', 'data-from': 1 }, panel);
+      [[C1, T1 + 32, M1[0]], [C2, T1 + 32, M1[1]], [C1, T1 + 78, M1[2]], [C2, T1 + 78, M1[3]]].forEach(function (e) {
+        el('text', { 'class': 'ent', x: e[0], y: e[1] }, blk1, f2(e[2]));
+      });
+      el('text', { 'class': 'cap', x: PX, y: T1 + 138 }, blk1, arr(SAND) + ' × M1');
+      el('text', { 'class': 'cap', x: PX, y: T1 + 170 }, blk1, '= ' + arr(S1));
+
+      // block 2 (M2) from step 2, and the word from step 3
+      el('text', { 'class': 'mname vg', x: PX, y: T2 + 56, 'data-from': 2 }, panel, 'M2 =');
+      el('path', { 'class': 'brk vg', 'data-from': 2, d: 'M820 ' + T2 + 'H812V' + (T2 + 94) + 'H820M1046 ' + T2 + 'H1054V' + (T2 + 94) + 'H1046' }, panel);
+      var blk2 = el('g', { 'class': 'vg tg cy', 'data-from': 2 }, panel);
+      [[C1, T2 + 32, M2[0]], [C2, T2 + 32, M2[1]], [C1, T2 + 78, M2[2]], [C2, T2 + 78, M2[3]]].forEach(function (e) {
+        el('text', { 'class': 'ent', x: e[0], y: e[1] }, blk2, f2(e[2]));
+      });
+      el('text', { 'class': 'cap', x: PX, y: T2 + 138 }, blk2, arr(ROCK) + ' × M2');
+      el('text', { 'class': 'cap', x: PX, y: T2 + 170 }, blk2, '= ' + arr(S2));
+      el('text', { 'class': 'word vg tg', x: 933, y: 488, 'data-from': 3 }, panel, 'transformation');
+
+      // state: [sand arrow progress, sand trail, rock arrow progress, rock trail], 0 = at the original tip, 1 = on sandstone
+      var TARGET = [[0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 1], [0, 1, 1, 1]];
+      var st = TARGET[0], cancel = null;
+      function trail(line, a, b, k) {
+        var p = tip(a), q = tip(Deck.lerp(a, b, k));
+        line.setAttribute('x1', p[0]); line.setAttribute('y1', p[1]);
+        line.setAttribute('x2', q[0]); line.setAttribute('y2', q[1]);
+        line.style.opacity = k > 0.02 ? 1 : 0;
+      }
+      function draw() {
+        mvS.set(Deck.lerp(SAND, S1, st[0]), Math.min(1, st[0] * 10));
+        mvR.set(Deck.lerp(ROCK, S2, st[2]), Math.min(1, st[2] * 10));
+        trail(trS, SAND, S1, st[1]);
+        trail(trR, ROCK, S2, st[3]);
+      }
+      draw();
+
+      // retracting parts move first, advancing parts second, so only one thing moves at a time
+      function run(target) {
+        var from = st, retract = false, advance = false;
+        target.forEach(function (x, i) { if (x < from[i]) retract = true; if (x > from[i]) advance = true; });
+        var both = retract && advance;
+        var win = target.map(function (x, i) { return x < from[i] ? [0, both ? 0.47 : 1] : [both ? 0.53 : 0, 1]; });
+        cancel = Deck.tween(both ? 1500 : 850, function (t) {
+          st = target.map(function (x, i) {
+            var k = Math.min(1, Math.max(0, (t - win[i][0]) / (win[i][1] - win[i][0])));
+            return Deck.lerp(from[i], x, Deck.ease.inOut(k));
+          });
+          draw();
+        }, { ease: Deck.ease.linear });
+      }
+
+      Deck.slide('s11-sandstone', {
+        enter: function () { st = TARGET[0]; draw(); },
+        step: function (n, prev, c) {
+          var target = TARGET[Math.min(n, TARGET.length - 1)];
+          [sandA, rockA].forEach(function (a) { a.g.classList.toggle('cy', n === 0); a.g.classList.toggle('gr', n > 0); });
+          [sandT, rockT].forEach(function (g) { g.classList.toggle('cy', n === 0); g.classList.toggle('gr', n > 0); });
+          blk1.classList.toggle('cy', n <= 1); blk1.classList.toggle('gr', n > 1);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { st = target; draw(); return; }
+          run(target);
+        }
+      });
+    })();
+  </script>
+</section>

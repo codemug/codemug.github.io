@@ -1,0 +1,175 @@
+<section class="slide" id="s40-world-cup" data-steps="1">
+  <p class="kicker reveal">feed-forward</p>
+  <p class="statement reveal">Some answers are not in the sentence.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s40-world-cup-t s40-world-cup-d">
+      <title id="s40-world-cup-t">The answer is not in the question</title>
+      <desc id="s40-world-cup-d">The question Who won the 2026 FIFA World Cup? split into its twelve real tokens, the last token, the question mark, highlighted. Below, a plane with the horizontal axis a country and the vertical axis football: the vector of the question mark is a short arrow that mostly points at football and barely at any country. A faint marker for Spain sits far away at the upper right with a question mark. In the second step a dashed gap joins the arrow to Spain, with the words: nothing in the sentence says Spain.</desc>
+      <g id="s40-world-cup-chips"></g>
+      <g id="s40-world-cup-plane"></g>
+      <g id="s40-world-cup-card"></g>
+      <g id="s40-world-cup-gap">
+        <line id="s40-world-cup-gl" class="gap" x1="0" y1="0" x2="0" y2="0"/>
+      </g>
+      <g id="s40-world-cup-vec"></g>
+      <g class="sp-mark" id="s40-world-cup-spain"></g>
+      <g data-from="1">
+        <text class="big" x="660" y="396">nothing in the sentence</text>
+        <text class="big" x="660" y="434">says Spain</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s40-world-cup svg.diagram{width:100%;height:100%;max-width:none;}
+    #s40-world-cup text{font-family:var(--font-mono);}
+    #s40-world-cup .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #s40-world-cup .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s40-world-cup .axh{fill:var(--color-text-faint);}
+    #s40-world-cup .ax{font-size:22px;fill:var(--color-text-soft);}
+    #s40-world-cup .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s40-world-cup .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s40-world-cup .chip text{font-size:24px;fill:var(--color-text);text-anchor:middle;}
+    #s40-world-cup .chip .dot{fill:var(--color-text-muted);}
+    #s40-world-cup .chip.last rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #s40-world-cup .chip.last text{fill:var(--color-accent);}
+    #s40-world-cup .link{stroke:var(--color-accent);stroke-width:2.5;fill:none;stroke-linecap:round;}
+    #s40-world-cup .card{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2;transition:stroke .6s;}
+    #s40-world-cup .cyc{color:var(--color-accent);transition:color .6s;}
+    #s40-world-cup:not([data-cur="0"]) .cyc{color:var(--color-text-muted);}
+    #s40-world-cup .sh{stroke:currentColor;stroke-width:5;stroke-linecap:round;fill:none;}
+    #s40-world-cup .hd{fill:currentColor;stroke:none;}
+    #s40-world-cup .nm{font-size:26px;font-weight:600;fill:currentColor;}
+    #s40-world-cup .t1{font-size:22px;fill:var(--color-text-muted);}
+    #s40-world-cup .t2{font-size:30px;fill:currentColor;}
+    #s40-world-cup .idea{font-size:20px;fill:var(--color-text-soft);}
+    #s40-world-cup .track{fill:var(--color-hairline);}
+    #s40-world-cup .fill{fill:currentColor;}
+    #s40-world-cup .wt{font-size:20px;fill:currentColor;}
+    #s40-world-cup .big{font-size:28px;fill:var(--color-accent);}
+    #s40-world-cup .gap{stroke:var(--color-accent);stroke-width:4;stroke-dasharray:14 10;stroke-linecap:round;}
+    #s40-world-cup .sp-ring{fill:none;stroke:var(--color-text-dim);stroke-width:3;stroke-dasharray:6 6;transition:stroke .6s;}
+    #s40-world-cup .sp-lab{font-size:26px;fill:var(--color-text-dim);transition:fill .6s;}
+    #s40-world-cup:not([data-cur="0"]) .sp-ring{stroke:var(--color-text-muted);}
+    #s40-world-cup:not([data-cur="0"]) .sp-lab{fill:var(--color-text-muted);}
+    #s40-world-cup:not([data-cur="0"]) .card{stroke:var(--color-border-strong);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 's40-world-cup';
+      var root = document.getElementById(ID);
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(x) { return x.toFixed(2); }
+      function arr(v) { return '[' + f2(v[0]) + ', ' + f2(v[1]) + ']'; }
+
+      // FEED-FORWARD TOY: the idea plane shared by s40, s44, s45 (x = a country, y = football)
+      var X0 = [0.10, 0.20], SPAIN = [0.78, 0.95];
+      var OX = 120, OY = 476, U = 366, EXT = 1.05;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+
+      // REAL: deck/data/qwen38.json tokenization.examples[2] (Qwen3.8-27B tokenizer), [id, text]
+      var TOKS = [[14749,'Who'],[2677,' won'],[279,' the'],[220,' '],[17,'2'],[15,'0'],[17,'2'],[21,'6'],[42196,' FIFA'],[4196,' World'],[10544,' Cup'],[30,'?']];
+
+      // ---- the question as chips (top row)
+      var FS = 24, ADV = FS * 0.6, PAD = 13, H = 46, GAP = 8, CY = 30;
+      var gc = $('chips');
+      var ms = TOKS.map(function (t) {
+        var lead = t[1].charAt(0) === ' ', body = lead ? t[1].slice(1) : t[1];
+        var inner = (lead ? ADV : 0) + body.length * ADV;
+        return { lead: lead, body: body, inner: inner, w: Math.max(FS * 1.5, inner + 2 * PAD) };
+      });
+      var total = ms.reduce(function (a, m) { return a + m.w; }, 0) + GAP * (ms.length - 1);
+      var cx = 560 - total / 2, lastX = 0;
+      ms.forEach(function (m, i) {
+        var g = el('g', { 'class': 'chip' + (i === ms.length - 1 ? ' last' : '') }, gc);
+        el('rect', { x: cx, y: CY - H / 2, width: m.w, height: H, rx: 10 }, g);
+        var left = cx + (m.w - m.inner) / 2;
+        if (m.lead) el('circle', { 'class': 'dot', cx: left + ADV / 2, cy: CY + 3, r: 4.2 }, g);
+        if (m.body) el('text', { x: left + (m.lead ? ADV : 0) + m.body.length * ADV / 2, y: CY, dy: '.35em' }, g, m.body);
+        if (i === ms.length - 1) lastX = cx + m.w / 2;
+        cx += m.w + GAP;
+      });
+      // from the last chip down to the card that describes its vector
+      el('path', { 'class': 'link', d: 'M' + lastX + ' ' + (CY + H / 2 + 4) + 'V102' }, gc);
+
+      // ---- the plane
+      var gp = $('plane');
+      [0.5, 1].forEach(function (k) {
+        el('line', { 'class': 'grd', x1: OX, y1: P.Y(k), x2: P.X(EXT), y2: P.Y(k) }, gp);
+        el('line', { 'class': 'grd', x1: P.X(k), y1: OY, x2: P.X(k), y2: P.Y(EXT) }, gp);
+      });
+      el('line', { 'class': 'axl', x1: OX - 8, y1: OY, x2: P.X(EXT) - 8, y2: OY }, gp);
+      el('line', { 'class': 'axl', x1: OX, y1: OY + 8, x2: OX, y2: P.Y(EXT) + 8 }, gp);
+      el('polygon', { 'class': 'axh', points: [P.X(EXT), OY, P.X(EXT) - 14, OY - 6, P.X(EXT) - 14, OY + 6].join(' ') }, gp);
+      el('polygon', { 'class': 'axh', points: [OX, P.Y(EXT), OX - 6, P.Y(EXT) + 14, OX + 6, P.Y(EXT) + 14].join(' ') }, gp);
+      el('text', { 'class': 'ax', x: P.X(EXT) + 14, y: OY + 8 }, gp, 'a country');
+      el('text', { 'class': 'ax', x: OX + 16, y: P.Y(EXT) + 14 }, gp, 'football');
+
+      // ---- x0: the last token's vector (cyan at step 0, grey once the gap is the new thing)
+      var gv = $('vec');
+      var g0 = el('g', { 'class': 'cyc' }, gv);
+      var shaft = el('line', { 'class': 'sh' }, g0);
+      var head = el('polygon', { 'class': 'hd' }, g0);
+      (function () {
+        var t = P.P(X0[0], X0[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy);
+        var ux = dx / len, uy = dy / len, L = 22, bx = t[0] - ux * L, by = t[1] - uy * L;
+        shaft.setAttribute('x1', OX); shaft.setAttribute('y1', OY);
+        shaft.setAttribute('x2', t[0] - ux * (L - 3)); shaft.setAttribute('y2', t[1] - uy * (L - 3));
+        head.setAttribute('points', [t[0], t[1], bx - uy * 10, by + ux * 10, bx + uy * 10, by - ux * 10].join(' '));
+        el('text', { 'class': 'nm halo', x: t[0] + 14, y: t[1] + 40 }, g0, 'x0');
+      })();
+
+      // ---- Spain: a faint marker far away, with a question mark
+      var gs = $('spain'), sp = P.P(SPAIN[0], SPAIN[1]);
+      el('circle', { 'class': 'sp-ring', cx: sp[0], cy: sp[1], r: 17 }, gs);
+      el('text', { 'class': 'sp-lab halo', x: sp[0] + 30, y: sp[1] + 9 }, gs, 'Spain ?');
+
+      // ---- the card describing the last token's vector
+      var gk = $('card');
+      el('rect', { 'class': 'card', x: 660, y: 104, width: 430, height: 226, rx: 14 }, gk);
+      el('text', { 'class': 't1', x: 684, y: 144 }, gk, 'vector of "?"');
+      var g2 = el('g', { 'class': 'cyc' }, gk);
+      el('text', { 'class': 't2', x: 684, y: 192 }, g2, 'x0 = ' + arr(X0));
+      [['a country', X0[0]], ['football', X0[1]]].forEach(function (m, k) {
+        var y = 240 + k * 44;
+        el('text', { 'class': 'idea', x: 684, y: y }, gk, m[0]);
+        el('rect', { 'class': 'track', x: 830, y: y - 15, width: 170, height: 14, rx: 7 }, gk);
+        el('rect', { 'class': 'fill cyc', x: 830, y: y - 15, width: m[1] * 170, height: 14, rx: 7 }, gk);
+        el('text', { 'class': 'wt cyc', x: 1012, y: y }, gk, f2(m[1]));
+      });
+
+      // ---- step 1: the gap, drawn from the tip of x0 towards Spain
+      var gl = $('gl');
+      var a = P.P(X0[0], X0[1]), b = sp;
+      var dx = b[0] - a[0], dy = b[1] - a[1], dl = Math.hypot(dx, dy);
+      var A = [a[0] + dx / dl * 20, a[1] + dy / dl * 20], B = [b[0] - dx / dl * 26, b[1] - dy / dl * 26];
+      var S = 0;
+      function draw() {
+        gl.setAttribute('x1', A[0]); gl.setAttribute('y1', A[1]);
+        gl.setAttribute('x2', Deck.lerp(A[0], B[0], S)); gl.setAttribute('y2', Deck.lerp(A[1], B[1], S));
+        gl.style.opacity = S > 0.01 ? 1 : 0;
+      }
+      var cancel = null;
+      Deck.slide('s40-world-cup', {
+        enter: function () { S = 0; draw(); },
+        step: function (n, prev, c) {
+          var target = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = target; draw(); return; }
+          var from = S;
+          cancel = Deck.tween(900, function (t) { S = Deck.lerp(from, target, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

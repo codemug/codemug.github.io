@@ -1,0 +1,181 @@
+<section class="slide" id="s39-attention-result" data-steps="2">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Same token, different vectors: context made the difference.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s39-attention-result-t s39-attention-result-d">
+      <title id="s39-attention-result-t">Attention gives the same token different vectors</title>
+      <desc id="s39-attention-result-d">The sentence as twelve token chips, with the two ball tokens and the balls token underlined in three matching styles. In the attention plane all three start from their embedding, the first two from exactly the same arrow. After attention they point in three different directions: the first ball becomes tarball, the second becomes oddball and balls becomes golf balls.</desc>
+    </svg>
+  </div>
+
+  <style>
+    #s39-attention-result .statement{max-width:1120px;}
+    #s39-attention-result svg.diagram{width:100%;height:100%;max-width:none;}
+    #s39-attention-result text{font-family:var(--font-mono);}
+    #s39-attention-result .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #s39-attention-result .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s39-attention-result .axh{fill:var(--color-text-faint);}
+    #s39-attention-result .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s39-attention-result .sh{stroke:currentColor;fill:none;stroke-linecap:round;}
+    #s39-attention-result .hd{fill:currentColor;stroke:none;}
+    #s39-attention-result .nm{font-size:24px;font-weight:600;}
+    #s39-attention-result .av{font-size:20px;}
+    #s39-attention-result .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s39-attention-result .chip text{font-size:22px;fill:var(--color-text);text-anchor:middle;}
+    #s39-attention-result .chip .sp{fill:var(--color-text-muted);}
+    #s39-attention-result .ul{stroke-width:4;stroke-linecap:round;fill:none;}
+    #s39-attention-result .hdr{font-size:22px;fill:var(--color-text-dim);}
+    #s39-attention-result .rn{font-size:24px;font-weight:600;}
+    #s39-attention-result .ra{font-size:20px;}
+    #s39-attention-result .cap{font-size:20px;fill:var(--color-text-dim);}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s39-attention-result');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // the attention plane: SAME origin, scale and orientation on s33 to s39
+      var OX = 752, OY = 332, U = 240, X0 = -1.1, X1 = 1.4, Y0 = -0.5, Y1 = 1.1;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+      // REAL tokens of "I'm tarballing the oddball photos of golf balls" (deck/data/qwen38.json, tokenization.examples[1])
+      var TOKS = ["I", "'m", " tar", "ball", "ing", " the", " odd", "ball", " photos", " of", " golf", " balls"];
+      var IDX = [3, 7, 11];                                    // the two balls and balls
+      // ATTENTION TOY
+      var E = [[1.00, 0.00], [1.00, 0.00], [0.90, 0.10]];      // embeddings: both balls are the same token, same vector
+      var Q = [[0.95, 0.10], [0.10, 0.95], [-0.80, 0.55]];
+      var KSELF = [[0.10, -0.20], [-0.10, 0.05], [0.05, 0.10]];
+      var KT = [0.90, 0.15], KO = [0.15, 0.90], KG = [-0.85, 0.50];
+      var VT = [0.20, 0.60], VO = [0.70, -0.30], VG = [-0.40, 0.55];
+      var NAMES = ['ball#1', 'ball#2', 'balls'], RESN = ['tarball', 'oddball', 'golf balls'];
+      var R = Q.map(function (q, i) {                         // result = e + sum(softmax weight x value) over keys {tar, odd, golf, self}
+        var ks = [KT, KO, KG, KSELF[i]], vs = [VT, VO, VG, [0, 0]];
+        var ex = ks.map(function (k) { return Math.exp(Deck.dot(q, k)); }), tot = ex.reduce(function (a, b) { return a + b; }, 0);
+        var out = E[i].slice();
+        vs.forEach(function (v, j) { out[0] += ex[j] / tot * v[0]; out[1] += ex[j] / tot * v[1]; });
+        return out;
+      });
+
+      var CY = Deck.rgb('--color-accent'), SOFT = Deck.rgb('--color-text-soft'), MUT = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim');
+      var COL = [CY, [70, 158, 176], Deck.rgb('--color-text')];       // cyan, muted cyan, near white: one per token
+      function mixv(a, b, t) { t = Math.max(0, Math.min(1, t)); return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+      function rgb(a) { return 'rgb(' + a.join(',') + ')'; }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(x) { var r = Math.round(Math.abs(x) * 100 + 1e-7) / 100; return (x < 0 && r > 0 ? '−' : '') + r.toFixed(2); }
+      function arr(v) { return '[' + f2(v[0]) + ', ' + f2(v[1]) + ']'; }
+      function clamp(x) { return Math.max(0, Math.min(1, x)); }
+
+      function buildPlane() {
+        var g = el('g', {}, svg), k, j;
+        for (k = -1; k <= 1.4; k += 0.5) if (Math.abs(k) > 1e-9) el('line', { 'class': 'grd', x1: P.X(k), y1: P.Y(Y0), x2: P.X(k), y2: P.Y(Y1) }, g);
+        for (j = -0.5; j <= 1.1; j += 0.5) if (Math.abs(j) > 1e-9) el('line', { 'class': 'grd', x1: P.X(X0), y1: P.Y(j), x2: P.X(X1), y2: P.Y(j) }, g);
+        el('line', { 'class': 'axl', x1: P.X(X0), y1: OY, x2: P.X(X1) - 8, y2: OY }, g);
+        el('line', { 'class': 'axl', x1: OX, y1: P.Y(Y0), x2: OX, y2: P.Y(Y1) + 8 }, g);
+        [[P.X(X1), OY, -1, 0], [OX, P.Y(Y1), 0, 1]].forEach(function (h) {
+          var bx = h[0] + h[2] * 14, by = h[1] + h[3] * 14, nx = -h[3] * 6, ny = h[2] * 6;
+          el('polygon', { 'class': 'axh', points: [h[0], h[1], bx + nx, by + ny, bx - nx, by - ny].join(' ') }, g);
+        });
+      }
+      function arrow(parent, w, L0, hw) {
+        var g = el('g', {}, parent);
+        var shaft = el('line', { 'class': 'sh', 'stroke-width': w }, g);
+        var head = el('polygon', { 'class': 'hd' }, g);
+        return {
+          g: g,
+          set: function (v, alpha, col) {
+            var t = P.P(v[0], v[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy);
+            g.style.opacity = len < 3 ? 0 : alpha;
+            g.style.color = col;
+            if (len < 3) return;
+            var ux = dx / len, uy = dy / len, L = Math.min(L0, len * 0.55), bx = t[0] - ux * L, by = t[1] - uy * L;
+            shaft.setAttribute('x1', OX); shaft.setAttribute('y1', OY);
+            shaft.setAttribute('x2', t[0] - ux * (L - 2)); shaft.setAttribute('y2', t[1] - uy * (L - 2));
+            head.setAttribute('points', [t[0], t[1], bx - uy * hw, by + ux * hw, bx + uy * hw, by - ux * hw].join(' '));
+          }
+        };
+      }
+
+      buildPlane();
+
+      // ---------------- the sentence (top): the same chip style as s29 ----------------
+      var FS = 22, ADV = FS * 0.6, PAD = 10, H = 44, GAP = 8, CHY = 34;
+      var gc = el('g', {}, svg);
+      var meas = TOKS.map(function (t) {
+        var lead = t.charAt(0) === ' ', body = lead ? t.slice(1) : t, inner = (lead ? ADV : 0) + body.length * ADV;
+        return { lead: lead, body: body, inner: inner, w: Math.max(36, inner + 2 * PAD) };
+      });
+      var total = meas.reduce(function (a, m) { return a + m.w; }, 0) + GAP * (meas.length - 1), x = 560 - total / 2, span = [];
+      meas.forEach(function (m, i) {
+        var cx = x + m.w / 2; x += m.w + GAP;
+        var g = el('g', { 'class': 'chip' }, gc);
+        el('rect', { x: cx - m.w / 2, y: CHY - H / 2, width: m.w, height: H, rx: 10 }, g);
+        if (m.lead) el('circle', { 'class': 'sp', cx: cx - m.inner / 2 + ADV / 2, cy: CHY + 3, r: 3.6 }, g);
+        el('text', { x: cx + (m.lead ? ADV / 2 : 0), y: CHY + 8 }, g, m.body);
+        span[i] = [cx - m.w / 2, cx + m.w / 2];
+      });
+      IDX.forEach(function (ti, i) {
+        el('line', { 'class': 'ul', x1: span[ti][0] + 2, y1: CHY + H / 2 + 7, x2: span[ti][1] - 2, y2: CHY + H / 2 + 7, style: 'stroke:' + rgb(COL[i]) }, gc);
+      });
+
+      // ---------------- the legend (left) ----------------
+      var gl = el('g', {}, svg);
+      el('text', { 'class': 'hdr', x: 20, y: 134 }, gl, 'e  →  e + weighted values');
+      var RY = [196, 280, 364];
+      NAMES.forEach(function (n, i) {
+        var y = RY[i], c = rgb(COL[i]);
+        el('line', { 'class': 'ul', x1: 20, y1: y - 8, x2: 56, y2: y - 8, style: 'stroke:' + c }, gl);
+        el('text', { 'class': 'rn', x: 74, y: y, style: 'fill:' + c }, gl, n);
+        var nx = 74 + n.length * 14.4 + 12;
+        el('text', { 'class': 'rn', x: nx, y: y, 'data-from': 1, style: 'fill:' + c }, gl, '→ ' + RESN[i]);
+        el('text', { 'class': 'ra', x: 74, y: y + 30, style: 'fill:var(--color-text-muted)' }, gl, arr(E[i]));
+        el('text', { 'class': 'ra', x: 74 + 13 * 12 + 14, y: y + 30, 'data-from': 1, style: 'fill:' + c }, gl, '→ ' + arr(R[i]));
+      });
+      el('text', { 'class': 'cap', x: 20, y: 470 }, gl, 'softmax over: tar, odd, golf, self');
+
+      // ---------------- the plane (right) ----------------
+      var gp = el('g', {}, svg);
+      var eA = E.map(function () { return arrow(gp, 4.5, 22, 10); });
+      var rA = [1, 0, 2].map(function (i) { return { i: i, a: arrow(gp, 5, 22, 10) }; });   // ball#2 drawn first, so ball#1 is on top
+      function tag(parent, name, v, dx, dy, anchor, col, withArr) {
+        var t = P.P(v[0], v[1]), g = el('g', {}, parent);
+        el('text', { 'class': 'nm halo', x: t[0] + dx, y: t[1] + dy, 'text-anchor': anchor, style: 'fill:' + col }, g, name);
+        if (withArr) el('text', { 'class': 'av halo', x: t[0] + dx, y: t[1] + dy + 24, 'text-anchor': anchor, style: 'fill:' + col }, g, arr(v));
+        return g;
+      }
+      // labels of the start state (fade out in step 1) and of the results
+      var eL = [tag(gp, 'e(ball)', E[0], 8, 34, 'end', rgb(MUT), true), tag(gp, 'e(balls)', E[2], -14, -42, 'end', rgb(MUT), true)];
+      var rL = [tag(gp, 'tarball', R[0], 14, -22, 'end', rgb(COL[0])), tag(gp, 'oddball', R[1], 40, 68, 'end', rgb(COL[1])), tag(gp, 'golf balls', R[2], -30, -26, 'end', rgb(COL[2]))];
+      var to = P.P(R[1][0], R[1][1]);       // a short leader from the oddball tip down to its label, below the axis
+      el('line', { x1: to[0] - 2, y1: to[1] + 10, x2: to[0] - 2, y2: to[1] + 42, style: 'stroke:' + rgb(COL[1]) + ';stroke-width:2;stroke-dasharray:4 4' }, rL[1]);
+
+      var T = 0, cancel = null;
+      function draw() {
+        E.forEach(function (e, i) { eA[i].set(e, 1, rgb(mixv(MUT, DIM, T))); });
+        rA.forEach(function (o) {
+          var i = o.i, v = Deck.lerp(E[i], R[i], T);
+          o.a.set(v, clamp(T * 8), rgb(mixv(MUT, COL[i], clamp(T * 3))));
+        });
+        eL.forEach(function (g) { g.style.opacity = 1 - clamp(T * 3); });
+        rL.forEach(function (g) { g.style.opacity = clamp(T * 2 - 1); });
+      }
+      draw();
+
+      Deck.slide('s39-attention-result', {
+        enter: function () { T = 0; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { T = to; draw(); return; }
+          var from = T;
+          cancel = Deck.tween(900, function (t) { T = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

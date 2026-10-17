@@ -1,0 +1,149 @@
+<section class="slide" id="s05-matmul-example" data-steps="2" data-tool="matrix">
+  <p class="kicker reveal">refresher 1</p>
+  <p class="statement reveal">A vector can be multiplied by a matrix.</p>
+  <div class="stage reveal">
+    <div class="formula-col">
+      <div class="eq">
+        <div class="formula-row">
+          <span class="bracket-pair">
+            <span class="bracket-edge left"></span>
+            <span class="vec-grid">
+              <span class="cell">1</span>
+              <span class="cell">1</span>
+            </span>
+            <span class="bracket-edge right"></span>
+          </span>
+          <span class="formula-op">x</span>
+          <span class="bracket-pair">
+            <span class="bracket-edge left"></span>
+            <span class="matrix-grid">
+              <span class="cell">1</span>
+              <span class="cell">0</span>
+              <span class="cell">0.5</span>
+              <span class="cell">1</span>
+            </span>
+            <span class="bracket-edge right"></span>
+          </span>
+        </div>
+        <div class="formula-row">
+          <span class="formula-op">=</span>
+          <span class="bracket-pair formula-result">
+            <span class="bracket-edge left"></span>
+            <span class="vec-grid res">
+              <span class="res-cell"><span class="q" id="s05-matmul-example-q0">?</span><span class="val" id="s05-matmul-example-r0"></span></span>
+              <span class="res-cell"><span class="q" id="s05-matmul-example-q1">?</span><span class="val" id="s05-matmul-example-r1"></span></span>
+            </span>
+            <span class="bracket-edge right"></span>
+          </span>
+        </div>
+      </div>
+      <div class="arith" data-from="2">
+        <div class="arith-row"><span class="hl">1.5</span> = 1x1 + 1x0.5</div>
+        <div class="arith-row"><span class="hl">1</span> = 1x0 + 1x1</div>
+      </div>
+    </div>
+    <svg class="diagram" viewBox="0 0 460 380" role="img" aria-labelledby="s05-matmul-example-t s05-matmul-example-d">
+      <title id="s05-matmul-example-t">A vector multiplied by a matrix</title>
+      <desc id="s05-matmul-example-d">The row vector one, one times the matrix one, zero, zero point five, one. The grid of the plane shears sideways, the grey vector v stays fixed, and the cyan result arrow lands at one point five, one.</desc>
+      <defs>
+        <marker id="s05-matmul-example-ahc" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="13" refY="9" orient="auto"><path d="M0,0 L15,9 L0,18 z" fill="var(--color-accent)"/></marker>
+        <marker id="s05-matmul-example-ahg" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="13" refY="9" orient="auto"><path d="M0,0 L15,9 L0,18 z" fill="var(--color-text-dim)"/></marker>
+      </defs>
+
+      <!-- the space: grid at integer coords +/-2, unit square faint cyan; warped by the matrix -->
+      <g transform="translate(230 190)">
+        <g id="s05-matmul-example-warp">
+          <path class="sq" d="M0 0H60V-60H0Z"/>
+          <path class="gline" d="M-120 -120V120M-60 -120V120M60 -120V120M120 -120V120M-120 -120H120M-120 -60H120M-120 60H120M-120 120H120"/>
+          <path class="axis" d="M0 -120V120M-120 0H120"/>
+        </g>
+      </g>
+
+      <!-- v = [1, 1]: the original, a grey ghost that never moves -->
+      <line class="vec gv" x1="230" y1="190" x2="290" y2="130" marker-end="url(#s05-matmul-example-ahg)"/>
+      <text class="vlab" x="294" y="120">v</text>
+
+      <!-- v' = v M: the cyan result, recomputed each frame -->
+      <line id="s05-matmul-example-vp" class="vec" stroke="var(--color-accent)" stroke-width="4" x1="230" y1="190" x2="290" y2="130" marker-end="url(#s05-matmul-example-ahc)"/>
+      <text id="s05-matmul-example-vpl" class="vlab a" x="296" y="144">v&#8242;</text>
+    </svg>
+  </div>
+
+  <style>
+    #s05-matmul-example .stage{gap:clamp(28px,51.2px,56px);}
+    #s05-matmul-example .formula-col{display:flex;flex-direction:column;justify-content:center;gap:30px;}
+    #s05-matmul-example svg.diagram{width:auto;height:100%;max-width:716.8px;}
+    #s05-matmul-example .formula-row{font-size:clamp(28px,37.12px,40px);justify-content:flex-start;}
+    #s05-matmul-example .eq{display:flex;flex-direction:column;gap:12px;align-items:flex-start;}
+    #s05-matmul-example .vec-grid{grid-template-rows:none;grid-template-columns:repeat(2,auto);}
+    #s05-matmul-example .cell{display:inline-block;min-width:2.4ch;text-align:center;font-variant-numeric:tabular-nums;}
+    #s05-matmul-example .res-cell{position:relative;display:inline-block;min-width:2.4ch;text-align:center;}
+    #s05-matmul-example .res-cell .q{color:var(--color-text-faint);}
+    #s05-matmul-example .res-cell .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;}
+    #s05-matmul-example .arith{display:flex;flex-direction:column;gap:10px;font-family:var(--font-mono);font-size:clamp(22px,26.88px,30px);color:var(--color-text-dim);}
+    #s05-matmul-example .arith .hl{color:var(--color-accent);}
+    #s05-matmul-example .vec{stroke-width:4;}
+    #s05-matmul-example .gv{stroke:var(--color-text-dim);}
+    #s05-matmul-example .gline{stroke:var(--color-hairline-2);stroke-width:1;fill:none;}
+    #s05-matmul-example .sq{fill:var(--color-accent);fill-opacity:.08;stroke:none;}
+    #s05-matmul-example .vlab{font-family:var(--font-mono);font-size:20px;fill:var(--color-text-dim);}
+    #s05-matmul-example .vlab.a{fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var P = Deck.plane({ ox: 230, oy: 190, u: 60 });
+      var V = [1, 1];
+      var M0 = [1, 0, 0, 1], M1 = [1, 0, 0.5, 1];
+      var S = { m: M0.slice(), vp: 0 };
+      var warp, vp, vpl, r0, r1, q0, q1, cancel = null;
+
+      function draw() {
+        warp.setAttribute('transform', P.Mr(S.m));
+        var r = Deck.vmul(V, S.m);
+        var s = P.P(r[0], r[1]);
+        vp.setAttribute('x2', s[0]);
+        vp.setAttribute('y2', s[1]);
+        vp.style.opacity = S.vp;
+        vpl.style.opacity = S.vp;
+        vpl.setAttribute('x', s[0] + 6);
+        vpl.setAttribute('y', s[1] + 14);
+        r0.style.opacity = S.vp;
+        r1.style.opacity = S.vp;
+        q0.style.opacity = 1 - S.vp;
+        q1.style.opacity = 1 - S.vp;
+      }
+
+      function target(n) { return n >= 1 ? { m: M1, vp: 1 } : { m: M0, vp: 0 }; }
+
+      Deck.slide('s05-matmul-example', {
+        enter: function (c) {
+          warp = c.qs('#s05-matmul-example-warp');
+          vp = c.qs('#s05-matmul-example-vp');
+          vpl = c.qs('#s05-matmul-example-vpl');
+          r0 = c.qs('#s05-matmul-example-r0');
+          r1 = c.qs('#s05-matmul-example-r1');
+          q0 = c.qs('#s05-matmul-example-q0');
+          q1 = c.qs('#s05-matmul-example-q1');
+          var R = Deck.vmul(V, M1);
+          r0.textContent = String(Math.round(R[0] * 100) / 100);
+          r1.textContent = String(Math.round(R[1] * 100) / 100);
+          S.m = M0.slice();
+          S.vp = 0;
+          draw();
+        },
+        step: function (n, prev, c) {
+          var T = target(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S.m = T.m.slice(); S.vp = T.vp; draw(); return; }
+          var from = { m: S.m.slice(), vp: S.vp };
+          var ms = n >= 1 && prev < 1 ? 900 : 650;
+          cancel = Deck.tween(ms, function (t) {
+            S.m = Deck.lerp(from.m, T.m, t);
+            S.vp = Deck.lerp(from.vp, T.vp, Math.min(1, t / 0.3));
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

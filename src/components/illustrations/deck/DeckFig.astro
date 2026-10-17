@@ -1,0 +1,54 @@
+---
+// One figure built from slides of the talk deck (scripts/extract-deck.mjs lifts them into
+// ./slides). Which slides, and their captions, come from ./figures.json by `name`.
+// Requires <DeckRuntime /> once on the page, before the first figure.
+import figures from "./figures.json";
+import manifest from "./slides.json";
+
+interface Props {
+  name: string;
+}
+// a slide is its id, or { id, steps } to show only some of its build steps (in that order)
+type SlideRef = string | { id: string; steps: number[] };
+type Figure = { slides: SlideRef[]; captions: Record<string, string>; dwell?: number };
+
+const { name } = Astro.props;
+const fig = (figures as Record<string, Figure>)[name];
+if (!fig) throw new Error(`DeckFig: unknown figure "${name}"`);
+
+const raw = import.meta.glob("./slides/*.html", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+const ids = fig.slides.map((s) => (typeof s === "string" ? s : s.id));
+const html = fig.slides
+  .map((s, i) => {
+    const id = ids[i];
+    const src = raw[`./slides/${id}.html`];
+    if (!src) throw new Error(`DeckFig "${name}": no slide "${id}" in ./slides`);
+    const picked = typeof s === "string" ? "" : ` data-dk-steps="${s.steps.join(",")}"`;
+    return src
+      // the first slide shows before the runtime starts; picked steps go on the section
+      .replace(/^<section class="slide"/, `<section class="slide${i === 0 ? " visible" : ""}"${picked}`)
+      // embedded documents load only while the figure is in view
+      .replace(/<iframe([^>]*?)\ssrcdoc=/g, "<iframe$1 data-dk-srcdoc=");
+  })
+  .join("\n");
+const title = (manifest as Record<string, { statement?: string }>)[ids[0]]?.statement ?? name;
+---
+
+<figure
+  class="dk"
+  data-fig={name}
+  data-dwell={fig.dwell ?? 2800}
+  data-captions={JSON.stringify(fig.captions)}
+  tabindex="0"
+  aria-label={`Animated figure: ${title}`}
+>
+  <div class="dk-scroll"><div class="dk-box"><div class="dk-frame" set:html={html} /></div></div>
+  <div class="dk-bar">
+    <button type="button" class="dk-btn dk-prev" aria-label="Previous step">‹</button>
+    <button type="button" class="dk-btn dk-play" aria-label="Play">▶</button>
+    <button type="button" class="dk-btn dk-next" aria-label="Next step">›</button>
+    <div class="dk-pips" aria-hidden="true"></div>
+    <button type="button" class="dk-btn dk-expand" aria-label="Expand figure">⤢</button>
+  </div>
+  <figcaption class="dk-cap" aria-live="polite">{fig.captions[ids[0]] ?? ""}</figcaption>
+</figure>

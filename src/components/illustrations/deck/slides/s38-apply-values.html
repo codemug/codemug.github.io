@@ -1,0 +1,183 @@
+<section class="slide" id="s38-apply-values" data-steps="3" data-tool="blend">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Blend in the values, weighted, and add them to the token.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s38-apply-values-t s38-apply-values-d">
+      <title id="s38-apply-values-t">The weighted values are added to the embedding of ball</title>
+      <desc id="s38-apply-values-d">In the attention plane, the grey arrow e of ball points right. The values of tar, odd and golf are first shown at full size, then scaled by the softmax weights 0.46, 0.24 and 0.09, then stacked head to tail into their sum, and finally the sum is added to e of ball. The result is the cyan arrow tarball, and a curved arrow shows how the embedding of ball is sheared into it.</desc>
+      <defs>
+        <marker id="s38-apply-values-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,0 L14,8 L0,16 z" fill="var(--color-accent)"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <style>
+    #s38-apply-values .statement{max-width:1120px;}
+    #s38-apply-values svg.diagram{width:100%;height:100%;max-width:none;}
+    #s38-apply-values text{font-family:var(--font-mono);}
+    #s38-apply-values .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #s38-apply-values .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s38-apply-values .axh{fill:var(--color-text-faint);}
+    #s38-apply-values .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s38-apply-values .sh{stroke:currentColor;fill:none;stroke-linecap:round;}
+    #s38-apply-values .hd{fill:currentColor;stroke:none;}
+    #s38-apply-values .nm{font-size:22px;font-weight:600;fill:currentColor;}
+    #s38-apply-values .nmb{font-size:24px;font-weight:600;fill:currentColor;}
+    #s38-apply-values .av{font-size:20px;fill:currentColor;}
+    #s38-apply-values .curve{fill:none;stroke:var(--color-accent);stroke-width:3;stroke-dasharray:7 6;stroke-linecap:round;}
+    #s38-apply-values .row{font-size:22px;fill:var(--color-text-soft);}
+    #s38-apply-values .res{font-size:22px;fill:var(--color-accent);}
+    #s38-apply-values .rule{stroke:var(--color-border-strong);stroke-width:2;}
+    #s38-apply-values .big{font-size:28px;fill:var(--color-accent);font-weight:600;}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s38-apply-values');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // the attention plane: SAME origin, scale and orientation on s33 to s39
+      var OX = 752, OY = 332, U = 240, X0 = -1.1, X1 = 1.4, Y0 = -0.5, Y1 = 1.1;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+      // ATTENTION TOY: embedding, values, and the softmax weights of s37 (query ball#1; keys tar, odd, golf, self)
+      var E = [1.00, 0.00];
+      var Q1 = [0.95, 0.10];
+      var KEYS = [['tar', [0.90, 0.15], [0.20, 0.60]], ['odd', [0.15, 0.90], [0.70, -0.30]], ['golf', [-0.85, 0.50], [-0.40, 0.55]], ['self', [0.10, -0.20], [0.00, 0.00]]];
+      var SC = KEYS.map(function (k) { return Deck.dot(Q1, k[1]); });
+      var EX = SC.map(Math.exp), TOT = EX.reduce(function (a, b) { return a + b; }, 0);
+      var W = EX.map(function (e) { return e / TOT; });                 // softmax weights
+      var V = KEYS.map(function (k) { return k[2]; });                  // values
+      var WV = V.map(function (v, i) { return [W[i] * v[0], W[i] * v[1]]; });   // weighted values
+      var SUM = WV.reduce(function (a, b) { return [a[0] + b[0], a[1] + b[1]]; }, [0, 0]);
+      var RES = [E[0] + SUM[0], E[1] + SUM[1]];                         // tarball
+      var LAB = [[-14, -8, 'end'], [-4, 32, 'end'], [-14, -10, 'end']];
+
+      var CY = Deck.rgb('--color-accent'), MUT = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim');
+      function mixv(a, b, t) { t = Math.max(0, Math.min(1, t)); return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+      function mix(a, b, t) { return 'rgb(' + mixv(a, b, t).join(',') + ')'; }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(x) { var r = Math.round(Math.abs(x) * 100 + 1e-7) / 100; return (x < 0 && r > 0 ? '−' : '') + r.toFixed(2); }
+      function arr(v) { return '[' + f2(v[0]) + ', ' + f2(v[1]) + ']'; }
+      function clamp(x) { return Math.max(0, Math.min(1, x)); }
+
+      function buildPlane() {
+        var g = el('g', {}, svg), k, j;
+        for (k = -1; k <= 1.4; k += 0.5) if (Math.abs(k) > 1e-9) el('line', { 'class': 'grd', x1: P.X(k), y1: P.Y(Y0), x2: P.X(k), y2: P.Y(Y1) }, g);
+        for (j = -0.5; j <= 1.1; j += 0.5) if (Math.abs(j) > 1e-9) el('line', { 'class': 'grd', x1: P.X(X0), y1: P.Y(j), x2: P.X(X1), y2: P.Y(j) }, g);
+        el('line', { 'class': 'axl', x1: P.X(X0), y1: OY, x2: P.X(X1) - 8, y2: OY }, g);
+        el('line', { 'class': 'axl', x1: OX, y1: P.Y(Y0), x2: OX, y2: P.Y(Y1) + 8 }, g);
+        [[P.X(X1), OY, -1, 0], [OX, P.Y(Y1), 0, 1]].forEach(function (h) {
+          var bx = h[0] + h[2] * 14, by = h[1] + h[3] * 14, nx = -h[3] * 6, ny = h[2] * 6;
+          el('polygon', { 'class': 'axh', points: [h[0], h[1], bx + nx, by + ny, bx - nx, by - ny].join(' ') }, g);
+        });
+      }
+      // arrow from a start point to a tip (math coordinates); colour is set from script
+      function arrow(parent, w, L0, hw) {
+        var g = el('g', {}, parent);
+        var shaft = el('line', { 'class': 'sh', 'stroke-width': w }, g);
+        var head = el('polygon', { 'class': 'hd' }, g);
+        return {
+          g: g,
+          shaft: shaft,
+          set: function (a, b, alpha, col, k) {
+            k = k || 1;
+            var p = P.P(a[0], a[1]), t = P.P(b[0], b[1]), dx = t[0] - p[0], dy = t[1] - p[1], len = Math.hypot(dx, dy);
+            g.style.opacity = len < 3 ? 0 : alpha;
+            g.style.color = col;
+            if (len < 3) return;
+            var ux = dx / len, uy = dy / len, L = Math.min(L0 * k, len * 0.55), h = hw * k, bx = t[0] - ux * L, by = t[1] - uy * L;
+            shaft.setAttribute('x1', p[0]); shaft.setAttribute('y1', p[1]);
+            shaft.setAttribute('x2', t[0] - ux * (L - 2)); shaft.setAttribute('y2', t[1] - uy * (L - 2));
+            head.setAttribute('points', [t[0], t[1], bx - uy * h, by + ux * h, bx + uy * h, by - ux * h].join(' '));
+          }
+        };
+      }
+
+      buildPlane();
+
+      // ---------------- left: the ledger ----------------
+      var gl = el('g', {}, svg);
+      var RY = [92, 136, 180, 224];
+      KEYS.forEach(function (k, i) {
+        el('text', { 'class': 'row', x: 20, y: RY[i] }, gl, f2(W[i]) + ' × v(' + k[0] + ')');
+        el('text', { 'class': 'res', x: 232, y: RY[i], 'data-from': 1 }, gl, '= ' + arr(WV[i]));
+      });
+      var g2 = el('g', { 'data-from': 2 }, gl);
+      el('line', { 'class': 'rule', x1: 20, y1: 248, x2: 452, y2: 248 }, g2);
+      el('text', { 'class': 'res', x: 20, y: 286 }, g2, 'sum');
+      el('text', { 'class': 'res', x: 232, y: 286 }, g2, '= ' + arr(SUM));
+      var g3 = el('g', { 'data-from': 3 }, gl);
+      el('text', { 'class': 'row', x: 20, y: 346 }, g3, 'e(ball) + sum');
+      el('text', { 'class': 'big', x: 20, y: 392 }, g3, '= ' + arr(RES));
+      el('text', { 'class': 'big', x: 20, y: 436 }, g3, '= tarball');
+
+      // ---------------- right: the plane ----------------
+      var gp = el('g', {}, svg);
+      var eA = arrow(gp, 4.5, 22, 10);
+      var eT = el('text', { 'class': 'nmb halo', x: P.X(E[0]) + 8, y: OY + 32, 'text-anchor': 'end', style: 'fill:var(--color-text-muted)' }, gp, 'e(ball)');
+      var vA = KEYS.slice(0, 3).map(function () { return arrow(gp, 3.5, 13, 6.5); });
+      var vT = KEYS.slice(0, 3).map(function (k, i) { return el('text', { 'class': 'nm halo', 'text-anchor': LAB[i][2] }, gp, k[0] + ' ' + f2(W[i])); });
+      var rA = arrow(gp, 6, 26, 12);
+      var rT1 = el('g', {}, gp), rT2 = el('g', {}, gp);
+      var tr = P.P(SUM[0], SUM[1]), tt = P.P(RES[0], RES[1]);
+      el('text', { 'class': 'nmb halo', x: tr[0], y: tr[1] - 50, 'text-anchor': 'middle', style: 'fill:var(--color-accent)' }, rT1, 'sum');
+      el('text', { 'class': 'av halo', x: tr[0], y: tr[1] - 26, 'text-anchor': 'middle', style: 'fill:var(--color-accent)' }, rT1, arr(SUM));
+      el('text', { 'class': 'nmb halo', x: tt[0] + 4, y: tt[1] - 50, 'text-anchor': 'end', style: 'fill:var(--color-accent)' }, rT2, 'tarball');
+      el('text', { 'class': 'av halo', x: tt[0] + 4, y: tt[1] - 26, 'text-anchor': 'end', style: 'fill:var(--color-accent)' }, rT2, arr(RES));
+      // curved arrow: the shear from e(ball) to the result
+      var te = P.P(E[0], E[1]);
+      var curve = el('path', { 'class': 'curve', d: 'M' + te[0] + ' ' + (te[1] + 4) + 'Q' + (tt[0] + 34) + ' ' + (te[1] + 6) + ' ' + (tt[0] + 14) + ' ' + (tt[1] + 14), 'marker-end': 'url(#s38-apply-values-ah)' }, gp);
+
+      // ---------------- state ----------------
+      // S1: values scale from full size to weighted;  S2: weighted values stack head to tail;  S3: the stack moves onto e(ball)
+      var S = [0, 0, 0], cancel = null;
+      function stackStart(i, s2) {          // where arrow i starts: the tips of the previous weighted values
+        var x = 0, y = 0, j;
+        for (j = 0; j < i; j++) { x += WV[j][0]; y += WV[j][1]; }
+        return [x * s2, y * s2];
+      }
+      function draw() {
+        var s1 = S[0], s2 = S[1], s3 = S[2];
+        eA.set([0, 0], E, 1, mix(MUT, DIM, 0));
+        eT.style.opacity = 1;
+        KEYS.slice(0, 3).forEach(function (k, i) {
+          var f = Deck.lerp(1, W[i], s1), v = [V[i][0] * f, V[i][1] * f];
+          var a0 = stackStart(i, s2), off = [E[0] * s3, E[1] * s3];
+          var a = [a0[0] + off[0], a0[1] + off[1]], b = [a[0] + v[0], a[1] + v[1]];
+          vA[i].set(a, b, 1, mix(mixv(DIM, CY, s1), DIM, s3));
+          var t = P.P(b[0], b[1]);
+          vT[i].setAttribute('x', Math.min(990, Math.max(140, t[0] + LAB[i][0]))); vT[i].setAttribute('y', t[1] + LAB[i][1]);   // clamped: the label is hidden while the stack is built
+          vT[i].style.fill = mix(MUT, CY, s1);
+          vT[i].style.opacity = 1 - clamp(s2 * 2);
+        });
+        // the resultant: origin -> end of the stack (the sum in step 2, tarball in step 3)
+        var tip = [SUM[0] * s2 + E[0] * s3, SUM[1] * s2 + E[1] * s3];
+        rA.set([0, 0], tip, clamp(s2 * 4), mix(CY, CY, 1), Deck.lerp(0.5, 1, s3));
+        rA.shaft.setAttribute('stroke-width', Deck.lerp(2.5, 6, s3).toFixed(2));
+        rA.shaft.setAttribute('stroke-dasharray', s3 > 0.02 ? 'none' : '7 5');
+        rT1.style.opacity = clamp(s2 * 2 - 1) * (1 - clamp(s3 * 3));
+        rT2.style.opacity = clamp(s3 * 2 - 1);
+        curve.style.opacity = clamp(s3 * 4 - 3);
+      }
+      draw();
+
+      var TARGET = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [1, 1, 1]];
+      Deck.slide('s38-apply-values', {
+        enter: function () { S = TARGET[0].slice(); draw(); },
+        step: function (n, prev, c) {
+          var to = TARGET[Math.min(n, 3)];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to.slice(); draw(); return; }
+          var from = S.slice();
+          cancel = Deck.tween(900, function (t) { S = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,97 @@
+<section class="slide" id="s21-hidden-size" data-steps="2">
+  <p class="kicker reveal">embeddings</p>
+  <p class="statement reveal">The row length is the model's hidden_size.</p>
+  <div class="stage reveal">
+    <div class="col">
+      <div class="term">
+        <div class="term-bar"><i></i><i></i><i></i></div>
+        <div class="term-body"><span class="p">$</span> <span class="c">jq .text_config.hidden_size config.json</span>
+<span class="hi">5120</span></div>
+      </div>
+      <div class="wrap"><div>
+        <svg class="diagram" viewBox="0 0 1000 290" role="img" aria-labelledby="s21-hidden-size-t s21-hidden-size-d">
+          <title id="s21-hidden-size-t">hidden_size of three Qwen models</title>
+          <desc id="s21-hidden-size-d">Three horizontal bars whose lengths are the hidden sizes 2,560 for Qwen3-4B, 4,096 for Qwen3-8B and 5,120 for Qwen3.8-27B, the one just read from config.json. Beside each name the shape of its embedding table: vocabulary size by hidden size.</desc>
+          <g id="s21-hidden-size-chart"></g>
+        </svg>
+      </div></div>
+    </div>
+  </div>
+
+  <style>
+    #s21-hidden-size .col{display:flex;flex-direction:column;align-items:center;width:100%;}
+    #s21-hidden-size .term-body{font-size:clamp(18px,26.88px,27px);line-height:1.6;}
+    #s21-hidden-size .wrap{display:grid;grid-template-rows:0fr;width:100%;}
+    #s21-hidden-size .wrap > div{min-height:0;overflow:hidden;display:flex;justify-content:center;}
+    #s21-hidden-size.ge1 .wrap{grid-template-rows:1fr;}
+    #s21-hidden-size svg.diagram{width:min(100%,1000px);max-width:1000px;max-height:none;height:auto;margin-top:30px;opacity:0;}
+    #s21-hidden-size.ge1 svg.diagram{opacity:1;}
+    #s21-hidden-size text{font-family:var(--font-mono);}
+    #s21-hidden-size .nm{font-size:22px;fill:var(--color-text-soft);text-anchor:end;transform:translateY(11px);}
+    #s21-hidden-size .tg{font-size:18px;fill:var(--color-text-muted);text-anchor:end;}
+    #s21-hidden-size .hd{font-size:18px;fill:var(--color-text-muted);}
+    #s21-hidden-size .bar{fill:var(--color-text-faint);}
+    #s21-hidden-size .val{font-size:26px;fill:var(--color-text);text-anchor:end;}
+    #s21-hidden-size .me .nm, #s21-hidden-size .me .tg{fill:var(--color-accent);}
+    #s21-hidden-size .me .bar{fill:var(--color-accent);}
+    #s21-hidden-size .me .val{fill:var(--color-bg);}
+
+    #s21-hidden-size .bar{transform-box:fill-box;transform-origin:0 50%;transform:scaleX(0);}
+    #s21-hidden-size .nm, #s21-hidden-size .val, #s21-hidden-size .hd{opacity:0;}
+    #s21-hidden-size .tg{opacity:0;}
+    #s21-hidden-size.ge1 .bar{transform:scaleX(1);}
+    #s21-hidden-size.ge1 .nm, #s21-hidden-size.ge1 .val, #s21-hidden-size.ge1 .hd{opacity:1;}
+    #s21-hidden-size.ge2 .tg{opacity:1;}
+    #s21-hidden-size.ge2 .nm{transform:none;}
+
+    @media (prefers-reduced-motion:no-preference){
+      #s21-hidden-size .wrap{transition:grid-template-rows .8s cubic-bezier(.45,0,.25,1);}
+      #s21-hidden-size svg.diagram{transition:opacity .3s ease .35s;}
+      #s21-hidden-size .bar{transition:transform .9s cubic-bezier(.45,0,.25,1) calc(.45s + var(--i) * .15s);}
+      #s21-hidden-size .nm{transition:opacity .6s ease .4s,transform .7s cubic-bezier(.45,0,.25,1);}
+      #s21-hidden-size .hd{transition:opacity .6s ease .4s;}
+      #s21-hidden-size .val{transition:opacity .5s ease calc(1s + var(--i) * .15s);}
+      #s21-hidden-size .tg{transition:opacity .7s ease calc(var(--i) * .12s);}
+    }
+  </style>
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      /* REAL, from deck/data/qwen38.json "compare": hidden_size and vocab_size of the three models */
+      var MODELS = [
+        { name: 'Qwen3-4B', hidden: 2560, vocab: 151936 },
+        { name: 'Qwen3-8B', hidden: 4096, vocab: 151936 },
+        { name: 'Qwen3.8-27B', hidden: 5120, vocab: 248320, me: true }
+      ];
+      var X0 = 212, MAXW = 760, TOP = 34, PITCH = 84, BH = 56;
+      function fmt(n) { return n.toLocaleString('en-US'); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag), k;
+        for (k in attrs) e.setAttribute(k, attrs[k]);
+        if (text != null) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var chart = document.getElementById('s21-hidden-size-chart');
+      var maxH = Math.max.apply(null, MODELS.map(function (m) { return m.hidden; }));
+      el('text', { 'class': 'hd', x: X0, y: 20 }, chart, 'hidden_size');
+      MODELS.forEach(function (m, i) {
+        var y = TOP + i * PITCH, w = MAXW * m.hidden / maxH;
+        var g = el('g', { 'class': m.me ? 'me' : 'other' }, chart);
+        g.style.setProperty('--i', i);
+        el('text', { 'class': 'nm', x: X0 - 16, y: y + 26 }, g, m.name);
+        el('text', { 'class': 'tg', x: X0 - 16, y: y + 50 }, g, '[' + fmt(m.vocab) + ' x ' + fmt(m.hidden) + ']');
+        el('rect', { 'class': 'bar', x: X0, y: y, width: w.toFixed(1), height: BH, rx: 8 }, g);
+        el('text', { 'class': 'val', x: (X0 + w - 18).toFixed(1), y: y + 37 }, g, fmt(m.hidden));
+      });
+
+      var root = document.getElementById('s21-hidden-size');
+      Deck.slide('s21-hidden-size', {
+        step: function (n) {
+          root.classList.toggle('ge1', n >= 1);
+          root.classList.toggle('ge2', n >= 2);
+        }
+      });
+    })();
+  </script>
+</section>

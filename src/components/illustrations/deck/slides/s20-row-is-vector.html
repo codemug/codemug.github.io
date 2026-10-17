@@ -1,0 +1,154 @@
+<section class="slide" id="s20-row-is-vector" data-steps="2" data-tool="vector">
+  <p class="kicker reveal">embeddings</p>
+  <p class="statement reveal">Each row is a vector: a mix of ideas.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1140 540" role="img" aria-labelledby="s20-row-is-vector-t s20-row-is-vector-d">
+      <title id="s20-row-is-vector-t">A row of the embedding table is a vector: a mix of ideas</title>
+      <desc id="s20-row-is-vector-d">A barcode of the real first 64 numbers of row 628, the token can, with the first four bars labelled idea 1 to idea 4 and the count 5,120. Then a toy plane appears with two ideas, desert and living, and an arrow camel built from the two weights 0.75 and 0.55.</desc>
+      <defs>
+        <marker id="s20-row-is-vector-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,1 L14,8 L0,15 z" fill="var(--color-accent)"/></marker>
+        <marker id="s20-row-is-vector-ahs" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0,1 L11,6 L0,11 z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <!-- the real row as a barcode (built by JS) -->
+      <g id="s20-row-is-vector-bc">
+        <line id="s20-row-is-vector-base" class="base"/>
+        <g id="s20-row-is-vector-bars"></g>
+        <g id="s20-row-is-vector-flags"></g>
+        <text id="s20-row-is-vector-dots" class="dots">...</text>
+        <path id="s20-row-is-vector-brk" class="brk"/>
+        <text id="s20-row-is-vector-cnt" class="cnt">first 64 of 5,120 numbers</text>
+        <text id="s20-row-is-vector-row" class="rowlab"><tspan class="a">row 628</tspan><tspan class="m">  =  token </tspan><tspan class="w">" can"</tspan></text>
+      </g>
+
+      <!-- step 1: the toy, 2 ideas as axes (origin 864,344; 205 per unit) -->
+      <g data-from="1" class="toy">
+        <line class="axis2" x1="813" y1="344" x2="1110" y2="344"/>
+        <line class="axis2" x1="864" y1="394" x2="864" y2="100"/>
+        <text class="idea end" x="1110" y="378">desert</text>
+        <text class="idea mid" x="864" y="84">living</text>
+        <line id="s20-row-is-vector-arrow" class="vecl" x1="864" y1="344" x2="864" y2="344" marker-end="url(#s20-row-is-vector-ah)"/>
+        <text class="cap2 toy" x="864" y="469">toy: 2 ideas instead of 5,120</text>
+      </g>
+      <g data-from="1" class="tip-lab">
+        <text class="tipname" x="1018" y="183">camel</text>
+        <text class="tipnum" x="1018" y="207">[0.75, 0.55]</text>
+      </g>
+
+      <!-- step 2: the arrow is built from two weights -->
+      <g data-from="2">
+        <line class="comp" x1="864" y1="344" x2="1017.75" y2="344" marker-end="url(#s20-row-is-vector-ahs)"/>
+        <line class="comp" x1="864" y1="344" x2="864" y2="231.25" marker-end="url(#s20-row-is-vector-ahs)"/>
+        <line class="guide" x1="1017.75" y1="344" x2="1017.75" y2="231.25"/>
+        <line class="guide" x1="864" y1="231.25" x2="1017.75" y2="231.25"/>
+        <text class="wt" x="941" y="378">0.75</text>
+        <text class="wt end" x="848" y="295">0.55</text>
+        <text class="eq" x="864" y="428"><tspan class="a">camel</tspan> = <tspan class="a">0.75</tspan> desert + <tspan class="a">0.55</tspan> living</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s20-row-is-vector svg.diagram{width:auto;height:100%;max-width:100%;}
+    #s20-row-is-vector text{font-family:var(--font-mono);}
+    #s20-row-is-vector .base{stroke:var(--color-border-strong);stroke-width:1.5;}
+    #s20-row-is-vector .bar{fill:var(--color-accent);fill-opacity:.6;}
+    #s20-row-is-vector .bar.hot{fill-opacity:1;}
+    #s20-row-is-vector .pole{stroke:var(--color-text-dim);stroke-width:1.4;stroke-dasharray:3 4;}
+    #s20-row-is-vector .flag{font-size:19px;fill:var(--color-text);}
+    #s20-row-is-vector .dots{font-size:24px;fill:var(--color-text-muted);}
+    #s20-row-is-vector .brk{fill:none;stroke:var(--color-text-dim);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    #s20-row-is-vector .cnt{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #s20-row-is-vector .rowlab{font-size:22px;text-anchor:middle;}
+    #s20-row-is-vector .a{fill:var(--color-accent);}
+    #s20-row-is-vector .m{fill:var(--color-text-muted);}
+    #s20-row-is-vector .w{fill:var(--color-text);}
+    #s20-row-is-vector .axis2{stroke:var(--color-text-faint);stroke-width:1.8;stroke-linecap:round;}
+    #s20-row-is-vector .idea{font-size:22px;fill:var(--color-text-soft);}
+    #s20-row-is-vector .idea.mid{text-anchor:middle;}
+    #s20-row-is-vector .idea.end{text-anchor:end;}
+    #s20-row-is-vector .vecl{stroke:var(--color-accent);stroke-width:3.4;stroke-linecap:round;fill:none;}
+    #s20-row-is-vector .tipname{font-size:22px;fill:var(--color-accent);text-anchor:end;}
+    #s20-row-is-vector .tipnum{font-size:19px;fill:var(--color-text-muted);text-anchor:end;}
+    #s20-row-is-vector .cap2{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #s20-row-is-vector .comp{stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;}
+    #s20-row-is-vector .guide{stroke:var(--color-accent);stroke-width:1.6;stroke-dasharray:5 5;opacity:.7;}
+    #s20-row-is-vector .wt{font-size:21px;fill:var(--color-accent);text-anchor:middle;}
+    #s20-row-is-vector .wt.end{text-anchor:end;}
+    #s20-row-is-vector .eq{font-size:21px;fill:var(--color-text-soft);text-anchor:middle;}
+    #s20-row-is-vector .toy.on{transition-delay:.6s;}
+    #s20-row-is-vector .tip-lab.on{transition-delay:1.35s;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's20-row-is-vector', NS = 'http://www.w3.org/2000/svg';
+      /* REAL: first 64 of the 5,120 numbers of embedding_full["628"] (token " can", Qwen3.8-27B), from deck/data/qwen38.json */
+      var V = [0.0332, -0.0244, -0.0047, 0.0156, 0.0135, -0.0048, 0.1069, 0.0078, -0.0004, -0.001, 0.0259, 0.0019, 0.0045, 0.0001, 0.0167, 0.0045, 0.0073, -0.0015, 0.0003, 0.0037, -0.0104, 0.0016, 0.0111, 0.0388, -0.013, 0.004, -0.0184, -0.0031, -0.0049, 0.0053, 0.0001, -0.0058, -0.0053, -0.0023, -0.0034, 0.0016, -0.0008, 0.0056, -0.0013, -0.0029, 0.0024, 0.001, 0.0525, -0.001, 0.0139, -0.0039, 0.0012, -0.0068, -0.007, 0.0012, 0.0025, -0.0013, 0.0054, -0.0013, 0.0033, -0.0195, 0.012, 0.0049, 0.0031, -0.006, -0.0037, -0.0026, 0.0022, 0.0028];
+      var N = V.length, L = 40, YB = 344, K = 150 / 0.1069, ROWS = [90, 114, 138, 162];
+      var PX = 864, PY = 344, U = 205, CAMEL = [0.75, 0.55];
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag), k;
+        for (k in attrs) e.setAttribute(k, attrs[k]);
+        if (text != null) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      var barsG = $('bars'), flagsG = $('flags');
+      var bars = V.map(function (v, i) {
+        var h = Math.max(1.2, Math.abs(v) * K);
+        return el('rect', { 'class': 'bar' + (i < 4 ? ' hot' : ''), y: v >= 0 ? YB - h : YB, height: h.toFixed(2), rx: 1.5 }, barsG);
+      });
+      var poles = [0, 1, 2, 3].map(function (k) {
+        var topY = YB - Math.max(0, V[k]) * K;
+        return {
+          line: el('line', { 'class': 'pole', y1: (topY - 7).toFixed(1), y2: ROWS[k] - 6 }, flagsG),
+          text: el('text', { 'class': 'flag', y: ROWS[k] }, flagsG, 'idea ' + (k + 1))
+        };
+      });
+      var base = $('base'), dots = $('dots'), brk = $('brk'), cnt = $('cnt'), rowlab = $('row');
+      base.setAttribute('y1', YB); base.setAttribute('y2', YB);
+      dots.setAttribute('y', YB + 8);
+      cnt.setAttribute('y', 428); rowlab.setAttribute('y', 469);
+
+      function layout(s) {                       /* s: 0 = barcode across the stage, 1 = compact, left */
+        var W = Deck.lerp(1020, 590, s), p = W / N, bw = Math.max(5, p * 0.72), mid = L + W / 2, i;
+        for (i = 0; i < N; i++) { bars[i].setAttribute('x', (L + i * p + (p - bw) / 2).toFixed(2)); bars[i].setAttribute('width', bw.toFixed(2)); }
+        poles.forEach(function (o, k) {
+          var x = L + k * p + p / 2;
+          o.line.setAttribute('x1', x.toFixed(2)); o.line.setAttribute('x2', x.toFixed(2));
+          o.text.setAttribute('x', (x + 9).toFixed(2));
+        });
+        base.setAttribute('x1', L - 8); base.setAttribute('x2', L + W + 8);
+        dots.setAttribute('x', L + W + 12);
+        brk.setAttribute('d', 'M' + L + ' 409 v8 H' + (mid - 175) + ' M' + (mid + 175) + ' 417 H' + (L + W) + ' v-8');
+        cnt.setAttribute('x', mid); rowlab.setAttribute('x', mid);
+      }
+
+      var arrow = $('arrow');
+      function drawArrow(a) {
+        arrow.setAttribute('x2', (PX + CAMEL[0] * U * a).toFixed(2));
+        arrow.setAttribute('y2', (PY - CAMEL[1] * U * a).toFixed(2));
+      }
+
+      var S = 0, A = 0, cancel = null;
+      function ph(k, a, b) { return Deck.ease.inOut(clamp01((k - a) / (b - a))); }
+      Deck.slide('s20-row-is-vector', {
+        enter: function () { S = 0; A = 0; layout(0); drawArrow(0); },
+        step: function (n, prev, c) {
+          var tS = n >= 1 ? 1 : 0, tA = n >= 1 ? 1 : 0, s0 = S, a0 = A, fwd = tS >= s0;
+          if (cancel) cancel();
+          if (c.instant) { S = tS; A = tA; layout(S); drawArrow(A); return; }
+          cancel = Deck.tween(1500, function (k) {
+            S = Deck.lerp(s0, tS, fwd ? ph(k, 0, 0.55) : ph(k, 0.45, 1));
+            A = Deck.lerp(a0, tA, fwd ? ph(k, 0.62, 1) : ph(k, 0, 0.38));
+            layout(S); drawArrow(A);
+          }, { ease: Deck.ease.linear });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,153 @@
+<section class="slide" id="s52-top-k" data-steps="3">
+  <p class="kicker reveal">predicting the token</p>
+  <p class="statement reveal">Top-k sampling: pick one of the k most likely tokens.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 430" role="img" aria-labelledby="s52-top-k-t s52-top-k-d">
+      <title id="s52-top-k-t">Top-k sampling with k equal to 3</title>
+      <desc id="s52-top-k-d">Five probability bars for mat, rug, floor, chair and table: 0.419, 0.230, 0.170, 0.103 and 0.077. Only the three most likely stay lit and their probabilities are renormalised to 0.51, 0.28 and 0.21. A die is rolled, picks mat, and a mat chip flies to the end of the sentence The cat sat on the.</desc>
+
+      <!-- the sentence and the empty slot for the next token -->
+      <g id="s52-top-k-sent"></g>
+
+      <!-- bars -->
+      <g id="s52-top-k-bars"></g>
+      <rect id="s52-top-k-hl" class="hl" x="20" y="112" width="572" height="48" rx="12" opacity="0"/>
+
+      <!-- step 1: only the top k stay -->
+      <g data-from="1">
+        <path class="brk" d="M602 116H614V276H602"/>
+        <text class="klab" x="632" y="206">k = 3</text>
+      </g>
+
+      <!-- step 2: the die -->
+      <g id="s52-top-k-die" opacity="0">
+        <rect class="die" x="-50" y="-50" width="100" height="100" rx="18"/>
+        <g id="s52-top-k-pips"></g>
+      </g>
+
+      <!-- the chosen chip -->
+      <g id="s52-top-k-pick" opacity="0">
+        <rect class="cr hot" width="116" height="52" rx="11"/>
+        <text class="ct hot" x="58" y="35">mat</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s52-top-k svg.diagram{max-width:min(1203.2px,1100px);}
+    #s52-top-k .cr{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s52-top-k .cr.hot{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));}
+    #s52-top-k .cr.slot{stroke:var(--color-text-faint);stroke-dasharray:8 6;fill:none;}
+    #s52-top-k .ct{font-size:27px;fill:var(--color-text);text-anchor:middle;}
+    #s52-top-k .ct.hot{fill:var(--color-accent);}
+    #s52-top-k .ct.q{fill:var(--color-text-faint);}
+    #s52-top-k .w{font-size:27px;text-anchor:end;}
+    #s52-top-k .v{font-size:25px;}
+    #s52-top-k .hl{fill:none;stroke:var(--color-accent);stroke-width:3;}
+    #s52-top-k .brk{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s52-top-k .klab{font-size:30px;fill:var(--color-accent);}
+    #s52-top-k .die{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:4;}
+    #s52-top-k .pip{fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 's52-top-k';
+      var WORDS = ['mat', 'rug', 'floor', 'chair', 'table'];
+      var S = [2.0, 1.4, 1.1, 0.6, 0.3];                       // SAMPLING TOY, T = 1
+      var E = S.map(function (x) { return Math.exp(x); });
+      var SUM = E.reduce(function (a, b) { return a + b; }, 0);
+      var P = E.map(function (x) { return x / SUM; });          // sorted already
+      var KEEP = 3;
+      var KSUM = P.slice(0, KEEP).reduce(function (a, b) { return a + b; }, 0);
+      var Q = P.map(function (p, i) { return i < KEEP ? p / KSUM : p; });   // .51 .28 .21 for the kept ones
+      var ROW0 = 136, PITCH = 60, BH = 42, X0 = 204, SC = 560, WX = 186;
+      var OP = [1, 0.78, 0.62, 0.46, 0.36];
+      var GREY = Deck.rgb('--color-text-faint'), CYAN = Deck.rgb('--color-accent');
+      function mix(t) { return 'rgb(' + [0, 1, 2].map(function (k) { return Math.round(GREY[k] + (CYAN[k] - GREY[k]) * t); }).join(',') + ')'; }
+
+      var barsG = document.getElementById(ID + '-bars'), NS = barsG.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e); return e;
+      }
+      // the sentence, with the next slot
+      var sent = document.getElementById(ID + '-sent'), SW = 116, SPITCH = 142, SX0 = 107;
+      ['The', 'cat', 'sat', 'on', 'the'].forEach(function (w, i) {
+        var g = mk('g', { transform: 'translate(' + (SX0 + i * SPITCH) + ' 16)' }, sent);
+        mk('rect', { 'class': 'cr', width: SW, height: 52, rx: 11 }, g);
+        mk('text', { 'class': 'ct', x: SW / 2, y: 35 }, g, w);
+      });
+      var SLOT = { x: SX0 + 5 * SPITCH, y: 16 };
+      var slot = mk('g', { transform: 'translate(' + SLOT.x + ' ' + SLOT.y + ')' }, sent);
+      mk('rect', { 'class': 'cr slot', width: SW, height: 52, rx: 11 }, slot);
+      mk('text', { 'class': 'ct q', x: SW / 2, y: 36 }, slot, '?');
+
+      var rs = [], vs = [], ws = [];
+      WORDS.forEach(function (w, i) {
+        var cy = ROW0 + i * PITCH;
+        ws.push(mk('text', { 'class': 'w', x: WX, y: cy + 9 }, barsG, w));
+        rs.push(mk('rect', { x: X0, y: cy - BH / 2, width: 0, height: BH, rx: 6 }, barsG));
+        vs.push(mk('text', { 'class': 'v', x: X0 + 12, y: cy + 9 }, barsG, ''));
+      });
+
+      // the die: nine pip slots, a mask per face
+      var pipsG = document.getElementById(ID + '-pips'), pips = [];
+      for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) pips.push(mk('circle', { 'class': 'pip', cx: (c - 1) * 26, cy: (r - 1) * 26, r: 8.5 }, pipsG));
+      var FACE = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+      var SEQ = [3, 6, 2, 4, 1, 6, 3, 2, 5];                    // the faces it tumbles through; it lands on the last
+      var faceNow = -1;
+      function setFace(f) {
+        if (f === faceNow) return; faceNow = f;
+        pips.forEach(function (p, i) { p.style.display = FACE[f].indexOf(i) > -1 ? '' : 'none'; });
+      }
+
+      var DIE = { x: 860, y: 262 }, CHIP0 = { x: 640, y: ROW0 - 26 }, CHIP1 = { x: SLOT.x, y: SLOT.y };
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function sm(v) { v = clamp(v); return v * v * (3 - 2 * v); }
+      var A = 0, D = 0, F = 0, el = null;
+      function draw() {
+        for (var i = 0; i < 5; i++) {
+          var kept = i < KEEP;
+          var v = kept ? Deck.lerp(P[i], Q[i], A) : P[i];
+          rs[i].setAttribute('width', (v * SC).toFixed(1));
+          rs[i].setAttribute('fill', kept ? mix(1) : mix(1 - A));
+          rs[i].setAttribute('fill-opacity', kept ? OP[i] : Deck.lerp(OP[i], 0.34, A).toFixed(3));
+          vs[i].setAttribute('x', (X0 + v * SC + 14).toFixed(1));
+          vs[i].textContent = v.toFixed(kept && A >= 1 ? 2 : 3);
+          var dim = kept ? 1 : Deck.lerp(1, 0.45, A);
+          vs[i].style.fill = i === 0 ? 'var(--color-accent)' : 'var(--color-text-soft)';
+          vs[i].style.opacity = dim.toFixed(3);
+          ws[i].style.fill = i === 0 ? 'var(--color-accent)' : 'var(--color-text-muted)';
+          ws[i].style.opacity = dim.toFixed(3);
+        }
+        // the die rolls, then the choice lights up and its chip appears at the mat row
+        var roll = clamp(D / 0.78), hl = clamp((D - 0.78) / 0.22);
+        var angle = 720 * (1 - Math.pow(1 - roll, 3));
+        el.die.setAttribute('transform', 'translate(' + DIE.x + ' ' + DIE.y + ') rotate(' + angle.toFixed(1) + ')');
+        el.die.setAttribute('opacity', (clamp(D / 0.08) * (1 - 0.7 * F)).toFixed(3));
+        setFace(SEQ[Math.min(SEQ.length - 1, Math.floor(roll * SEQ.length))]);
+        el.hl.setAttribute('opacity', (hl * (1 - F)).toFixed(3));
+        var f = sm(F), cx = Deck.lerp(CHIP0.x, CHIP1.x, f), cy = Deck.lerp(CHIP0.y, CHIP1.y, f);
+        el.pick.setAttribute('transform', 'translate(' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ')');
+        el.pick.setAttribute('opacity', hl.toFixed(3));
+      }
+
+      Deck.slide('s52-top-k', {
+        enter: function (c) {
+          el = { die: c.qs('#' + ID + '-die'), hl: c.qs('#' + ID + '-hl'), pick: c.qs('#' + ID + '-pick') };
+          A = 0; D = 0; F = 0; faceNow = -1; draw();
+        },
+        step: function (n, prev, c) {
+          var tA = n >= 1 ? 1 : 0, tD = n >= 2 ? 1 : 0, tF = n >= 3 ? 1 : 0, fA = A, fD = D, fF = F;
+          if (c.instant) { A = tA; D = tD; F = tF; draw(); return; }
+          var ms = tD !== fD ? 1800 : tF !== fF ? 1100 : 900;
+          Deck.tween(ms, function (t) {
+            A = Deck.lerp(fA, tA, t); D = Deck.lerp(fD, tD, t); F = Deck.lerp(fF, tF, t); draw();
+          }, { ease: tD !== fD ? Deck.ease.linear : Deck.ease.inOut });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,95 @@
+<section class="slide" id="s48-last-token" data-steps="1">
+  <p class="kicker reveal">predicting the token</p>
+  <p class="statement reveal">After the last layer, the final token carries the context.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 480" role="img" aria-labelledby="s48-last-token-t s48-last-token-d">
+      <title id="s48-last-token-t">One vector per token after the last layer</title>
+      <desc id="s48-last-token-d">The sentence The cat sat on the as five chips, each with a column of numbers under it. Only the column under the last token is highlighted; it is then lifted out and enlarged, because that vector is the one that predicts the next token.</desc>
+      <defs>
+        <marker id="s48-last-token-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,1 L14,8 L0,15 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <g id="s48-last-token-chips"></g>
+      <g id="s48-last-token-vecs"></g>
+
+      <!-- step 0: what the picture is -->
+      <g data-from="0" data-until="1">
+        <text class="cap" x="520" y="448" text-anchor="middle">one vector per token</text>
+      </g>
+
+      <!-- step 1: the last vector predicts -->
+      <g data-from="1">
+        <text class="hot" x="770" y="312" text-anchor="end">this one predicts</text>
+        <text class="hot" x="770" y="348" text-anchor="end">the next token</text>
+        <line class="shaft" x1="788" y1="330" x2="834" y2="330" marker-end="url(#s48-last-token-ah)"/>
+        <text class="cap" x="770" y="410" text-anchor="end">5,120 numbers</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s48-last-token svg.diagram{max-width:min(1203.2px,1100px);}
+    #s48-last-token .cr{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s48-last-token .cr.last{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #s48-last-token .ct{font-size:27px;fill:var(--color-text);text-anchor:middle;}
+    #s48-last-token .ct.last{fill:var(--color-accent);}
+    #s48-last-token .cell{fill:var(--color-text-dim);}
+    #s48-last-token .vec.last .cell{fill:var(--color-accent);}
+    #s48-last-token .frame{fill:none;stroke:var(--color-accent);stroke-width:3;}
+    #s48-last-token .cap{font-size:24px;fill:var(--color-text-dim);}
+    #s48-last-token .hot{font-size:28px;fill:var(--color-accent);}
+    #s48-last-token .shaft{stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's48-last-token';
+      var WORDS = ['The', 'cat', 'sat', 'on', 'the'];
+      var PITCH = 190, CX0 = 140, VY = 104, CW = 76, CH = 32, RP = 36, NC = 8, LAST = WORDS.length - 1;
+      var chipsG = document.getElementById(ID + '-chips'), vecsG = document.getElementById(ID + '-vecs'), NS = chipsG.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e); return e;
+      }
+      // illustrative values, seeded so the picture is the same every time
+      function val(i, k) { var s = Math.sin((i + 1) * 12.9898 + (k + 1) * 78.233) * 43758.5453; return s - Math.floor(s); }
+
+      var chips = [], vecs = [];
+      WORDS.forEach(function (w, i) {
+        var cx = CX0 + i * PITCH, last = i === LAST;
+        var cg = mk('g', { transform: 'translate(' + (cx - 70) + ' 14)' }, chipsG);
+        mk('rect', { 'class': 'cr' + (last ? ' last' : ''), width: 140, height: 56, rx: 11 }, cg);
+        mk('text', { 'class': 'ct' + (last ? ' last' : ''), x: 70, y: 38 }, cg, w);
+        chips.push(cg);
+        var vg = mk('g', { 'class': 'vec' + (last ? ' last' : '') }, vecsG);
+        for (var k = 0; k < NC; k++) {
+          mk('rect', { 'class': 'cell', x: -CW / 2, y: k * RP, width: CW, height: CH, rx: 5, 'fill-opacity': (0.22 + 0.78 * val(i, k)).toFixed(3) }, vg);
+        }
+        if (last) mk('rect', { 'class': 'frame', x: -CW / 2 - 8, y: -8, width: CW + 16, height: NC * RP + 4, rx: 9 }, vg);
+        vecs.push(vg);
+      });
+
+      var A = 0, frame = null;
+      function draw() {
+        vecs.forEach(function (vg, i) {
+          var last = i === LAST;
+          var s = Deck.lerp(1, last ? 1.25 : 0.5, A);
+          vg.setAttribute('transform', 'translate(' + (CX0 + i * PITCH) + ' ' + VY + ') scale(' + s.toFixed(3) + ')');
+          vg.style.opacity = last ? 1 : Deck.lerp(1, 0.4, A).toFixed(3);
+          chips[i].style.opacity = last ? 1 : Deck.lerp(1, 0.55, A).toFixed(3);
+        });
+        if (frame) frame.style.opacity = A.toFixed(3);
+      }
+
+      Deck.slide('s48-last-token', {
+        enter: function (c) { frame = c.qs('#' + ID + ' .frame'); A = 0; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0, from = A;
+          if (c.instant) { A = to; draw(); return; }
+          Deck.tween(850, function (t) { A = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,167 @@
+<section class="slide" id="s17-tokenizer" data-steps="2">
+  <p class="kicker reveal">tokens</p>
+  <p class="statement reveal">The tokenizer turns text into vocabulary numbers.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1100 520" role="img" aria-labelledby="s17-tokenizer-t s17-tokenizer-d">
+      <title id="s17-tokenizer-t">The tokenizer maps text to vocabulary ids</title>
+      <desc id="s17-tokenizer-d">The sentence I can reliably deploy LLMs goes into the tokenizer and comes out as seven token chips. Under each chip appears its id in the vocabulary, 40, 628, 54488, 10204, 436, 10673 and 82, and a small excerpt of the vocabulary shows three of those lookups.</desc>
+      <defs>
+        <marker id="s17-tokenizer-ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,1 L12,7 L0,13 Z" fill="var(--color-accent)"/></marker>
+        <marker id="s17-tokenizer-am" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,1 L12,7 L0,13 Z" fill="var(--color-text-muted)"/></marker>
+      </defs>
+
+      <g id="s17-tokenizer-main">
+      <g class="top">
+        <text class="raw" x="550" y="38">I can reliably deploy LLMs</text>
+        <line class="arr m" x1="550" y1="58" x2="550" y2="90" marker-end="url(#s17-tokenizer-am)"/>
+        <rect class="tzr" x="430" y="96" width="240" height="56" rx="13"/>
+        <text class="tzt" x="550" y="133">tokenizer</text>
+        <line class="arr" x1="550" y1="156" x2="550" y2="186" marker-end="url(#s17-tokenizer-ah)"/>
+      </g>
+
+      <g id="s17-tokenizer-chips"></g>
+      <g id="s17-tokenizer-ids"></g>
+      </g>
+      <g id="s17-tokenizer-links"></g>
+      <g id="s17-tokenizer-vocab"></g>
+      <text class="vlab" data-from="2" x="550" y="506">vocabulary</text>
+    </svg>
+  </div>
+
+  <style>
+    #s17-tokenizer svg.diagram{max-width:min(1203.2px,1280px);}
+    #s17-tokenizer .raw{font-family:var(--font-mono);font-size:34px;fill:var(--color-text);text-anchor:middle;}
+    #s17-tokenizer .arr{stroke:var(--color-accent);stroke-width:2.5;fill:none;}
+    #s17-tokenizer .arr.m{stroke:var(--color-text-muted);}
+    #s17-tokenizer .tzr{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2;}
+    #s17-tokenizer .tzt{font-family:var(--font-mono);font-size:28px;fill:var(--color-accent);text-anchor:middle;}
+    #s17-tokenizer .top{transition:opacity .6s ease;}
+    #s17-tokenizer[data-cur="1"] .top, #s17-tokenizer[data-cur="2"] .top{opacity:.4;}
+    #s17-tokenizer .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s17-tokenizer .chip text{font-family:var(--font-mono);font-size:38px;fill:var(--color-text);text-anchor:middle;}
+    #s17-tokenizer .chip .sp{fill:var(--color-text-muted);}
+    #s17-tokenizer .idn{font-family:var(--font-mono);font-size:32px;fill:var(--color-accent);text-anchor:middle;}
+    #s17-tokenizer .link{fill:none;stroke:var(--color-accent);stroke-width:2;stroke-linecap:round;opacity:.8;}
+    #s17-tokenizer .cell rect{fill:var(--color-surface-deep);stroke:var(--color-hairline);stroke-width:2;}
+    #s17-tokenizer .cell line{stroke:var(--color-hairline);stroke-width:2;}
+    #s17-tokenizer .cell text{font-family:var(--font-mono);font-size:30px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s17-tokenizer .cell .sp{fill:var(--color-text-dim);}
+    #s17-tokenizer .cell.hit rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #s17-tokenizer .cell.hit line{stroke:color-mix(in oklab,var(--color-accent) 45%,transparent);}
+    #s17-tokenizer .cell.hit text{fill:var(--color-text);}
+    #s17-tokenizer .cell.hit text.cid{fill:var(--color-accent);}
+    #s17-tokenizer .cell.hit .sp{fill:var(--color-text-muted);}
+    #s17-tokenizer .gap{font-family:var(--font-mono);font-size:30px;fill:var(--color-text-faint);text-anchor:middle;}
+    #s17-tokenizer .vlab{font-family:var(--font-mono);font-size:24px;fill:var(--color-text-dim);text-anchor:middle;}
+  </style>
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      // REAL: deck/data/qwen38.json tokenization.examples[0] (Qwen3.8-27B tokenizer), [id, text]
+      var TOKS = [[40,"I"],[628," can"],[54488," reliably"],[10204," deploy"],[436," L"],[10673,"LM"],[82,"s"]];
+      // REAL id -> token pairs from the examples (examples[0], examples[3]), sorted by id: an excerpt of the vocabulary
+      var VOCAB = [[40,"I"],[279," the"],[628," can"],[7993," cat"],[10204," deploy"]];
+      var FS = 38, ADV = FS * 0.6, PAD = 20, H = 72, CX = 550, Y_CHIP = 224, Y_ID = 312, Y_LINK0 = 326;
+      var CELL_Y = 390, CELL_W = 148, CELL_H = 84, CELL_STEP = 190, CELL_FS = 30;
+      var chips = [], idsEl = [], links = [], linkPts = [], vocabG = null, mainG = null, A = 0, B = 0, stop = null;
+
+      function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function textW(s, fs) {
+        var w = 0;
+        for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); w += c < 0x250 ? 0.6 : (c >= 0x2e80 ? 1 : 0.65); }
+        return w * fs;
+      }
+      // token label centred on x = 0 at baseline-centre y; a leading space is drawn as a dot
+      function label(parent, text, fs, y, cls) {
+        var lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text, adv = fs * 0.6;
+        var inner = (lead ? adv : 0) + textW(body, fs), left = -inner / 2;
+        if (lead) el('circle', { class: 'sp', cx: left + adv / 2, cy: y + fs * 0.1, r: fs * 0.11 }, parent);
+        var t = el('text', { x: left + (lead ? adv : 0) + textW(body, fs) / 2, y: y, dy: '.35em', class: cls || '' }, parent);
+        t.textContent = body;
+        return inner;
+      }
+      function chipWidth(text) {
+        var lead = text.charAt(0) === ' ', inner = (lead ? ADV : 0) + textW(lead ? text.slice(1) : text, FS);
+        return Math.max(FS * 1.65, inner + 2 * PAD);
+      }
+      function centers(widths, gap) {
+        var total = widths.reduce(function (a, b) { return a + b; }, 0) + gap * (widths.length - 1), x = CX - total / 2;
+        return widths.map(function (w) { var c = x + w / 2; x += w + gap; return c; });
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // a: ids under the chips (step 1); b: vocabulary excerpt + connector lines (step 2)
+      // the main drawing sits low while the lower half is empty and rises as the vocabulary arrives
+      function render(a, b) {
+        var off = 130 - 40 * a - 90 * clamp(b * 2.5);
+        mainG.setAttribute('transform', 'translate(0 ' + off.toFixed(1) + ')');
+        idsEl.forEach(function (t, i) {
+          var v = clamp(a * 1.8 - i * 0.13);
+          t.style.opacity = v.toFixed(3);
+          t.setAttribute('transform', 'translate(0 ' + ((1 - v) * 12).toFixed(1) + ')');
+        });
+        vocabG.style.opacity = clamp((b - 0.3) / 0.4).toFixed(3);
+        links.forEach(function (l, i) {
+          var p = linkPts[i], y1 = Y_LINK0 + off, ym = (y1 + p.y2) / 2, d = clamp((b - 0.4 - i * 0.05) / 0.4);
+          l.setAttribute('d', 'M' + p.x1.toFixed(1) + ' ' + y1.toFixed(1) + ' C' + p.x1.toFixed(1) + ' ' + ym.toFixed(1) + ' ' + p.x2 + ' ' + ym.toFixed(1) + ' ' + p.x2 + ' ' + p.y2);
+          l.style.strokeDashoffset = (1 - d).toFixed(3);
+          l.style.opacity = d > 0 ? 0.8 : 0;
+        });
+      }
+
+      Deck.slide('s17-tokenizer', {
+        enter: function (c) {
+          var gc = c.qs('#s17-tokenizer-chips'), gi = c.qs('#s17-tokenizer-ids'), gl = c.qs('#s17-tokenizer-links');
+          vocabG = c.qs('#s17-tokenizer-vocab'); mainG = c.qs('#s17-tokenizer-main');
+          [gc, gi, gl, vocabG].forEach(function (g) { while (g.firstChild) g.removeChild(g.firstChild); });
+          chips = []; idsEl = []; links = []; linkPts = [];
+
+          var cx = centers(TOKS.map(function (t) { return chipWidth(t[1]); }), 14);
+          TOKS.forEach(function (t, i) {
+            var g = el('g', { class: 'chip', transform: 'translate(' + cx[i].toFixed(1) + ' ' + Y_CHIP + ')' }, gc);
+            el('rect', { x: -chipWidth(t[1]) / 2, y: -H / 2, width: chipWidth(t[1]), height: H, rx: 12 }, g);
+            label(g, t[1], FS, 0);
+            chips.push(g);
+            var idg = el('g', {}, gi), idt = el('text', { class: 'idn', x: cx[i].toFixed(1), y: Y_ID }, idg);
+            idt.textContent = String(t[0]);
+            idsEl.push(idg);
+          });
+
+          // the vocabulary excerpt: 5 cells, id over token, with a gap marker between them
+          var vx = VOCAB.map(function (v, j) { return CX + (j - 2) * CELL_STEP; });
+          VOCAB.forEach(function (v, j) {
+            var hit = -1;
+            TOKS.forEach(function (t, i) { if (t[0] === v[0] && t[1] === v[1]) hit = i; });
+            var g = el('g', { class: 'cell' + (hit >= 0 ? ' hit' : ''), transform: 'translate(' + vx[j] + ' ' + CELL_Y + ')' }, vocabG);
+            el('rect', { x: -CELL_W / 2, y: 0, width: CELL_W, height: CELL_H, rx: 12 }, g);
+            el('line', { x1: -CELL_W / 2, y1: CELL_H / 2, x2: CELL_W / 2, y2: CELL_H / 2 }, g);
+            var idt = el('text', { class: 'cid', x: 0, y: CELL_H / 4, dy: '.35em' }, g);
+            idt.textContent = String(v[0]);
+            label(g, v[1], CELL_FS, CELL_H * 3 / 4);
+            if (j < VOCAB.length - 1) {
+              var gp = el('text', { class: 'gap', x: vx[j] + CELL_STEP / 2, y: CELL_Y + CELL_H / 2, dy: '.35em' }, vocabG);
+              gp.textContent = '…';
+            }
+            if (hit >= 0) {
+              linkPts.push({ x1: cx[hit], x2: vx[j], y2: CELL_Y - 4 });
+              links.push(el('path', { class: 'link', pathLength: 1, 'stroke-dasharray': 1 }, gl));
+            }
+          });
+          A = 0; B = 0; render(0, 0);
+        },
+        step: function (n, prev, c) {
+          var ta = n >= 1 ? 1 : 0, tb = n >= 2 ? 1 : 0;
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { A = ta; B = tb; render(A, B); return; }
+          var fa = A, fb = B;
+          stop = Deck.tween(900, function (k) { A = Deck.lerp(fa, ta, k); B = Deck.lerp(fb, tb, k); render(A, B); });
+        }
+      });
+    })();
+  </script>
+</section>

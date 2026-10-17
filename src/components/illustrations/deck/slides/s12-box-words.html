@@ -1,0 +1,82 @@
+<section class="slide" id="s12-box-words" data-steps="1">
+  <p class="kicker reveal">the loop</p>
+  <p class="statement reveal">A transformer: a box that predicts the next word.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1207 300" role="img" aria-labelledby="s12-box-words-t s12-box-words-d">
+      <title id="s12-box-words-t">A transformer: a box that predicts the next word</title>
+      <desc id="s12-box-words-d">Five word chips, The cat sat on the, point with an arrow at a teal box labelled transformer, which points with a second arrow at a dashed output slot. The slot shows a question mark, then the predicted word mat in cyan.</desc>
+      <defs>
+        <marker id="s12-box-words-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="11" refY="8" orient="auto"><path d="M0,2 L13,8 L0,14 z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <!-- the sentence as word chips -->
+      <g>
+        <g transform="translate(24 118)"><rect class="chipr" width="96" height="64" rx="12"/><text class="chiptxt" x="48" y="42">The</text></g>
+        <g transform="translate(136 118)"><rect class="chipr" width="96" height="64" rx="12"/><text class="chiptxt" x="48" y="42">cat</text></g>
+        <g transform="translate(248 118)"><rect class="chipr" width="96" height="64" rx="12"/><text class="chiptxt" x="48" y="42">sat</text></g>
+        <g transform="translate(360 118)"><rect class="chipr" width="96" height="64" rx="12"/><text class="chiptxt" x="48" y="42">on</text></g>
+        <g transform="translate(472 118)"><rect class="chipr" width="96" height="64" rx="12"/><text class="chiptxt" x="48" y="42">the</text></g>
+      </g>
+
+      <!-- sentence -> transformer -->
+      <line class="flow" x1="592" y1="150" x2="620" y2="150" marker-end="url(#s12-box-words-ah)"/>
+
+      <!-- the hero box -->
+      <rect class="hero" x="644" y="29.4" width="343" height="241.3" rx="12"/>
+      <text class="herotxt" x="815.5" y="162">transformer</text>
+
+      <!-- transformer -> output slot -->
+      <line class="flow" x1="1011" y1="150" x2="1039" y2="150" marker-end="url(#s12-box-words-ah)"/>
+
+      <!-- the output slot -->
+      <rect id="s12-box-words-slot" class="slot" x="1063" y="108" width="112" height="84" rx="14"/>
+      <text id="s12-box-words-q" class="slotq" x="1119" y="162">?</text>
+      <text id="s12-box-words-m" class="slotm" x="1119" y="162">mat</text>
+    </svg>
+  </div>
+
+  <style>
+    #s12-box-words svg.diagram{max-width:min(1177.6px,1000px);}
+    #s12-box-words .chipr{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:1.5;}
+    #s12-box-words .chiptxt{font-family:var(--font-mono);font-size:34px;fill:var(--color-text);text-anchor:middle;}
+    #s12-box-words .flow{stroke:var(--color-accent);stroke-width:3;fill:none;}
+    #s12-box-words .hero{fill:var(--color-surface-deep);stroke:var(--d-teal);stroke-width:2;}
+    #s12-box-words .herotxt{font-family:var(--font-mono);font-size:34px;fill:var(--color-text);text-anchor:middle;}
+    #s12-box-words .slot{fill:none;stroke:var(--color-text-dim);stroke-width:2;stroke-dasharray:7 6;transition:stroke .5s;}
+    #s12-box-words .slotq{font-family:var(--font-mono);font-size:34px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s12-box-words .slotm{font-family:var(--font-mono);font-size:34px;fill:var(--color-accent);text-anchor:middle;opacity:0;}
+  </style>
+  <script>
+    (function () {
+      var S = { out: 0 };
+      var slot, q, m, cancel = null;
+
+      function draw() {
+        q.style.opacity = 1 - S.out;
+        m.style.opacity = S.out;
+        slot.style.stroke = S.out >= 0.5 ? 'var(--color-accent)' : 'var(--color-text-dim)';
+      }
+
+      Deck.slide('s12-box-words', {
+        enter: function (c) {
+          slot = c.qs('#s12-box-words-slot');
+          q = c.qs('#s12-box-words-q');
+          m = c.qs('#s12-box-words-m');
+          S.out = 0;
+          draw();
+        },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          slot.style.stroke = to ? 'var(--color-accent)' : 'var(--color-text-dim)';
+          if (c.instant) { S.out = to; draw(); return; }
+          var from = S.out;
+          cancel = Deck.tween(800, function (t) {
+            S.out = Deck.lerp(from, to, t);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

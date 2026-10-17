@@ -1,0 +1,173 @@
+<section class="slide" id="s15-model-folder" data-steps="2">
+  <p class="kicker reveal">tokens</p>
+  <p class="statement reveal">A downloaded model is just a folder of files.</p>
+  <div class="stage reveal">
+    <div class="wrap" id="s15-model-folder-wrap">
+      <div class="term" id="s15-model-folder-term">
+        <div class="term-bar"><i></i><i></i><i></i></div>
+        <div class="term-body" id="s15-model-folder-body"></div>
+      </div>
+      <div class="tags" id="s15-model-folder-tags"></div>
+    </div>
+  </div>
+
+  <style>
+    #s15-model-folder .stage{margin-top:10px;}
+    #s15-model-folder .wrap{position:relative;transition:transform .8s ease;}
+    #s15-model-folder .wrap.hi{transform:translateX(-155px);}
+    #s15-model-folder .wrap.nt, #s15-model-folder .wrap.nt *{transition:none!important;}
+    #s15-model-folder .term{width:auto;}
+    #s15-model-folder .term-body{width:64ch;box-sizing:content-box;font-size:clamp(18px,17.92px,21px);line-height:1.32;padding:12px 22px 14px;}
+    #s15-model-folder .ln{display:block;height:1.32em;margin:0 -22px;padding:0 19px;border-left:3px solid transparent;opacity:0;transition:opacity .12s ease,background .5s ease,border-color .5s ease;}
+    #s15-model-folder .ln.on{opacity:1;}
+    #s15-model-folder .ln .sz{color:var(--color-text-muted);}
+    #s15-model-folder .ln .nm{color:var(--color-text);}
+    #s15-model-folder .ln.gap .sz, #s15-model-folder .ln.note{color:var(--color-text-faint);}
+    #s15-model-folder .cur{display:inline-block;width:.55em;height:1.05em;margin-left:2px;vertical-align:text-bottom;background:var(--color-text-muted);}
+    #s15-model-folder .wrap.hi .ln.sel{background:color-mix(in oklab,var(--color-accent) 10%,transparent);border-left-color:var(--color-accent);}
+    #s15-model-folder .wrap.hi .ln.sel .sz, #s15-model-folder .wrap.hi .ln.sel .nm{color:var(--color-accent);}
+    #s15-model-folder .tags{position:absolute;left:100%;top:0;bottom:0;width:310px;opacity:0;transition:opacity .6s ease .3s;}
+    #s15-model-folder .wrap.hi .tags{opacity:1;}
+    #s15-model-folder .tag{position:absolute;left:12px;right:0;}
+    #s15-model-folder .tag i{position:absolute;left:0;top:0;bottom:0;width:12px;border:2px solid var(--color-accent);border-left:0;border-radius:0 5px 5px 0;}
+    #s15-model-folder .tag b{position:absolute;left:28px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-weight:500;font-size:clamp(20px,21.76px,24px);line-height:1.2;color:var(--color-accent);white-space:nowrap;}
+  </style>
+  <script>
+    (function () {
+      // REAL: deck/data/qwen38.json files[] (Qwen/Qwen3.8-27B) as [bytes, name]; `ls` hides the dotfile .gitattributes
+      var FILES = [[11544,"LICENSE"],[65012,"README.md"],[8952,"chat_template.jinja"],[4312,"config.json"],[238,"crc32.txt"],[202,"generation_config.json"],[3353259,"merges.txt"],[3966730552,"model-00001-of-00018.safetensors"],[3043080328,"model-00002-of-00018.safetensors"],[2542796952,"model-00003-of-00018.safetensors"],[3988973152,"model-00004-of-00018.safetensors"],[2099339864,"model-00005-of-00018.safetensors"],[3979553696,"model-00006-of-00018.safetensors"],[2108759344,"model-00007-of-00018.safetensors"],[3979553696,"model-00008-of-00018.safetensors"],[2108759344,"model-00009-of-00018.safetensors"],[3979553696,"model-00010-of-00018.safetensors"],[2108759344,"model-00011-of-00018.safetensors"],[3979553696,"model-00012-of-00018.safetensors"],[2108759344,"model-00013-of-00018.safetensors"],[3979553696,"model-00014-of-00018.safetensors"],[2108759344,"model-00015-of-00018.safetensors"],[3979564040,"model-00016-of-00018.safetensors"],[2108759344,"model-00017-of-00018.safetensors"],[3392197344,"model-00018-of-00018.safetensors"],[112216,"model.safetensors.index.json"],[390,"preprocessor_config.json"],[12809320,"tokenizer.json"],[17928,"tokenizer_config.json"],[385,"video_preprocessor_config.json"],[6722759,"vocab.json"]];
+      var TOTAL = 55562855904; // total_weight_bytes
+      var CMD = "ls -lh Qwen3.8-27B/ | awk 'NR>1{printf \"%5s  %s\\n\",$5,$9}'";
+      var SHARD = /^model-\d+-of-\d+\.safetensors$/;
+
+      var wrap = null, term = null, body = null, tags = null, cmdEl = null, cur = null;
+      var rows = [], groups = [], CP = 0, OP = 0, stopC = null, stopO = null;
+
+      // `ls -lh` sizes: 1024-based, one decimal below 10, rounded to nearest (BSD/macOS style)
+      function lsh(b) {
+        if (b < 1024) return b + 'B';
+        var v = b, i = 0, U = ['B', 'K', 'M', 'G', 'T'];
+        while (v >= 1024) { v /= 1024; i++; }
+        return (v < 10 ? (Math.round(v * 10) / 10).toFixed(1) : String(Math.round(v))) + U[i];
+      }
+      function pad(s, n) { while (s.length < n) s = ' ' + s; return s; }
+      function span(parent, cls, text) {
+        var s = document.createElement('span');
+        if (cls) s.className = cls;
+        s.textContent = text;
+        parent.appendChild(s);
+        return s;
+      }
+      function line(cls) {
+        var d = document.createElement('div');
+        d.className = 'ln ' + cls;
+        body.appendChild(d);
+        return d;
+      }
+
+      function build() {
+        while (body.firstChild) body.removeChild(body.firstChild);
+        while (tags.firstChild) tags.removeChild(tags.firstChild);
+        rows = []; groups = [];
+        var l0 = line('on');
+        span(l0, 'p', '$ ');
+        cmdEl = span(l0, 'c', '');
+        cur = span(l0, 'cur', '');
+
+        var shards = FILES.filter(function (f) { return SHARD.test(f[1]); }), si = -1;
+        var byName = {}, shardFirst = null, shardLast = null;
+        FILES.forEach(function (f) {
+          var isShard = SHARD.test(f[1]);
+          if (isShard) {
+            si++;
+            if (si >= 3 && si < shards.length - 1) return;                 // elided middle shards
+          }
+          var l = line('file' + (isShard ? ' shard sel' : ''));
+          span(l, 'sz', pad(lsh(f[0]), 5) + '  ');
+          span(l, 'nm', f[1]);
+          rows.push(l);
+          byName[f[1]] = l;
+          if (isShard && si === 0) shardFirst = l;
+          if (isShard && si === 2) {
+            var g = line('gap sel');                                         // the dim "..." between shard 3 and the last
+            span(g, 'sz', '  ...');
+            rows.push(g);
+          }
+          if (isShard && si === shards.length - 1) shardLast = l;
+        });
+        var total = line('note');
+        span(total, 'sz', '# total weights: ' + (TOTAL / 1e9).toFixed(1) + ' GB');
+        rows.push(total);
+
+        byName['tokenizer.json'].classList.add('sel');
+        byName['config.json'].classList.add('sel');
+        groups = [
+          { from: byName['config.json'], to: byName['config.json'], label: 'the dimensions' },
+          { from: shardFirst, to: shardLast, label: 'the numbers: ' + (TOTAL / 1e9).toFixed(1) + ' GB' },
+          { from: byName['tokenizer.json'], to: byName['tokenizer.json'], label: 'the vocabulary' }
+        ];
+        groups.forEach(function (g) {
+          g.el = document.createElement('div');
+          g.el.className = 'tag';
+          g.el.appendChild(document.createElement('i'));
+          var b = document.createElement('b');
+          b.textContent = g.label;
+          g.el.appendChild(b);
+          tags.appendChild(g.el);
+        });
+      }
+      // put each tag next to its line(s): measured, so it follows the real line positions
+      function place() {
+        var t0 = term.getBoundingClientRect().top, k = Deck.scale(term);
+        groups.forEach(function (g) {
+          var a = g.from.getBoundingClientRect(), b = g.to.getBoundingClientRect();
+          g.el.style.top = ((a.top - t0) / k).toFixed(1) + 'px';
+          g.el.style.height = ((b.bottom - a.top) / k).toFixed(1) + 'px';
+        });
+      }
+      function setCmd(f) { cmdEl.textContent = CMD.slice(0, Math.round(f * CMD.length)); }
+      function setOut(f) {
+        var n = Math.round(f * rows.length);
+        rows.forEach(function (r, i) { r.classList.toggle('on', i < n); });
+        cur.style.opacity = f > 0 ? 0 : 1;
+      }
+      // linear tween on timers (like Deck.tween, but it also advances under the headless screenshot clock); cancelled in leave/step
+      function run(ms, fn) {
+        if (Deck.reduced || ms <= 0) { fn(1); return null; }
+        var t0 = performance.now(), id = setInterval(function () {
+          var k = Math.min(1, (performance.now() - t0) / ms);
+          fn(k);
+          if (k >= 1) clearInterval(id);
+        }, 16);
+        return function () { clearInterval(id); };
+      }
+      function cancel() {
+        if (stopC) { stopC(); stopC = null; }
+        if (stopO) { stopO(); stopO = null; }
+      }
+
+      Deck.slide('s15-model-folder', {
+        enter: function (c) {
+          wrap = c.qs('#s15-model-folder-wrap'); term = c.qs('#s15-model-folder-term');
+          body = c.qs('#s15-model-folder-body'); tags = c.qs('#s15-model-folder-tags');
+          build(); CP = 0; OP = 0; setCmd(0); setOut(0); place();
+          window.addEventListener('resize', place);
+        },
+        leave: function () { window.removeEventListener('resize', place); cancel(); },
+        step: function (n, prev, c) {
+          var tc = 1, to = n >= 1 ? 1 : 0;
+          wrap.classList.toggle('nt', c.instant);            // jumps (URL, going back across slides) skip the CSS transitions
+          wrap.classList.toggle('hi', n >= 2);
+          cancel();
+          // arriving on step 0 types the command; every other jump is instant
+          var animate = !c.instant || (prev === -1 && n === 0);
+          if (!animate) { CP = tc; OP = to; setCmd(CP); setOut(OP); place(); return; }
+          var fc = CP, fo = OP;
+          if (fc !== tc) stopC = run(1100, function (k) { CP = Deck.lerp(fc, tc, k); setCmd(CP); });
+          if (fo !== to) stopO = run(900, function (k) { OP = Deck.lerp(fo, to, k); setOut(OP); });
+          place();
+        }
+      });
+    })();
+  </script>
+</section>

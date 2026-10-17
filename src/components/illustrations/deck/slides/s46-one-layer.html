@@ -1,0 +1,103 @@
+<section class="slide" id="s46-one-layer" data-steps="2">
+  <p class="kicker reveal">layers</p>
+  <p class="statement reveal">Attention + feed-forward = one layer.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s46-one-layer-t s46-one-layer-d">
+      <title id="s46-one-layer-t">One layer: attention then feed-forward, each adding a change to the stream</title>
+      <desc id="s46-one-layer-d">The token vector x travels along a stream from left to right. Attention takes a copy off the stream and puts its change back with a plus. Then feed-forward does the same. Both changes are added onto the same stream. A frame around the pair is labelled one layer, and the stream carries on out of the layer.</desc>
+      <g id="s46-one-layer-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #s46-one-layer svg.diagram{width:100%;height:100%;max-width:none;}
+    #s46-one-layer text{font-family:var(--font-mono);}
+    #s46-one-layer .nd{color:#5a5a63;transition:color .6s;}
+    #s46-one-layer .nd.done{color:var(--color-text-muted);}
+    #s46-one-layer .nd.act{color:var(--color-accent);}
+    #s46-one-layer .st{fill:none;stroke:currentColor;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;}
+    #s46-one-layer .br{fill:none;stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s46-one-layer .tp{fill:currentColor;}
+    #s46-one-layer .bx{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #s46-one-layer .nd.act .bx{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #s46-one-layer .bt{font-size:30px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #s46-one-layer .pl{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3.5;}
+    #s46-one-layer .pt{font-size:40px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #s46-one-layer .cell{fill:currentColor;}
+    #s46-one-layer .lb{font-size:24px;fill:currentColor;text-anchor:middle;}
+    #s46-one-layer .ch{font-size:22px;fill:currentColor;}
+    #s46-one-layer .frame{fill:none;stroke:currentColor;stroke-width:3.5;stroke-dasharray:14 9;}
+    #s46-one-layer .fl{font-size:32px;font-weight:600;fill:currentColor;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 's46-one-layer';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seeded(i) { var s = Math.sin(i * 12.9898 + 7.7) * 43758.5453; return s - Math.floor(s); }
+
+      var root = document.getElementById(ID + '-g');
+      var SY = 178, BY0 = 322, BH = 112, BCY = BY0 + BH / 2;
+      var nodes = [[], [], []];       // nodes[k]: groups that light up in step k
+      function grp(k) { var g = el('g', { 'class': 'nd' }, root); nodes[k].push(g); return g; }
+
+      // the vector strips at both ends of the stream
+      function strip(k, x0, label) {
+        var g = grp(k);
+        for (var i = 0; i < 13; i++) {
+          var h = 22 + 44 * seeded(i + x0);
+          el('rect', { 'class': 'cell', x: x0 + i * 5.5, y: SY - h / 2, width: 4, height: h, rx: 1 }, g);
+        }
+        el('text', { 'class': 'lb', x: x0 + 35, y: SY - 52 }, g, label);
+      }
+      strip(0, 30, 'x');
+      // one block that hangs under the stream and puts its change back with a +
+      function block(k, tapX, boxX, boxW, plusX, name, from, to) {
+        var g = grp(k);
+        el('path', { 'class': 'st', d: 'M' + from + ' ' + SY + 'H' + (tapX) }, g);
+        el('path', { 'class': 'st', d: 'M' + tapX + ' ' + SY + 'H' + (plusX - 22) + 'm-10 -9l10 9l-10 9' }, g);
+        el('circle', { 'class': 'tp', cx: tapX, cy: SY, r: 8 }, g);
+        el('path', { 'class': 'br', d: 'M' + tapX + ' ' + SY + 'V' + BCY + 'H' + (boxX - 3) + 'm-10 -9l10 9l-10 9' }, g);
+        el('rect', { 'class': 'bx', x: boxX, y: BY0, width: boxW, height: BH, rx: 16 }, g);
+        el('text', { 'class': 'bt', x: boxX + boxW / 2, y: BCY + 10 }, g, name);
+        el('path', { 'class': 'br', d: 'M' + (boxX + boxW + 3) + ' ' + BCY + 'H' + plusX + 'V' + (SY + 26) + 'm-9 10l9 -10l9 10' }, g);
+        el('circle', { 'class': 'pl', cx: plusX, cy: SY, r: 22 }, g);
+        el('text', { 'class': 'pt', x: plusX, y: SY + 13 }, g, '+');
+        el('text', { 'class': 'ch', x: plusX - 16, y: SY + 96, 'text-anchor': 'end' }, g, 'change');
+      }
+      block(0, 176, 216, 190, 470, 'attention', 108, 0);
+      block(1, 562, 602, 240, 900, 'feed-forward', 492, 0);
+      // stream after the last +, and the output strip
+      var g1 = nodes[1][nodes[1].length - 1];
+      el('path', { 'class': 'st', d: 'M922 ' + SY + 'H978' }, g1);
+      strip(1, 990, 'new x');
+      // the stream carries on out of the layer
+      el('path', { 'class': 'st', d: 'M1066 ' + SY + 'H1096m-10 -9l10 9l-10 9' }, nodes[1][nodes[1].length - 1]);
+      // the frame: the pair is one layer
+      var gf = grp(2);
+      gf.setAttribute('data-from', 2);
+      el('rect', { 'class': 'frame', x: 128, y: 82, width: 810, height: 380, rx: 24 }, gf);
+      el('text', { 'class': 'fl', x: 152, y: 126 }, gf, 'one layer');
+
+      function paint(n) {
+        nodes.forEach(function (list, k) {
+          list.forEach(function (g) {
+            g.classList.remove('act'); g.classList.remove('done');
+            g.classList.add(k === n ? 'act' : n > k ? 'done' : 'todo');
+          });
+        });
+      }
+      Deck.slide('s46-one-layer', {
+        enter: function () { paint(0); },
+        step: function (n) { paint(n); }
+      });
+    })();
+  </script>
+</section>

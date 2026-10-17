@@ -1,0 +1,126 @@
+<section class="slide" id="s50-temperature" data-steps="3" data-tool="softmax">
+  <p class="kicker reveal">predicting the token</p>
+  <p class="statement reveal">Divide the scores by the temperature.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 480" role="img" aria-labelledby="s50-temperature-t s50-temperature-d">
+      <title id="s50-temperature-t">Dividing the scores by the temperature</title>
+      <desc id="s50-temperature-d">Five bars show the scores of mat, rug, floor, chair and table divided by the temperature T, next to a dial that shows T. At T equal to 1 the scores are 2.00, 1.40, 1.10, 0.60 and 0.30. At T equal to 0.5 the bars are twice as tall and the gaps between them double. At T equal to 2 they are half as tall and squeeze together.</desc>
+
+      <line class="base" x1="48" y1="420" x2="590" y2="420"/>
+      <line id="s50-temperature-gtop" class="guide" x1="140" y1="345" x2="598" y2="345"/>
+      <line id="s50-temperature-gbot" class="guide" x1="572" y1="408" x2="598" y2="408"/>
+      <g id="s50-temperature-bars"></g>
+
+      <!-- the gap between the best and the worst score -->
+      <path id="s50-temperature-gap" class="gapb" d=""/>
+      <text id="s50-temperature-gaplab" class="gaplab" x="634" y="380"><tspan class="gd">gap </tspan><tspan id="s50-temperature-gapv" class="gv">1.70</tspan></text>
+
+      <!-- the dial -->
+      <text class="formula" x="905" y="118" text-anchor="middle">score &#247; T</text>
+      <path class="arc" d="M805 300A100 100 0 0 1 1005 300"/>
+      <path id="s50-temperature-ticks" class="tick" d=""/>
+      <text class="tl" x="805" y="338" text-anchor="middle">0.5</text>
+      <text class="tl" x="905" y="182" text-anchor="middle">1</text>
+      <text class="tl" x="1005" y="338" text-anchor="middle">2</text>
+      <line id="s50-temperature-needle" class="needle" x1="905" y1="300" x2="905" y2="216"/>
+      <circle class="hub" cx="905" cy="300" r="10"/>
+      <text class="readout" x="905" y="396" text-anchor="middle"><tspan class="rd">T = </tspan><tspan id="s50-temperature-tv" class="rv">1.0</tspan></text>
+    </svg>
+  </div>
+
+  <style>
+    #s50-temperature svg.diagram{max-width:min(1203.2px,1100px);}
+    #s50-temperature .base{stroke:var(--color-border-strong);stroke-width:2;}
+    #s50-temperature .bar{fill:var(--color-accent);}
+    #s50-temperature .v{font-size:25px;fill:var(--color-text-soft);text-anchor:middle;paint-order:stroke;stroke:var(--color-bg);stroke-width:16px;stroke-linejoin:round;}
+    #s50-temperature .v.top{fill:var(--color-accent);}
+    #s50-temperature .w{font-size:25px;fill:var(--color-text-muted);text-anchor:middle;}
+    #s50-temperature .w.top{fill:var(--color-accent);}
+    #s50-temperature .guide{stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:6 5;}
+    #s50-temperature .gapb{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s50-temperature .gaplab{font-size:26px;}
+    #s50-temperature .gd{fill:var(--color-text-dim);}
+    #s50-temperature .gv{fill:var(--color-accent);}
+    #s50-temperature .formula{font-size:30px;fill:var(--color-text-muted);}
+    #s50-temperature .arc{fill:none;stroke:var(--color-border-strong);stroke-width:5;stroke-linecap:round;}
+    #s50-temperature .tick{fill:none;stroke:var(--color-text-dim);stroke-width:3;stroke-linecap:round;}
+    #s50-temperature .tl{font-size:24px;fill:var(--color-text-dim);}
+    #s50-temperature .needle{stroke:var(--color-accent);stroke-width:5;stroke-linecap:round;}
+    #s50-temperature .hub{fill:var(--color-accent);}
+    #s50-temperature .readout{font-size:44px;}
+    #s50-temperature .rd{fill:var(--color-text-dim);}
+    #s50-temperature .rv{fill:var(--color-accent);font-weight:600;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's50-temperature';
+      var WORDS = ['mat', 'rug', 'floor', 'chair', 'table'];
+      var SCORES = [2.0, 1.4, 1.1, 0.6, 0.3];        // SAMPLING TOY
+      var BASE = 420, K = 82, X0 = 100, PITCH = 108, BW = 72, OP = [1, 0.75, 0.6, 0.48, 0.38];
+      var CX = 905, CY = 300, NR = 84;
+      var bars = [], vals = [], g = document.getElementById(ID + '-bars'), NS = g.namespaceURI;
+      function mk(tag, attrs, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        g.appendChild(e); return e;
+      }
+      WORDS.forEach(function (w, i) {
+        var cx = X0 + i * PITCH, top = i === 0 ? ' top' : '';
+        bars.push(mk('rect', { 'class': 'bar', x: cx - BW / 2, y: BASE, width: BW, height: 0, rx: 6, 'fill-opacity': OP[i] }));
+        vals.push(mk('text', { 'class': 'v' + top, x: cx, y: BASE - 12 }, ''));
+        mk('text', { 'class': 'w' + top, x: cx, y: BASE + 36 }, w);
+      });
+
+      // dial ticks at T = 0.5, 1, 2
+      function ang(u) { return Math.PI * (1 - (u + 1) / 2); }   // u = log2(T) in [-1, 1]: left, up, right
+      var d = '';
+      [-1, 0, 1].forEach(function (u) {
+        var a = ang(u);
+        d += 'M' + (CX + 88 * Math.cos(a)).toFixed(1) + ' ' + (CY - 88 * Math.sin(a)).toFixed(1) + 'L' + (CX + 110 * Math.cos(a)).toFixed(1) + ' ' + (CY - 110 * Math.sin(a)).toFixed(1);
+      });
+      document.getElementById(ID + '-ticks').setAttribute('d', d);
+
+      var els = null, U = 0;   // U = log2(T)
+      function draw() {
+        var T = Math.pow(2, U);
+        SCORES.forEach(function (s, i) {
+          var v = s / T, h = v * K;
+          bars[i].setAttribute('y', (BASE - h).toFixed(2)); bars[i].setAttribute('height', h.toFixed(2));
+          vals[i].setAttribute('y', (BASE - h - 12).toFixed(2)); vals[i].textContent = v.toFixed(2);
+        });
+        var vTop = SCORES[0] / T, vBot = SCORES[SCORES.length - 1] / T;
+        var yT = BASE - vTop * K, yB = BASE - vBot * K;
+        els.gtop.setAttribute('y1', yT); els.gtop.setAttribute('y2', yT);
+        els.gbot.setAttribute('y1', yB); els.gbot.setAttribute('y2', yB);
+        els.gap.setAttribute('d', 'M606 ' + yT.toFixed(1) + 'H620M613 ' + yT.toFixed(1) + 'V' + yB.toFixed(1) + 'M606 ' + yB.toFixed(1) + 'H620');
+        els.gaplab.setAttribute('y', ((yT + yB) / 2 + 9).toFixed(1));
+        els.gapv.textContent = (vTop - vBot).toFixed(2);
+        var a = ang(U);
+        els.needle.setAttribute('x2', (CX + NR * Math.cos(a)).toFixed(1)); els.needle.setAttribute('y2', (CY - NR * Math.sin(a)).toFixed(1));
+        els.tv.textContent = T.toFixed(1);
+      }
+      function sm(v) { v = v < 0 ? 0 : v > 1 ? 1 : v; return v * v * (3 - 2 * v); }
+      // step 3: the dial turns by itself, 2 -> 0.5 -> 1, so every temperature in between is seen
+      function sweep(p) { return p < 0.55 ? Deck.lerp(1, -1, sm(p / 0.55)) : Deck.lerp(-1, 0, sm((p - 0.55) / 0.45)); }
+      var TARGET = [0, -1, 1, 0];
+
+      Deck.slide('s50-temperature', {
+        enter: function (c) {
+          els = { gtop: c.qs('#' + ID + '-gtop'), gbot: c.qs('#' + ID + '-gbot'), gap: c.qs('#' + ID + '-gap'), gaplab: c.qs('#' + ID + '-gaplab'),
+            gapv: c.qs('#' + ID + '-gapv'), needle: c.qs('#' + ID + '-needle'), tv: c.qs('#' + ID + '-tv') };
+          U = 0; draw();
+        },
+        step: function (n, prev, c) {
+          var to = TARGET[n], from = U;
+          if (c.instant) { U = to; draw(); return; }
+          if (n === 3 && prev === 2) {
+            Deck.tween(4200, function (t) { U = sweep(t); draw(); }, { ease: Deck.ease.linear });
+          } else {
+            Deck.tween(900, function (t) { U = Deck.lerp(from, to, t); draw(); });
+          }
+        }
+      });
+    })();
+  </script>
+</section>

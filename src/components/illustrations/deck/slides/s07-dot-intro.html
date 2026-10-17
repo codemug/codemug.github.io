@@ -1,0 +1,187 @@
+<section class="slide" id="s07-dot-intro" data-steps="4" data-tool="dot">
+  <p class="kicker reveal">refresher 2</p>
+  <p class="statement reveal">The dot product: one number for how similar two vectors are.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1100 440" role="img" aria-labelledby="s07-dot-intro-t s07-dot-intro-d">
+      <title id="s07-dot-intro-t">The dot product: one number for how similar two vectors are</title>
+       <desc id="s07-dot-intro-d">A plane with the fixed grey vector a = [2, 1] and the cyan vector b of length sqrt(5) rotating around the origin. Beside it, the fixed array [2, 1] and the live array of b with matching entries linked, the live arithmetic 2 x b1 + 1 x b2, and a gauge from minus 5 to plus 5 whose marker and big number track the live dot product.</desc>
+
+      <defs>
+        <marker id="s07-dot-intro-mk" viewBox="0 0 12 12" refX="1" refY="6" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto">
+          <path d="M0,0 L12,6 L0,12 Z" fill="var(--color-accent)"/>
+        </marker>
+        <marker id="s07-dot-intro-mkg" viewBox="0 0 12 12" refX="1" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto">
+          <path d="M0,0 L12,6 L0,12 Z" fill="var(--color-text-dim)"/>
+        </marker>
+      </defs>
+
+      <!-- plane: origin (310, 288), 1 unit = 108 -->
+      <line class="axis" x1="80" y1="288" x2="570" y2="288"/>
+      <line class="axis" x1="310" y1="20" x2="310" y2="421"/>
+      <path id="s07-dot-intro-arc" class="arc" d=""/>
+      <line id="s07-dot-intro-a" class="vecg" x1="310" y1="288" x2="526" y2="180" marker-end="url(#s07-dot-intro-mkg)"/>
+      <text class="labA" x="540" y="165">a</text>
+      <line id="s07-dot-intro-b" class="vecc" x1="310" y1="288" x2="418" y2="72" marker-end="url(#s07-dot-intro-mk)"/>
+      <text id="s07-dot-intro-bl" class="labB" x="428.7" y="59.6">b</text>
+
+      <!-- side panel: arrays, arithmetic, gauge -->
+      <text class="rowlab" x="712" y="98" text-anchor="end">a</text>
+      <rect class="cellg" x="730" y="60" width="100" height="52" rx="8"/>
+      <rect class="cellg" x="860" y="60" width="100" height="52" rx="8"/>
+      <text class="dig" x="780" y="98" text-anchor="middle">2</text>
+      <text class="dig" x="910" y="98" text-anchor="middle">1</text>
+
+      <text class="rowlabB" x="712" y="166" text-anchor="end">b</text>
+      <rect class="cellc" x="730" y="128" width="100" height="52" rx="8"/>
+      <rect class="cellc" x="860" y="128" width="100" height="52" rx="8"/>
+      <text id="s07-dot-intro-b1" class="digc" x="780" y="166" text-anchor="middle">1.0</text>
+      <text id="s07-dot-intro-b2" class="digc" x="910" y="166" text-anchor="middle">2.0</text>
+
+      <g id="s07-dot-intro-links" opacity="0">
+        <line x1="780" y1="115" x2="780" y2="125"/>
+        <line x1="910" y1="115" x2="910" y2="125"/>
+      </g>
+
+      <g id="s07-dot-intro-arith" opacity="0">
+        <text class="dig" x="699.5" y="218" text-anchor="middle">2</text>
+        <text class="op" x="726.35" y="218" text-anchor="middle">x</text>
+        <text id="s07-dot-intro-ab1" class="digc" x="788.15" y="218" text-anchor="middle">1.0</text>
+        <text class="op" x="850" y="218" text-anchor="middle">+</text>
+        <text class="dig" x="876.9" y="218" text-anchor="middle">1</text>
+        <text class="op" x="903.75" y="218" text-anchor="middle">x</text>
+        <text id="s07-dot-intro-ab2" class="digc" x="965.55" y="218" text-anchor="middle">2.0</text>
+      </g>
+
+      <text id="s07-dot-intro-num" class="num" x="850" y="284" text-anchor="middle" opacity="0">+4.00</text>
+      <line class="track" x1="690" y1="316" x2="1010" y2="316"/>
+      <line class="tick" x1="690" y1="310" x2="690" y2="322"/>
+      <line class="tick" x1="850" y1="310" x2="850" y2="322"/>
+      <line class="tick" x1="1010" y1="310" x2="1010" y2="322"/>
+      <text class="ticklab" x="690" y="356" text-anchor="middle">&#8722;5</text>
+      <text class="ticklab" x="850" y="356" text-anchor="middle">0</text>
+      <text class="ticklab" x="1010" y="356" text-anchor="middle">+5</text>
+      <line id="s07-dot-intro-mkline" class="marker" x1="850" y1="302" x2="850" y2="330" opacity="0"/>
+    </svg>
+  </div>
+
+  <style>
+    #s07-dot-intro svg.diagram{width:auto;height:100%;max-width:100%;}
+    #s07-dot-intro text{font-family:var(--font-mono);}
+    #s07-dot-intro .axis{stroke:var(--color-hairline);stroke-width:1.5;}
+    #s07-dot-intro .arc{stroke:var(--color-accent);stroke-width:2;fill:none;opacity:.35;}
+    #s07-dot-intro .vecg{stroke:var(--color-text-dim);stroke-width:3.5;stroke-linecap:round;}
+    #s07-dot-intro .vecc{stroke:var(--color-accent);stroke-width:7;stroke-linecap:round;}
+    #s07-dot-intro .labA{font-size:26px;fill:var(--color-text-muted);}
+    #s07-dot-intro .labB{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+    #s07-dot-intro .rowlab{font-size:26px;fill:var(--color-text-muted);}
+    #s07-dot-intro .rowlabB{font-size:26px;fill:var(--color-accent);}
+    #s07-dot-intro .cellg{stroke:var(--color-border-strong);stroke-width:1.5;fill:var(--color-surface-deep);}
+    #s07-dot-intro .cellc{stroke:var(--color-accent);stroke-opacity:.5;stroke-width:1.5;fill:var(--color-surface-deep);}
+    #s07-dot-intro .dig{font-size:34px;fill:var(--color-text-muted);}
+    #s07-dot-intro .digc{font-size:34px;fill:var(--color-accent);}
+    #s07-dot-intro .op{font-size:24px;fill:var(--color-text-dim);}
+    #s07-dot-intro #s07-dot-intro-links line{stroke:var(--color-accent);stroke-width:2.5;}
+    #s07-dot-intro .num{font-size:48px;fill:var(--color-accent);font-variant-numeric:tabular-nums;}
+    #s07-dot-intro .track{stroke:var(--color-border-strong);stroke-width:3;}
+    #s07-dot-intro .tick{stroke:var(--color-text-dim);stroke-width:2;}
+    #s07-dot-intro .ticklab{font-size:22px;fill:var(--color-text-dim);}
+    #s07-dot-intro .marker{stroke:var(--color-accent);stroke-width:4;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's07-dot-intro';
+      /* a = [2, 1] fixed; b(phi) = sqrt(5) * (cos phi, sin phi), |b| = sqrt(5).
+         phi0 = atan2(2, 1)      -> b = [1, 2]    (dot = +4)
+         phi3 = pi/2 + atan(0.5) -> b = [-1, 2]   (dot = 0, right angles)
+         phi4 = pi + atan(0.5)   -> b = [-2, -1]  (dot = -5, opposite a) */
+      var A = [2, 1], S5 = Math.sqrt(5);
+      var OX = 310, OY = 288, U = 108, L = S5 * U;
+      var THA = Math.atan2(1, 2);
+      var PHI0 = Math.atan2(2, 1);
+      var PHI3 = Math.PI / 2 + Math.atan(0.5);
+      var PHI4 = Math.PI + Math.atan(0.5);
+      var AR = 40, GX = 850, GP = 32; /* gauge: 0 at x=850, 32 units per dot unit, -5..+5 -> 690..1010 */
+
+      var T = [
+        { phi: PHI0, s1: 0, s2: 0, dim: 0 },
+        { phi: PHI0, s1: 1, s2: 0, dim: 0 },
+        { phi: PHI0, s1: 1, s2: 1, dim: 0 },
+        { phi: PHI3, s1: 1, s2: 1, dim: 1 },
+        { phi: PHI4, s1: 1, s2: 1, dim: 1 }
+      ];
+
+      var bLine = document.getElementById(ID + '-b');
+      var bl = document.getElementById(ID + '-bl');
+      var arc = document.getElementById(ID + '-arc');
+      var num = document.getElementById(ID + '-num');
+      var mk = document.getElementById(ID + '-mkline');
+      var links = document.getElementById(ID + '-links');
+      var arith = document.getElementById(ID + '-arith');
+      var b1t = document.getElementById(ID + '-b1');
+      var b2t = document.getElementById(ID + '-b2');
+      var ab1t = document.getElementById(ID + '-ab1');
+      var ab2t = document.getElementById(ID + '-ab2');
+
+      var st = { phi: PHI0, s1: 0, s2: 0, dim: 0 }, cancel = null;
+      var P1X = OX + AR * Math.cos(THA), P1Y = OY - AR * Math.sin(THA);
+
+      function fmt(x) {
+        var r = Math.round(x * 100) / 100;
+        if (r === 0) return '0.00';
+        return (r < 0 ? '\u2212' : '+') + Math.abs(r).toFixed(2);
+      }
+      function fmt1(x) {
+        var r = Math.round(x * 10) / 10;
+        if (r === 0) return '0.0';
+        return (r < 0 ? '\u2212' : '') + Math.abs(r).toFixed(1);
+      }
+
+      function draw(s) {
+        var c = Math.cos(s.phi), sn = Math.sin(s.phi);
+        var tx = OX + L * c, ty = OY - L * sn;
+        bLine.setAttribute('x2', tx.toFixed(2));
+        bLine.setAttribute('y2', ty.toFixed(2));
+        /* label sits ~24 units beyond the tip along the arrow direction, so it never touches the arrowhead at any angle */
+        bl.setAttribute('x', (tx + 24 * c).toFixed(2));
+        bl.setAttribute('y', (ty - 24 * sn + 9).toFixed(2));
+        /* the b array and the arithmetic entries track b(phi) live (same cos/sin that drive Deck.dot) */
+        var f1 = fmt1(c * S5), f2 = fmt1(sn * S5);
+        b1t.textContent = f1;
+        b2t.textContent = f2;
+        ab1t.textContent = f1;
+        ab2t.textContent = f2;
+        var large = (s.phi - THA) > Math.PI ? 1 : 0;
+        arc.setAttribute('d', 'M ' + P1X.toFixed(2) + ' ' + P1Y.toFixed(2) +
+          ' A ' + AR + ' ' + AR + ' 0 ' + large + ' 0 ' + (OX + AR * c).toFixed(2) + ' ' + (OY - AR * sn).toFixed(2));
+        /* the number is always the live dot product of a and b */
+        var d = Deck.dot(A, [c * S5, sn * S5]);
+        var disp = d * s.s2;
+        num.textContent = fmt(disp);
+        num.style.opacity = s.s2.toFixed(3);
+        var mx = GX + GP * disp;
+        mk.setAttribute('x1', mx.toFixed(2));
+        mk.setAttribute('x2', mx.toFixed(2));
+        mk.style.opacity = s.s2.toFixed(3);
+        var o = (s.s1 * (1 - 0.65 * s.dim)).toFixed(3);
+        links.style.opacity = o;
+        arith.style.opacity = o;
+      }
+
+      Deck.slide('s07-dot-intro', {
+        enter: function () { st = T[0]; draw(st); },
+        step: function (n, prev, c) {
+          var target = T[n], from = { phi: st.phi, s1: st.s1, s2: st.s2, dim: st.dim };
+          if (cancel) cancel();
+          if (c.instant) { st = target; draw(st); return; }
+          cancel = Deck.tween(900, function (t) {
+            st.phi = Deck.lerp(from.phi, target.phi, t);
+            st.s1 = Deck.lerp(from.s1, target.s1, t);
+            st.s2 = Deck.lerp(from.s2, target.s2, t);
+            st.dim = Deck.lerp(from.dim, target.dim, t);
+            draw(st);
+          });
+        }
+      });
+    })();
+  </script>
+</section>

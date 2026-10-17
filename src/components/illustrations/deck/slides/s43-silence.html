@@ -1,0 +1,124 @@
+<section class="slide" id="s43-silence" data-steps="1" data-tool="relu">
+  <p class="kicker reveal">feed-forward</p>
+  <p class="statement reveal">Silence the weak matches.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s43-silence-t s43-silence-d">
+      <title id="s43-silence-t">Weak matches are silenced</title>
+      <desc id="s43-silence-d">Six bars for the detector magnitudes Spain 0.93, football 0.81, trophy 0.64, 2026 0.58, capital 0.12 and food 0.03, with a horizontal threshold line at 0.5. In the second step the two bars below the threshold drop to zero, leaving a faint ghost, and the array of magnitudes becomes 0.93, 0.81, 0.64, 0.58, 0, 0. A small plot on the right shows the same rule: values below 0.5 go to zero, values above pass through.</desc>
+      <g id="s43-silence-plot"></g>
+      <g id="s43-silence-bars"></g>
+      <g id="s43-silence-thr"></g>
+      <g id="s43-silence-arr"></g>
+    </svg>
+  </div>
+
+  <style>
+    #s43-silence svg.diagram{width:100%;height:100%;max-width:none;}
+    #s43-silence text{font-family:var(--font-mono);}
+    #s43-silence .base{stroke:var(--color-text-faint);stroke-width:2;}
+    #s43-silence .ghost{fill:none;stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:6 6;}
+    #s43-silence .nm{font-size:22px;fill:var(--color-text-soft);text-anchor:middle;}
+    #s43-silence .val{font-size:26px;font-weight:600;text-anchor:middle;}
+    #s43-silence .thr{stroke:var(--color-accent);stroke-width:3.5;stroke-dasharray:14 8;}
+    #s43-silence .tl{font-size:22px;fill:var(--color-accent);text-anchor:end;}
+    #s43-silence .ax{stroke:var(--color-text-faint);stroke-width:2;fill:none;}
+    #s43-silence .diag{stroke:var(--color-text-faint);stroke-width:2.5;stroke-dasharray:5 6;fill:none;}
+    #s43-silence .hinge{stroke:var(--color-accent);stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    #s43-silence .pl{font-size:20px;fill:var(--color-text-muted);}
+    #s43-silence .arr{font-size:26px;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 's43-silence';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      // FEED-FORWARD TOY: the six magnitudes from the previous slide, silence threshold 0.5
+      var DET = [['Spain', 0.93], ['football', 0.81], ['trophy', 0.64], ['2026', 0.58], ['capital', 0.12], ['food', 0.03]];
+      var THR = 0.5;
+      var C0 = 86, PITCH = 112, BW = 64, BY = 436, S = 320;
+      var PX = 780, PS = 300;                    // hinge plot: origin x, px per unit (baseline shared with the bars)
+      var MUTED = Deck.rgb('--color-text-muted'), FAINT = Deck.rgb('--color-text-faint'), ACC = Deck.rgb('--color-accent');
+      function mix(a, b, c) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * c); }).join(',') + ')'; }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function silenced(v) { return v < THR; }
+
+      var gb = $('bars'), gp = $('plot'), gt = $('thr'), ga = $('arr');
+      var bars = [], ghosts = [], vals = [], dots = [];
+
+      // ---- bars
+      el('line', { 'class': 'base', x1: 30, y1: BY, x2: 706, y2: BY }, gb);
+      DET.forEach(function (d, i) {
+        var cx = C0 + i * PITCH;
+        ghosts.push(el('rect', { 'class': 'ghost', x: cx - BW / 2, y: BY - d[1] * S, width: BW, height: d[1] * S, rx: 6 }, gb));
+        bars.push(el('rect', { x: cx - BW / 2, y: BY, width: BW, height: 0, rx: 6 }, gb));
+        vals.push(el('text', { 'class': 'val', x: cx }, gb, d[1].toFixed(2)));
+        el('text', { 'class': 'nm', x: cx, y: BY + 34 }, gb, d[0]);
+      });
+
+      // ---- threshold line, with its label on the right over the short bars
+      var ty = BY - THR * S;
+      el('line', { 'class': 'thr', x1: 30, y1: ty, x2: 706, y2: ty }, gt);
+      el('text', { 'class': 'tl', x: 706, y: ty - 12 }, gt, 'threshold 0.5');
+
+      // ---- the same rule as a small plot: value in (x) -> value out (y)
+      var PY = BY;
+      el('path', { 'class': 'ax', d: 'M' + PX + ' ' + (PY - PS - 14) + 'V' + PY + 'H' + (PX + PS + 14) }, gp);
+      el('line', { 'class': 'diag', x1: PX, y1: PY, x2: PX + PS, y2: PY - PS }, gp);
+      var hinge = el('path', { 'class': 'hinge', d: 'M' + PX + ' ' + PY + 'H' + (PX + THR * PS) + 'V' + (PY - THR * PS) + 'L' + (PX + PS) + ' ' + (PY - PS) }, gp);
+      el('text', { 'class': 'pl', x: PX + PS + 14, y: PY + 28, 'text-anchor': 'end' }, gp, 'in');
+      el('text', { 'class': 'pl', x: PX - 12, y: PY - PS - 10 }, gp, 'out');
+      el('text', { 'class': 'pl', x: PX + THR * PS, y: PY + 28, 'text-anchor': 'middle', fill: 'var(--color-accent)' }, gp, '0.5');
+      DET.forEach(function () { dots.push(el('circle', { r: 8 }, gp)); });
+
+      // ---- the array of magnitudes under the bars
+      var arr = el('text', { 'class': 'arr', x: 130, y: 506 }, ga);
+      var parts = [el('tspan', {}, arr, '[')];
+      DET.forEach(function (d, i) { parts.push(el('tspan', {}, arr, d[1].toFixed(2) + (i < DET.length - 1 ? ', ' : ''))); });
+      parts.push(el('tspan', {}, arr, ']'));
+
+      // A: progress of the silencing; A1 = the weak bars drop and the array updates, A2 = the same rule drawn as a plot, a moment later
+      var A1 = 0, A2 = 0, A = 0, cancel = null;
+      function draw() {
+        A1 = A; A2 = Math.max(0, Math.min(1, (A - 0.35) / 0.65));
+        DET.forEach(function (d, i) {
+          var v = d[1], off = silenced(v);
+          var h = v * S * (off ? 1 - A1 : 1);
+          bars[i].setAttribute('y', BY - h); bars[i].setAttribute('height', h);
+          bars[i].setAttribute('fill', off ? mix(MUTED, FAINT, A1) : mix(MUTED, ACC, A1));
+          ghosts[i].setAttribute('opacity', off ? (0.9 * A1).toFixed(3) : 0);
+          vals[i].setAttribute('y', BY - h - 12);
+          vals[i].textContent = off && A1 > 0.5 ? '0' : v.toFixed(2);
+          vals[i].setAttribute('fill', off ? mix(MUTED, FAINT, A1) : mix(MUTED, ACC, A1));
+          var oy = off ? v * (1 - A2) : v;
+          dots[i].setAttribute('cx', PX + v * PS); dots[i].setAttribute('cy', PY - oy * PS);
+          dots[i].setAttribute('fill', off ? mix(MUTED, FAINT, A2) : mix(MUTED, ACC, A2));
+        });
+        hinge.setAttribute('opacity', A2.toFixed(3));
+        var z = A1 > 0.5;
+        parts[5].textContent = (z ? '0' : DET[4][1].toFixed(2)) + ', ';
+        parts[6].textContent = z ? '0' : DET[5][1].toFixed(2);
+        arr.setAttribute('fill', mix(MUTED, ACC, A1));
+      }
+      draw();
+
+      Deck.slide('s43-silence', {
+        enter: function () { A = 0; draw(); },
+        step: function (n, prev, c) {
+          var target = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { A = target; draw(); return; }
+          var from = A;
+          cancel = Deck.tween(1200, function (k) { A = Deck.lerp(from, target, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,118 @@
+<section class="slide" id="s03-vec3d" data-steps="3" data-tool="vector">
+  <p class="kicker reveal">refresher 1</p>
+  <p class="statement reveal">3 numbers: a vector in 3D space.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 900 420" role="img" aria-labelledby="s03-vec3d-t s03-vec3d-d">
+      <title id="s03-vec3d-t">A vector in three dimensions</title>
+      <desc id="s03-vec3d-d">The array three, two, one is drawn as an arrow in a 3D space with x, y and z axes: three along x, one toward the viewer along z and two up along y. A third number adds a third dimension, and the camera turns slowly to show the depth.</desc>
+      <defs>
+        <marker id="s03-vec3d-ah" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" refX="15" refY="10" orient="auto"><path d="M0,0 L17,10 L0,20 z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <!-- the array (left) -->
+      <g id="s03-vec3d-array">
+        <path id="s03-vec3d-bl" class="brk" d="M52 150 H36 V270 H52"/>
+        <path id="s03-vec3d-br" class="brk" d="M262 150 H278 V270 H262"/>
+        <text id="s03-vec3d-n1" class="num" x="90" y="238">3</text>
+        <text id="s03-vec3d-n2" class="num" x="165" y="238">2</text>
+        <text id="s03-vec3d-n3" class="num n3" x="240" y="238">1</text>
+        <text id="s03-vec3d-c3" class="cap" x="157" y="302" text-anchor="middle">3 numbers</text>
+      </g>
+
+      <!-- the 3D scene (right), drawn by script -->
+      <g id="s03-vec3d-scene">
+        <g id="s03-vec3d-grid"></g>
+        <line id="s03-vec3d-ax" class="axis" x1="0" y1="0" x2="0" y2="0"/>
+        <line id="s03-vec3d-ay" class="axis" x1="0" y1="0" x2="0" y2="0"/>
+        <line id="s03-vec3d-az" class="axis z" x1="0" y1="0" x2="0" y2="0"/>
+        <text id="s03-vec3d-lx" class="axl" x="0" y="0">x</text>
+        <text id="s03-vec3d-ly" class="axl" x="0" y="0">y</text>
+        <text id="s03-vec3d-lz" class="axl z" x="0" y="0">z</text>
+        <path id="s03-vec3d-guide" class="guide" d=""/>
+        <line id="s03-vec3d-vec" class="vec" stroke="var(--color-accent)" stroke-width="4" x1="0" y1="0" x2="0" y2="0" marker-end="url(#s03-vec3d-ah)"/>
+        <text id="s03-vec3d-t2" class="tip" x="0" y="0">[3, 2]</text>
+        <text id="s03-vec3d-t3" class="tip" x="0" y="0">[3, 2, 1]</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s03-vec3d svg.diagram{max-width:min(1177.6px,1040px);}
+    #s03-vec3d .brk{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s03-vec3d .num{font-family:var(--font-mono);font-size:64px;fill:var(--color-accent);text-anchor:middle;}
+    #s03-vec3d .cap{font-family:var(--font-mono);font-size:20px;fill:var(--color-text-dim);}
+    #s03-vec3d .axis{stroke:var(--color-text-faint);stroke-width:1.5;}
+    #s03-vec3d .axis.z{stroke:var(--color-accent);}
+    #s03-vec3d .grid{stroke:var(--color-hairline-2);stroke-width:1;}
+    #s03-vec3d .axl{font-family:var(--font-mono);font-size:22px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s03-vec3d .axl.z{fill:var(--color-accent);}
+    #s03-vec3d .guide{fill:none;stroke:var(--color-accent);stroke-width:2;stroke-dasharray:6 6;opacity:.7;}
+    #s03-vec3d .tip{font-family:var(--font-mono);font-size:24px;fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      var EL = 0.5, AZ0 = -0.85;
+      var cam = Deck.cam3({ ox: 640, oy: 268, u: 62, az: AZ0, el: EL });
+      var S = { z: 0, az: AZ0, stopLoop: null };
+      var el = {}, gridLines = [];
+      var GX = [-1, 0, 1, 2, 3, 4], GZ = [-1, 0, 1, 2];
+
+      function $(id) { return document.getElementById('s03-vec3d-' + id); }
+      function put(line, a, b) { line.setAttribute('x1', a[0]); line.setAttribute('y1', a[1]); line.setAttribute('x2', b[0]); line.setAttribute('y2', b[1]); }
+
+      function draw() {
+        cam.set(S.az, EL);
+        var gi = 0, i, k, P = cam.P;
+        for (i = 0; i < GX.length; i++) put(gridLines[gi++], P(GX[i], 0, GZ[0]), P(GX[i], 0, GZ[GZ.length - 1]));
+        for (k = 0; k < GZ.length; k++) put(gridLines[gi++], P(GX[0], 0, GZ[k]), P(GX[GX.length - 1], 0, GZ[k]));
+        put(el.ax, P(-1, 0, 0), P(4, 0, 0)); put(el.ay, P(0, 0, 0), P(0, 3.2, 0)); put(el.az, P(0, 0, -1), P(0, 0, 2.6));
+        var pxe = P(4.35, 0, 0), pye = P(0, 3.55, 0), pze = P(0, 0, 2.95);
+        el.lx.setAttribute('x', pxe[0]); el.lx.setAttribute('y', pxe[1] + 8);
+        el.ly.setAttribute('x', pye[0]); el.ly.setAttribute('y', pye[1] + 8);
+        el.lz.setAttribute('x', pze[0] - 10); el.lz.setAttribute('y', pze[1] + 8);
+        el.az.style.opacity = 0.3 + 0.7 * S.z; el.lz.style.opacity = 0.3 + 0.7 * S.z;
+        var z = S.z, p0 = P(0, 0, 0), px = P(3, 0, 0), pxz = P(3, 0, z), pt = P(3, 2, z);
+        el.guide.setAttribute('d', 'M' + p0[0] + ' ' + p0[1] + 'L' + px[0] + ' ' + px[1] + 'L' + pxz[0] + ' ' + pxz[1] + 'L' + pt[0] + ' ' + pt[1]);
+        put(el.vec, p0, pt);
+        var lx = Math.min(pt[0] + 14, 750); // keep the (wider) 3-number label inside the viewBox
+        el.t2.setAttribute('x', lx); el.t2.setAttribute('y', pt[1] - 12); el.t2.style.opacity = 1 - z;
+        el.t3.setAttribute('x', lx); el.t3.setAttribute('y', pt[1] - 12); el.t3.style.opacity = z;
+        // the array: a third number slides in and the right bracket moves out
+        var a = S.z;
+        el.n1.setAttribute('x', Deck.lerp(110, 90, a)); el.n2.setAttribute('x', Deck.lerp(185, 165, a)); el.n3.style.opacity = a;
+        var brx = Deck.lerp(244, 262, a);
+        el.br.setAttribute('d', 'M' + brx + ' 150 H' + (brx + 16) + ' V270 H' + brx);
+        el.c3.textContent = a > 0.5 ? '3 numbers' : '2 numbers';
+        el.c3.setAttribute('x', Deck.lerp(140, 157, a));
+      }
+
+      function go(target, ms) {
+        var from = S.z;
+        if (ms === 0) { S.z = target; draw(); return; }
+        Deck.tween(ms, function (t) { S.z = Deck.lerp(from, target, t); draw(); });
+      }
+
+      Deck.slide('s03-vec3d', {
+        enter: function (c) {
+          ['ax', 'ay', 'az', 'lx', 'ly', 'lz', 'guide', 'vec', 't2', 't3', 'n1', 'n2', 'n3', 'br', 'c3'].forEach(function (k) { el[k] = $(k); });
+          var g = $('grid');
+          if (!gridLines.length) for (var i = 0; i < GX.length + GZ.length; i++) { var l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'grid'); g.appendChild(l); gridLines.push(l); }
+          S.z = 0; S.az = AZ0; draw();
+        },
+        step: function (n, prev, c) {
+          if (S.stopLoop) { S.stopLoop(); S.stopLoop = null; }
+          var z = n >= 1 ? 1 : 0;
+          if (c.instant) { S.z = z; S.az = n >= 2 ? -0.7 : AZ0; draw(); } else { go(z, 800); }
+          if (n >= 2) {
+            // gentle idle turn so the depth reads
+            S.stopLoop = Deck.loop(function (t) { S.az = -0.7 + 0.3 * Math.sin(t * 0.7); draw(); });
+          } else if (!c.instant) {
+            var f = S.az; Deck.tween(700, function (t) { S.az = Deck.lerp(f, AZ0, t); draw(); });
+          }
+        },
+        leave: function () { if (S.stopLoop) { S.stopLoop(); S.stopLoop = null; } }
+      });
+    })();
+  </script>
+</section>

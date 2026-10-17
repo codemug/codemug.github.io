@@ -1,0 +1,138 @@
+<section class="slide" id="s14-not-words" data-steps="2">
+  <p class="kicker reveal">tokens</p>
+  <p class="statement reveal">Models read tokens, not words.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1100 520" role="img" aria-labelledby="s14-not-words-t s14-not-words-d">
+      <title id="s14-not-words-t">Words versus tokens</title>
+      <desc id="s14-not-words-d">The sentence I can reliably deploy LLMs is five words. The real Qwen3.8-27B tokenizer splits it into seven tokens: the word LLMs breaks into three pieces, and a dot marks a leading space.</desc>
+
+      <g id="s14-not-words-conn"></g>
+      <g id="s14-not-words-words"></g>
+      <g id="s14-not-words-toks"></g>
+
+      <text id="s14-not-words-nw" class="count" data-from="2" x="550" y="56"></text>
+      <text id="s14-not-words-nt" class="count a" data-from="2" x="550" y="412"></text>
+
+      <g data-from="1" transform="translate(550 486)">
+        <circle class="sp" cx="-106" cy="-1" r="4.5"/>
+        <text class="legend" x="-88" y="6">= leading space</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s14-not-words svg.diagram{max-width:min(1203.2px,1280px);}
+    #s14-not-words .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;transition:fill .6s ease,stroke .6s ease;}
+    #s14-not-words .chip text{font-family:var(--font-mono);font-size:38px;fill:var(--color-text);text-anchor:middle;transition:fill .6s ease;}
+    #s14-not-words .chip .sp{fill:var(--color-text-muted);transition:fill .6s ease;}
+    #s14-not-words .sp{fill:var(--color-text-muted);}
+    #s14-not-words .word text{fill:var(--color-text);}
+    #s14-not-words[data-cur="1"] .word text, #s14-not-words[data-cur="2"] .word text{fill:var(--color-text-dim);}
+    #s14-not-words[data-cur="1"] .word rect, #s14-not-words[data-cur="2"] .word rect{stroke:var(--color-border);}
+    #s14-not-words[data-cur="2"] .chip.lw rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #s14-not-words[data-cur="2"] .chip.lw text{fill:var(--color-accent);}
+    #s14-not-words[data-cur="2"] .chip.lw .sp{fill:var(--color-accent);}
+    #s14-not-words .link{fill:none;stroke:var(--color-text-faint);stroke-width:2;stroke-linecap:round;transition:stroke .6s ease;}
+    #s14-not-words[data-cur="2"] .link.lw{stroke:var(--color-accent);}
+    #s14-not-words .count{font-family:var(--font-mono);font-size:32px;fill:var(--color-text-muted);text-anchor:middle;}
+    #s14-not-words .count.a{fill:var(--color-accent);}
+    #s14-not-words .legend{font-family:var(--font-mono);font-size:22px;fill:var(--color-text-dim);}
+  </style>
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      // REAL: deck/data/qwen38.json tokenization.examples[0] (Qwen3.8-27B tokenizer), [id, text]
+      var TEXT = "I can reliably deploy LLMs";
+      var TOKS = [[40,"I"],[628," can"],[54488," reliably"],[10204," deploy"],[436," L"],[10673,"LM"],[82,"s"]];
+      var WORDS = TEXT.split(' ');
+      var FS = 38, ADV = FS * 0.6, PAD = 20, H = 72, CX = 550;
+      var Y_W0 = 252, Y_W1 = 124, Y_T0 = 252, Y_T1 = 306;
+      var OWNER = [], pos = 0;
+      TOKS.forEach(function (t) {
+        var s = t[1], at = pos + (s.charAt(0) === ' ' ? 1 : 0);
+        OWNER.push(TEXT.slice(0, at).split(' ').length - 1);
+        pos += s.length;
+      });
+
+      var words = [], toks = [], links = [], wx = [], tx = [], x0 = [], P = 0, stop = null;
+
+      function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function textW(s) {
+        var w = 0;
+        for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); w += c < 0x250 ? 0.6 : (c >= 0x2e80 ? 1 : 0.65); }
+        return w * FS;
+      }
+      function measure(text) {
+        var lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text;
+        var inner = (lead ? ADV : 0) + textW(body);
+        return { lead: lead, body: body, inner: inner, w: Math.max(FS * 1.65, inner + 2 * PAD) };
+      }
+      function chip(parent, text, cls) {
+        var m = measure(text), left = -m.inner / 2;
+        var g = el('g', { class: 'chip ' + cls }, parent);
+        el('rect', { x: -m.w / 2, y: -H / 2, width: m.w, height: H, rx: 12 }, g);
+        if (m.lead) el('circle', { class: 'sp', cx: left + ADV / 2, cy: 3, r: 4.2 }, g);
+        var t = el('text', { x: left + (m.lead ? ADV : 0) + textW(m.body) / 2, y: 0, dy: '.35em' }, g);
+        t.textContent = m.body;
+        return g;
+      }
+      function centers(widths, gap) {
+        var total = widths.reduce(function (a, b) { return a + b; }, 0) + gap * (widths.length - 1), x = CX - total / 2;
+        return widths.map(function (w) { var c = x + w / 2; x += w + gap; return c; });
+      }
+      // where each token's letters sit inside its word chip: the pieces start there and slide apart
+      function startX() {
+        var from = 0, out = [];
+        TOKS.forEach(function (t, i) {
+          var body = t[1].replace(/^ /, ''), w = OWNER[i], len = WORDS[w].length, first = i === 0 || OWNER[i - 1] !== w;
+          if (first) from = 0;
+          out.push(wx[w] + (from + body.length / 2 - len / 2) * ADV);
+          from += body.length;
+        });
+        return out;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      function render(p) {
+        var yw = Deck.lerp(Y_W0, Y_W1, p), yt = Deck.lerp(Y_T0, Y_T1, p), px = 1 - Math.pow(1 - p, 3);
+        words.forEach(function (g, i) { g.setAttribute('transform', 'translate(' + wx[i].toFixed(1) + ' ' + yw.toFixed(1) + ')'); });
+        toks.forEach(function (g, i) {
+          var x = Deck.lerp(x0[i], tx[i], px);
+          g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + yt.toFixed(1) + ')');
+          g.setAttribute('opacity', clamp((p - 0.28) / 0.3).toFixed(2));
+          var y1 = yw + H / 2 + 6, y2 = yt - H / 2 - 6, ym = (y1 + y2) / 2, xs = wx[OWNER[i]].toFixed(1);
+          links[i].setAttribute('d', 'M' + xs + ' ' + y1.toFixed(1) + ' C' + xs + ' ' + ym.toFixed(1) + ' ' + x.toFixed(1) + ' ' + ym.toFixed(1) + ' ' + x.toFixed(1) + ' ' + y2.toFixed(1));
+          links[i].setAttribute('opacity', clamp((p - 0.45) / 0.4).toFixed(2));
+        });
+      }
+
+      Deck.slide('s14-not-words', {
+        enter: function (c) {
+          var gw = c.qs('#s14-not-words-words'), gt = c.qs('#s14-not-words-toks'), gl = c.qs('#s14-not-words-conn');
+          [gw, gt, gl].forEach(function (g) { while (g.firstChild) g.removeChild(g.firstChild); });
+          words = WORDS.map(function (w) { return chip(gw, w, 'word'); });
+          toks = TOKS.map(function (t, i) { return chip(gt, t[1], OWNER[i] === 4 ? 'tok lw' : 'tok'); });
+          links = TOKS.map(function (t, i) { return el('path', { class: OWNER[i] === 4 ? 'link lw' : 'link' }, gl); });
+          wx = centers(WORDS.map(function (w) { return measure(w).w; }), 26);
+          tx = centers(TOKS.map(function (t) { return measure(t[1]).w; }), 14);
+          x0 = startX();
+          c.qs('#s14-not-words-nw').textContent = WORDS.length + ' words';
+          c.qs('#s14-not-words-nt').textContent = TOKS.length + ' tokens';
+          P = 0; render(0);
+        },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { P = to; render(P); return; }
+          var from = P;
+          stop = Deck.tween(900, function (k) { P = Deck.lerp(from, to, k); render(P); });
+        }
+      });
+    })();
+  </script>
+</section>

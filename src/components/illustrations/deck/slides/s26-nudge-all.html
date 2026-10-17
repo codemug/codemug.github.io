@@ -1,0 +1,145 @@
+<section class="slide" id="s26-nudge-all" data-steps="1">
+  <p class="kicker reveal">training</p>
+  <p class="statement reveal">Nudge every number a little, millions of times.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 500" role="img" aria-labelledby="s26-nudge-all-t s26-nudge-all-d">
+      <title id="s26-nudge-all-t">Random embeddings become meaningful clusters</title>
+      <desc id="s26-nudge-all-d">Twenty-four token dots with labels start at random positions in a plane. A step counter ticks up to 1,000,000 while the dots move into four clusters: animals, vehicles, royals and food. Similar tokens end up close together. A toy with 2 dimensions instead of 5,120.</desc>
+
+      <text class="slab" x="12" y="42">step</text>
+      <text id="s26-nudge-all-count" class="count" x="104" y="42">0</text>
+      <text class="cap" x="1030" y="40" text-anchor="end">toy: 2 dimensions instead of 5,120</text>
+
+      <rect class="frame" x="10" y="62" width="1020" height="430" rx="12"/>
+      <g id="s26-nudge-all-clusters"></g>
+      <g id="s26-nudge-all-dots"></g>
+    </svg>
+  </div>
+
+  <style>
+    #s26-nudge-all svg.diagram{max-width:min(1203.2px,1100px);}
+    #s26-nudge-all .frame{fill:none;stroke:var(--color-border);stroke-width:1.5;}
+    #s26-nudge-all .slab{font-size:30px;fill:var(--color-text-dim);}
+    #s26-nudge-all .count{font-size:38px;fill:var(--color-accent);font-variant-numeric:tabular-nums;}
+    #s26-nudge-all .cap{font-size:21px;fill:var(--color-text-dim);}
+    #s26-nudge-all .tk{font-size:21px;}
+    #s26-nudge-all .cl{fill:none;stroke:color-mix(in oklab,var(--color-accent) 40%,transparent);stroke-width:2;stroke-dasharray:8 7;}
+    #s26-nudge-all .cn{font-size:21px;fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 's26-nudge-all', FINAL_STEP = 1000000;
+      function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+      function r2(v) { return Math.round(v * 100) / 100; }
+
+      // 4 clusters x 6 tokens; the first token of each cluster is cat, dog, car, king (the four shown in s22)
+      var CLUSTERS = [
+        { name: 'animals',  cx: 280, cy: 186, words: ['cat', 'dog', 'lion', 'cow', 'fish', 'bird'] },
+        { name: 'royals',   cx: 760, cy: 186, words: ['king', 'queen', 'prince', 'princess', 'duke', 'lord'] },
+        { name: 'vehicles', cx: 280, cy: 392, words: ['car', 'bus', 'bike', 'train', 'truck', 'boat'] },
+        { name: 'food',     cx: 760, cy: 392, words: ['pizza', 'bread', 'apple', 'rice', 'cake', 'soup'] }
+      ];
+      var CW = 12.8, LAB = 14, PLANE = { x0: 24, x1: 1018, y0: 92, y1: 468 };
+      function lw(word) { return LAB + word.length * CW; }
+
+      // the four positions shared with s22 (same generator), the others are drawn randomly with no label overlap
+      var pr = mulberry32(5), s22 = [], tries = 0;
+      while (s22.length < 4 && tries++ < 500) {
+        var x = (pr() * 2 - 1) * 0.75, y = (pr() * 2 - 1) * 0.75;
+        if (Math.hypot(x, y) < 0.4) continue;
+        if (s22.every(function (p) { return Math.hypot(p[0] - x, p[1] - y) > 0.6; })) s22.push([r2(x), r2(y)]);
+      }
+      var toks = [], jr = mulberry32(260);
+      CLUSTERS.forEach(function (cl, ci) {
+        cl.words.forEach(function (w, j) {
+          var col = j < 3 ? 0 : 1, row = j % 3;
+          toks.push({
+            word: w, ci: ci, j: j,
+            fx: cl.cx - 100 + col * 200 + (jr() - 0.5) * 16,
+            fy: cl.cy + (row - 1) * 46 + (jr() - 0.5) * 6
+          });
+        });
+      });
+      // order: cat, dog, car, king first so they take the s22 positions
+      var first = ['cat', 'dog', 'car', 'king'];
+      var firstT = first.map(function (w) { return toks.filter(function (t) { return t.word === w; })[0]; });
+      toks = firstT.concat(toks.filter(function (t) { return first.indexOf(t.word) < 0; }));
+      var placed = [], rr = mulberry32(26);
+      function overlaps(b) {
+        return placed.some(function (p) { return b.x < p.x + p.w + 10 && b.x + b.w + 10 > p.x && Math.abs(b.y - p.y) < 34; });
+      }
+      toks.forEach(function (t, i) {
+        var w = lw(t.word), x, y, n = 0, box;
+        if (i < 4) {
+          x = 520 + s22[i][0] / 0.75 * 440; y = 278 - s22[i][1] / 0.75 * 180;
+          x = Math.min(PLANE.x1 - w, Math.max(PLANE.x0, x));
+          box = { x: x - 10, w: w + 10, y: y };
+        } else {
+          do {
+            x = PLANE.x0 + rr() * (PLANE.x1 - PLANE.x0 - w);
+            y = PLANE.y0 + rr() * (PLANE.y1 - PLANE.y0);
+            box = { x: x - 10, w: w + 10, y: y };
+          } while (overlaps(box) && ++n < 600);
+        }
+        placed.push(box);
+        t.rx = x; t.ry = y; t.delay = rr() * 0.3;
+      });
+
+      // build the svg: dots + labels
+      var dotsG = document.getElementById(ID + '-dots'), NS = dotsG.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e); return e;
+      }
+      toks.forEach(function (t) {
+        t.dot = mk('circle', { r: 8.5, cx: t.rx, cy: t.ry }, dotsG);
+        t.lab = mk('text', { 'class': 'tk', x: t.rx + LAB, y: t.ry + 7 }, dotsG, t.word);
+      });
+      // cluster outlines (fade in at the end)
+      var clG = document.getElementById(ID + '-clusters'), outlines = [];
+      CLUSTERS.forEach(function (cl, ci) {
+        var mine = toks.filter(function (t) { return t.ci === ci; });
+        var x0 = Math.min.apply(null, mine.map(function (t) { return t.fx; })) - 22;
+        var x1 = Math.max.apply(null, mine.map(function (t) { return t.fx + lw(t.word); })) + 14;
+        var y0 = Math.min.apply(null, mine.map(function (t) { return t.fy; })) - 30;
+        var y1 = Math.max.apply(null, mine.map(function (t) { return t.fy; })) + 28;
+        var g = mk('g', { opacity: 0 }, clG);
+        mk('rect', { 'class': 'cl', x: x0, y: y0, width: x1 - x0, height: y1 - y0, rx: 14 }, g);
+        mk('text', { 'class': 'cn', x: x0 + 6, y: y0 - 9 }, g, cl.name);
+        outlines.push(g);
+      });
+
+      var count = document.getElementById(ID + '-count');
+      var GREY = Deck.rgb('--color-text-dim'), CYAN = Deck.rgb('--color-accent'), LG = Deck.rgb('--color-text-muted'), LW = Deck.rgb('--color-text');
+      function mix(a, b, t) { return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }).join(',') + ')'; }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      var T = 0;
+      function draw() {
+        count.textContent = Math.round(FINAL_STEP * T).toLocaleString('en-US');
+        toks.forEach(function (t) {
+          var p = Deck.ease.inOut(clamp((T - t.delay) / 0.7));
+          var x = t.rx + (t.fx - t.rx) * p, y = t.ry + (t.fy - t.ry) * p;
+          t.dot.setAttribute('cx', x); t.dot.setAttribute('cy', y);
+          t.dot.setAttribute('fill', mix(GREY, CYAN, p));
+          t.lab.setAttribute('x', x + LAB); t.lab.setAttribute('y', y + 7);
+          t.lab.setAttribute('fill', mix(LG, LW, p));
+        });
+        var o = clamp((T - 0.85) / 0.15);
+        outlines.forEach(function (g) { g.setAttribute('opacity', o); });
+      }
+
+      Deck.slide('s26-nudge-all', {
+        enter: function () { T = 0; draw(); },
+        step: function (n, prev, c) {
+          var target = n >= 1 ? 1 : 0;
+          if (c.instant) { T = target; draw(); return; }
+          var from = T;
+          Deck.tween(target > from ? 2400 : 1200, function (t) { T = Deck.lerp(from, target, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

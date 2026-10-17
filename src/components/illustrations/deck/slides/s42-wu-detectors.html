@@ -1,0 +1,125 @@
+<section class="slide" id="s42-wu-detectors" data-steps="2" data-tool="matrix dot">
+  <p class="kicker reveal">feed-forward</p>
+  <p class="statement reveal">Wu: each column is a question about the token.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s42-wu-detectors-t s42-wu-detectors-d">
+      <title id="s42-wu-detectors-t">Wu is a bank of detectors</title>
+      <desc id="s42-wu-detectors-d">The token vector x on the left feeds a bank of six columns of Wu, shown under a bracket reading 17,408 of them in the real model. Each column asks a question: is it about Spain, is it football, is it about a trophy, is it 2026, is it a capital city, is it about food. Taking the dot product of x with each column grows a bar: 0.93, 0.81, 0.64, 0.58, 0.12 and 0.03. The Spain bar is highlighted with the note that the training data said the 2026 World Cup went to Spain.</desc>
+      <g id="s42-wu-detectors-bank"></g>
+      <g id="s42-wu-detectors-bars"></g>
+      <g id="s42-wu-detectors-x"></g>
+      <g data-from="2" id="s42-wu-detectors-tag"></g>
+    </svg>
+  </div>
+
+  <style>
+    #s42-wu-detectors svg.diagram{width:100%;height:100%;max-width:none;}
+    #s42-wu-detectors text{font-family:var(--font-mono);}
+    #s42-wu-detectors .trk{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;transition:stroke .6s;}
+    #s42-wu-detectors .cell{fill:var(--color-text-faint);}
+    #s42-wu-detectors .q{font-size:22px;fill:var(--color-text-soft);text-anchor:middle;}
+    #s42-wu-detectors .val{font-size:26px;font-weight:600;text-anchor:middle;}
+    #s42-wu-detectors .brace{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s42-wu-detectors .bl{font-size:24px;fill:var(--color-text-soft);text-anchor:middle;}
+    #s42-wu-detectors .xl{font-size:30px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #s42-wu-detectors .xc{fill:var(--color-accent);}
+    #s42-wu-detectors .xa{stroke:var(--color-accent);stroke-width:3.5;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    #s42-wu-detectors .cap{font-size:20px;fill:var(--color-text-muted);}
+    #s42-wu-detectors .tagbox{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #s42-wu-detectors .tag{font-size:21px;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 's42-wu-detectors';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      // FEED-FORWARD TOY: the six detectors and the magnitude of dot(x, column) each gets (toy values)
+      var DET = [
+        { lines: ['is it about', 'Spain?'], v: 0.93 },
+        { lines: ['is it', 'football?'], v: 0.81 },
+        { lines: ['is it about', 'a trophy?'], v: 0.64 },
+        { lines: ['is it', '2026?'], v: 0.58 },
+        { lines: ['is it a', 'capital', 'city?'], v: 0.12 },
+        { lines: ['is it about', 'food?'], v: 0.03 }
+      ];
+      var C0 = 286, PITCH = 150, TW = 96, TY0 = 84, TH = 320, S = 290, BW = 72;
+      var MUTED = Deck.rgb('--color-text-muted'), ACC = Deck.rgb('--color-accent');
+      function col(c) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(MUTED[i] + (ACC[i] - MUTED[i]) * c); }).join(',') + ')'; }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function seeded(i) { var s = Math.sin(i * 12.9898) * 43758.5453; return s - Math.floor(s); }
+
+      var gb = $('bank'), gr = $('bars'), gx = $('x');
+      var trks = [], bars = [], vals = [], cells = [];
+
+      DET.forEach(function (d, i) {
+        var cx = C0 + i * PITCH, x0 = cx - TW / 2;
+        trks.push(el('rect', { 'class': 'trk', x: x0, y: TY0, width: TW, height: TH, rx: 10 }, gb));
+        for (var k = 0; k < 10; k++) {
+          var w = BW * (0.45 + 0.55 * seeded(i * 10 + k));
+          cells.push(el('rect', { 'class': 'cell', x: cx - w / 2, y: TY0 + 12 + k * 30, width: w, height: 12, rx: 3 }, gb));
+        }
+        d.lines.forEach(function (ln, k) { el('text', { 'class': 'q', x: cx, y: TY0 + TH + 33 + k * 25 }, gb, ln); });
+        bars.push(el('rect', { x: cx - BW / 2, y: TY0 + TH, width: BW, height: 0, rx: 6 }, gr));
+        vals.push(el('text', { 'class': 'val', x: cx, y: TY0 + TH - 14 }, gr, d.v.toFixed(2)));
+      });
+
+      // brace over the bank: 17,408 of them in the real model
+      var bx0 = C0 - TW / 2, bx1 = C0 + 5 * PITCH + TW / 2, bm = (bx0 + bx1) / 2, by = 62;
+      el('path', { 'class': 'brace', d: 'M' + bx0 + ' ' + (by + 12) + 'q0 -12 12 -12H' + (bm - 12) + 'q12 0 12 -12q0 12 12 12H' + (bx1 - 12) + 'q12 0 12 12' }, gb);
+      el('text', { 'class': 'bl', x: bm, y: 32 }, gb, '17,408 of them in the real model');
+
+      // x: the token vector on the left, an arrow into the bank
+      var xs = 36, xy = 206;
+      for (var k = 0; k < 16; k++) {
+        var h = 14 + 26 * seeded(k + 100);
+        el('rect', { 'class': 'xc', x: xs + k * 5.5, y: xy + 20 - h / 2, width: 4, height: h, rx: 1 }, gx);
+      }
+      el('text', { 'class': 'xl', x: xs + 44, y: xy - 14 }, gx, 'x');
+      el('path', { 'class': 'xa', d: 'M' + (xs + 98) + ' ' + (xy + 20) + 'H' + (bx0 - 14) + 'm-12 -9l12 9l-12 9' }, gx);
+      var cap = el('text', { 'class': 'cap', x: xs, y: xy + 80, opacity: 0 }, gx, 'x · column');
+
+      // step 2: the explanation under the Spain column
+      var gt = $('tag');
+      el('rect', { 'class': 'tagbox', x: bx0, y: 480, width: 580, height: 34, rx: 10 }, gt);
+      el('text', { 'class': 'tag', x: bx0 + 16, y: 503 }, gt, 'training data said: 2026 World Cup → Spain');
+
+      // state: A = the bars have grown (Spain first, the rest one by one), F = Spain in focus
+      var A = 0, F = 0, cancel = null;
+      function draw() {
+        DET.forEach(function (d, i) {
+          var g = clamp(A * 1.5 - i * 0.1), c = i === 0 ? 1 : 1 - F;
+          var h = d.v * S * g;
+          bars[i].setAttribute('y', TY0 + TH - h); bars[i].setAttribute('height', h);
+          bars[i].setAttribute('fill', col(c));
+          vals[i].setAttribute('y', TY0 + TH - h - 12);
+          vals[i].setAttribute('opacity', g.toFixed(3)); vals[i].setAttribute('fill', col(c));
+          trks[i].style.stroke = i === 0 && F > 0.5 ? 'var(--color-accent)' : '';
+        });
+        cap.setAttribute('opacity', clamp(A * 3).toFixed(3));
+        cells.forEach(function (c) { c.setAttribute('opacity', (0.35 * (1 - 0.75 * clamp(A * 1.5))).toFixed(3)); });
+      }
+      draw();
+
+      Deck.slide('s42-wu-detectors', {
+        enter: function () { A = 0; F = 0; draw(); },
+        step: function (n, prev, c) {
+          var t = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { A = t[0]; F = t[1]; draw(); return; }
+          var f = [A, F];
+          cancel = Deck.tween(n === 1 || (n === 0 && prev === 1) ? 1500 : 800, function (k) {
+            var v = Deck.lerp(f, t, k); A = v[0]; F = v[1]; draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

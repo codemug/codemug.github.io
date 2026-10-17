@@ -1,0 +1,145 @@
+<section class="slide" id="s41-ffn-flow" data-steps="4" data-tool="matrix relu">
+  <p class="kicker reveal">feed-forward</p>
+  <p class="statement reveal">Feed-forward: Wu, silence the weak ones, Wd, add.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s41-ffn-flow-t s41-ffn-flow-d">
+      <title id="s41-ffn-flow-t">The feed-forward flow with real shapes</title>
+      <desc id="s41-ffn-flow-d">A left-to-right flow. The token vector x with 5,120 numbers is multiplied by Wu, the up_proj matrix of layer 3, and becomes a much wider vector of 17,408 numbers. The weak numbers are silenced. The survivors are multiplied by Wd, the down_proj matrix, and become a vector of 5,120 numbers again. That change is added to the original x, which travels along the top, giving the new vector. Each of the five parts lights up in turn.</desc>
+      <g id="s41-ffn-flow-skip"></g>
+      <g id="s41-ffn-flow-flow"></g>
+      <g data-from="0" data-until="1"><text class="cap" x="560" y="462">one token's vector</text></g>
+      <g data-from="1" data-until="2"><text class="cap" x="560" y="462">Wu asks 17,408 questions at once</text></g>
+      <g data-from="2" data-until="3"><text class="cap" x="560" y="462">the weak answers are silenced</text></g>
+      <g data-from="3" data-until="4"><text class="cap" x="560" y="462">Wd turns the survivors into a change</text></g>
+      <g data-from="4"><text class="cap" x="560" y="462">the change is added to the original x</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #s41-ffn-flow svg.diagram{width:100%;height:100%;max-width:none;}
+    #s41-ffn-flow text{font-family:var(--font-mono);}
+    #s41-ffn-flow .nd{color:#5a5a63;transition:color .6s;}
+    #s41-ffn-flow .nd.done{color:var(--color-text-muted);}
+    #s41-ffn-flow .nd.act{color:var(--color-accent);}
+    #s41-ffn-flow .ob{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #s41-ffn-flow .nd.act .ob{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #s41-ffn-flow .ot{font-size:34px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #s41-ffn-flow .ot2{font-size:26px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #s41-ffn-flow .tn{font-size:20px;fill:currentColor;text-anchor:middle;}
+    #s41-ffn-flow .cnt{font-size:22px;fill:currentColor;text-anchor:middle;}
+    #s41-ffn-flow .cell{fill:currentColor;}
+    #s41-ffn-flow .ay{fill:none;stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s41-ffn-flow .pl{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #s41-ffn-flow .pt{font-size:36px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #s41-ffn-flow .sk{fill:none;stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s41-ffn-flow .skl{font-size:22px;fill:currentColor;text-anchor:middle;}
+    #s41-ffn-flow .cap{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 's41-ffn-flow';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seeded(i) { var s = Math.sin(i * 12.9898 + 4.1) * 43758.5453; return s - Math.floor(s); }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // REAL shapes (deck/data/qwen38.json, layer 3 and config): hidden_size 5120, intermediate_size 17408
+      var HID = '5,120', MID = '17,408';
+      var CY = 300, SH = 96, OH = 150, G = 30;
+      var CELL = 5, KEEP = 0.7;               // a cell survives the silencing when its value is above KEEP (schematic)
+
+      var gf = $('flow'), gs = $('skip');
+      var nodes = [[], [], [], [], []];       // nodes[k]: the groups that belong to step k
+      function grp(k, cls) { var g = el('g', { 'class': 'nd ' + (cls || '') }, gf); nodes[k].push(g); return g; }
+      function arrow(k, x1, x2) { var g = grp(k); el('path', { 'class': 'ay', d: 'M' + x1 + ' ' + CY + 'H' + (x2 - 2) + 'm-10 -9l10 9l-10 9' }, g); }
+
+      // a strip of cells (a vector); returns the rects and their values
+      function strip(k, x0, n, count, label) {
+        var g = grp(k), cells = [];
+        for (var i = 0; i < n; i++) {
+          var v = 0.2 + 0.8 * seeded(i + n * 7);
+          cells.push({ v: v, r: el('rect', { 'class': 'cell', x: x0 + i * CELL, width: CELL - 1, rx: 1 }, g) });
+        }
+        el('text', { 'class': 'cnt', x: x0 + n * CELL / 2, y: CY + SH / 2 + 34 }, g, count);
+        return { g: g, cells: cells };
+      }
+      function setCells(s, collapse) {   // collapse 0..1: the weak cells shrink to a sliver
+        s.cells.forEach(function (c) {
+          var weak = c.v < KEEP, f = weak ? c.v * (1 - collapse) + 0.06 * collapse : c.v, h = SH * f;
+          c.r.setAttribute('y', CY - h / 2); c.r.setAttribute('height', h);
+          c.r.style.opacity = weak ? (1 - 0.7 * collapse).toFixed(3) : 1;
+        });
+      }
+      function op(k, x0, w, lines, tens, shape) {
+        var g = grp(k);
+        el('rect', { 'class': 'ob', x: x0, y: CY - OH / 2, width: w, height: OH, rx: 16 }, g);
+        if (lines.length === 1) el('text', { 'class': 'ot', x: x0 + w / 2, y: CY + 10 }, g, lines[0]);
+        else lines.forEach(function (t, i) { el('text', { 'class': 'ot2', x: x0 + w / 2, y: CY - 2 + i * 32 }, g, t); });
+        if (tens) {
+          el('text', { 'class': 'tn', x: x0 + w / 2, y: CY - OH / 2 - 40 }, g, tens);
+          el('text', { 'class': 'tn', x: x0 + w / 2, y: CY - OH / 2 - 16 }, g, shape);
+        }
+      }
+
+      var x = 24;
+      var xs = strip(0, x, 13, HID);                  x += 66 + G;            // x: 5,120 numbers
+      arrow(1, x - G, x);
+      op(1, x, 120, ['× Wu'], 'up_proj', '[17,408 × 5,120]');         x += 120 + G;
+      arrow(1, x - G, x);
+      var wide = strip(1, x, 48, MID);               x += 240 + G;           // 17,408 numbers (schematic cells)
+      arrow(2, x - G, x);
+      op(2, x, 140, ['silence', 'weak']);            x += 140 + G;
+      arrow(3, x - G, x);
+      op(3, x, 120, ['× Wd'], 'down_proj', '[5,120 × 17,408]');       x += 120 + G;
+      arrow(3, x - G, x);
+      var ds = strip(3, x, 13, HID);                  x += 66 + G;
+      arrow(4, x - G, x);
+      var pcx = x + 22, pg = grp(4);                  // the + that merges the change into the stream
+      el('circle', { 'class': 'pl', cx: pcx, cy: CY, r: 22 }, pg);
+      el('text', { 'class': 'pt', x: pcx, y: CY + 12 }, pg, '+');
+      x += 44 + G;
+      arrow(4, x - G, x);
+      var out = strip(4, x, 13, HID);
+
+      // the original x travels along the top and is added back at the +
+      var sg = el('g', { 'class': 'nd' }, gs); nodes[4].push(sg);
+      var sx = 24 + 33, top = 112;
+      el('path', { 'class': 'sk', d: 'M' + sx + ' ' + (CY - SH / 2 - 14) + 'V' + (top + 16) + 'Q' + sx + ' ' + top + ' ' + (sx + 16) + ' ' + top + 'H' + (pcx - 16) + 'Q' + pcx + ' ' + top + ' ' + pcx + ' ' + (top + 16) + 'V' + (CY - 30) + 'm-9 -10l9 10l9 -10' }, sg);
+      el('text', { 'class': 'skl', x: (sx + pcx) / 2, y: top - 14 }, sg, 'the original x, unchanged');
+
+      // the wide strip is modified by the silencing step, so it follows steps 1 and 2
+      var S = 0, cancel = null;
+      function draw() { setCells(xs, 0); setCells(wide, S); setCells(ds, 0); setCells(out, 0); }
+      draw();
+      function paint(n) {
+        nodes.forEach(function (list, k) {
+          list.forEach(function (g) {
+            var wideStrip = g === wide.g;
+            var cls = 'nd ' + (k === n || (wideStrip && n === 2) ? 'act' : n > k ? 'done' : '');
+            g.setAttribute('class', cls);
+          });
+        });
+      }
+
+      Deck.slide('s41-ffn-flow', {
+        enter: function () { S = 0; draw(); paint(0); },
+        step: function (n, prev, c) {
+          paint(n);
+          var target = n >= 2 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = target; draw(); return; }
+          var from = S;
+          cancel = Deck.tween(800, function (t) { S = Deck.lerp(from, target, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,109 @@
+<section class="slide" id="s24-error" data-steps="1" data-tool="softmax">
+  <p class="kicker reveal">training</p>
+  <p class="statement reveal">The error says how far off the guess was.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 480" role="img" aria-labelledby="s24-error-t s24-error-d">
+      <title id="s24-error-t">The model's probabilities against the true answer</title>
+      <desc id="s24-error-d">Six bars show the untrained model's probabilities for mat, rug, floor, chair, table and dog: nearly flat, with dog highest at 30 percent and mat at 12 percent. A dashed outline marks the target: mat should be 100 percent. The gap between the mat bar and the target is the error, 88 percent, which tells us to change the numbers.</desc>
+      <defs>
+        <marker id="s24-error-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,1 L14,8 L0,15 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <!-- baseline, target column, bars: built by the script -->
+      <g id="s24-error-bars"></g>
+
+      <!-- step 1: the error -->
+      <g id="s24-error-err" opacity="0">
+        <path id="s24-error-brk" class="brk" d=""/>
+        <g id="s24-error-anno">
+        <g id="s24-error-txt" opacity="0">
+          <text class="el" x="222" y="168">error</text>
+          <text class="em" x="222" y="204">100% &minus; <tspan id="s24-error-m">12</tspan>% = <tspan id="s24-error-e" class="ea">88</tspan>%</text>
+        </g>
+        <g id="s24-error-chg" opacity="0">
+          <line class="chgl" x1="224" y1="262" x2="288" y2="262" marker-end="url(#s24-error-ah)"/>
+          <text class="chg" x="304" y="271">change the numbers</text>
+        </g>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s24-error svg.diagram{max-width:min(1203.2px,1100px);}
+    #s24-error .base{stroke:var(--color-border-strong);stroke-width:2;}
+    #s24-error .target{fill:color-mix(in oklab,var(--color-accent) 5%,transparent);stroke:var(--color-accent);stroke-width:2.5;stroke-dasharray:9 7;}
+    #s24-error .bar{fill:var(--color-border-strong);}
+    #s24-error .bar.top{fill:var(--color-text-dim);}
+    #s24-error .bar.me{fill:var(--color-accent);}
+    #s24-error .w{font-size:25px;fill:var(--color-text-muted);text-anchor:middle;}
+    #s24-error .w.me{fill:var(--color-accent);}
+    #s24-error .v{font-size:23px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s24-error .v.top{fill:var(--color-text-soft);}
+    #s24-error .v.me{fill:var(--color-accent);}
+    #s24-error .tl{font-size:22px;fill:var(--color-accent);text-anchor:middle;}
+    #s24-error .brk{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s24-error .el{font-size:34px;fill:var(--color-accent);font-weight:600;}
+    #s24-error .em{font-size:25px;fill:var(--color-text-muted);}
+    #s24-error .ea{fill:var(--color-accent);}
+    #s24-error .chgl{stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;}
+    #s24-error .chg{font-size:27px;fill:var(--color-text);}
+  </style>
+  <script>
+    (function () {
+      var ID = 's24-error';
+      var WORDS = ['mat', 'rug', 'floor', 'chair', 'table', 'dog'];
+      var PROB = [0.12, 0.15, 0.15, 0.14, 0.14, 0.30]; // untrained model: nearly flat, dog highest (toy numbers)
+      var TARGET = [1, 0, 0, 0, 0, 0];                  // the real next word is "mat"
+      var BASE = 410, SC = 340, X0 = 180, PITCH = 140, BW = 78;
+      var ERR = TARGET[0] - PROB[0];
+
+      var g = document.getElementById(ID + '-bars'), NS = g.namespaceURI;
+      function mk(tag, attrs, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        g.appendChild(e); return e;
+      }
+      var topI = PROB.indexOf(Math.max.apply(null, PROB));
+      // the target: mat should be 100%
+      mk('rect', { 'class': 'target', x: X0 - BW / 2 - 8, y: BASE - SC * TARGET[0], width: BW + 16, height: SC * TARGET[0], rx: 8 });
+      mk('text', { 'class': 'tl', x: X0, y: BASE - SC * TARGET[0] - 14 }, 'target 100%');
+      mk('line', { 'class': 'base', x1: X0 - 70, y1: BASE, x2: X0 + 5 * PITCH + 70, y2: BASE });
+      WORDS.forEach(function (w, i) {
+        var cx = X0 + i * PITCH, h = SC * PROB[i], me = TARGET[i] === 1;
+        mk('rect', { 'class': 'bar' + (me ? ' me' : i === topI ? ' top' : ''), x: cx - BW / 2, y: BASE - h, width: BW, height: h, rx: 6 });
+        mk('text', { 'class': 'v' + (me ? ' me' : i === topI ? ' top' : ''), x: cx, y: BASE - h - 12 }, Math.round(PROB[i] * 100) + '%');
+        mk('text', { 'class': 'w' + (me ? ' me' : ''), x: cx, y: BASE + 40 }, w);
+      });
+      document.getElementById(ID + '-m').textContent = Math.round(PROB[0] * 100);
+      document.getElementById(ID + '-e').textContent = Math.round(ERR * 100);
+
+      // the error bracket spans from the top of the mat bar up to the 100% target
+      var yLo = BASE - SC * PROB[0], yHi = BASE - SC * TARGET[0], bx = X0 + BW / 2 + 28;
+      var err, brk, txt, chg, anno, S = 0;
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function draw() {
+        var y = yLo + (yHi - yLo) * clamp(S / 0.55);
+        err.setAttribute('opacity', S > 0.01 ? 1 : 0);
+        brk.setAttribute('d', 'M' + (bx - 12) + ' ' + yLo + 'H' + bx + 'V' + y + 'H' + (bx - 12));
+        txt.setAttribute('opacity', clamp((S - 0.45) / 0.25));
+        chg.setAttribute('opacity', clamp((S - 0.7) / 0.3));
+      }
+
+      Deck.slide('s24-error', {
+        enter: function (c) {
+          err = c.qs('#' + ID + '-err'); brk = c.qs('#' + ID + '-brk'); txt = c.qs('#' + ID + '-txt'); chg = c.qs('#' + ID + '-chg'); anno = c.qs('#' + ID + '-anno');
+          anno.setAttribute('transform', 'translate(' + (bx + 30 - 222) + ' 0)');
+          S = 0; draw();
+        },
+        step: function (n, prev, c) {
+          var t = n >= 1 ? 1 : 0;
+          if (c.instant) { S = t; draw(); return; }
+          var f = S;
+          Deck.tween(1100, function (k) { S = Deck.lerp(f, t, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

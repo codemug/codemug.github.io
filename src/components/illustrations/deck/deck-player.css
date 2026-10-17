@@ -1,0 +1,137 @@
+/* Player chrome for the talk-deck figures (<DeckFig />).
+   A figure renders its slides in a fixed 1280x720 frame (the talk's design size) scaled to
+   the figure's width; deck-runtime.js sets --dk-scale. Figures break out of the 720px text
+   column so slide text stays readable; below a 640px frame they scroll sideways instead of
+   shrinking further, and every figure can expand to fill the screen. */
+
+.prose .dk,
+.dk {
+  --dk-scale: 0.5;
+  --dk-w: min(1100px, calc(100vw - 32px));
+  position: relative;
+  width: var(--dk-w);
+  max-width: none;
+  margin: 2.5rem 0 2.5rem calc(50% - var(--dk-w) / 2);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+.dk:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+
+.dk-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; }
+.dk-box {
+  position: relative;
+  width: calc(1280px * var(--dk-scale));
+  height: calc(720px * var(--dk-scale));
+}
+
+/* the slide frame, with the talk's page defaults so the article's .prose styles stay out */
+.dk-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1280px;
+  height: 720px;
+  transform: scale(var(--dk-scale));
+  transform-origin: 0 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: normal;
+  text-align: left;
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  font-variant-ligatures: none;
+}
+.dk .dk-frame * { margin: 0; padding: 0; box-sizing: border-box; }
+.dk .dk-frame ul,
+.dk .dk-frame ol { list-style: none; }
+.dk .dk-frame code,
+.dk .dk-frame pre { background: none; border: 0; border-radius: 0; font-size: inherit; color: inherit; }
+.dk .dk-frame strong,
+.dk .dk-frame b { color: inherit; }
+/* the talk's section labels ("refresher 1", "the loop") duplicate the article's headings;
+   hidden, but kept in the layout so the slides keep their spacing */
+.dk .dk-frame .kicker { visibility: hidden; }
+
+/* controls */
+.dk-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.dk-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface-2);
+  color: var(--color-text-soft);
+  font: 500 14px/1 var(--font-mono);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.dk-btn:hover { color: var(--color-text); border-color: var(--color-border-strong); }
+.dk-btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.dk-btn:disabled { opacity: 0.35; cursor: default; }
+.dk-pips { flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
+.dk-pips i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  transition: background 0.25s, transform 0.25s;
+}
+.dk-pips i.done { background: var(--color-text-dim); }
+.dk-pips i.now { background: var(--color-accent); transform: scale(1.35); }
+
+.dk-cap {
+  margin: 0;
+  padding: 10px 16px 14px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.dk-cap:empty { display: none; }
+
+/* expanded: the figure fills the screen from the browser's top layer (a manual popover, so these
+   rules also override the popover defaults); the frame scales to fit, never below the inline
+   scale, and pans when it is larger than the screen */
+.dk.is-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+.dk.is-expanded .dk-scroll { flex: 1; min-height: 0; display: flex; overflow: auto; }
+.dk.is-expanded .dk-box { flex: none; margin: auto; }
+html.dk-noscroll { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-btn,
+  .dk-pips i { transition: none; }
+}

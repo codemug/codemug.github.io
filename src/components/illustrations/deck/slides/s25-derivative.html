@@ -1,0 +1,185 @@
+<section class="slide" id="s25-derivative" data-steps="3">
+  <p class="kicker reveal">training</p>
+  <p class="statement reveal">The error tells us how much to change each number.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 490" role="img" aria-labelledby="s25-derivative-t s25-derivative-d">
+      <title id="s25-derivative-t">Error plotted against one number w</title>
+      <desc id="s25-derivative-d">A U-shaped curve of the error against a single number w, with its minimum at w equals 3. A point starts on the left slope at w equals 0.5. A tangent line shows the slope, minus 5. The point then steps downhill by 0.3 times the slope, to w equals 2.0, and keeps stepping: each step is smaller as the curve flattens near the bottom.</desc>
+      <defs>
+        <marker id="s25-derivative-ah" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="13" refY="9" orient="auto"><path d="M0,1 L16,9 L0,17 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <!-- axes, ticks, labels (built by the script) -->
+      <g id="s25-derivative-axes"></g>
+      <path id="s25-derivative-curve" class="curve" d=""/>
+
+      <!-- step 1: the slope as a triangle (run 1, drop 5) -->
+      <g id="s25-derivative-tri" data-from="1" data-until="2"></g>
+
+      <!-- the hops, the tangent and the moving point -->
+      <g id="s25-derivative-hops"></g>
+      <line id="s25-derivative-tan" class="tan" x1="0" y1="0" x2="0" y2="0" opacity="0"/>
+      <text id="s25-derivative-steplab" class="steplab" x="0" y="0" opacity="0"></text>
+      <g id="s25-derivative-pts"></g>
+
+      <!-- readout panel -->
+      <g class="panel">
+        <text class="pl" x="782" y="108">w</text>
+        <text id="s25-derivative-vw" class="pv" x="1030" y="108" text-anchor="end">0.50</text>
+        <text class="pl" x="782" y="170">error</text>
+        <text id="s25-derivative-ve" class="pv ev" x="1030" y="170" text-anchor="end">6.75</text>
+        <g data-from="1">
+          <text class="pl a" x="782" y="236">slope</text>
+          <text class="ps" x="782" y="264">= derivative</text>
+          <text id="s25-derivative-vs" class="pv a" x="1030" y="236" text-anchor="end">&minus;5.00</text>
+        </g>
+        <g data-from="2">
+          <text class="rule" x="782" y="330">w -= 0.3 * slope</text>
+        </g>
+        <g data-from="3">
+          <text class="pl" x="782" y="400">step size</text>
+          <text id="s25-derivative-vz" class="pv" x="1030" y="400" text-anchor="end">0.60</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s25-derivative svg.diagram{max-width:min(1203.2px,1100px);}
+    #s25-derivative .axis{stroke:var(--color-border-strong);stroke-width:2;}
+    #s25-derivative .tick{stroke:var(--color-border-strong);stroke-width:2;}
+    #s25-derivative .tl{font-size:21px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s25-derivative .at{font-size:25px;fill:var(--color-text-muted);}
+    #s25-derivative .curve{fill:none;stroke:var(--color-text-muted);stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s25-derivative .tan{stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;}
+    #s25-derivative .leg{stroke:var(--color-accent);stroke-width:2.5;stroke-dasharray:6 6;fill:none;opacity:.8;}
+    #s25-derivative .legl{font-size:24px;fill:var(--color-accent);}
+    #s25-derivative .legl.d{fill:var(--color-text-muted);}
+    #s25-derivative .hop{stroke:var(--color-accent);stroke-width:4.5;stroke-linecap:round;}
+    #s25-derivative .drop{stroke:var(--color-accent);stroke-width:2.5;stroke-dasharray:5 6;}
+    #s25-derivative .pt{fill:var(--color-accent);}
+    #s25-derivative .past{fill:var(--color-text-dim);}
+    #s25-derivative .steplab{font-size:24px;fill:var(--color-accent);}
+    #s25-derivative .pl{font-size:26px;fill:var(--color-text-muted);}
+    #s25-derivative .pl.a{fill:var(--color-accent);}
+    #s25-derivative .ps{font-size:21px;fill:var(--color-text-dim);}
+    #s25-derivative .pv{font-size:36px;fill:var(--color-text);font-variant-numeric:tabular-nums;}
+    #s25-derivative .pv.ev{fill:var(--color-text-soft);}
+    #s25-derivative .pv.a{fill:var(--color-accent);}
+    #s25-derivative .rule{font-size:25px;fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 's25-derivative';
+      // TRAINING TOY: error(w) = (w - 3)^2 + 0.5, slope = 2(w - 3), step = LR x slope, start w0 = 0.5
+      var LR = 0.3, NHOP = 5;
+      function err(w) { return (w - 3) * (w - 3) + 0.5; }
+      function slope(w) { return 2 * (w - 3); }
+      var W = [0.5];
+      for (var k = 0; k < NHOP; k++) W.push(W[k] - LR * slope(W[k]));
+
+      // plot geometry: w in [-1, 7] -> x, error in [0, 17] -> y
+      var X0 = 110, XU = 77, Y0 = 410, YU = 21.8, EMAX = 16.8;
+      function X(w) { return X0 + (w + 1) * XU; }
+      function Y(e) { return Y0 - e * YU; }
+      function minus(s) { return s.replace('-', '−'); }
+
+      var axes = document.getElementById(ID + '-axes'), NS = axes.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var key in attrs) e.setAttribute(key, attrs[key]);
+        if (text !== undefined) e.textContent = text;
+        (parent || axes).appendChild(e); return e;
+      }
+      mk('line', { 'class': 'axis', x1: X0, y1: Y0, x2: X(7) + 20, y2: Y0 });
+      mk('line', { 'class': 'axis', x1: X0, y1: Y0, x2: X0, y2: Y(17) });
+      for (var w = -1; w <= 7; w++) {
+        mk('line', { 'class': 'tick', x1: X(w), y1: Y0, x2: X(w), y2: Y0 + 8 });
+        mk('text', { 'class': 'tl', x: X(w), y: Y0 + 32 }, axes, minus(String(w)));
+      }
+      mk('text', { 'class': 'at', x: X(3), y: Y0 + 68, 'text-anchor': 'middle' }, axes, 'one number w');
+      mk('text', { 'class': 'at', x: X0 - 12, y: Y(16.4), 'text-anchor': 'end' }, axes, 'error');
+
+      var d = '';
+      for (var i = 0; i <= 96; i++) { var wi = -1 + 8 * i / 96; d += (i ? 'L' : 'M') + X(wi).toFixed(1) + ' ' + Y(err(wi)).toFixed(1); }
+      document.getElementById(ID + '-curve').setAttribute('d', d);
+
+      // step 1 triangle: run +1 in w, drop of slope(w0) in error
+      var tri = document.getElementById(ID + '-tri'), s0 = slope(W[0]);
+      var tx0 = X(W[0]), ty0 = Y(err(W[0])), tx1 = X(W[0] + 1), ty1 = Y(err(W[0]) + s0);
+      mk('path', { 'class': 'leg', d: 'M' + tx0 + ' ' + ty0 + 'H' + tx1 + 'V' + ty1 }, tri);
+      mk('text', { 'class': 'legl d', x: (tx0 + tx1) / 2, y: ty0 - 12, 'text-anchor': 'middle' }, tri, '+1');
+      mk('text', { 'class': 'legl', x: tx1 + 12, y: (ty0 + ty1) / 2 - 14 }, tri, minus(s0.toFixed(0)));
+
+      // dynamic parts
+      var hopsG = document.getElementById(ID + '-hops'), ptsG = document.getElementById(ID + '-pts');
+      var hops = [], drops = [], pasts = [], i2;
+      for (i2 = 0; i2 < NHOP; i2++) {
+        drops.push(mk('line', { 'class': 'drop', x1: 0, y1: 0, x2: 0, y2: 0, opacity: 0 }, hopsG));
+        hops.push(mk('line', { 'class': 'hop', x1: 0, y1: 0, x2: 0, y2: 0, opacity: 0 }, hopsG));
+        pasts.push(mk('circle', { 'class': 'past', r: 6.5, cx: 0, cy: 0, opacity: 0 }, ptsG));
+      }
+      var pt = mk('circle', { 'class': 'pt', r: 11, cx: 0, cy: 0 }, ptsG);
+      var tanEl = document.getElementById(ID + '-tan'), stepLab = document.getElementById(ID + '-steplab');
+      var vz = document.getElementById(ID + '-vz'), vw = document.getElementById(ID + '-vw'), ve = document.getElementById(ID + '-ve'), vs = document.getElementById(ID + '-vs');
+      stepLab.textContent = LR + ' × ' + Math.abs(s0).toFixed(0) + ' = ' + (LR * Math.abs(s0)).toFixed(1);
+
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      var HOLD = 0.02;
+      // tangent segment through (w, e) with slope s, clipped to the plot
+      function tangent(w, e, s) {
+        var lo = Math.max(-1, w - 2.2), hi = Math.min(7, w + 2.2);
+        if (Math.abs(s) > 1e-6) {
+          var a = w + (0.15 - e) / s, b = w + (EMAX - e) / s;
+          lo = Math.max(lo, Math.min(a, b)); hi = Math.min(hi, Math.max(a, b));
+        }
+        return [lo, e + s * (lo - w), hi, e + s * (hi - w)];
+      }
+
+      var S = { h: 0, t: 0 };
+      function draw() {
+        var H = S.h, kk = Math.min(NHOP - 1, Math.floor(H)), fr = H - kk;
+        var w = W[kk] + (W[kk + 1] - W[kk]) * fr, e = err(w), s = slope(w);
+        pt.setAttribute('cx', X(w)); pt.setAttribute('cy', Y(e));
+        var cur = Math.max(0, Math.ceil(H - 1e-6) - 1);
+        for (var j = 0; j < NHOP; j++) {
+          var on = H > j + HOLD, endW = W[j] + (W[j + 1] - W[j]) * Math.min(1, H - j);
+          var x1 = X(W[j]), x2 = X(endW), yh = Y(err(W[j]));
+          hops[j].setAttribute('x1', x1); hops[j].setAttribute('x2', x2);
+          hops[j].setAttribute('y1', yh); hops[j].setAttribute('y2', yh);
+          hops[j].setAttribute('marker-end', x2 - x1 > 22 ? 'url(#' + ID + '-ah)' : 'none');
+          hops[j].setAttribute('opacity', on ? (j === cur ? 1 : 0.6) : 0);
+          drops[j].setAttribute('x1', x2); drops[j].setAttribute('x2', x2);
+          drops[j].setAttribute('y1', yh); drops[j].setAttribute('y2', Y(err(endW)));
+          drops[j].setAttribute('opacity', on && j === cur ? 0.9 : 0);
+          pasts[j].setAttribute('cx', X(W[j])); pasts[j].setAttribute('cy', Y(err(W[j])));
+          pasts[j].setAttribute('opacity', H > j + 0.2 ? 1 : 0);
+        }
+        var tg = tangent(w, e, s);
+        tanEl.setAttribute('x1', X(tg[0])); tanEl.setAttribute('y1', Y(tg[1]));
+        tanEl.setAttribute('x2', X(tg[2])); tanEl.setAttribute('y2', Y(tg[3]));
+        tanEl.setAttribute('opacity', S.t);
+        // the arithmetic of the first step, shown above its arrow
+        stepLab.setAttribute('x', X(W[0]) + 22); stepLab.setAttribute('y', Y(err(W[0])) - 18);
+        stepLab.setAttribute('opacity', (clamp((H - 0.6) / 0.4) * clamp(1 - (H - 1) / 0.25)).toFixed(2));
+        vw.textContent = w.toFixed(2); ve.textContent = e.toFixed(2); vs.textContent = minus(s.toFixed(2)); vz.textContent = (LR * Math.abs(s)).toFixed(2);
+      }
+      function target(n) { return { h: n >= 3 ? NHOP : n >= 2 ? 1 : 0, t: n >= 1 ? 1 : 0 }; }
+      // hop-wise easing: each hop accelerates and settles, so the repeats read as separate steps
+      function hopH(q) { var f = Math.floor(q + 1e-9); return f + Deck.ease.inOut(q - f); }
+
+      Deck.slide('s25-derivative', {
+        enter: function () { S = { h: 0, t: 0 }; draw(); },
+        step: function (n, prev, c) {
+          var t = target(n);
+          if (c.instant) { S = t; draw(); return; }
+          var f = { h: S.h, t: S.t }, hops_ = Math.abs(t.h - f.h);
+          Deck.tween(hops_ > 1.5 ? 2600 : 1000, function (p) {
+            S = { h: hopH(Deck.lerp(f.h, t.h, p)), t: Deck.lerp(f.t, t.t, p) };
+            draw();
+          }, { ease: Deck.ease.linear });
+        }
+      });
+    })();
+  </script>
+</section>

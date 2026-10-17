@@ -1,0 +1,142 @@
+<section class="slide" id="s29-ball-sentence" data-steps="2">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">The same word can mean different things.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s29-ball-sentence-t s29-ball-sentence-d">
+      <title id="s29-ball-sentence-t">One token, two meanings</title>
+      <desc id="s29-ball-sentence-d">The sentence I'm tarballing the oddball photos of golf balls, split by the real Qwen3.8-27B tokenizer into twelve tokens with their ids. The two ball tokens are both id 3826 and are linked by a bracket: same token, same row, same vector. Then the first ball is labelled tarball and the second oddball.</desc>
+
+      <g id="s29-ball-sentence-chips"></g>
+
+      <!-- step 1: the ids under the chips are built by script; the bracket links the two ball chips -->
+      <g id="s29-ball-sentence-ids"></g>
+      <g id="s29-ball-sentence-link" data-from="1">
+        <path id="s29-ball-sentence-brk" class="brk" d=""/>
+        <text class="cap" x="560" y="426" text-anchor="middle">same token, same row, same vector</text>
+      </g>
+
+      <!-- step 2: what each ball turns into -->
+      <g id="s29-ball-sentence-means" data-from="2">
+        <path id="s29-ball-sentence-m1" class="tick" d=""/>
+        <path id="s29-ball-sentence-m2" class="tick" d=""/>
+        <text id="s29-ball-sentence-w1" class="mean" x="0" y="132" text-anchor="middle">tarball</text>
+        <text id="s29-ball-sentence-w2" class="mean" x="0" y="132" text-anchor="middle">oddball</text>
+      </g>
+
+      <g id="s29-ball-sentence-leg" data-from="1">
+        <circle class="sp" cx="0" cy="466" r="4.5"/>
+        <text class="legend" x="16" y="473">= leading space</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s29-ball-sentence .statement{max-width:1120px;}
+    #s29-ball-sentence svg.diagram{width:100%;height:100%;max-width:none;}
+    #s29-ball-sentence text{font-family:var(--font-mono);}
+    #s29-ball-sentence .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s29-ball-sentence .chip text{font-size:24px;fill:var(--color-text);text-anchor:middle;}
+    #s29-ball-sentence .chip .sp{fill:var(--color-text-muted);}
+    #s29-ball-sentence .chip.ball rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #s29-ball-sentence .chip.ball text{fill:var(--color-accent);}
+    #s29-ball-sentence .chip.ball .sp{fill:var(--color-accent);}
+    #s29-ball-sentence[data-cur="0"] .chip.ball text{fill:var(--color-text);}
+    #s29-ball-sentence .chip text{transition:fill .6s ease;}
+    #s29-ball-sentence .sp{fill:var(--color-text-muted);}
+    #s29-ball-sentence .id{font-size:22px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s29-ball-sentence .id.ball{fill:var(--color-accent);font-weight:600;}
+    #s29-ball-sentence .brk{fill:none;stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;transition:stroke .6s ease;}
+    #s29-ball-sentence .cap{font-size:24px;fill:var(--color-accent);transition:fill .6s ease;}
+    #s29-ball-sentence[data-cur="2"] .brk{stroke:var(--color-text-dim);}
+    #s29-ball-sentence[data-cur="2"] .cap{fill:var(--color-text-muted);}
+    #s29-ball-sentence .tick{fill:none;stroke:var(--color-accent);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:4 5;}
+    #s29-ball-sentence .mean{font-size:30px;font-weight:600;fill:var(--color-accent);}
+    #s29-ball-sentence .legend{font-size:20px;fill:var(--color-text-dim);}
+  </style>
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      // REAL: deck/data/qwen38.json tokenization.examples[1] (Qwen3.8-27B tokenizer), [id, text]
+      var TOKS = [[40,"I"],[2688,"'m"],[11835," tar"],[3826,"ball"],[286,"ing"],[279," the"],[10016," odd"],[3826,"ball"],[7022," photos"],[314," of"],[18542," golf"],[19715," balls"]];
+      var FS = 24, ADV = FS * 0.6, PAD = 11, H = 56, GAP = 8, CX = 560, YC = 236, S0 = 1.5;
+      var BALLS = [3, 7];
+
+      var chips = [], P = 0, stop = null, geo = [];
+
+      function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function measure(text) {
+        var lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text;
+        var inner = (lead ? ADV : 0) + body.length * ADV;
+        return { lead: lead, body: body, inner: inner, w: Math.max(40, inner + 2 * PAD) };
+      }
+      function layout() {
+        var m = TOKS.map(function (t) { return measure(t[1]); });
+        var total = m.reduce(function (a, b) { return a + b.w; }, 0) + GAP * (m.length - 1), x = CX - total / 2;
+        // flow positions: the sentence set as plain text at scale S0
+        var chars = TOKS.reduce(function (a, t) { return a + t[1].length; }, 0), fx = CX - chars * ADV * S0 / 2, pos = 0;
+        return m.map(function (mm, i) {
+          var cx = x + mm.w / 2; x += mm.w + GAP;
+          var left = -mm.inner / 2, off = left + (mm.lead ? ADV : 0) + mm.body.length * ADV / 2;   // local x of the body centre
+          var at = pos + (mm.lead ? 1 : 0);
+          var flow = fx + (at + mm.body.length / 2) * ADV * S0;
+          pos += TOKS[i][1].length;
+          return { m: mm, cx: cx, off: off, spread: cx + off, flow: flow };
+        });
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      function render(p) {
+        var s = Deck.lerp(S0, 1, p);
+        chips.forEach(function (c, i) {
+          var g = geo[i], bodyX = Deck.lerp(g.flow, g.spread, p);
+          c.g.setAttribute('transform', 'translate(' + (bodyX - g.off * s).toFixed(1) + ' ' + YC + ') scale(' + s.toFixed(3) + ')');
+          c.box.setAttribute('opacity', clamp((p - 0.25) / 0.5).toFixed(2));
+          if (c.dot) c.dot.setAttribute('opacity', clamp((p - 0.45) / 0.4).toFixed(2));
+        });
+      }
+
+      Deck.slide('s29-ball-sentence', {
+        enter: function (c) {
+          var gc = c.qs('#s29-ball-sentence-chips'), gi = c.qs('#s29-ball-sentence-ids');
+          [gc, gi].forEach(function (g) { while (g.firstChild) g.removeChild(g.firstChild); });
+          geo = layout();
+          chips = TOKS.map(function (t, i) {
+            var m = geo[i].m, ball = BALLS.indexOf(i) > -1;
+            var g = el('g', { 'class': 'chip' + (ball ? ' ball' : '') }, gc);
+            var box = el('g', {}, g);
+            el('rect', { x: -m.w / 2, y: -H / 2, width: m.w, height: H, rx: 12 }, box);
+            var dot = m.lead ? el('circle', { 'class': 'sp', cx: -m.inner / 2 + ADV / 2, cy: 3, r: 4.2 }, box) : null;
+            var tx = el('text', { x: geo[i].off, y: 0, dy: '.35em' }, g);
+            tx.textContent = m.body;
+            // in step 0 the chip frames are invisible and the dot is just the space
+            el('text', { 'class': 'id' + (ball ? ' ball' : ''), x: geo[i].cx, y: YC + 56, 'data-from': 1 }, gi).textContent = String(t[0]);
+            return { g: g, box: box, dot: dot };
+          });
+          // the bracket under the two ids, and the labels above the two balls
+          var a = geo[BALLS[0]].cx, b = geo[BALLS[1]].cx, y0 = YC + 84, y1 = YC + 112;
+          c.qs('#s29-ball-sentence-brk').setAttribute('d', 'M' + a + ' ' + y0 + 'V' + y1 + 'H' + b + 'V' + y0);
+          var cap = c.qs('#s29-ball-sentence-link .cap'); cap.setAttribute('x', (a + b) / 2); cap.setAttribute('y', y1 + 40);
+          [[1, a], [2, b]].forEach(function (w) {
+            var t = c.qs('#s29-ball-sentence-w' + w[0]); t.setAttribute('x', w[1]);
+            c.qs('#s29-ball-sentence-m' + w[0]).setAttribute('d', 'M' + w[1] + ' ' + (132 + 16) + 'V' + (YC - H / 2 - 10));
+          });
+          c.qs('#s29-ball-sentence-leg').setAttribute('transform', 'translate(' + (geo[0].cx - geo[0].m.w / 2) + ' 0)');
+          P = 0; render(0);
+        },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { P = to; render(P); return; }
+          var from = P;
+          if (from === to) return;
+          stop = Deck.tween(900, function (k) { P = Deck.lerp(from, to, k); render(P); });
+        }
+      });
+    })();
+  </script>
+</section>

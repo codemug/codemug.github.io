@@ -1,0 +1,203 @@
+<section class="slide" id="s28-layers-repeat" data-steps="1">
+  <p class="kicker reveal">inside the transformer</p>
+  <p class="statement reveal">Attention and feed-forward repeat, layer after layer.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 470" role="img" aria-labelledby="s28-layers-repeat-t s28-layers-repeat-d">
+      <title id="s28-layers-repeat-t">The attention plus feed-forward block repeats 64 times</title>
+      <desc id="s28-layers-repeat-d">First the pipeline: an embedder, one block called attention plus feed-forward, and sampling. Then the middle block is stacked into 64 thin slabs, shown as the first three, three dots and the last one, labelled x 64 layers, with a small vector arrow flowing down through them before it reaches sampling.</desc>
+
+      <!-- step 0: the pipeline with the middle pair as one block -->
+      <g id="s28-layers-repeat-full">
+        <g id="s28-layers-repeat-f1"></g>
+        <g id="s28-layers-repeat-f2"></g>
+        <g id="s28-layers-repeat-f3"></g>
+        <g id="s28-layers-repeat-fa" class="arr lit"></g>
+      </g>
+
+      <!-- step 1: compact ends, the stack of slabs, the brace -->
+      <g id="s28-layers-repeat-stack">
+        <g id="s28-layers-repeat-c1"></g>
+        <g id="s28-layers-repeat-c3"></g>
+        <g id="s28-layers-repeat-slabs"></g>
+        <g id="s28-layers-repeat-extra"></g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s28-layers-repeat svg.diagram{max-width:min(1203.2px,1100px);}
+    #s28-layers-repeat .blk, #s28-layers-repeat .arr{color:var(--color-text-muted);}
+    #s28-layers-repeat .blk.lit, #s28-layers-repeat .arr.lit{color:var(--color-accent);}
+    #s28-layers-repeat .bk{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #s28-layers-repeat .blk.lit .bk{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));}
+    #s28-layers-repeat .ic{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s28-layers-repeat .ic.f{fill:currentColor;stroke:none;}
+    #s28-layers-repeat .ic.fade{opacity:.35;}
+    #s28-layers-repeat .wd{font-size:24px;fill:var(--color-text);text-anchor:middle;}
+    #s28-layers-repeat .blk.lit .wd{fill:var(--color-accent);}
+    #s28-layers-repeat .plus{font-size:44px;fill:var(--color-accent);text-anchor:middle;}
+    #s28-layers-repeat .shaft{stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    #s28-layers-repeat .slab{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #s28-layers-repeat .slab.on{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #s28-layers-repeat .div{stroke:var(--color-border-strong);stroke-width:2;}
+    #s28-layers-repeat .st{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #s28-layers-repeat .si{font-size:22px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s28-layers-repeat .dot{fill:var(--color-text-dim);}
+    #s28-layers-repeat .brace{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s28-layers-repeat .x64{font-size:30px;fill:var(--color-accent);font-weight:600;}
+    #s28-layers-repeat .vec{stroke:var(--color-accent);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's28-layers-repeat';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      var NS = $('full').namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e); return e;
+      }
+      function ln(p, x1, y1, x2, y2) { return mk('line', { 'class': 'ic', x1: x1, y1: y1, x2: x2, y2: y2 }, p); }
+
+      // icons (same drawings as the four-stages slide)
+      function iconEmbed(g) {
+        [-68, -20, 28].forEach(function (x) { mk('rect', { 'class': 'ic', x: x, y: -78, width: 40, height: 24, rx: 6 }, g); });
+        ln(g, 0, -44, 0, -14); mk('path', { 'class': 'ic', d: 'M-9 -24L0 -13L9 -24' }, g);
+        for (var r = 0; r < 4; r++) for (var c = 0; c < 3; c++) mk('rect', { 'class': 'ic', x: -60 + c * 40, y: -2 + r * 21, width: 40, height: 21, 'fill-opacity': r === 1 ? 0.28 : 0, fill: 'currentColor' }, g);
+      }
+      function iconAttn(g) {
+        var xs = [-72, -36, 0, 36, 72];
+        xs.forEach(function (x) { mk('rect', { 'class': 'ic', x: x - 13, y: 34, width: 26, height: 26, rx: 6 }, g); });
+        [[4, 1, 6], [4, 3, 2.5], [4, 0, 2.5], [2, 0, 2.5]].forEach(function (a) {
+          var x1 = xs[a[0]], x2 = xs[a[1]], dist = Math.abs(x1 - x2);
+          mk('path', { 'class': 'ic', 'stroke-width': a[2], d: 'M' + x1 + ' 28Q' + ((x1 + x2) / 2) + ' ' + (28 - dist * 0.85) + ' ' + x2 + ' 28' }, g);
+        });
+      }
+      function iconFfn(g) {
+        var vals = [0.93, 0.81, 0.64, 0.58, 0.12, 0.03], H = 118, base = 66;
+        vals.forEach(function (v, i) {
+          var h = Math.max(3, v * H);
+          mk('rect', { 'class': v >= 0.5 ? 'ic f' : 'ic f fade', x: -70 + i * 28 - 9, y: base - h, width: 18, height: h, rx: 3 }, g);
+        });
+        mk('line', { 'class': 'ic fade', x1: -88, y1: base - H * 0.5, x2: 88, y2: base - H * 0.5, 'stroke-dasharray': '6 6', 'stroke-width': 2 }, g);
+        ln(g, -88, base + 4, 88, base + 4);
+      }
+      function iconDice(g) {
+        function pip(p, x, y) { mk('circle', { 'class': 'ic f', cx: x, cy: y, r: 7 }, p); }
+        var a = mk('g', { transform: 'translate(-26 24) rotate(-9)' }, g);
+        mk('rect', { 'class': 'ic', x: -42, y: -42, width: 84, height: 84, rx: 16 }, a);
+        [[-22, -22], [22, -22], [0, 0], [-22, 22], [22, 22]].forEach(function (p) { pip(a, p[0], p[1]); });
+        var b = mk('g', { transform: 'translate(44 -34) rotate(13)' }, g);
+        mk('rect', { 'class': 'ic', x: -33, y: -33, width: 66, height: 66, rx: 13 }, b);
+        [[-16, -16], [0, 0], [16, 16]].forEach(function (p) { pip(b, p[0], p[1]); });
+      }
+      function arrow(p, x1, y, x2) {
+        mk('line', { 'class': 'shaft', x1: x1, y1: y, x2: x2 - 4, y2: y }, p);
+        mk('path', { 'class': 'shaft', d: 'M' + (x2 - 13) + ' ' + (y - 9) + 'L' + x2 + ' ' + y + 'L' + (x2 - 13) + ' ' + (y + 9) }, p);
+      }
+
+      // ---- step 0: full pipeline ----
+      var BY = 75, BH = 320, MY = BY + BH / 2;
+      function block(host, x, w, word, lit) {
+        host.setAttribute('class', 'blk' + (lit ? ' lit' : ''));
+        mk('rect', { 'class': 'bk', x: x, y: BY, width: w, height: BH, rx: 18 }, host);
+        mk('text', { 'class': 'wd', x: x + w / 2, y: BY + BH - 28 }, host, word);
+        return mk('g', { transform: 'translate(' + (x + w / 2) + ' ' + (BY + 150) + ')' }, host);
+      }
+      iconEmbed(block($('f1'), 80, 200, 'embedder', false));
+      var mid = block($('f2'), 332, 376, 'attention + feed-forward', true);
+      var ia = mk('g', { transform: 'translate(-96 0) scale(.8)' }, mid); iconAttn(ia);
+      var ib = mk('g', { transform: 'translate(98 0) scale(.8)' }, mid); iconFfn(ib);
+      mk('text', { 'class': 'plus', x: 0, y: 14 }, mid, '+');
+      iconDice(block($('f3'), 760, 200, 'sampling', false));
+      var fa = $('fa');
+      arrow(fa, 286, MY, 326); arrow(fa, 714, MY, 754);
+      // the arrows are not lit: they only connect
+      fa.setAttribute('class', 'arr');
+
+      // ---- step 1: compact ends + the stack ----
+      var SX = 330, SW = 420, SH = 56, SY = [20, 92, 164, 284, 356];
+      var IDX = ['1', '2', '3', '63', '64'];
+      function compact(host, x, y, w, word) {
+        host.setAttribute('class', 'blk');
+        mk('rect', { 'class': 'bk', x: x, y: y, width: w, height: 64, rx: 14 }, host);
+        mk('text', { 'class': 'wd', x: x + w / 2, y: y + 40 }, host, word);
+      }
+      compact($('c1'), 20, 16, 200, 'embedder');
+      compact($('c3'), 820, 352, 190, 'sampling');
+      var slabsG = $('slabs'), slabs = [];
+      SY.forEach(function (y, i) {
+        var g = mk('g', {}, slabsG);
+        mk('rect', { 'class': 'slab', x: SX, y: y, width: SW, height: SH, rx: 10 }, g);
+        mk('line', { 'class': 'div', x1: SX + 56, y1: y + 8, x2: SX + 56, y2: y + SH - 8 }, g);
+        mk('line', { 'class': 'div', x1: SX + 226, y1: y + 8, x2: SX + 226, y2: y + SH - 8 }, g);
+        mk('text', { 'class': 'si', x: SX + 28, y: y + 35 }, g, IDX[i]);
+        mk('text', { 'class': 'st', x: SX + 141, y: y + 35 }, g, 'attention');
+        mk('text', { 'class': 'st', x: SX + 330, y: y + 35 }, g, 'feed-forward');
+        slabs.push({ g: g, rect: g.firstChild, y: y });
+      });
+      var ext = $('extra');
+      var dots = mk('g', {}, ext);
+      [232, 252, 272].forEach(function (y) { mk('circle', { 'class': 'dot', cx: SX + 226, cy: y, r: 5 }, dots); });
+      var inArrow = mk('g', { 'class': 'arr' }, ext); arrow(inArrow, 224, SY[0] + SH / 2, 324);
+      var outPath = mk('path', { 'class': 'shaft', d: 'M' + (SX + SW / 2) + ' ' + (SY[4] + SH) + 'V440H915V424', style: 'color:var(--color-text-muted)' }, ext);
+      var outHead = mk('path', { 'class': 'shaft', d: 'M906 435L915 422L924 435', style: 'color:var(--color-text-muted)' }, ext);
+      var tail = mk('g', {}, ext);
+      mk('path', { 'class': 'brace', d: 'M764 22Q778 22 778 40V196Q778 216 792 216Q778 216 778 236V392Q778 410 764 410' }, tail);
+      mk('text', { 'class': 'x64', x: 806, y: 227 }, tail, '× 64 layers');
+      // the vector flowing down: a short arrow on the divider between attention and feed-forward
+      var vec = mk('g', { opacity: 0 }, ext);
+      mk('line', { 'class': 'vec', x1: 0, y1: -22, x2: 0, y2: 12 }, vec);
+      mk('path', { 'class': 'vec', d: 'M-11 2L0 16L11 2' }, vec);
+      var VX = SX + 226, VY0 = SY[0] + SH / 2, VY1 = SY[4] + SH / 2;
+
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      var full = $('full'), c1 = $('c1'), c3 = $('c3'), stackG = $('stack');
+      var S = { s: 0, f: 0 };
+      function draw() {
+        var s = S.s;
+        full.setAttribute('opacity', 1 - clamp(s / 0.45));
+        // the single block fans out into the stack
+        slabs.forEach(function (sl, i) {
+          var q = clamp((s - 0.08 * i) / 0.6), e = Deck.ease.out(q);
+          var y0 = MY - SH / 2, y = Deck.lerp(y0, sl.y, e);
+          sl.g.setAttribute('transform', 'translate(0 ' + (y - sl.y).toFixed(1) + ')');
+          sl.g.setAttribute('opacity', clamp(q * 2.5));
+        });
+        var late = clamp((s - 0.6) / 0.4);
+        c1.setAttribute('opacity', clamp((s - 0.4) / 0.4));
+        c3.setAttribute('opacity', clamp((s - 0.4) / 0.4));
+        dots.setAttribute('opacity', late); inArrow.setAttribute('opacity', late);
+        tail.setAttribute('opacity', late);
+        // the flow: the vector goes down through the slabs; it leaves through the output arrow
+        var f = S.f, vy = VY0 + (VY1 - VY0) * f;
+        vec.setAttribute('transform', 'translate(' + VX + ' ' + vy.toFixed(1) + ')');
+        vec.setAttribute('opacity', f > 0.005 && f < 0.995 ? clamp(Math.min(f * 12, (1 - f) * 12)) : 0);
+        slabs.forEach(function (sl) {
+          sl.rect.setAttribute('class', 'slab' + (f > 0.005 && f < 0.995 && Math.abs(vy - (sl.y + SH / 2)) < SH / 2 + 6 ? ' on' : ''));
+        });
+        var outLit = S.f > 0.97;
+        outPath.style.color = outHead.style.color = outLit ? 'var(--color-accent)' : 'var(--color-text-muted)';
+        stackG.setAttribute('opacity', s > 0.01 ? 1 : 0);
+      }
+
+      Deck.slide('s28-layers-repeat', {
+        enter: function () { S = { s: 0, f: 0 }; draw(); },
+        step: function (n, prev, c) {
+          var t = n >= 1 ? 1 : 0;
+          if (c.instant) { S = { s: t, f: t }; draw(); return; }
+          var from = S.s;
+          if (t === 1) {
+            Deck.tween(900, function (k) { S = { s: Deck.lerp(from, 1, k), f: 0 }; draw(); }, {
+              done: function () { Deck.tween(2200, function (k) { S = { s: 1, f: k }; draw(); }, { ease: Deck.ease.linear }); }
+            });
+          } else {
+            var f0 = S.f;
+            Deck.tween(800, function (k) { S = { s: Deck.lerp(from, 0, k), f: Deck.lerp(f0, 0, k) }; draw(); });
+          }
+        }
+      });
+    })();
+  </script>
+</section>

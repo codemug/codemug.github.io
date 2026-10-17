@@ -1,0 +1,132 @@
+<section class="slide" id="s27-four-stages" data-steps="4">
+  <p class="kicker reveal">inside the transformer</p>
+  <p class="statement reveal">Open the box: four stages.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 446" role="img" aria-labelledby="s27-four-stages-t s27-four-stages-d">
+      <title id="s27-four-stages-t">The four stages inside a transformer</title>
+      <desc id="s27-four-stages-d">A pipeline of four blocks, each with a small icon: 1 embedder (token chips looked up as a table row), 2 attention (arcs between tokens), 3 feed-forward (a bank of detectors), 4 sampling (dice). The blocks light up one after another; blocks 2 and 3 are bracketed with the word repeats.</desc>
+
+      <g id="s27-four-stages-pipe"></g>
+
+      <!-- step 4: blocks 2 and 3 repeat -->
+      <g data-from="4">
+        <path class="brk" d="M296 66V48H744V66"/>
+        <text class="rep" x="520" y="34" text-anchor="middle">repeats</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s27-four-stages svg.diagram{max-width:min(1203.2px,1100px);}
+    #s27-four-stages .blk, #s27-four-stages .arr{color:var(--color-text-dim);transition:color .5s ease;}
+    #s27-four-stages .blk.done, #s27-four-stages .arr.done{color:var(--color-text-muted);}
+    #s27-four-stages .blk.lit, #s27-four-stages .arr.lit{color:var(--color-accent);}
+    #s27-four-stages .bk{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease,fill .5s ease;}
+    #s27-four-stages .blk.done .bk{stroke:var(--color-border-strong);}
+    #s27-four-stages .blk.lit .bk{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));}
+    #s27-four-stages .ic{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s27-four-stages .ic.f{fill:currentColor;stroke:none;}
+    #s27-four-stages .ic.fl{fill:currentColor;fill-opacity:.28;}
+    #s27-four-stages .ic.fade{opacity:.35;}
+    #s27-four-stages .wd{font-size:24px;fill:var(--color-text-dim);text-anchor:middle;transition:fill .5s ease;}
+    #s27-four-stages .blk.done .wd{fill:var(--color-text);}
+    #s27-four-stages .blk.lit .wd{fill:var(--color-accent);}
+    #s27-four-stages .bd{fill:none;stroke:currentColor;stroke-width:2.5;}
+    #s27-four-stages .bn{font-size:21px;fill:currentColor;text-anchor:middle;}
+    #s27-four-stages .shaft{stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    #s27-four-stages .brk{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s27-four-stages .rep{font-size:28px;fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 's27-four-stages';
+      var BX = 48, BY = 84, BW = 200, BH = 350, GAP = 48;
+      var pipe = document.getElementById(ID + '-pipe'), NS = pipe.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        (parent || pipe).appendChild(e); return e;
+      }
+      function line(parent, x1, y1, x2, y2, cls) { return mk('line', { 'class': cls || 'ic', x1: x1, y1: y1, x2: x2, y2: y2 }, parent); }
+
+      // icon 1: token chips -> one row of the embedding table
+      function iconEmbed(g) {
+        [-68, -20, 28].forEach(function (x) { mk('rect', { 'class': 'ic', x: x, y: -78, width: 40, height: 24, rx: 6 }, g); });
+        line(g, 0, -44, 0, -14); mk('path', { 'class': 'ic', d: 'M-9 -24L0 -13L9 -24' }, g);
+        for (var r = 0; r < 4; r++) for (var c = 0; c < 3; c++) {
+          mk('rect', { 'class': r === 1 ? 'ic fl' : 'ic', x: -60 + c * 40, y: -2 + r * 21, width: 40, height: 21 }, g);
+        }
+      }
+      // icon 2: arcs between tokens (the last token looks at the others, one arc is thick)
+      function iconAttn(g) {
+        var xs = [-72, -36, 0, 36, 72];
+        xs.forEach(function (x) { mk('rect', { 'class': 'ic', x: x - 13, y: 34, width: 26, height: 26, rx: 6 }, g); });
+        [[4, 1, 6], [4, 3, 2.5], [4, 0, 2.5], [2, 0, 2.5]].forEach(function (a) {
+          var x1 = xs[a[0]], x2 = xs[a[1]], dist = Math.abs(x1 - x2);
+          mk('path', { 'class': 'ic', 'stroke-width': a[2], d: 'M' + x1 + ' 28Q' + ((x1 + x2) / 2) + ' ' + (28 - dist * 0.85) + ' ' + x2 + ' 28' }, g);
+        });
+      }
+      // icon 3: a bank of detectors (feed-forward toy magnitudes), weak ones fall under the threshold
+      function iconFfn(g) {
+        var vals = [0.93, 0.81, 0.64, 0.58, 0.12, 0.03], H = 118, base = 66;
+        vals.forEach(function (v, i) {
+          var h = Math.max(3, v * H), x = -70 + i * 28 - 9;
+          mk('rect', { 'class': v >= 0.5 ? 'ic f' : 'ic f fade', x: x, y: base - h, width: 18, height: h, rx: 3 }, g);
+        });
+        mk('line', { 'class': 'ic fade', x1: -88, y1: base - H * 0.5, x2: 88, y2: base - H * 0.5, 'stroke-dasharray': '6 6', 'stroke-width': 2 }, g);
+        line(g, -88, base + 4, 88, base + 4);
+      }
+      // icon 4: dice
+      function pip(g, x, y) { mk('circle', { 'class': 'ic f', cx: x, cy: y, r: 7 }, g); }
+      function iconDice(g) {
+        var a = mk('g', { transform: 'translate(-26 24) rotate(-9)' }, g);
+        mk('rect', { 'class': 'ic', x: -42, y: -42, width: 84, height: 84, rx: 16 }, a);
+        [[-22, -22], [22, -22], [0, 0], [-22, 22], [22, 22]].forEach(function (p) { pip(a, p[0], p[1]); });
+        var b = mk('g', { transform: 'translate(44 -34) rotate(13)' }, g);
+        mk('rect', { 'class': 'ic', x: -33, y: -33, width: 66, height: 66, rx: 13 }, b);
+        [[-16, -16], [0, 0], [16, 16]].forEach(function (p) { pip(b, p[0], p[1]); });
+      }
+
+      var STAGES = [
+        { word: 'embedder', icon: iconEmbed, cy: 0 },
+        { word: 'attention', icon: iconAttn, cy: 0 },
+        { word: 'feed-forward', icon: iconFfn, cy: 0 },
+        { word: 'sampling', icon: iconDice, cy: 0 }
+      ];
+      var blocks = [], arrows = [];
+      STAGES.forEach(function (s, i) {
+        var x = BX + i * (BW + GAP);
+        var g = mk('g', { 'class': 'blk pend' }, pipe);
+        mk('rect', { 'class': 'bk', x: x, y: BY, width: BW, height: BH, rx: 18 }, g);
+        mk('circle', { 'class': 'bd', cx: x + 30, cy: BY + 32, r: 17 }, g);
+        mk('text', { 'class': 'bn', x: x + 30, y: BY + 39 }, g, String(i + 1));
+        var ig = mk('g', { transform: 'translate(' + (x + BW / 2) + ' ' + (BY + 170) + ')' }, g);
+        s.icon(ig);
+        mk('text', { 'class': 'wd', x: x + BW / 2, y: BY + BH - 26 }, g, s.word);
+        blocks.push(g);
+      });
+      // arrows: into block 1, between blocks, out of block 4 (each lights with the block it leads into / out of)
+      function arrow(x1, x2) {
+        var y = BY + BH / 2, ag = mk('g', { 'class': 'arr' }, pipe);
+        mk('line', { 'class': 'shaft', x1: x1, y1: y, x2: x2 - 4, y2: y }, ag);
+        mk('path', { 'class': 'shaft hd', d: 'M' + (x2 - 13) + ' ' + (y - 9) + 'L' + x2 + ' ' + y + 'L' + (x2 - 13) + ' ' + (y + 9) }, ag);
+        arrows.push(ag);
+      }
+      arrow(8, 38);
+      for (var i2 = 1; i2 < STAGES.length; i2++) { var ex = BX + i2 * (BW + GAP) - GAP; arrow(ex + 6, ex + GAP - 6); }
+      var endX = BX + STAGES.length * BW + (STAGES.length - 1) * GAP;
+      arrow(endX + 6, endX + 36);
+
+      function setCls(el, cls) { el.setAttribute('class', el.getAttribute('class').split(' ')[0] + ' ' + cls); }
+      function show(n) {
+        blocks.forEach(function (b, i) { setCls(b, i + 1 === n ? 'lit' : i + 1 < n ? 'done' : 'pend'); });
+        arrows.forEach(function (a, i) { setCls(a, i + 1 === n || (i === STAGES.length && n === STAGES.length) ? 'lit' : i < n - 1 ? 'done' : 'pend'); });
+      }
+      Deck.slide('s27-four-stages', {
+        enter: function () { show(0); },
+        step: function (n) { show(n); }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,134 @@
+<section class="slide" id="s32-qkv-matrices" data-steps="2" data-tool="matrix">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Three matrices: Wq, Wk and Wv.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s32-qkv-matrices-t s32-qkv-matrices-d">
+      <title id="s32-qkv-matrices-t">The three attention matrices Wq, Wk and Wv</title>
+      <desc id="s32-qkv-matrices-d">Three big grids of numbers side by side, labelled Wq, Wk and Wv with the real shapes of layer 3 of Qwen3.8-27B: q_proj 12,288 by 5,120, k_proj 1,024 by 5,120 and v_proj 1,024 by 5,120. At first the cells are random noise. Training settles them into a pattern. Then the embedding of a token, a row of 5,120 numbers, enters and is multiplied into each of the three matrices.</desc>
+      <defs>
+        <marker id="s32-qkv-matrices-ah" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="13" refY="9" orient="auto"><path d="M0,0 L15,9 L0,18 z" fill="var(--color-accent)"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <style>
+    #s32-qkv-matrices svg.diagram{width:100%;height:100%;max-width:none;}
+    #s32-qkv-matrices text{font-family:var(--font-mono);}
+    #s32-qkv-matrices .frame{fill:none;stroke:var(--color-border-strong);stroke-width:2;}
+    #s32-qkv-matrices .nm{font-size:30px;font-weight:600;text-anchor:middle;fill:var(--color-text-soft);transition:fill .6s ease;}
+    #s32-qkv-matrices .shape{font-size:20px;text-anchor:middle;fill:var(--color-text-dim);}
+    #s32-qkv-matrices .cap{font-size:28px;text-anchor:middle;transition:fill .6s ease;}
+    #s32-qkv-matrices .lab{font-size:22px;fill:var(--color-text-muted);}
+    #s32-qkv-matrices .flow{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;}
+    #s32-qkv-matrices[data-cur="2"] .nm{fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s32-qkv-matrices');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // REAL shapes of layer 3 (a full-attention layer) from deck/data/qwen38.json: q_proj [12288, 5120], k_proj [1024, 5120], v_proj [1024, 5120]
+      var CELL = 17, ROWS = 22, TOP = 100;
+      var MATS = [
+        { name: 'Wq', shape: '12,288 × 5,120', x: 155, cols: 21 },
+        { name: 'Wk', shape: '1,024 × 5,120', x: 568, cols: 10 },
+        { name: 'Wv', shape: '1,024 × 5,120', x: 794, cols: 10 }
+      ];
+      var PATTERN = [
+        function (i, j) { return Math.sin(i * 0.55 + 0.4) * Math.cos(j * 0.45); },
+        function (i, j) { return Math.sin((i * 0.9 + j * 0.7) * 0.6); },
+        function (i, j) { return Math.cos(i * 0.5) * Math.sin(j * 0.7 + i * 0.2); }
+      ];
+      var CY = Deck.rgb('--color-accent'), GR = Deck.rgb('--color-text-muted');
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function rng(seed) {                       // seeded random numbers (mulberry32): the same noise every time
+        var a = seed >>> 0;
+        return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+      }
+      function paint(r, v) {                     // positive = cyan, negative = grey, strength = opacity
+        var a = Math.min(1, Math.abs(v));
+        r.setAttribute('fill', v >= 0 ? 'rgb(' + CY.join(',') + ')' : 'rgb(' + GR.join(',') + ')');
+        r.setAttribute('fill-opacity', (0.06 + 0.9 * a).toFixed(2));
+      }
+
+      // ---- the three matrices, built once ----
+      var rand = rng(32);
+      var gm = el('g', {}, svg), cells = [];
+      var names = [];
+      MATS.forEach(function (m, mi) {
+        var w = m.cols * CELL, h = ROWS * CELL, cx = m.x + w / 2, list = [];
+        for (var i = 0; i < ROWS; i++) for (var j = 0; j < m.cols; j++) {
+          var noise = (rand() + rand() + rand() - 1.5) / 0.75;      // bell-shaped random value in [-2, 2]
+          var r = el('rect', { x: m.x + j * CELL + 1, y: TOP + i * CELL + 1, width: CELL - 2, height: CELL - 2, rx: 3 }, gm);
+          list.push({ r: r, i: i, j: j, rnd: Math.max(-1, Math.min(1, noise * 0.7)), pat: PATTERN[mi](i, j), d: j / m.cols });
+        }
+        cells.push(list);
+        el('rect', { 'class': 'frame', x: m.x - 4, y: TOP - 4, width: w + 8, height: h + 8, rx: 8 }, gm);
+        var nw = 36, sw = m.shape.length * 12, lx = cx - (nw + 12 + sw) / 2;     // name and real shape on one line
+        names.push(el('text', { 'class': 'nm', x: lx + nw / 2, y: TOP + h + 38 }, gm, m.name));
+        el('text', { 'class': 'shape', x: lx + nw + 12 + sw / 2, y: TOP + h + 38 }, gm, m.shape);
+      });
+
+      // ---- captions (steps 0 and 1) ----
+      var capA = el('text', { 'class': 'cap', x: 560, y: 70, style: 'fill:var(--color-text-muted)' }, svg, 'random at the start');
+      var capB = el('text', { 'class': 'cap', x: 560, y: 70, style: 'fill:var(--color-accent)' }, svg, 'tuned by training');
+
+      // ---- step 2: the embedding row enters and goes into all three ----
+      var gs = el('g', {}, svg);
+      var SX = 412, SY = 14, SC = 32, SN = 9;
+      var strip = [];
+      for (var k = 0; k < SN; k++) strip.push(el('rect', { x: SX + k * SC + 2, y: SY, width: SC - 4, height: SC - 6, rx: 5 }, gs));
+      strip.forEach(function (r, k) { paint(r, Math.sin(k * 1.7 + 0.5) * 0.9); });
+      el('text', { 'class': 'lab', x: SX - 14, y: SY + 21, 'text-anchor': 'end' }, gs, 'embedding');
+      el('text', { 'class': 'lab', x: SX + SN * SC + 14, y: SY + 21 }, gs, '1 × 5,120');
+      var sx0 = SX + SN * SC / 2, sy0 = SY + SC - 4;
+      var flows = MATS.map(function (m) {
+        var tx = m.x + m.cols * CELL / 2, ty = TOP - 12;
+        var p = el('path', { 'class': 'flow', pathLength: 100, d: 'M' + sx0 + ' ' + (sy0 + 6) + 'C' + sx0 + ' ' + (sy0 + 30) + ' ' + tx + ' ' + (ty - 34) + ' ' + tx + ' ' + ty, 'marker-end': 'url(#s32-qkv-matrices-ah)' }, gs);
+        return p;
+      });
+
+      // ---- state: S = settle progress (0 random, 1 pattern), E = embedding enters (0..1) ----
+      var S = 0, E = 0, cancel = null;
+      function clamp(x) { return Math.max(0, Math.min(1, x)); }
+      function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+      function draw() {
+        cells.forEach(function (list) {
+          list.forEach(function (c) {
+            var p = ease(clamp(S * 1.6 - c.d * 0.6));                // a wave from left to right
+            paint(c.r, c.rnd + (c.pat - c.rnd) * p);
+          });
+        });
+        capA.style.opacity = (1 - clamp(S * 3)) * (1 - E);
+        capB.style.opacity = clamp(S * 3 - 1.2) * (1 - E);
+        gs.style.opacity = clamp(E * 4);
+        gs.setAttribute('transform', 'translate(' + ((1 - ease(clamp(E * 1.4))) * -520).toFixed(1) + ' 0)');
+        flows.forEach(function (p, i) {
+          var d = ease(clamp((E - 0.45) * 1.8 - i * 0.12));
+          p.setAttribute('stroke-dasharray', (d * 100).toFixed(2) + ' 100');
+          p.style.opacity = d > 0.01 ? 1 : 0;
+        });
+      }
+      draw();
+
+      Deck.slide('s32-qkv-matrices', {
+        enter: function () { S = 0; E = 0; draw(); },
+        step: function (n, prev, c) {
+          var tS = n >= 1 ? 1 : 0, tE = n >= 2 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = tS; E = tE; draw(); return; }
+          var fS = S, fE = E;
+          cancel = Deck.tween(n === 1 ? 1500 : 1000, function (t) { S = Deck.lerp(fS, tS, t); E = Deck.lerp(fE, tE, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

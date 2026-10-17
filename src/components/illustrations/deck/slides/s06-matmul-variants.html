@@ -1,0 +1,121 @@
+<section class="slide" id="s06-matmul-variants" data-steps="3" data-tool="matrix">
+  <p class="kicker reveal">refresher 1</p>
+  <p class="statement reveal">Different matrices transform the same vector differently.</p>
+  <div class="stage reveal">
+    <div class="formula-col">
+      <div class="formula-row">
+        <span class="m-eq">M =</span>
+        <span class="bracket-pair">
+          <span class="bracket-edge left"></span>
+          <span class="matrix-grid">
+            <span class="m-cell" id="s06-matmul-variants-e0">1.00</span>
+            <span class="m-cell" id="s06-matmul-variants-e1">0.00</span>
+            <span class="m-cell" id="s06-matmul-variants-e2">0.00</span>
+            <span class="m-cell" id="s06-matmul-variants-e3">1.00</span>
+          </span>
+          <span class="bracket-edge right"></span>
+        </span>
+      </div>
+    </div>
+    <svg class="diagram" viewBox="0 0 460 380" role="img" aria-labelledby="s06-matmul-variants-t s06-matmul-variants-d">
+      <title id="s06-matmul-variants-t">Different matrices transform the same vector</title>
+      <desc id="s06-matmul-variants-d">A live matrix readout with brackets beside a grid of the plane. The grid is warped through the identity, two shears and a stretch; the grey vector v stays fixed while the cyan vector, its image, moves with each matrix.</desc>
+      <defs>
+        <marker id="s06-matmul-variants-ahc" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="13" refY="9" orient="auto"><path d="M0,0 L15,9 L0,18 z" fill="var(--color-accent)"/></marker>
+        <marker id="s06-matmul-variants-ahg" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="13" refY="9" orient="auto"><path d="M0,0 L15,9 L0,18 z" fill="var(--color-text-dim)"/></marker>
+      </defs>
+
+      <!-- the space: grid at integer coords +/-2, unit square faint cyan; warped by the matrix -->
+      <g transform="translate(230 190)">
+        <g id="s06-matmul-variants-warp">
+          <path class="sq" d="M0 0H60V-60H0Z"/>
+          <path class="gline" d="M-120 -120V120M-60 -120V120M60 -120V120M120 -120V120M-120 -120H120M-120 -60H120M-120 60H120M-120 120H120"/>
+          <path class="axis" d="M0 -120V120M-120 0H120"/>
+        </g>
+      </g>
+
+      <!-- v = [1, 1]: the original, a grey ghost that never moves; label at the tail, clear of every v' variant -->
+      <line class="vec gv" x1="230" y1="190" x2="290" y2="130" marker-end="url(#s06-matmul-variants-ahg)"/>
+      <text class="vlab" x="212" y="212" text-anchor="end">v</text>
+
+      <!-- v' = v M: the cyan image, recomputed each frame -->
+      <line id="s06-matmul-variants-vp" class="vec" stroke="var(--color-accent)" stroke-width="4" x1="230" y1="190" x2="290" y2="130" marker-end="url(#s06-matmul-variants-ahc)"/>
+      <text id="s06-matmul-variants-vpl" class="vlab a" x="296" y="144">v&#8242;</text>
+    </svg>
+  </div>
+
+  <style>
+    #s06-matmul-variants .stage{gap:clamp(28px,51.2px,56px);}
+    #s06-matmul-variants .formula-col{display:flex;flex-direction:column;justify-content:center;gap:30px;}
+    #s06-matmul-variants svg.diagram{width:auto;height:100%;max-width:716.8px;}
+    #s06-matmul-variants .formula-row{font-size:clamp(28px,37.12px,40px);}
+    #s06-matmul-variants .m-eq{color:var(--color-text-muted);}
+    #s06-matmul-variants .m-cell{color:var(--color-accent);display:inline-block;min-width:4.2ch;text-align:center;font-variant-numeric:tabular-nums;}
+    #s06-matmul-variants .vec{stroke-width:4;}
+    #s06-matmul-variants .gv{stroke:var(--color-text-dim);}
+    #s06-matmul-variants .gline{stroke:var(--color-hairline-2);stroke-width:1;fill:none;}
+    #s06-matmul-variants .sq{fill:var(--color-accent);fill-opacity:.08;stroke:none;}
+    #s06-matmul-variants .vlab{font-family:var(--font-mono);font-size:20px;fill:var(--color-text-dim);}
+    #s06-matmul-variants .vlab.a{fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var P = Deck.plane({ ox: 230, oy: 190, u: 60 });
+      var TH = Math.PI / 6; // 30 degrees
+      var TARGETS = [
+        [1, 0, 0, 1],
+        [1, 0, 0.5, 1],
+        [1, 0.5, 0, 1],
+        [1.5, 0, 0, 0.7]
+      ];
+      var V = [1, 1];
+      var M = TARGETS[0].slice();
+      var S = { m: M, vpl: 0 };
+      var warp, vp, vpl, cells, cancel = null;
+
+      function fmt(x) {
+        var r = Math.round(x * 100) / 100;
+        if (r === 0) return '0.00';
+        return (r < 0 ? '\u2212' : '') + Math.abs(r).toFixed(2);
+      }
+
+      function draw() {
+        warp.setAttribute('transform', P.Mr(S.m));
+        var r = Deck.vmul(V, S.m);
+        var s = P.P(r[0], r[1]);
+        vp.setAttribute('x2', s[0]);
+        vp.setAttribute('y2', s[1]);
+        vpl.setAttribute('x', s[0] + 6);
+        vpl.setAttribute('y', s[1] + 14);
+        vpl.style.opacity = S.vpl;
+        for (var i = 0; i < 4; i++) cells[i].textContent = fmt(S.m[i]);
+      }
+
+      Deck.slide('s06-matmul-variants', {
+        enter: function (c) {
+          warp = c.qs('#s06-matmul-variants-warp');
+          vp = c.qs('#s06-matmul-variants-vp');
+          vpl = c.qs('#s06-matmul-variants-vpl');
+          cells = [0, 1, 2, 3].map(function (i) { return c.qs('#s06-matmul-variants-e' + i); });
+          M = TARGETS[0].slice();
+          S.m = M;
+          S.vpl = 0;
+          draw();
+        },
+        step: function (n, prev, c) {
+          var target = TARGETS[n] || TARGETS[TARGETS.length - 1];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S.m = target.slice(); S.vpl = n >= 1 ? 1 : 0; draw(); return; }
+          var from = { m: S.m.slice(), vpl: S.vpl };
+          var to = { m: target, vpl: n >= 1 ? 1 : 0 };
+          var ms = n > prev ? 900 : 650;
+          cancel = Deck.tween(ms, function (t) {
+            S.m = Deck.lerp(from.m, to.m, t);
+            S.vpl = Deck.lerp(from.vpl, to.vpl, Math.min(1, t / 0.3));
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

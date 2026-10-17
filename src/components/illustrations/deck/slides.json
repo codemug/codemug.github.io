@@ -1,0 +1,380 @@
+{
+  "s02-vec2d": {
+    "steps": 2,
+    "tool": "vector",
+    "kicker": "refresher 1",
+    "statement": "An array of 2 numbers is a vector in 2D space.",
+    "notes": "SAY: two numbers are a position. The array and the arrow are the same thing."
+  },
+  "s03-vec3d": {
+    "steps": 3,
+    "tool": "vector",
+    "kicker": "refresher 1",
+    "statement": "3 numbers: a vector in 3D space.",
+    "notes": "SAY: three numbers are a point in 3D: three along x, two up along y, one toward you along z. Real models just keep adding numbers."
+  },
+  "s04-vec-many": {
+    "steps": 1,
+    "tool": "vector",
+    "kicker": "refresher 1",
+    "statement": "Real models use thousands of numbers per vector.",
+    "notes": "SAY: a real token vector has 5,120 numbers (hidden_size of Qwen3.8-27B). These are the real first 64 of the token \" can\"."
+  },
+  "s05-matmul-example": {
+    "steps": 2,
+    "tool": "matrix",
+    "kicker": "refresher 1",
+    "statement": "A vector can be multiplied by a matrix.",
+    "notes": "SAY: multiplying a vector by a matrix gives a new vector. For this matrix the arrow gets sheared sideways."
+  },
+  "s06-matmul-variants": {
+    "steps": 3,
+    "tool": "matrix",
+    "kicker": "refresher 1",
+    "statement": "Different matrices transform the same vector differently.",
+    "notes": "SAY: each matrix is a different transformation. Training will find the useful ones."
+  },
+  "s07-dot-intro": {
+    "steps": 4,
+    "tool": "dot",
+    "kicker": "refresher 2",
+    "statement": "The dot product: one number for how similar two vectors are.",
+    "notes": "SAY: multiply matching entries and add. Pointing the same way gives a big positive number, at right angles zero, opposite gives negative."
+  },
+  "s08-matmul-dots": {
+    "steps": 3,
+    "tool": "matrix dot",
+    "kicker": "refresher 2",
+    "statement": "A matrix times a vector is one dot product per column.",
+    "notes": "SAY: look at the matrix by its columns: each column is an arrow. Dot the vector with column one to get the first output number, with column two to get the second. The new vector says how much v matches each column."
+  },
+  "s09-ideas-axes": {
+    "steps": 3,
+    "tool": "vector",
+    "kicker": "refresher 3",
+    "statement": "What if each dimension is an idea?",
+    "notes": "SAY: if each dimension is an idea, a vector is a mix of ideas. Sand is desert and non-living. Rock is almost purely non-living. (A toy: real dimensions are not this readable.)"
+  },
+  "s10-ideas-dot": {
+    "steps": 3,
+    "tool": "dot",
+    "kicker": "refresher 3",
+    "statement": "Sand and rock point the same way, so their dot product is positive.",
+    "notes": "SAY: both are non-living, so the product is positive. Sand against fern points opposite ways, so it is negative."
+  },
+  "s11-sandstone": {
+    "steps": 3,
+    "tool": "matrix",
+    "kicker": "refresher 3",
+    "statement": "Sandstone sits between sand and rock. A transformation gets us there.",
+    "notes": "SAY: multiply sand by the right matrix and it shears toward rock; or multiply rock the other way. Either way the vector gets transformed, and that is all a transformer layer does."
+  },
+  "s12-box-words": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "the loop",
+    "statement": "A transformer: a box that predicts the next word.",
+    "notes": "SAY: give it a sentence, it predicts the next word."
+  },
+  "s13-loop-words": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "the loop",
+    "statement": "Append the word. Feed it back. Repeat.",
+    "notes": "SAY: that is the loop. Predict one word, append it, feed everything back in, until something that looks like an end comes out."
+  },
+  "s14-not-words": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "tokens",
+    "statement": "Models read tokens, not words.",
+    "notes": "SAY: real tokenizer output from Qwen3.8-27B. One word can be several tokens. The dot marks a leading space: it is part of the token."
+  },
+  "s15-model-folder": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "tokens",
+    "statement": "A downloaded model is just a folder of files.",
+    "notes": "SAY: this is the real Qwen3.8-27B folder: a vocabulary (tokenizer.json), a config and 55.6 GB of numbers (the safetensors shards). The listing is real; ls hides dotfiles, so .gitattributes is not shown, and the middle shards are elided with an ellipsis."
+  },
+  "s16-vocab-file": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "tokens",
+    "statement": "The vocabulary: every token the model can read or write.",
+    "notes": "SAY: the vocabulary is just a numbered list. Punctuation and letters come first, then words and word pieces from many languages. The counts and the three windows are real Qwen3.8-27B data; peek.py stands for a small script that decodes the ids of tokenizer.json. A dot marks a leading space."
+  },
+  "s17-tokenizer": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "tokens",
+    "statement": "The tokenizer turns text into vocabulary numbers.",
+    "notes": "SAY: each piece is looked up in the vocabulary and replaced by its number. From here on the model only sees numbers. (Real Qwen3.8-27B ids; the vocabulary strip is an excerpt.)"
+  },
+  "s18-unknown-word": {
+    "steps": 4,
+    "tool": null,
+    "kicker": "tokens",
+    "statement": "A word that is not in the vocabulary is split into smaller pieces.",
+    "notes": "SAY: any text can be written with pieces. Rare words just take more tokens. Real Qwen3.8-27B tokenizer output with the real vocabulary ids. (The Arabic word is shown right to left, as it is read: the first piece is on the right.)"
+  },
+  "s19-embedding-table": {
+    "steps": 3,
+    "tool": "matrix",
+    "kicker": "embeddings",
+    "statement": "Each token number is a row in a huge table.",
+    "notes": "SAY: the token number is just an index into this table. The table has 248,320 rows of 5,120 numbers: 1.27 billion numbers, 2.5 GB, before any attention. The rows are in id order, so the sentence order jumps around the table. The heat-grid is a stylised sample (a dot in front of a token means a leading space); the 8 numbers on the strip are the real first 8 values of row 628, the token \" can\"."
+  },
+  "s20-row-is-vector": {
+    "steps": 2,
+    "tool": "vector",
+    "kicker": "embeddings",
+    "statement": "Each row is a vector: a mix of ideas.",
+    "notes": "SAY: each number says how much of one idea this token has. These are the real first 64 numbers of the token \" can\". Real dimensions are not as readable as desert and living; the 2D picture is a toy for the intuition (arrow = 0.75 desert + 0.55 living, the camel of the earlier slides)."
+  },
+  "s21-hidden-size": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "embeddings",
+    "statement": "The row length is the model's hidden_size.",
+    "notes": "SAY: hidden_size is the length of every token vector, the 5,120 numbers per row. Each model picks its own: the bigger the model, the longer the vector. The embedding table of every model is vocabulary size by hidden_size. (hidden_size and vocab_size of the three models are read from their config.json files.)"
+  },
+  "s22-random-start": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "training",
+    "statement": "At the start, every number is random.",
+    "notes": "SAY: before training the embedding table is noise. Nothing about cats and dogs is in there yet. (Toy: the arrows use only the first 2 of the 5,120 numbers in each row; the table shape is real, from Qwen3.8-27B.)"
+  },
+  "s23-training-pair": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "training",
+    "statement": "Take a sentence from the training data and split it in two.",
+    "notes": "SAY: feed the first part in, get a guess, compare it with the real next word. The training data is the answer key. (The model's guess dog is made up for the story: an untrained model guesses badly.)"
+  },
+  "s24-error": {
+    "steps": 1,
+    "tool": "softmax",
+    "kicker": "training",
+    "statement": "The error says how far off the guess was.",
+    "notes": "SAY: the error is the difference between what we got and what we wanted. It decides how much to change. (Toy probabilities for an untrained model. Real training measures the error with the log of the probability on the right word, cross-entropy, but the idea is the same: a bigger gap means a bigger correction.)"
+  },
+  "s25-derivative": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "training",
+    "statement": "The error tells us how much to change each number.",
+    "notes": "SAY: the slope tells us which way and how much to nudge the number. Steep means a big nudge, flat means we are close. (Toy: one number w and an error curve we invented, error = (w - 3)^2 + 0.5, learning rate 0.3. Real training does this for billions of numbers at once, using the slope of the error for each one.)"
+  },
+  "s26-nudge-all": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "training",
+    "statement": "Nudge every number a little, millions of times.",
+    "notes": "SAY: after millions of tiny corrections the numbers stop being random. Similar tokens end up pointing similar ways. This is where embeddings come from. (Toy: 24 tokens, 2 dimensions and invented final positions; the counter is a toy too. Real training runs on trillions of tokens and tunes billions of numbers, not just the embedding table.)"
+  },
+  "s27-four-stages": {
+    "steps": 4,
+    "tool": null,
+    "kicker": "inside the transformer",
+    "statement": "Open the box: four stages.",
+    "notes": "SAY: the embedder we already saw. Attention and feed-forward do the thinking and repeat. Sampling picks the word. (The embedder is the tokenizer plus the embedding lookup; each stage gets its own slides next.)"
+  },
+  "s28-layers-repeat": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "inside the transformer",
+    "statement": "Attention and feed-forward repeat, layer after layer.",
+    "notes": "SAY: Qwen3.8-27B repeats this block 64 times. (In this model most attention layers are a linear-attention variant; the idea is the same. 64 is the real num_hidden_layers from the config; the slabs show the first three and the last one.)"
+  },
+  "s29-ball-sentence": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "attention",
+    "statement": "The same word can mean different things.",
+    "notes": "SAY: real tokenization of \"I'm tarballing the oddball photos of golf balls\" with the Qwen3.8-27B tokenizer: both balls are token 3826, so the model starts from the very same vector for both. Context has to make them different. (The dot marks a leading space; it is part of the token.)"
+  },
+  "s30-ball-3d": {
+    "steps": 4,
+    "tool": "vector matrix",
+    "kicker": "attention",
+    "statement": "Each ball is the same vector, transformed in a different direction.",
+    "notes": "SAY: golf ball, oddball and tarball are all transformations of ball, each in its own direction. The starting vector is the same; what changes is the matrix that acts on it. Attention's job is to apply the right one from the context. (A toy picture in 3 numbers; the real vector has 5,120.)"
+  },
+  "s31-influence": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "attention",
+    "statement": "Each token is influenced by the other tokens.",
+    "notes": "SAY: a token's meaning depends on the tokens around it. The attention layer finds which ones matter and applies their influence. Thick arc = strong influence, thin faint arc = almost none. The arc sizes come from the toy softmax weights of the next slides; the faint arcs from other words are only illustrative. Toy numbers. Real models also use token positions (nearby words weigh more)."
+  },
+  "s32-qkv-matrices": {
+    "steps": 2,
+    "tool": "matrix",
+    "kicker": "attention",
+    "statement": "Three matrices: Wq, Wk and Wv.",
+    "notes": "SAY: three more big tables of numbers, initialised randomly and tuned in training exactly like the embeddings. Each one is applied to the same embedding and gives a different result: a query, a key and a value. Shapes are real, from layer 3 of Qwen3.8-27B (q_proj, k_proj, v_proj). The stored tensors are [out, in], so a row vector multiplies the transpose; the drawn blocks are not to scale and show only a few cells of the real 5,120 x 12,288 and 5,120 x 1,024 tables. The numbers in the cells are a toy picture, not the real weights."
+  },
+  "s33-query": {
+    "steps": 3,
+    "tool": "matrix",
+    "kicker": "attention",
+    "statement": "Embedding × Wq = query: what this token is looking for.",
+    "notes": "SAY: the query is the token's embedding multiplied by Wq. It encodes what this token is looking for in the rest of the sentence: the first ball is looking for a word that modifies it. Toy numbers: real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more). (That is also why the second ball gets its own query although both start from the same embedding.)"
+  },
+  "s34-key": {
+    "steps": 3,
+    "tool": "matrix",
+    "kicker": "attention",
+    "statement": "Embedding × Wk = key: what this token has to offer.",
+    "notes": "SAY: the key is what a token can be matched against: what it has to offer. Only tar's multiplication is shown; the keys of odd and golf are given toy numbers. Toy numbers: real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more)."
+  },
+  "s35-value": {
+    "steps": 3,
+    "tool": "matrix",
+    "kicker": "attention",
+    "statement": "Embedding × Wv = value: the influence this token can pass on.",
+    "notes": "SAY: if the query matches this key, this value is what gets blended into the other token. Only tar's multiplication is shown; the values of odd and golf are given toy numbers. Toy numbers: real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more)."
+  },
+  "s36-score-table": {
+    "steps": 4,
+    "tool": "dot",
+    "kicker": "attention",
+    "statement": "q · k: how strongly one token is influenced by another.",
+    "notes": "SAY: each cell is one dot product: how aligned this token's query is with that token's key. Big number = big influence. The first ball's query points the same way as the key of tar, so that cell is the biggest (0.87); the second ball lines up with odd; balls lines up with golf. Toy numbers. Real queries and keys have thousands of numbers, and real models also use token positions (nearby words weigh more)."
+  },
+  "s37-softmax-weights": {
+    "steps": 2,
+    "tool": "softmax",
+    "kicker": "attention",
+    "statement": "Softmax turns the scores into weights that sum to 1.",
+    "notes": "SAY: softmax makes every score positive and makes them add up to 1: raise e to each score, then divide by the total. The weights say how much of each token to blend in. Keys in play: tar, odd, golf and the token itself (ball#1). Toy numbers. Real queries and keys have thousands of numbers, and real models also use token positions (nearby words weigh more)."
+  },
+  "s38-apply-values": {
+    "steps": 3,
+    "tool": "blend",
+    "kicker": "attention",
+    "statement": "Blend in the values, weighted, and add them to the token.",
+    "notes": "SAY: the weights decide how much of each value to add: tar's value counts most, golf's barely. Add the weighted values up, add that sum to the embedding of ball, and the vector is sheared toward tarball. The ball's own value is zero in this toy, so the token itself adds nothing. Toy numbers. Real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more)."
+  },
+  "s39-attention-result": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "attention",
+    "statement": "Same token, different vectors: context made the difference.",
+    "notes": "SAY: the attention layer found each token's relevant neighbours and applied their influence. Both balls started from the very same vector, and now one is a tarball and the other an oddball; balls moved toward golf. Results are computed from the toy numbers with a softmax over the keys of tar, odd, golf and the token itself. Toy numbers. Real queries and keys have thousands of numbers, and real models also use token positions (nearby words weigh more)."
+  },
+  "s40-world-cup": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "feed-forward",
+    "statement": "Some answers are not in the sentence.",
+    "notes": "SAY: the answer, Spain, is not in the question. Something has to move this vector toward Spain. That is the feed-forward layer. (Real tokenization of the question from Qwen3.8-27B: the digits of 2026 are four single tokens, and the dot marks a leading space. Toy: the two axes, a country and football, stand in for 5,120 real dimensions, which are not this readable; the vector [0.10, 0.20] is an invented toy number, not a measurement of the real model.)"
+  },
+  "s41-ffn-flow": {
+    "steps": 4,
+    "tool": "matrix relu",
+    "kicker": "feed-forward",
+    "statement": "Feed-forward: Wu, silence the weak ones, Wd, add.",
+    "notes": "SAY: Wu asks 17,408 questions at once. The weak answers are silenced. Wd turns the strong ones into a change to the vector, which is added back. (Real shapes from layer 3 of Qwen3.8-27B: up_proj [17,408 x 5,120] and down_proj [5,120 x 17,408], stored as [out, in]; hidden_size is 5,120 and intermediate_size is 17,408. The strips are drawn schematically: the cell heights are illustrative, not real values, and the share that survives is not a measurement. Simplification: Qwen3.8-27B also has a gate_proj [17,408 x 5,120] and a smooth SiLU gate, so the real silencing is soft and learned; the toy folds it into one \"silence weak\" step.)"
+  },
+  "s42-wu-detectors": {
+    "steps": 2,
+    "tool": "matrix dot",
+    "kicker": "feed-forward",
+    "statement": "Wu: each column is a question about the token.",
+    "notes": "SAY: somewhere in the training data Spain winning the 2026 World Cup appeared, so one column learned to detect that situation. The dot product is high when the token matches. (Toy numbers and toy questions: the real Wu has 17,408 columns of 5,120 numbers each, and their questions are not human-readable. Layer 3 of Qwen3.8-27B stores it as up_proj [17,408 x 5,120], that is [out, in].)"
+  },
+  "s43-silence": {
+    "steps": 1,
+    "tool": "relu",
+    "kicker": "feed-forward",
+    "statement": "Silence the weak matches.",
+    "notes": "SAY: weak matches are switched off; strong ones pass through unchanged. Here, anything below 0.5 becomes 0, so the capital-city and food detectors are silenced. (Disclaimer: real models use a smooth activation (SiLU/ReLU style) around zero, not a hard 0.5 threshold; the idea is the same: weak matches are switched off. Qwen3.8-27B uses SiLU, and a separate gate_proj matrix [17,408 x 5,120] decides how much of each detector passes; the toy folds both into one silencing step.)"
+  },
+  "s44-wd-shear": {
+    "steps": 3,
+    "tool": "matrix blend",
+    "kicker": "feed-forward",
+    "statement": "Wd: how much to shear the vector for each detected pattern.",
+    "notes": "SAY: the surviving magnitudes weight the rows of Wd; their sum is added to the original vector. Under the hood the embedding was just sheared toward Spain. (Toy numbers: the real Wd has 17,408 rows of 5,120 numbers each, and its rows are not human-readable directions like \"spain\". Layer 3 of Qwen3.8-27B stores it as down_proj [5,120 x 17,408], that is [out, in].)"
+  },
+  "s45-ffn-recap": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "feed-forward",
+    "statement": "Attention reads the sentence. Feed-forward recalls what training stored.",
+    "notes": "SAY: attention is the only place tokens talk to each other. Feed-forward works on one token at a time using stored knowledge. (Toy picture: the arc thicknesses and the six detector bars are illustrative, and the two-axis plane stands in for 5,120 real dimensions. The tokens are the real tokenization of the question from Qwen3.8-27B, shortened.)"
+  },
+  "s46-one-layer": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "layers",
+    "statement": "Attention + feed-forward = one layer.",
+    "notes": "SAY: each of the two steps only adds a change to the token's vector; the stream itself is never replaced. (Simplified: real layers also normalise the vector before each of the two steps, and in Qwen3.8-27B most attention layers are a linear-attention variant; the add-a-change idea is the same. The two cyan changes are drawn schematically, not real values.)"
+  },
+  "s47-layer-stack": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "layers",
+    "statement": "Stack many layers: 64 in Qwen3.8-27B.",
+    "notes": "SAY: each layer refines the vectors: it only adds a change, 64 times over. Early layers sort out local structure, later ones more abstract meaning (a tendency, not a rule). (Real: 64 layers, num_hidden_layers from the Qwen3.8-27B config; in this model most attention layers are a linear-attention variant, the idea is the same. Toy: the path of the arrow in the two-axis idea plane is invented to show the idea, real vectors have 5,120 numbers and no readable axes. The stack shows layers 1 to 4 and 62 to 64.)"
+  },
+  "s48-last-token": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "predicting the token",
+    "statement": "After the last layer, the final token carries the context.",
+    "notes": "SAY: the vector at the last position has soaked up everything the model needs for the next word. The other positions had their say in the attention layers; now only this one matters. (The columns are illustrative; a real vector has 5,120 numbers, the hidden_size of Qwen3.8-27B.)"
+  },
+  "s49-dot-vocab": {
+    "steps": 3,
+    "tool": "dot",
+    "kicker": "predicting the token",
+    "statement": "Dot product with every token in the vocabulary.",
+    "notes": "SAY: one score per vocabulary token: 248,320 of them, the dot product of the last vector with each row of the output table. The five scores shown are illustrative; the table is the real shape: the model's output table (lm_head) is a separate matrix, tie_word_embeddings is false. Tokens are real entries of the Qwen3.8-27B vocabulary (ids 0-7, 100000-100005, 240000-240007 and the five candidates); a dot before a token marks a leading space. The numbers in the score column are toys. The raw scores are called logits."
+  },
+  "s50-temperature": {
+    "steps": 3,
+    "tool": "softmax",
+    "kicker": "predicting the token",
+    "statement": "Divide the scores by the temperature.",
+    "notes": "SAY: the temperature T divides every score before the softmax. Low temperature stretches the gaps between scores, so the best word wins by even more. High temperature squeezes them together, so the choice gets flatter. T = 1 leaves the scores alone. (Toy scores from the sampling example. In step 3 the dial turns by itself so every temperature in between is seen.)"
+  },
+  "s51-softmax-probs": {
+    "steps": 2,
+    "tool": "softmax",
+    "kicker": "predicting the token",
+    "statement": "Softmax turns the scores into probabilities between 0 and 1.",
+    "notes": "SAY: exponentiate every score, then divide by the total. The biggest score gets the biggest share, every share is between 0 and 1, and together they sum to exactly 1. These are probabilities for the next token. (T = 1, toy scores.)"
+  },
+  "s52-top-k": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "predicting the token",
+    "statement": "Top-k sampling: pick one of the k most likely tokens.",
+    "notes": "SAY: most deployments sample from the top k. Keep the k most likely tokens, here k = 3, renormalise their probabilities so they sum to 1 again (0.419, 0.230, 0.170 divided by 0.819), then roll a weighted die. That is why the same prompt can give different answers. (Toy scores, T = 1.)"
+  },
+  "s53-sampling-board": {
+    "steps": 2,
+    "tool": "softmax",
+    "kicker": "temperature",
+    "statement": "Temperature sharpens or flattens the odds.",
+    "notes": "SAY: one knob. At low temperature the top token almost always wins; at high temperature it is nearly a coin toss between all five. The odds are softmax of the scores divided by T."
+  },
+  "s54-loop-closed": {
+    "steps": 4,
+    "tool": null,
+    "kicker": "predicting the token",
+    "statement": "Append the token. Run it all again.",
+    "notes": "SAY: that is one forward pass. Tokens go in, the embedder turns them into vectors, attention and feed-forward run 64 times, sampling picks one token, and that token is appended to the sentence. For every new token the whole stack runs again. (In practice the model caches work from earlier tokens, but the idea is exactly this loop.)"
+  },
+  "s55-recap": {
+    "steps": 3,
+    "tool": "all",
+    "kicker": "recap",
+    "statement": "Vectors, matrices and dot products: that is the whole trick.",
+    "notes": "SAY: everything in the transformer is these few operations, repeated at huge scale. Vectors hold the meaning (embeddings). Matrices transform vectors (Wq, Wk, Wv, Wu, Wd). Dot products measure similarity (attention scores, and the output scores over the vocabulary). Blending adds weighted vectors together (attention values, the feed-forward update). Softmax turns scores into weights and probabilities. ReLU-style silencing switches off weak matches in the feed-forward layer."
+  }
+}

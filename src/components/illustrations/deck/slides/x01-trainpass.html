@@ -1,0 +1,109 @@
+<section class="slide" id="x01-trainpass" data-steps="3">
+  <p class="kicker reveal">training</p>
+  <p class="statement reveal">Training runs the very same pass, then sends the error back.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 440" role="img" aria-labelledby="x01-trainpass-t x01-trainpass-d">
+      <title id="x01-trainpass-t">One training step through the whole model</title>
+      <desc id="x01-trainpass-d">The training sentence The cat sat on the runs through the embedder, attention plus feed-forward repeated 64 times, and sampling. The model guesses dog where the training data says mat, so the error is large. The error flows back through every stage and nudges every number. At inference the same pass runs with every number frozen, and the trained model now says mat.</desc>
+
+      <!-- forward arrows: sentence -> embedder -> layers -> sampling -> guess -->
+      <g class="arr pend" id="x01-arr-in"><line class="shaft" x1="165" y1="360" x2="165" y2="204"/><path class="shaft" d="M156 217L165 204L174 217"/></g>
+      <g class="arr pend" id="x01-arr-ab"><line class="shaft" x1="278" y1="113" x2="322" y2="113"/><path class="shaft" d="M309 104L322 113L309 122"/></g>
+      <g class="arr pend" id="x01-arr-bc"><line class="shaft" x1="722" y1="113" x2="768" y2="113"/><path class="shaft" d="M755 104L768 113L755 122"/></g>
+      <g class="arr pend" id="x01-arr-out"><line class="shaft" x1="875" y1="204" x2="875" y2="360"/><path class="shaft" d="M866 347L875 360L884 347"/></g>
+
+      <!-- the error going back, layer by layer -->
+      <g class="arr lit backward" data-from="2" data-until="3">
+        <line class="shaft dash" x1="768" y1="165" x2="722" y2="165"/><path class="shaft" d="M735 156L722 165L735 174"/>
+        <line class="shaft dash" x1="322" y1="165" x2="278" y2="165"/><path class="shaft" d="M291 156L278 165L291 174"/>
+      </g>
+
+      <g class="blk pend">
+        <rect class="bk" x="30" y="28" width="240" height="170" rx="18"/>
+        <text class="wd" x="150" y="123">embedder</text>
+      </g>
+      <g class="blk pend">
+        <rect class="back" x="354" y="4" width="360" height="170" rx="18"/>
+        <rect class="back" x="342" y="16" width="360" height="170" rx="18"/>
+        <rect class="bk" x="330" y="28" width="360" height="170" rx="18"/>
+        <text class="wd" x="510" y="103">attention</text>
+        <text class="wd" x="510" y="143">+ feed-forward</text>
+        <text class="rep" x="510" y="248">× 64 layers</text>
+      </g>
+      <g class="blk pend">
+        <rect class="bk" x="776" y="28" width="234" height="170" rx="18"/>
+        <text class="wd" x="893" y="123">sampling</text>
+      </g>
+
+      <g class="strip lit">
+        <g transform="translate(107 366)"><rect class="cr" width="116" height="52" rx="11"/><text class="ct" x="58" y="36">The</text></g>
+        <g transform="translate(249 366)"><rect class="cr" width="116" height="52" rx="11"/><text class="ct" x="58" y="36">cat</text></g>
+        <g transform="translate(391 366)"><rect class="cr" width="116" height="52" rx="11"/><text class="ct" x="58" y="36">sat</text></g>
+        <g transform="translate(533 366)"><rect class="cr" width="116" height="52" rx="11"/><text class="ct" x="58" y="36">on</text></g>
+        <g transform="translate(675 366)"><rect class="cr" width="116" height="52" rx="11"/><text class="ct" x="58" y="36">the</text></g>
+      </g>
+      <g transform="translate(817 366)">
+        <rect class="cr slot" id="x01-guess-cr" width="116" height="52" rx="11"/>
+        <text class="ct q" id="x01-guess-tx" x="58" y="37">?</text>
+      </g>
+
+      <text class="note" x="520" y="306" data-from="1" data-until="2">guess <tspan class="bad">dog</tspan>, training data says <tspan class="good">mat</tspan>: error large</text>
+      <text class="note hot" x="520" y="306" data-from="2" data-until="3">the error flows back and nudges every number</text>
+      <text class="note" x="520" y="306" data-from="3">inference: the same pass, every number frozen</text>
+    </svg>
+  </div>
+
+  <style>
+    #x01-trainpass svg.diagram{max-width:1100px;}
+    #x01-trainpass .blk, #x01-trainpass .arr{color:var(--color-text-dim);transition:color .5s ease;}
+    #x01-trainpass .blk.done, #x01-trainpass .arr.done{color:var(--color-text-muted);}
+    #x01-trainpass .blk.lit, #x01-trainpass .arr.lit{color:var(--color-accent);}
+    #x01-trainpass .bk{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease,fill .5s ease;}
+    #x01-trainpass .blk.done .bk{stroke:var(--color-border-strong);}
+    #x01-trainpass .blk.lit .bk{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));}
+    #x01-trainpass .back{fill:var(--color-bg);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease;}
+    #x01-trainpass .blk.done .back{stroke:var(--color-border-strong);}
+    #x01-trainpass .blk.lit .back{stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);}
+    #x01-trainpass .wd{font-size:29px;fill:var(--color-text-dim);text-anchor:middle;transition:fill .5s ease;}
+    #x01-trainpass .blk.done .wd{fill:var(--color-text);}
+    #x01-trainpass .blk.lit .wd{fill:var(--color-accent);}
+    #x01-trainpass .rep{font-size:28px;fill:currentColor;text-anchor:middle;}
+    #x01-trainpass .shaft{stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;fill:none;transition:stroke .5s ease;}
+    #x01-trainpass .shaft.dash{stroke-dasharray:9 8;}
+    #x01-trainpass .cr{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;transition:stroke .5s ease,fill .5s ease;}
+    #x01-trainpass .strip.lit .cr{stroke:color-mix(in oklab,var(--color-accent) 60%,transparent);}
+    #x01-trainpass .cr.slot{stroke:var(--color-text-faint);stroke-dasharray:8 6;fill:none;}
+    #x01-trainpass .cr.wrong{stroke:var(--color-text-dim);}
+    #x01-trainpass .cr.hot{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));}
+    #x01-trainpass .ct{font-size:27px;fill:var(--color-text);text-anchor:middle;}
+    #x01-trainpass .ct.q{fill:var(--color-text-faint);}
+    #x01-trainpass .ct.hot{fill:var(--color-accent);}
+    #x01-trainpass .note{font-size:24px;fill:var(--color-text-muted);text-anchor:middle;}
+    #x01-trainpass .note.hot{fill:var(--color-accent);}
+    #x01-trainpass .note .bad{fill:var(--color-text);}
+    #x01-trainpass .note .good{fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 'x01-trainpass';
+      var root = document.getElementById(ID);
+      var blocks = [].slice.call(root.querySelectorAll('.blk'));
+      var strip = root.querySelector('.strip');
+      var fwd = ['in', 'ab', 'bc', 'out'].map(function (k) { return document.getElementById(ID.slice(0, 3) + '-arr-' + k); });
+      var guessCr = document.getElementById('x01-guess-cr'), guessTx = document.getElementById('x01-guess-tx');
+      // 0 the training sentence, 1 forward pass and its guess, 2 the error flows back, 3 inference
+      function show(n) {
+        strip.setAttribute('class', 'strip' + (n === 0 ? ' lit' : ''));
+        blocks.forEach(function (b) { b.setAttribute('class', 'blk ' + (n === 2 ? 'lit' : n >= 1 ? 'done' : 'pend')); });
+        fwd.forEach(function (a) { a.setAttribute('class', 'arr ' + (n === 1 || n === 3 ? 'lit' : n === 2 ? 'done' : 'pend')); });
+        guessTx.textContent = n === 0 ? '?' : n === 3 ? 'mat' : 'dog';
+        guessCr.setAttribute('class', 'cr ' + (n === 0 ? 'slot' : n === 3 ? 'hot' : 'wrong'));
+        guessTx.setAttribute('class', 'ct ' + (n === 0 ? 'q' : n === 3 ? 'hot' : ''));
+      }
+      Deck.slide(ID, {
+        enter: function () { show(0); },
+        step: function (n) { show(n); }
+      });
+    })();
+  </script>
+</section>

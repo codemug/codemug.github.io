@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "og": "node scripts/generate-og.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "node --test \"tests/*.test.mjs\""
   },
   "dependencies": {
     "@astrojs/mdx": "^6.0.3",

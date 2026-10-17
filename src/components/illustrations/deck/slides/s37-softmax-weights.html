@@ -1,0 +1,124 @@
+<section class="slide" id="s37-softmax-weights" data-steps="2" data-tool="softmax">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Softmax turns the scores into weights that sum to 1.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s37-softmax-weights-t s37-softmax-weights-d">
+      <title id="s37-softmax-weights-t">Softmax turns four scores into four weights</title>
+      <desc id="s37-softmax-weights-d">The scores of the first ball against the keys tar, odd, golf and itself are shown as bars: 0.87, 0.23, minus 0.76 and 0.08. Softmax turns them into weights, 0.46 for tar, 0.24 for odd, 0.09 for golf and 0.21 for the ball itself. The weights sum to 1.00, and tar has the biggest weight.</desc>
+    </svg>
+  </div>
+
+  <style>
+    #s37-softmax-weights .statement{max-width:1120px;}
+    #s37-softmax-weights svg.diagram{width:100%;height:100%;max-width:none;}
+    #s37-softmax-weights text{font-family:var(--font-mono);}
+    #s37-softmax-weights .chiprect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s37-softmax-weights .chipt{font-size:22px;text-anchor:middle;fill:var(--color-text-soft);}
+    #s37-softmax-weights .tag{font-size:20px;text-anchor:middle;fill:var(--color-text-dim);}
+    #s37-softmax-weights .head{font-size:24px;text-anchor:middle;font-weight:600;}
+    #s37-softmax-weights .base{stroke:var(--color-text-faint);stroke-width:2;}
+    #s37-softmax-weights .val{font-size:26px;font-variant-numeric:tabular-nums;}
+    #s37-softmax-weights .brk{fill:none;stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s37-softmax-weights .sum{font-size:34px;fill:var(--color-accent);}
+    #s37-softmax-weights .sumk{font-size:20px;fill:var(--color-accent);}
+    #s37-softmax-weights .arrow{stroke:var(--color-accent);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    #s37-softmax-weights .sm{font-size:22px;fill:var(--color-accent);text-anchor:middle;}
+    #s37-softmax-weights .cap{font-size:20px;fill:var(--color-text-dim);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s37-softmax-weights');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // ATTENTION TOY: column ball#1 of the score table, keys in play: tar, odd, golf and the token itself
+      var Q1 = [0.95, 0.10];
+      var KEYS = [['tar', [0.90, 0.15]], ['odd', [0.15, 0.90]], ['golf', [-0.85, 0.50]], ['ball#1', [0.10, -0.20]]];
+      var SC = KEYS.map(function (k) { return Deck.dot(Q1, k[1]); });
+      var EX = SC.map(Math.exp), TOT = EX.reduce(function (a, b) { return a + b; }, 0);
+      var W = EX.map(function (e) { return e / TOT; });              // softmax
+      var WSUM = W.reduce(function (a, b) { return a + b; }, 0);     // 1.00
+
+      var CY = Deck.rgb('--color-accent'), MUT = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim');
+      function mix(a, b, t) { t = Math.max(0, Math.min(1, t)); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }).join(',') + ')'; }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(x) { var r = Math.round(Math.abs(x) * 100 + 1e-7) / 100; return (x < 0 && r > 0 ? '−' : '') + r.toFixed(2); }
+
+      var ROWY = [138, 228, 318, 408], BH = 50;
+      var CHX = 76, B0 = 372, US = 150, B1 = 736, UW = 300, BRX = 990;
+      var g = el('g', {}, svg);
+
+      // headers
+      el('text', { 'class': 'head', x: 400, y: 62, style: 'fill:var(--color-text-muted)' }, g, 'score');
+      var hw = el('text', { 'class': 'head', x: 820, y: 62, style: 'fill:var(--color-accent)', 'data-from': 1 }, g, 'weight');
+      // row chips (same chip style as the table of s36)
+      KEYS.forEach(function (k, i) {
+        el('rect', { 'class': 'chiprect', x: CHX - 52, y: ROWY[i] - 22, width: 104, height: 44, rx: 10 }, g);
+        el('text', { 'class': 'chipt', x: CHX, y: ROWY[i] + 8 }, g, k[0]);
+      });
+      el('text', { 'class': 'tag', x: CHX, y: ROWY[3] + 46 }, g, '(self)');
+      el('line', { 'class': 'base', x1: B0, y1: ROWY[0] - 40, x2: B0, y2: ROWY[3] + 40 }, g);
+      el('line', { 'class': 'base', x1: B1, y1: ROWY[0] - 40, x2: B1, y2: ROWY[3] + 40, 'data-from': 1 }, g);
+
+      var sBar = [], sVal = [], wBar = [], wVal = [];
+      KEYS.forEach(function (k, i) {
+        sBar[i] = el('rect', { x: B0, y: ROWY[i] - BH / 2, width: 0, height: BH, rx: 6 }, g);
+        sVal[i] = el('text', { 'class': 'val', y: ROWY[i] + 9 }, g, '');
+        wBar[i] = el('rect', { x: B1, y: ROWY[i] - BH / 2, width: 0, height: BH, rx: 6 }, g);
+        wVal[i] = el('text', { 'class': 'val', y: ROWY[i] + 9 }, g, '');
+      });
+
+      // softmax arrow between the panels
+      var am = el('g', { 'data-from': 1 }, g);
+      el('path', { 'class': 'arrow', d: 'M618 ' + (ROWY[1] + 45) + 'H700M688 ' + (ROWY[1] + 33) + 'L700 ' + (ROWY[1] + 45) + 'L688 ' + (ROWY[1] + 57) }, am);
+      el('text', { 'class': 'sm', x: 660, y: ROWY[1] + 24 }, am, 'softmax');
+
+      // the sum bracket
+      var bk = el('g', { 'data-from': 1 }, g);
+      var top = ROWY[0] - 30, bot = ROWY[3] + 30;
+      el('path', { 'class': 'brk', d: 'M' + (BRX - 10) + ' ' + top + 'H' + BRX + 'V' + bot + 'H' + (BRX - 10) }, bk);
+      el('text', { 'class': 'sumk', x: BRX + 20, y: (top + bot) / 2 - 14 }, bk, 'sum');
+      el('text', { 'class': 'sum', x: BRX + 20, y: (top + bot) / 2 + 24 }, bk, f2(WSUM));
+
+      el('text', { 'class': 'cap', x: 560, y: 494 }, g, 'query: ball#1 · keys in play: tar, odd, golf and the token itself');
+
+      var A = 0, cancel = null;      // A: 0 = scores only, 1 = weights shown
+      function draw() {
+        var wmax = Math.max.apply(null, W), grey = A;
+        KEYS.forEach(function (k, i) {
+          var s = SC[i], len = s * US, x = s >= 0 ? B0 : B0 + len, col = mix(CY, DIM, grey), txt = mix(CY, MUT, grey);
+          sBar[i].setAttribute('x', x); sBar[i].setAttribute('width', Math.abs(len));
+          sBar[i].style.fill = col; sBar[i].style.opacity = 1 - 0.25 * grey;
+          sVal[i].textContent = f2(s); sVal[i].style.fill = txt;
+          sVal[i].setAttribute('x', s >= 0 ? B0 + len + 14 : B0 + len - 14);
+          sVal[i].setAttribute('text-anchor', s >= 0 ? 'start' : 'end');
+          var w = W[i] * A;
+          wBar[i].setAttribute('width', Math.max(0, w * UW));
+          wBar[i].style.fill = mix(DIM, CY, 1); wBar[i].style.fillOpacity = 0.4 + 0.6 * (W[i] / wmax);
+          wVal[i].textContent = A < 0.02 ? '' : f2(w);
+          wVal[i].setAttribute('x', B1 + W[i] * A * UW + 14);
+          wVal[i].style.fill = mix(CY, CY, 1);
+          wVal[i].style.opacity = Math.min(1, A * 3);
+        });
+      }
+      draw();
+
+      Deck.slide('s37-softmax-weights', {
+        enter: function () { A = 0; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { A = to; draw(); return; }
+          var from = A;
+          cancel = Deck.tween(900, function (t) { A = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,122 @@
+<section class="slide" id="s23-training-pair" data-steps="3">
+  <p class="kicker reveal">training</p>
+  <p class="statement reveal">Take a sentence from the training data and split it in two.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 470" role="img" aria-labelledby="s23-training-pair-t s23-training-pair-d">
+      <title id="s23-training-pair-t">A training sentence split into input and answer</title>
+      <desc id="s23-training-pair-d">The sentence The cat sat on the mat as six chips. A cyan line splits it before mat: the first five words are the input, mat is the answer. The input goes into a transformer box, which guesses dog, and dog is compared with the real answer mat: they are not equal.</desc>
+      <defs>
+        <marker id="s23-training-pair-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,1 L14,8 L0,15 Z" fill="var(--color-text-muted)"/></marker>
+      </defs>
+
+      <!-- the sentence (moves up at step 2 to make room for the transformer) -->
+      <g id="s23-training-pair-top">
+        <g id="s23-training-pair-marks" opacity="0">
+          <path class="brk" d="M168 66V56H732V66M772 66V56H872V66"/>
+          <text class="lbl" x="450" y="32" text-anchor="middle">input</text>
+          <text class="lbl" x="822" y="32" text-anchor="middle">answer</text>
+        </g>
+        <g transform="translate(168 76)"><rect class="chip" width="100" height="64" rx="12"/><text class="ct" x="50" y="42">The</text></g>
+        <g transform="translate(284 76)"><rect class="chip" width="100" height="64" rx="12"/><text class="ct" x="50" y="42">cat</text></g>
+        <g transform="translate(400 76)"><rect class="chip" width="100" height="64" rx="12"/><text class="ct" x="50" y="42">sat</text></g>
+        <g transform="translate(516 76)"><rect class="chip" width="100" height="64" rx="12"/><text class="ct" x="50" y="42">on</text></g>
+        <g transform="translate(632 76)"><rect class="chip" width="100" height="64" rx="12"/><text class="ct" x="50" y="42">the</text></g>
+        <g transform="translate(772 76)">
+          <rect class="chip" width="100" height="64" rx="12"/>
+          <rect id="s23-training-pair-hot" class="chip hot" width="100" height="64" rx="12" opacity="0"/>
+          <text class="ct" x="50" y="42">mat</text>
+          <text id="s23-training-pair-hotct" class="ct hot" x="50" y="42" opacity="0">mat</text>
+        </g>
+        <line id="s23-training-pair-split" class="split" x1="752" y1="52" x2="752" y2="52"/>
+      </g>
+
+      <!-- step 2: input -> transformer -> guess -->
+      <line id="s23-training-pair-a1" class="flow" x1="450" y1="150" x2="450" y2="150" marker-end="url(#s23-training-pair-ah)"/>
+      <g id="s23-training-pair-box" opacity="0">
+        <rect class="box" x="320" y="304" width="260" height="104" rx="14"/>
+        <text class="bt" x="450" y="365" text-anchor="middle">transformer</text>
+      </g>
+      <line id="s23-training-pair-a2" class="flow" x1="580" y1="356" x2="580" y2="356" marker-end="url(#s23-training-pair-ah)"/>
+      <g id="s23-training-pair-dog" opacity="0">
+        <g transform="translate(772 324)"><rect class="chip wrong" width="100" height="64" rx="12"/><text class="ct dim" x="50" y="42">dog</text></g>
+        <text class="lbl dim" x="822" y="428" text-anchor="middle">guess</text>
+      </g>
+
+      <!-- step 3: compare -->
+      <g id="s23-training-pair-cmp" opacity="0">
+        <line class="cmpline" x1="822" y1="156" x2="822" y2="214"/>
+        <line class="cmpline" x1="822" y1="252" x2="822" y2="316"/>
+        <text class="ne" x="822" y="246" text-anchor="middle">!=</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #s23-training-pair svg.diagram{max-width:min(1203.2px,1100px);}
+    #s23-training-pair .chip{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s23-training-pair .chip.hot{fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));stroke:var(--color-accent);}
+    #s23-training-pair .chip.wrong{stroke:var(--color-text-faint);stroke-dasharray:7 6;}
+    #s23-training-pair .ct{font-size:27px;fill:var(--color-text);text-anchor:middle;}
+    #s23-training-pair .ct.hot{fill:var(--color-accent);}
+    #s23-training-pair .ct.dim{fill:var(--color-text-dim);}
+    #s23-training-pair .lbl{font-size:24px;fill:var(--color-accent);}
+    #s23-training-pair .lbl.dim{fill:var(--color-text-dim);}
+    #s23-training-pair .brk{fill:none;stroke:var(--color-accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+    #s23-training-pair .split{stroke:var(--color-accent);stroke-width:4;stroke-linecap:round;}
+    #s23-training-pair .flow{stroke:var(--color-text-muted);stroke-width:3.5;stroke-linecap:round;}
+    #s23-training-pair .box{fill:var(--color-surface-deep);stroke:var(--d-teal);stroke-width:3;}
+    #s23-training-pair .bt{font-size:28px;fill:var(--color-text);}
+    #s23-training-pair .cmpline{stroke:var(--color-accent);stroke-width:3;stroke-dasharray:8 7;stroke-linecap:round;}
+    #s23-training-pair .ne{font-size:50px;fill:var(--color-accent);font-weight:600;}
+  </style>
+  <script>
+    (function () {
+      var ID = 's23-training-pair';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      var S = { a: 0, b: 0, c: 0 };
+      var top, marks, hot, hotct, split, a1, box, a2, dog, cmp;
+      var DY = 130; // vertical offset of the sentence before the transformer appears
+
+      function draw() {
+        // a: the split (line grows, labels and the answer highlight fade in)
+        split.setAttribute('y2', 52 + 108 * S.a);
+        split.style.opacity = S.a > 0.02 ? 1 : 0;
+        marks.setAttribute('opacity', clamp((S.a - 0.4) / 0.6));
+        hot.setAttribute('opacity', clamp((S.a - 0.4) / 0.6));
+        hotct.setAttribute('opacity', clamp((S.a - 0.4) / 0.6));
+        // b: the sentence moves up, then input -> transformer -> guess
+        var dy = DY * (1 - clamp(S.b / 0.35));
+        top.setAttribute('transform', 'translate(0 ' + dy.toFixed(1) + ')');
+        var g1 = clamp((S.b - 0.35) / 0.25);
+        a1.setAttribute('y2', 150 + (298 - 150) * g1);
+        a1.style.opacity = g1 > 0.02 ? 1 : 0;
+        box.setAttribute('opacity', clamp((S.b - 0.5) / 0.2));
+        var g2 = clamp((S.b - 0.65) / 0.2);
+        a2.setAttribute('x2', 580 + (764 - 580) * g2);
+        a2.style.opacity = g2 > 0.02 ? 1 : 0;
+        dog.setAttribute('opacity', clamp((S.b - 0.8) / 0.2));
+        // c: compare
+        cmp.setAttribute('opacity', S.c);
+      }
+      function target(n) { return { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0, c: n >= 3 ? 1 : 0 }; }
+
+      Deck.slide('s23-training-pair', {
+        enter: function () {
+          top = $('top'); marks = $('marks'); hot = $('hot'); hotct = $('hotct'); split = $('split');
+          a1 = $('a1'); box = $('box'); a2 = $('a2'); dog = $('dog'); cmp = $('cmp');
+          S = { a: 0, b: 0, c: 0 }; draw();
+        },
+        step: function (n, prev, c) {
+          var t = target(n);
+          if (c.instant) { S = t; draw(); return; }
+          var f = { a: S.a, b: S.b, c: S.c };
+          Deck.tween(n === 2 && prev === 1 ? 1400 : 800, function (k) {
+            S = { a: Deck.lerp(f.a, t.a, k), b: Deck.lerp(f.b, t.b, k), c: Deck.lerp(f.c, t.c, k) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

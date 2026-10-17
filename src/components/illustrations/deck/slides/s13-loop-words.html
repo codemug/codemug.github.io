@@ -1,0 +1,111 @@
+<section class="slide" id="s13-loop-words" data-steps="3">
+  <p class="kicker reveal">the loop</p>
+  <p class="statement reveal">Append the word. Feed it back. Repeat.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 700 292" role="img" aria-labelledby="s13-loop-words-t s13-loop-words-d">
+      <title id="s13-loop-words-t">The generation loop with words</title>
+      <desc id="s13-loop-words-d">A strip of word chips, The cat sat on the, feeds a transformer box that outputs one word. Each output word travels back along the dashed append path into the strip, until the end token appears and the loop arrow disappears.</desc>
+      <defs>
+        <marker id="s13-loop-words-am" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0,1 L10,6 L0,11 Z" fill="var(--color-text-muted)"/></marker>
+        <marker id="s13-loop-words-aa" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0,1 L10,6 L0,11 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <!-- the word strip: the whole input so far (5 initial chips; slot positions computed in JS) -->
+      <g>
+        <g transform="translate(21 16)"><rect class="chipr" width="70" height="40" rx="9"/><text class="chiptxt" x="35" y="26">The</text></g>
+        <g transform="translate(101 16)"><rect class="chipr" width="70" height="40" rx="9"/><text class="chiptxt" x="35" y="26">cat</text></g>
+        <g transform="translate(181 16)"><rect class="chipr" width="70" height="40" rx="9"/><text class="chiptxt" x="35" y="26">sat</text></g>
+        <g transform="translate(261 16)"><rect class="chipr" width="70" height="40" rx="9"/><text class="chiptxt" x="35" y="26">on</text></g>
+        <g transform="translate(341 16)"><rect class="chipr" width="70" height="40" rx="9"/><text class="chiptxt" x="35" y="26">the</text></g>
+      </g>
+      <!-- words that get appended (moved along the loop path by the script) -->
+      <g id="s13-loop-words-c6" opacity="0"><rect class="chipr lit" width="70" height="40" rx="9"/><text class="chiptxt lit" x="35" y="26">mat</text></g>
+      <g id="s13-loop-words-c7" opacity="0"><rect class="chipr lit" width="70" height="40" rx="9"/><text class="chiptxt lit" x="35" y="26">.</text></g>
+      <g id="s13-loop-words-c8" opacity="0"><rect class="chipr end" width="70" height="40" rx="9"/><text class="chiptxt end" x="35" y="26">&lt;end&gt;</text></g>
+      <rect data-from="3" x="663" y="28" width="16" height="16" rx="3" fill="none" stroke="var(--color-text-dim)" stroke-width="2"/>
+
+      <!-- strip -> transformer -> output -->
+      <line x1="350" y1="64" x2="350" y2="212" stroke="var(--color-text-muted)" stroke-width="2.5" marker-end="url(#s13-loop-words-am)"/>
+      <rect x="265" y="216" width="170" height="70" rx="12" fill="var(--color-surface-deep)" stroke="var(--d-teal)" stroke-width="2"/>
+      <text class="boxtxt" x="350" y="257">transformer</text>
+      <line x1="443" y1="251" x2="511" y2="251" stroke="var(--color-text-muted)" stroke-width="2.5" marker-end="url(#s13-loop-words-am)"/>
+      <rect x="520" y="216" width="150" height="70" rx="12" fill="var(--color-surface-deep)" stroke="var(--color-border)" stroke-width="2"/>
+      <text id="s13-loop-words-out" class="outtxt" x="595" y="257">?</text>
+
+      <!-- the loop-back: append to the strip and run it again -->
+      <path id="s13-loop-words-back" fill="none" stroke="var(--color-accent)" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#s13-loop-words-aa)" d="M595,212 V148 H456 V64"/>
+      <text id="s13-loop-words-lab" class="looplab" x="624" y="184">append</text>
+    </svg>
+  </div>
+
+  <style>
+    #s13-loop-words svg.diagram{max-width:min(1177.6px,1000px);}
+    #s13-loop-words .chipr{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:1.5;}
+    #s13-loop-words .chipr.lit{stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #s13-loop-words .chipr.end{stroke:var(--color-hairline);fill:var(--color-surface-deep);}
+    #s13-loop-words .chiptxt{font-family:var(--font-mono);font-size:17px;fill:var(--color-text);text-anchor:middle;}
+    #s13-loop-words .chiptxt.lit{fill:var(--color-accent);}
+    #s13-loop-words .chiptxt.end{fill:var(--color-text-dim);}
+    #s13-loop-words .boxtxt{font-family:var(--font-mono);font-size:18px;fill:var(--color-text);text-anchor:middle;}
+    #s13-loop-words .outtxt{font-family:var(--font-mono);font-size:24px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s13-loop-words .looplab{font-family:var(--font-mono);font-size:14px;fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var X0 = 21, GAP = 80, W = 70, FIRST = 5; // 8-chip strip: first 5 static, appended words take slots 5..7
+      var OUT = ['?', 'mat', '.', '<end>'];
+      var chips = [], prog = [0, 0, 0], out = null, back = null, lab = null;
+
+      function slotX(i) { return X0 + (FIRST + i) * GAP + W / 2; }
+      // waypoints: out of the Output box, up, across, up into the slot
+      function waypoints(i) { return [[595, 251], [595, 148], [slotX(i), 148], [slotX(i), 36]]; }
+      function pointAt(i, v) {
+        var P = waypoints(i), L = [], tot = 0, k;
+        for (k = 0; k < P.length - 1; k++) { var d = Math.abs(P[k + 1][0] - P[k][0]) + Math.abs(P[k + 1][1] - P[k][1]); L.push(d); tot += d; }
+        var s = v * tot;
+        for (k = 0; k < L.length; k++) {
+          if (s <= L[k] || k === L.length - 1) {
+            var t = L[k] ? Math.min(1, s / L[k]) : 1;
+            return [P[k][0] + (P[k + 1][0] - P[k][0]) * t, P[k][1] + (P[k + 1][1] - P[k][1]) * t];
+          }
+          s -= L[k];
+        }
+      }
+      function place(i, v) {
+        var p = pointAt(i, v);
+        chips[i].setAttribute('transform', 'translate(' + (p[0] - W / 2).toFixed(1) + ' ' + (p[1] - 20).toFixed(1) + ')');
+        chips[i].setAttribute('opacity', Math.min(1, v * 8).toFixed(2));
+      }
+      function setOut(n) {
+        out.textContent = OUT[n];
+        out.style.fill = n ? 'var(--color-accent)' : 'var(--color-text-dim)';
+      }
+      function setLoop(n) {
+        // n = 0..2: the arrow points at the next free slot; n = 3: the end token ended the loop
+        var slot = [0, 1, 2, 2][n];
+        back.setAttribute('d', 'M595,212 V148 H' + slotX(slot) + ' V64');
+        back.style.opacity = n >= 3 ? 0 : 1;
+        lab.style.opacity = n >= 3 ? 0 : 1;
+      }
+
+      Deck.slide('s13-loop-words', {
+        enter: function (c) {
+          chips = [c.qs('#s13-loop-words-c6'), c.qs('#s13-loop-words-c7'), c.qs('#s13-loop-words-c8')];
+          out = c.qs('#s13-loop-words-out'); back = c.qs('#s13-loop-words-back'); lab = c.qs('#s13-loop-words-lab');
+          prog = [0, 0, 0]; place(0, 0); place(1, 0); place(2, 0);
+          setOut(0); setLoop(0);
+        },
+        step: function (n, prev, c) {
+          setOut(n); setLoop(n);
+          [0, 1, 2].forEach(function (i) {
+            var to = n >= i + 1 ? 1 : 0, from = prog[i];
+            if (to === from) return;
+            prog[i] = to;
+            if (c.instant) { place(i, to); return; }
+            Deck.tween(900, function (k) { place(i, Deck.lerp(from, to, k)); });
+          });
+        }
+      });
+    })();
+  </script>
+</section>

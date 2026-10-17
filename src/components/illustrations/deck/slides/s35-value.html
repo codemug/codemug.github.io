@@ -1,0 +1,190 @@
+<section class="slide" id="s35-value" data-steps="3" data-tool="matrix">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Embedding × Wv = value: the influence this token can pass on.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s35-value-t s35-value-d">
+      <title id="s35-value-t">The embedding of tar times Wv is its value</title>
+      <desc id="s35-value-d">The row vector e of tar, 0.20 and 0.90, is multiplied by the matrix Wv and gives the value of tar, 0.20 and 0.60. In the plane the grey arrow e of tar shortens into the cyan arrow v of tar. The values of odd and golf appear as two more cyan arrows. A speech bubble says the value is an influence: make the ball tar-like.</desc>
+    </svg>
+  </div>
+
+  <style>
+    #s35-value .statement{max-width:1120px;}
+    #s35-value svg.diagram{width:100%;height:100%;max-width:none;}
+    #s35-value text{font-family:var(--font-mono);}
+    #s35-value .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #s35-value .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #s35-value .axh{fill:var(--color-text-faint);}
+    #s35-value .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #s35-value .vg{transition:color .6s,opacity .5s ease;}
+    #s35-value .cy{color:var(--color-accent);}
+    #s35-value .gr{color:var(--color-text-muted);}
+    #s35-value .gh{color:var(--color-text-dim);}
+    #s35-value .sh{stroke:currentColor;stroke-width:4.5;stroke-linecap:round;fill:none;}
+    #s35-value .hd{fill:currentColor;stroke:none;}
+    #s35-value .nm{font-size:24px;font-weight:600;fill:currentColor;}
+    #s35-value .av{font-size:20px;fill:currentColor;}
+    #s35-value .brk{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #s35-value .ent{font-size:28px;fill:currentColor;text-anchor:middle;}
+    #s35-value .lbl{font-size:24px;fill:currentColor;text-anchor:end;}
+    #s35-value .ql{color:var(--color-text-dim);transition:color .6s;}
+    #s35-value:not([data-cur="0"]) .ql{color:var(--color-accent);}
+    #s35-value .op{font-size:28px;fill:var(--color-text-dim);text-anchor:middle;}
+    #s35-value .ar{font-size:20px;fill:var(--color-accent);}
+    #s35-value .bub{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2.5;stroke-linejoin:round;}
+    #s35-value .bubt{font-size:22px;fill:var(--color-text);text-anchor:middle;}
+    #s35-value .bubk{font-size:22px;fill:var(--color-accent);text-anchor:middle;}
+    #s35-value .late{transition-delay:.7s;}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s35-value');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // the attention plane: SAME origin, scale and orientation on s33 to s39
+      var OX = 752, OY = 332, U = 240, X0 = -1.1, X1 = 1.4, Y0 = -0.5, Y1 = 1.1;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+      // ATTENTION TOY (input) and the matrix chosen for this slide
+      var E_IN = [0.2, 0.9];
+      var W = [1.0, 0.3, 0.0, 0.6];
+      var OUT = Deck.vmul(E_IN, W);
+      var NAMES = ["e(tar)", "Wv", "v(tar)"];                  // [input name, matrix name, output name]
+      var EXTRAS = [{"name": "v(odd)", "v": [0.7, -0.3], "dx": 24, "dy": 10, "anchor": "start"}, {"name": "v(golf)", "v": [-0.4, 0.55], "dx": 0, "dy": 50, "anchor": "end"}];                // other arrows of the toy (given numbers): {name, v, dx, dy, anchor}
+      var LAB_E = {"dx": 22, "dy": -12, "anchor": "start"}, LAB_O = {"dx": 22, "dy": 8, "anchor": "start"};
+      var BUB = {"x0": 496, "x1": 736, "y0": 76, "y1": 172, "lines": ["influence:", "make the ball", "tar-like"], "tail": {"side": "right", "at": 130, "tip": [790, 186]}};
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(x) { var s = Math.abs(x).toFixed(2); return (x < 0 && s !== '0.00' ? '−' : '') + s; }
+      function arr(v) { return '[' + f2(v[0]) + ', ' + f2(v[1]) + ']'; }
+      function wrap(x) { return x < 0 ? '(' + f2(x) + ')' : f2(x); }
+
+      function buildPlane() {
+        var g = el('g', {}, svg), k, j;
+        for (k = -1; k <= 1.4; k += 0.5) if (Math.abs(k) > 1e-9) el('line', { 'class': 'grd', x1: P.X(k), y1: P.Y(Y0), x2: P.X(k), y2: P.Y(Y1) }, g);
+        for (j = -0.5; j <= 1.1; j += 0.5) if (Math.abs(j) > 1e-9) el('line', { 'class': 'grd', x1: P.X(X0), y1: P.Y(j), x2: P.X(X1), y2: P.Y(j) }, g);
+        el('line', { 'class': 'axl', x1: P.X(X0), y1: OY, x2: P.X(X1) - 8, y2: OY }, g);
+        el('line', { 'class': 'axl', x1: OX, y1: P.Y(Y0), x2: OX, y2: P.Y(Y1) + 8 }, g);
+        [[P.X(X1), OY, -1, 0], [OX, P.Y(Y1), 0, 1]].forEach(function (h) {
+          var bx = h[0] + h[2] * 14, by = h[1] + h[3] * 14, nx = -h[3] * 6, ny = h[2] * 6;
+          el('polygon', { 'class': 'axh', points: [h[0], h[1], bx + nx, by + ny, bx - nx, by - ny].join(' ') }, g);
+        });
+      }
+      // an arrow from the origin to a tip in math coordinates; shaft and head are redrawn on every call
+      function arrow(parent, cls) {
+        var g = el('g', { 'class': 'vg ' + cls }, parent);
+        var shaft = el('line', { 'class': 'sh' }, g);
+        var head = el('polygon', { 'class': 'hd' }, g);
+        return {
+          g: g,
+          set: function (v, alpha) {
+            var t = P.P(v[0], v[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy);
+            g.style.opacity = len < 4 ? 0 : alpha;
+            if (len < 4) return;
+            var ux = dx / len, uy = dy / len, L = Math.min(22, len * 0.5), bx = t[0] - ux * L, by = t[1] - uy * L;
+            shaft.setAttribute('x1', OX); shaft.setAttribute('y1', OY);
+            shaft.setAttribute('x2', t[0] - ux * (L - 3)); shaft.setAttribute('y2', t[1] - uy * (L - 3));
+            head.setAttribute('points', [t[0], t[1], bx - uy * 10, by + ux * 10, bx + uy * 10, by - ux * 10].join(' '));
+          }
+        };
+      }
+      // name + array next to a tip (x, y = baseline of the name)
+      function tag(parent, cls, name, v, lab) {
+        var t = P.P(v[0], v[1]), x = t[0] + lab.dx, y = t[1] + lab.dy;
+        var g = el('g', { 'class': 'vg ' + cls }, parent);
+        el('text', { 'class': 'nm halo', x: x, y: y, 'text-anchor': lab.anchor }, g, name);
+        el('text', { 'class': 'av halo', x: x, y: y + 24, 'text-anchor': lab.anchor }, g, arr(v));
+        return g;
+      }
+      // bracketed block of numbers: columns centred at cx, rows from y (baseline of first row)
+      var PITCH = 120, RP = 50;
+      function block(parent, cls, cx, y, rows, cols, texts) {
+        var g = el('g', { 'class': 'vg ' + cls }, parent);
+        var hw = cols * PITCH / 2 + 4, top = y - 32, bot = y + (rows - 1) * RP + 14;
+        el('path', { 'class': 'brk', d: 'M' + (cx - hw + 10) + ' ' + top + 'H' + (cx - hw) + 'V' + bot + 'H' + (cx - hw + 10) + 'M' + (cx + hw - 10) + ' ' + top + 'H' + (cx + hw) + 'V' + bot + 'H' + (cx + hw - 10) }, g);
+        texts.forEach(function (t, i) {
+          el('text', { 'class': 'ent', x: cx - hw + PITCH / 2 + 4 + (i % cols) * PITCH, y: y + Math.floor(i / cols) * RP }, g, t);
+        });
+        return g;
+      }
+      // speech bubble: rounded box with a tail on one side; tail = {side, at, tip: [x, y]}
+      function bubble(parent, b) {
+        var x0 = b.x0, x1 = b.x1, y0 = b.y0, y1 = b.y1, r = 14, t = b.tail, d = 'M' + (x0 + r) + ' ' + y0;
+        if (t.side === 'top') d += 'H' + (t.at - 20) + 'L' + t.tip[0] + ' ' + t.tip[1] + 'L' + (t.at + 20) + ' ' + y0;
+        d += 'H' + (x1 - r) + 'Q' + x1 + ' ' + y0 + ' ' + x1 + ' ' + (y0 + r);
+        if (t.side === 'right') d += 'V' + (t.at - 20) + 'L' + t.tip[0] + ' ' + t.tip[1] + 'L' + x1 + ' ' + (t.at + 20);
+        d += 'V' + (y1 - r) + 'Q' + x1 + ' ' + y1 + ' ' + (x1 - r) + ' ' + y1;
+        if (t.side === 'bottom') d += 'H' + (t.at + 20) + 'L' + t.tip[0] + ' ' + t.tip[1] + 'L' + (t.at - 20) + ' ' + y1;
+        d += 'H' + (x0 + r) + 'Q' + x0 + ' ' + y1 + ' ' + x0 + ' ' + (y1 - r);
+        if (t.side === 'left') d += 'V' + (t.at + 20) + 'L' + t.tip[0] + ' ' + t.tip[1] + 'L' + x0 + ' ' + (t.at - 20);
+        d += 'V' + (y0 + r) + 'Q' + x0 + ' ' + y0 + ' ' + (x0 + r) + ' ' + y0 + 'Z';
+        el('path', { 'class': 'bub', d: d }, parent);
+        var cx = (x0 + x1) / 2, n = b.lines.length, top = (y0 + y1) / 2 - (n - 1) * 15 + 7;
+        b.lines.forEach(function (s, i) { el('text', { 'class': i === 0 ? 'bubk' : 'bubt', x: cx, y: top + i * 30 }, parent, s); });
+      }
+
+      buildPlane();
+
+      // ---- left: the multiplication with real numbers ----
+      var BX = 318, LX = 172;
+      var fm = el('g', {}, svg);
+      el('text', { 'class': 'lbl vg gr', x: LX, y: 78 }, fm, NAMES[0] + ' =');
+      block(fm, 'gr', BX, 78, 1, 2, E_IN.map(f2));
+      el('text', { 'class': 'op', x: BX, y: 134 }, fm, '×');
+      el('text', { 'class': 'lbl vg gr', x: LX, y: 212 }, fm, NAMES[1] + ' =');
+      block(fm, 'gr', BX, 200, 2, 2, W.map(f2));
+      el('text', { 'class': 'op', x: BX, y: 304 }, fm, '=');
+      el('text', { 'class': 'lbl ql', x: LX + 8, y: 362 }, fm, NAMES[2] + ' =');
+      var q0 = block(fm, 'gh', BX, 362, 1, 2, ['?', '?']);          // step 0: placeholders
+      var q1 = block(fm, 'cy', BX, 362, 1, 2, OUT.map(f2));         // step 1: the numbers
+      q0.setAttribute('data-from', 0); q0.setAttribute('data-until', 1);
+      q1.setAttribute('data-from', 1);
+      // the arithmetic of each output number: out_j = x*a + y*c
+      var ar = el('g', { 'class': 'vg', 'data-from': 1 }, fm);
+      [0, 1].forEach(function (j) {
+        el('text', { 'class': 'ar', x: 20, y: 432 + j * 30 }, ar,
+          f2(OUT[j]) + ' = ' + f2(E_IN[0]) + '×' + wrap(W[j]) + ' + ' + f2(E_IN[1]) + '×' + wrap(W[2 + j]));
+      });
+
+      // ---- right: the plane ----
+      var gp = el('g', {}, svg);
+      var eA = arrow(gp, 'gr'), oA = arrow(gp, 'cy');
+      eA.set(E_IN, 1);
+      var eT = tag(gp, 'gr', NAMES[0], E_IN, LAB_E);
+      var oTag = tag(gp, 'cy', NAMES[2], OUT, LAB_O);
+      var xs = EXTRAS.map(function (x) { return { a: arrow(gp, 'cy'), t: tag(gp, 'cy', x.name, x.v, x), v: x.v }; });
+      var bub = el('g', { 'class': 'vg late', 'data-from': 3 }, gp);
+      bubble(bub, BUB);
+
+      var T = 0, S = 0, cancel = null;
+      function draw() {
+        var v = Deck.lerp(E_IN, OUT, T);
+        oA.set(v, Math.min(1, T * 10));
+        eA.g.style.opacity = 1 - 0.5 * T; eT.style.opacity = (1 - 0.5 * T) * (1 - S);     // the before state stays as a fainter grey ghost
+        oTag.style.opacity = Math.min(1, Math.max(0, (T - 0.6) / 0.4));
+        xs.forEach(function (x) {
+          x.a.set(Deck.lerp([0, 0], x.v, S), Math.min(1, S * 10));
+          x.t.style.opacity = Math.min(1, Math.max(0, (S - 0.6) / 0.4));
+        });
+      }
+      draw();
+
+      Deck.slide('s35-value', {
+        enter: function () { T = 0; S = 0; draw(); },
+        step: function (n, prev, c) {
+          var tT = n >= 2 ? 1 : 0, tS = n >= 3 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { T = tT; S = tS; draw(); return; }
+          var fT = T, fS = S;
+          cancel = Deck.tween(850, function (t) { T = Deck.lerp(fT, tT, t); S = Deck.lerp(fS, tS, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

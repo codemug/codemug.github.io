@@ -1,0 +1,159 @@
+<section class="slide" id="s31-influence" data-steps="3">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Each token is influenced by the other tokens.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="s31-influence-t s31-influence-d">
+      <title id="s31-influence-t">Tokens influence each other</title>
+      <desc id="s31-influence-d">The twelve tokens of the sentence in a row. Arcs run from the other tokens into one chosen token and the thickness of an arc is the size of the influence. First ball receives a thick arc from tar, the second ball a thick arc from odd, and balls a thick arc from golf. Thin faint arcs come from other tokens.</desc>
+    </svg>
+  </div>
+
+  <style>
+    #s31-influence .statement{max-width:1120px;}
+    #s31-influence svg.diagram{width:100%;height:100%;max-width:none;}
+    #s31-influence text{font-family:var(--font-mono);}
+    #s31-influence .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #s31-influence .chip text{font-size:24px;fill:var(--color-text);text-anchor:middle;}
+    #s31-influence .chip .sp{fill:var(--color-text-muted);}
+    #s31-influence .chip rect.sel{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #s31-influence .arc{fill:none;stroke-linecap:round;}
+    #s31-influence .cap{font-size:24px;fill:var(--color-text-muted);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var root = document.getElementById('s31-influence');
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // REAL tokens of "I'm tarballing the oddball photos of golf balls" (deck/data/qwen38.json, tokenization.examples[1])
+      var TOKS = ["I", "'m", " tar", "ball", "ing", " the", " odd", "ball", " photos", " of", " golf", " balls"];
+      var TARGETS = [3, 7, 11];                      // ball (tarballing), ball (oddball), balls
+      // ATTENTION TOY: softmax weights of each ball-ish query over the keys tar, odd, golf and the token itself
+      var Q = [[0.95, 0.10], [0.10, 0.95], [-0.80, 0.55]];
+      var KS = [[0.10, -0.20], [-0.10, 0.05], [0.05, 0.10]];
+      var KT = [0.90, 0.15], KO = [0.15, 0.90], KG = [-0.85, 0.50];
+      var WGT = Q.map(function (q, i) {              // [tar, odd, golf] weights for query i
+        var ex = [KT, KO, KG, KS[i]].map(function (k) { return Math.exp(Deck.dot(q, k)); }), tot = ex.reduce(function (a, b) { return a + b; }, 0);
+        return ex.slice(0, 3).map(function (e) { return e / tot; });
+      });
+      var SRC = [2, 6, 10];                          // token index of tar, odd, golf
+      var CY = Deck.rgb('--color-accent'), FAINT = Deck.rgb('--color-text-faint'), MUT = Deck.rgb('--color-text-muted');
+      function mixv(a, b, t) { t = Math.max(0, Math.min(1, t)); return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+      function rgb(a) { return 'rgb(' + a.join(',') + ')'; }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // ---------------- chips ----------------
+      var FS = 24, ADV = FS * 0.6, PAD = 11, H = 56, GAP = 8, CY0 = 404, TOP = CY0 - H / 2;
+      var meas = TOKS.map(function (t) {
+        var lead = t.charAt(0) === ' ', body = lead ? t.slice(1) : t, inner = (lead ? ADV : 0) + body.length * ADV;
+        return { lead: lead, body: body, inner: inner, w: Math.max(40, inner + 2 * PAD) };
+      });
+      var total = meas.reduce(function (a, m) { return a + m.w; }, 0) + GAP * (meas.length - 1), x = 560 - total / 2, cx = [];
+      var gArcs = el('g', {}, svg);
+      var gChips = el('g', {}, svg);
+      var selRect = {};
+      meas.forEach(function (m, i) {
+        cx[i] = x + m.w / 2; x += m.w + GAP;
+        var g = el('g', { 'class': 'chip' }, gChips);
+        el('rect', { x: cx[i] - m.w / 2, y: TOP, width: m.w, height: H, rx: 12 }, g);
+        if (TARGETS.indexOf(i) > -1) selRect[i] = el('rect', { 'class': 'sel', x: cx[i] - m.w / 2, y: TOP, width: m.w, height: H, rx: 12, style: 'opacity:0' }, g);
+        if (m.lead) el('circle', { 'class': 'sp', cx: cx[i] - m.inner / 2 + ADV / 2, cy: CY0 + 3, r: 4.2 }, g);
+        el('text', { x: cx[i] + (m.lead ? ADV / 2 : 0), y: CY0 + 8 }, g, m.body);
+      });
+      el('text', { 'class': 'cap', x: 560, y: 494 }, svg, 'attention finds the influence and applies it');
+
+      // ---------------- arcs: arcs[t][s] goes from token s into target token TARGETS[t] ----------------
+      var YB = TOP - 16;                             // arcs end just above the chip
+      function geom(s, t) {
+        var tx = cx[TARGETS[t]], dx = cx[s] - tx;
+        var x2 = tx + Math.max(-18, Math.min(18, dx * 0.07)), h = Math.max(46, Math.min(350, Math.abs(dx) * 0.95));
+        return { x1: cx[s], x2: x2, h: h };
+      }
+      function decorWidth() { return 2; }
+      var arcs = TARGETS.map(function (tt, t) {
+        var list = [];
+        TOKS.forEach(function (_, s) {
+          if (s === tt) return;
+          var k = SRC.indexOf(s), g = geom(s, t);
+          var path = el('path', { 'class': 'arc', pathLength: 100, d: 'M' + g.x1 + ' ' + YB + 'C' + g.x1 + ' ' + (YB - g.h) + ' ' + g.x2 + ' ' + (YB - g.h) + ' ' + g.x2 + ' ' + YB }, gArcs);
+          var head = el('polygon', { points: '' }, gArcs);
+          list.push({ s: s, k: k, w: k > -1 ? WGT[t][k] : 0, g: g, path: path, head: head });
+        });
+        // informative arcs on top of the faint ones
+        list.sort(function (a, b) { return a.w - b.w; }).forEach(function (a) { gArcs.appendChild(a.path); gArcs.appendChild(a.head); });
+        return list;
+      });
+      function stroke(w) { return 2 + 26 * w; }
+
+      // ---------------- state per step ----------------
+      // for every arc: d = how much is drawn (0..1), m = 0 uniform faint, 1 weighted; f = ghost fade (1 = grey ghost)
+      function arcState(t, n) {
+        // returns function(arc) -> [d, m, ghost] for target t at step n
+        return function (a) {
+          var key = a.k > -1 && a.k === t;                    // the arc from the intended winner (tar -> ball#1, odd -> ball#2, golf -> balls)
+          if (t === 0) {
+            if (n <= 1) return [1, n >= 1 ? 1 : 0, 0];
+            return key ? [1, 1, 1] : [0, 1, 0];               // the winner stays as a grey ghost
+          }
+          if (t === 1) {
+            if (n < 2) return [0, 1, 0];
+            if (n === 2) return [1, 1, 0];
+            return key ? [1, 1, 1] : [0, 1, 0];
+          }
+          return n >= 3 ? [1, 1, 0] : [0, 1, 0];
+        };
+      }
+      function target(n) {
+        var out = { arcs: [], sel: [n <= 1 ? 1 : 0.35, n === 2 ? 1 : (n > 2 ? 0.35 : 0), n === 3 ? 1 : 0] };
+        arcs.forEach(function (list, t) { var f = arcState(t, n); out.arcs.push(list.map(f)); });
+        return out;
+      }
+      var st = target(0), cancel = null;
+
+      function draw() {
+        TARGETS.forEach(function (tt, t) { selRect[tt].style.opacity = st.sel[t]; });
+        arcs.forEach(function (list, t) {
+          list.forEach(function (a, i) {
+            var s = st.arcs[t][i], d = s[0], m = s[1], gh = s[2], inf = a.k > -1;
+            var w = inf ? Deck.lerp(decorWidth(), stroke(a.w), m) : decorWidth();
+            var wmax = Math.max.apply(null, WGT[t]);
+            var op = inf ? Deck.lerp(0.3, 0.45 + 0.55 * (a.w / wmax), m) : 0.3;
+            var col = inf ? mixv(mixv(FAINT, CY, m), FAINT, gh) : FAINT;
+            if (gh > 0) { w = Deck.lerp(w, 3, gh); op = Deck.lerp(op, 0.35, gh); }
+            var vis = d > 0.001;
+            a.path.style.opacity = vis ? op : 0;
+            a.path.style.stroke = rgb(col);
+            a.path.setAttribute('stroke-width', w.toFixed(2));
+            a.path.setAttribute('stroke-dasharray', (d * 100).toFixed(2) + ' 100');
+            // arrow head at the landing point, once the arc has fully arrived
+            var hw = Math.max(7, w / 2 + 4), x2 = a.g.x2, y = YB;
+            a.head.setAttribute('points', (x2 - hw) + ',' + (y - 2) + ' ' + (x2 + hw) + ',' + (y - 2) + ' ' + x2 + ',' + (y + 14));
+            a.head.style.fill = rgb(col);
+            a.head.style.opacity = d > 0.98 ? op : 0;
+          });
+        });
+      }
+      draw();
+
+      Deck.slide('s31-influence', {
+        enter: function () { st = target(0); draw(); },
+        step: function (n, prev, c) {
+          var to = target(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { st = to; draw(); return; }
+          var from = st;
+          cancel = Deck.tween(900, function (t) {
+            st = { sel: Deck.lerp(from.sel, to.sel, t), arcs: from.arcs.map(function (l, ti) { return l.map(function (a, i) { return Deck.lerp(a, to.arcs[ti][i], t); }); }) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

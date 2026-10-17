@@ -1,0 +1,9 @@
+---
+// Styles + runtime for the talk-deck figures (<DeckFig />). Include it once per page,
+// before the first figure: each slide's script registers with window.Deck as it is parsed.
+import "./deck-base.css";
+import "./deck-player.css";
+import runtime from "./deck-runtime.js?raw";
+---
+
+<script is:inline set:html={runtime} />
