@@ -375,12 +375,12 @@ const { name } = Astro.props;
 
 {name === "chat-template" && (
   <figure class="fp p2tmpl" tabindex="0" data-dwell="2600"
-    data-captions='["You send a message: a single user turn.","The template renders it into one flat token stream, wrapping the content in learned control tokens.","Drop the trailing model cue and the model no longer knows it is its turn to speak."]'>
+    data-captions='["You send a message: a single user turn.","The template renders it into one flat token stream, wrapping the content in learned control tokens.","Drop the trailing assistant cue and the model no longer knows it is its turn to speak."]'>
     <div class="fp-stage">
       <div class="bubble">user: “return the message”</div>
       <div class="down">↓</div>
-      <div class="stream"><span class="tk ctl">&lt;start_of_turn&gt;</span><span class="tk">user</span><span class="tk">return</span><span class="tk">the</span><span class="tk">message</span><span class="tk ctl">&lt;end_of_turn&gt;</span><span class="tk ctl cue">&lt;start_of_turn&gt;model</span></div>
-      <div class="warn">no model cue → it keeps writing as the user</div>
+      <div class="stream"><span class="tk ctl">&lt;|im_start|&gt;</span><span class="tk">user</span><span class="tk">return</span><span class="tk">the</span><span class="tk">message</span><span class="tk ctl">&lt;|im_end|&gt;</span><span class="tk ctl cue">&lt;|im_start|&gt;assistant</span></div>
+      <div class="warn">no assistant cue → it keeps writing as the user</div>
     </div>
   </figure>
 )}
