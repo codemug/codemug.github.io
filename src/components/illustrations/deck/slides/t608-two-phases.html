@@ -1,0 +1,106 @@
+<section class="slide" id="t608-two-phases" data-steps="2">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">Two phases, two bottlenecks.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t608-two-phases-t t608-two-phases-d">
+      <title id="t608-two-phases-t">Token timeline: one long prefill phase followed by twelve short decode steps, with the time-to-first-token and inter-token gap marked, and compute-bound / memory-bound chips</title>
+      <desc id="t608-two-phases-d">A horizontal time axis: a wide cyan-outlined prefill block at the start, then twelve narrow grey decode blocks. A cyan tick marks the end of prefill (time to first token) and a double arrow marks the gap between tokens. Below: a compute-bound chip under the prefill block and a memory-bound chip under the decode blocks.</desc>
+      <g id="t608-two-phases-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t608-two-phases svg.diagram{width:100%;height:100%;max-width:none;}
+    #t608-two-phases text{font-family:var(--font-mono);}
+    #t608-two-phases .axis{stroke:var(--color-text-dim);stroke-width:3;}
+    #t608-two-phases .tlab{font-size:22px;fill:var(--color-text-muted);}
+    #t608-two-phases .prefill{fill:color-mix(in oklab,var(--color-accent) 14%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;rx:8;}
+    #t608-two-phases .plab{font-size:24px;text-anchor:middle;fill:var(--color-text);}
+    #t608-two-phases .decode{fill:color-mix(in oklab,var(--color-text-muted) 30%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:2;rx:5;}
+    #t608-two-phases .tick{stroke:var(--color-accent);stroke-width:3;stroke-dasharray:6 5;}
+    #t608-two-phases .tlab2{font-size:24px;text-anchor:middle;fill:var(--color-accent);}
+    #t608-two-phases .arrow{stroke:var(--color-accent);stroke-width:3;}
+    #t608-two-phases .glab{font-size:24px;text-anchor:middle;fill:var(--color-accent);}
+    #t608-two-phases .chip{fill:none;stroke:var(--color-accent);stroke-width:2.5;rx:15;}
+    #t608-two-phases .chipt{font-size:20px;text-anchor:middle;fill:var(--color-accent);}
+    #t608-two-phases .cap{font-size:24px;text-anchor:middle;fill:var(--color-text-muted);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't608-two-phases';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // geometry: prefill 60..360 (w=300), 12 decode blocks w=44 h=70 gap=12, axis y=260
+      var AY = 260, BY = 225, BH = 70; // blocks y 225..295, axis centre 260
+      var g = document.getElementById(ID + '-g');
+
+      // ---- axis
+      el('line', { 'class': 'axis', x1: 60, y1: 300, x2: 1060, y2: 300 }, g);
+      el('text', { 'class': 'tlab', x: 1050, y: AY, dy: '.35em' }, g, 'time');
+
+      // ---- prefill block
+      el('rect', { 'class': 'prefill', x: 60, y: BY, width: 300, height: BH, rx: 8 }, g);
+      el('text', { 'class': 'plab', x: 210, y: AY, dy: '.35em' }, g, 'prefill');
+
+      // ---- 12 decode blocks
+      var D0 = 372, DW = 44, DGAP = 12, N = 12;
+      for (var i = 0; i < N; i++) {
+        el('rect', { 'class': 'decode', x: D0 + i * (DW + DGAP), y: BY, width: DW, height: BH, rx: 5 }, g);
+      }
+      var decodeEnd = D0 + N * (DW + DGAP) - DGAP; // = 1032
+
+      // ---- step 1: TTFT tick + inter-token gap arrow
+      var m1 = el('g', {}, g);
+      el('line', { 'class': 'tick', x1: 360, y1: 200, x2: 360, y2: 300 }, m1);
+      el('text', { 'class': 'tlab2', x: 360, y: 185 }, m1, 'time to first token');
+      // gap between decode blocks 4 and 5 = one block pitch (44 + 12)
+      var a0 = D0 + 4 * (DW + DGAP), a1 = D0 + 5 * (DW + DGAP); // 596 -> 652
+      el('line', { 'class': 'arrow', x1: a0, y1: 330, x2: a1, y2: 330 }, m1);
+      el('path', { d: 'M ' + a0 + ' 330 L ' + (a0 + 10) + ' 324 L ' + (a0 + 10) + ' 336 Z', fill: 'var(--color-accent)', stroke: 'none' }, m1);
+      el('path', { d: 'M ' + a1 + ' 330 L ' + (a1 - 10) + ' 324 L ' + (a1 - 10) + ' 336 Z', fill: 'var(--color-accent)', stroke: 'none' }, m1);
+      el('text', { 'class': 'glab', x: (a0 + a1) / 2, y: 356 }, m1, 'gap between tokens');
+
+      // ---- step 2: chips + caption
+      var m2 = el('g', {}, g);
+      el('rect', { 'class': 'chip', x: 120, y: 384, width: 180, height: 30, rx: 15 }, m2);
+      el('text', { 'class': 'chipt', x: 210, y: 399, dy: '.35em' }, m2, 'compute-bound');
+      el('rect', { 'class': 'chip', x: 618, y: 384, width: 168, height: 30, rx: 15 }, m2);
+      el('text', { 'class': 'chipt', x: 702, y: 399, dy: '.35em' }, m2, 'memory-bound');
+      el('text', { 'class': 'cap', x: 560, y: 452 }, m2, 'different optimisations for each');
+
+      m1.setAttribute('opacity', '0');
+      m2.setAttribute('opacity', '0');
+
+      // ---- state
+      var s1 = 0, s2 = 0, cancel = null;
+      function draw() {
+        m1.setAttribute('opacity', s1.toFixed(3));
+        m2.setAttribute('opacity', s2.toFixed(3));
+      }
+      draw();
+
+      Deck.slide('t608-two-phases', {
+        enter: function () { s1 = 0; s2 = 0; draw(); },
+        step: function (n, prev, c) {
+          var t = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s1 = t[0]; s2 = t[1]; draw(); return; }
+          var f = [s1, s2];
+          cancel = Deck.tween(700, function (k) {
+            s1 = Deck.lerp(f[0], t[0], k);
+            s2 = Deck.lerp(f[1], t[1], k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

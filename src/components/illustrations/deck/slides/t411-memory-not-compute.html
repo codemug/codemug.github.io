@@ -1,0 +1,83 @@
+<section class="slide" id="t411-memory-not-compute" data-steps="1">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">Fast like a small model. Still held in memory like a big one.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t411-memory-not-compute-t t411-memory-not-compute-d">
+      <title id="t411-memory-not-compute-t">Fast like a small model. Still held in memory like a big one.</title>
+      <desc id="t411-memory-not-compute-d">Two bars on one shared scale for Mixtral. The top bar, compute per token, is a short cyan bar proportional to the 12.9B active parameters. The bottom, memory to hold, is a full-length bar proportional to the 46.7B parameters that must stay resident in memory, equal to 93.4 GB in bf16. The memory bar grows into a dashed outline in the second step and a caption says every expert must be loaded.</desc>
+      <!-- ONE shared scale: both bars use the same pixels-per-parameter (640 px = full total).
+           Numbers from deck/data/part2.json. -->
+      <g id="t411-memory-not-compute-top">
+        <text class="rowlab" x="240" y="110">compute per token</text>
+        <rect class="bar" id="t411-memory-not-compute-b0" x="240" y="130" width="0" height="56" rx="8"/>
+        <text class="val" id="t411-memory-not-compute-v0" x="240" y="226">12.9B parameters used</text>
+      </g>
+      <g id="t411-memory-not-compute-bot">
+        <text class="rowlab" x="240" y="290">memory to hold</text>
+        <rect class="outline" x="240" y="310" width="640" height="56" rx="8"/>
+        <rect class="fill" id="t411-memory-not-compute-fill" x="240" y="310" width="0" height="56" rx="8"/>
+        <text class="val" id="t411-memory-not-compute-v1" x="240" y="406">46.7B parameters resident = 93.4 GB in bf16</text>
+      </g>
+      <text class="caption" id="t411-memory-not-compute-caption" x="560" y="454" text-anchor="middle">every expert must be loaded</text>
+    </svg>
+  </div>
+
+  <style>
+    #t411-memory-not-compute svg.diagram{width:100%;height:100%;max-width:none;}
+    #t411-memory-not-compute text{font-family:var(--font-mono);}
+    #t411-memory-not-compute .rowlab{font-size:22px;fill:var(--color-text-dim);}
+    #t411-memory-not-compute .bar{fill:var(--color-accent);}
+    #t411-memory-not-compute .outline{fill:none;stroke:#4a4a52;stroke-width:2.5;stroke-dasharray:7 6;}
+    #t411-memory-not-compute .val{font-size:22px;fill:var(--color-text-dim);}
+    #t411-memory-not-compute .caption{font-size:30px;fill:var(--color-accent);text-anchor:middle;opacity:0;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't411-memory-not-compute';
+      // REAL data (deck/data/part2.json) - copied as literals, do not retype from memory.
+      var ACTIVE = 12879925248; // moe.mixtral.active.active_params (== moe.mixtral.active.terms.active_params)
+      var TOTAL = 46702792704;  // moe.mixtral.api_total_params (== moe.mixtral.active.terms.total)
+
+      var W = 640;              // px for the full total - one shared scale for both bars
+      var topW = ACTIVE / TOTAL * W; // 176.5
+      var GB = (TOTAL * 2) / 1e9;    // bf16 = 2 bytes per parameter -> 93.4
+
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      var b0 = $('b0'), fill = $('fill'), v0 = $('v0'), v1 = $('v1'), cap = $('caption');
+
+      // Label text built from the literals above (93.4 GB computed, not typed).
+      v0.textContent = (ACTIVE / 1e9).toFixed(1) + 'B parameters used';
+      v1.textContent = (TOTAL / 1e9).toFixed(1) + 'B parameters resident = ' + GB.toFixed(1) + ' GB in bf16';
+
+      var GRAY = Deck.rgb('--color-text-faint'), CYAN = Deck.rgb('--color-accent'); // #4a4a52, --color-accent
+      function mix(t) {
+        var c = [0, 1, 2].map(function (i) { return Math.round(GRAY[i] + (CYAN[i] - GRAY[i]) * t); });
+        return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // Step 0: top bar fully drawn; bottom row is the dashed outline + label only.
+      // Step 1: the memory bar grows into the outline (grey -> cyan) and the caption appears.
+      var P = 0, cancel = null;
+      function paint() {
+        b0.setAttribute('width', topW.toFixed(2));
+        fill.setAttribute('width', (P * W).toFixed(2));
+        fill.setAttribute('fill', mix(clamp((P - 0.7) / 0.3)));
+        v1.style.opacity = clamp((P - 0.45) / 0.55);
+        cap.style.opacity = clamp((P - 0.75) / 0.25);
+      }
+
+      Deck.slide('t411-memory-not-compute', {
+        enter: function () { P = 0; paint(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { P = to; paint(); return; }
+          var from = P;
+          cancel = Deck.tween(900, function (t) { P = Deck.lerp(from, to, t); paint(); });
+        }
+      });
+    })();
+  </script>
+</section>

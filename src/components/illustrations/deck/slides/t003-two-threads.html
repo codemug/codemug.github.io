@@ -1,0 +1,45 @@
+<section class="slide" id="t003-two-threads" data-steps="2">
+  <p class="kicker reveal">part 2</p>
+  <p class="statement reveal">Two threads: how it behaves, and what it costs to serve.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 960 432" role="img" aria-labelledby="t003-two-threads-t t003-two-threads-d">
+      <title id="t003-two-threads-t">The two threads of part 2</title>
+      <desc id="t003-two-threads-d">Two columns. The left column, behaviour, holds fine-tuning, reasoning and preference alignment. The right column, cost to serve, holds mixture of experts, the GPU, KV cache and quantization. The left column lights up first, then the right.</desc>
+
+      <g class="col left">
+        <rect class="panel" x="8" y="8" width="440" height="336" rx="20"/>
+        <text class="head" x="228" y="62">behaviour</text>
+        <g class="item"><rect x="48" y="92" width="360" height="64" rx="14"/><text x="228" y="132">fine-tuning</text></g>
+        <g class="item"><rect x="48" y="172" width="360" height="64" rx="14"/><text x="228" y="212">reasoning</text></g>
+        <g class="item"><rect x="48" y="252" width="360" height="64" rx="14"/><text x="228" y="292">preference alignment</text></g>
+      </g>
+
+      <g class="col right">
+        <rect class="panel" x="512" y="8" width="440" height="416" rx="20"/>
+        <text class="head" x="732" y="62">cost to serve</text>
+        <g class="item"><rect x="552" y="92" width="360" height="64" rx="14"/><text x="732" y="132">mixture of experts</text></g>
+        <g class="item"><rect x="552" y="172" width="360" height="64" rx="14"/><text x="732" y="212">the GPU</text></g>
+        <g class="item"><rect x="552" y="252" width="360" height="64" rx="14"/><text x="732" y="292">KV cache</text></g>
+        <g class="item"><rect x="552" y="332" width="360" height="64" rx="14"/><text x="732" y="372">quantization</text></g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t003-two-threads svg.diagram{max-width:min(1177.6px,1020px);}
+    #t003-two-threads .panel{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease;}
+    #t003-two-threads .head{font-size:30px;font-weight:600;text-anchor:middle;fill:var(--color-text-muted);transition:fill .5s ease;}
+    #t003-two-threads .item rect{fill:var(--color-bg);stroke:var(--color-border-strong);stroke-width:2.5;transition:stroke .5s ease,fill .5s ease;}
+    #t003-two-threads .item text{font-size:26px;text-anchor:middle;fill:var(--color-text-muted);transition:fill .5s ease;}
+    #t003-two-threads[data-cur="1"] .left .panel, #t003-two-threads[data-cur="2"] .right .panel{stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);}
+    #t003-two-threads[data-cur="1"] .left .head, #t003-two-threads[data-cur="2"] .right .head{fill:var(--color-accent);}
+    #t003-two-threads[data-cur="1"] .left .item rect, #t003-two-threads[data-cur="2"] .right .item rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-bg));}
+    #t003-two-threads[data-cur="1"] .left .item text, #t003-two-threads[data-cur="2"] .right .item text{fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      // all the highlighting is CSS keyed on the engine's data-cur; nothing to do per step
+      Deck.slide('t003-two-threads', {});
+    })();
+  </script>
+</section>

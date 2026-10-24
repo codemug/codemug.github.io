@@ -2,7 +2,7 @@
 title: "An SRE's guide to deploying Large Language Models, Part 1: understand the workload"
 description: "Before you can deploy and serve LLMs reliably, you have to understand them as a workload. A ground-up tour of the transformer, from tokens to attention to the feed-forward step, for SREs."
 pubDate: 2026-08-01
-updatedDate: 2026-10-17
+updatedDate: 2026-10-23
 tags: ["llms", "sre", "transformers", "inference"]
 draft: false
 ---
@@ -54,7 +54,7 @@ The first tool is the vector. A vector is just an array of numbers, and what mak
 
 <DeckFig name="p1-matmul" />
 
-The second tool is the matrix, a grid of numbers. Multiply a vector by a matrix and you get a new vector: the matrix moves the arrow. This one shears `[1, 1]` sideways into `[1.5, 1]`; a different matrix would stretch it, squash it or rotate it instead. Every matrix is a particular transformation, and a big part of training, as we'll see, is finding the matrices that move vectors in useful ways.
+The second tool is the matrix, a grid of numbers. Multiply a vector by a matrix and you get a new vector: the operation is called a linear transformation, and the matrix moves the arrow. This one shears `[1, 1]` sideways into `[1.5, 1]`; a different matrix would stretch it, squash it or rotate it instead. Every matrix is a particular linear transformation, and a big part of training, as we'll see, is finding the matrices that move vectors in useful ways.
 
 <DeckFig name="p1-dot" />
 
@@ -92,18 +92,18 @@ hf download Qwen/Qwen3.8-27B config.json tokenizer.json --local-dir ./qwen
 Once downloaded, open the `qwen/tokenizer.json` file in a text editor. This is a JSON file; navigate to the `model.vocab` property. This is the full vocabulary of tokens, which means these are the possible tokens that can be generated from any sentence: 248,044 of them, plus 33 special tokens the model uses for control. A tokenizer is an algorithm that converts a sequence of characters into tokens. For example, the sentence:
 
 ```
-I can reliably deploy LLMs
+I can dependably deploy LLMs
 ```
 
 will be tokenized as:
 
 ```
-[40, 628, 54488, 10204, 436, 10673, 82]
+[40, 628, 6549, 2752, 10204, 436, 10673, 82]
 ```
 
 <DeckFig name="p1-unknown-word" />
 
-The numbers are the values in the `model.vocab` dictionary, keyed against the actual tokens the sentence was broken down into. The interesting bit is that even though we have a five-word sentence, the token count is seven. This is because if a word doesn't have a direct mapping to a number, it's further broken down into smaller tokens. This is why `436` is `ĠL`, `10673` is `LM` and `82` is `s`, which, when combined, make ` LLMs` with its leading space (in the vocabulary file a leading space shows up as `Ġ`; the figures mark it with a dot). This is essentially the base idea of every tokenizer: keep breaking down the character sequence until each piece maps to something in the vocabulary. Longer words simply take more tokens: "unbelievably" comes out as `un`, `belie` and `vably`, and "supercalifragilistic" takes seven pieces.
+The numbers are the values in the `model.vocab` dictionary, keyed against the actual tokens the sentence was broken down into. The interesting bit is that even though we have a five-word sentence, the token count is eight. This is because if a word doesn't have a direct mapping to a number, it's further broken down into smaller tokens. This is why `6549` is `Ġdepend` and `2752` is `ably`, and why `436` is `ĠL`, `10673` is `LM` and `82` is `s`, which, when combined, make ` LLMs` with its leading space (in the vocabulary file a leading space shows up as `Ġ`; the figures mark it with a dot). This is essentially the base idea of every tokenizer: keep breaking down the character sequence until each piece maps to something in the vocabulary. Longer words simply take more tokens: "unbelievably" comes out as `un`, `belie` and `vably`, and "supercalifragilistic" takes seven pieces.
 
 ## Embeddings
 
@@ -153,11 +153,11 @@ This problem is one of the keys that the transformer addresses. Specifically, th
 
 <DeckFig name="p1-key-value" />
 
-Multiplying by Wk gives the key, K, which represents what influence this token has to offer, i.e. what it can be matched against: `tar`'s key comes out as `[0.90, 0.15]`, which reads as: I am a modifier. And multiplying by Wv gives the value, V, the influence this token will have on another token if the two match: `tar`'s value, `[0.20, 0.60]`, is what would make a ball tar-like. There's one difference between these matrices and the embeddings: an embedding is only tuned when its own token appears in a training sentence, whereas Wq, Wk and Wv are tuned on every sentence. Because of that, they end up capturing the relationships between tokens in a sequence rather than any single token.
+Multiplying by Wk gives the key, K, which represents what kind of influence this token has to offer, i.e. what it can be matched against: `tar`'s key comes out as `[0.90, 0.15]`, which reads as: I am a modifier. And multiplying by Wv gives the value, V, the influence this token will have on another token if the two match: `tar`'s value, `[0.20, 0.60]`, is what would make a ball tar-like. There's one difference between these matrices and the embeddings: an embedding is only tuned when its own token appears in a training sentence, whereas Wq, Wk and Wv are tuned on every sentence. Because of that, they end up capturing the relationships between tokens in a sequence rather than any single token.
 
 <DeckFig name="p1-scores" />
 
-At inference time, every token gets its query, key and value from these matrices. Now, remember that Q holds what a token is looking for, and K holds what influence a token has to offer. We take the query of each token and compute its dot product, our third tool, with the key of every other token. The result is a single number that represents how much one token has to offer to another; the higher the number, the more shared context the two tokens have. That's exactly what the score table shows: the first `ball`'s query lines up best with `tar`'s key at 0.87, the second `ball`'s with `odd`'s, and `balls` with `golf`. Those raw scores then go through a softmax, a way of normalizing them into proportions: raise e to each score and divide by the total, so they're all positive and add up to 1. For the first `ball`, `tar` gets a weight of 0.46, `odd` 0.24, `golf` 0.09 and the token itself 0.21.
+At inference time, every token gets its query, key and value from these matrices. Now, remember that Q holds what a token is looking for, and K holds what kind of influence a token has to offer. We take the query of each token and compute its dot product, our third tool, with the key of every other token. The result is a single number that represents how much one token has to offer to another; the higher the number, the more shared context the two tokens have. That's exactly what the score table shows: the first `ball`'s query lines up best with `tar`'s key at 0.87, the second `ball`'s with `odd`'s, and `balls` with `golf`. Those raw scores then go through a softmax, a way of normalizing them into proportions: raise e to each score and divide by the total, so they're all positive and add up to 1. For the first `ball`, `tar` gets a weight of 0.46, `odd` 0.24, `golf` 0.09 and the token itself 0.21.
 
 <DeckFig name="p1-blend" />
 
@@ -167,7 +167,11 @@ The next step is to multiply each of those weights by the value of the token tha
 
 <DeckFig name="p1-world-cup" />
 
-But there's a second problem. Sometimes, part of a sentence is going to be a fact. For example, consider the sentence: "Who won the 2026 FIFA World Cup?". We know it was Spain, but if you look at the original sentence, it doesn't contain "Spain" as a token anywhere. So just making tokens attend to each other is not going to magically lead us to Spain; something has to move the token's vector toward Spain, using knowledge from somewhere other than the sentence. What we do know is that during training there would have been many sample sentences carrying this relationship as context. So after the part that does attention, we introduce another pair of matrices, called Wu and Wd. They're the biggest matrices in each layer: Wu has 17,408 columns of 5,120 numbers each (`intermediate_size`, sitting right next to `hidden_size` in `config.json`), and Wd maps back the other way.
+But there's a second problem. Sometimes, part of a sentence is going to be a fact. For example, consider the sentence: "Who won the 2026 FIFA World Cup?". We know it was Spain, but if you look at the original sentence, it doesn't contain "Spain" as a token anywhere. So just making tokens attend to each other is not going to magically lead us to Spain; something has to move the token's vector toward Spain, using knowledge from somewhere other than the sentence. What we do know is that during training there would have been many sample sentences carrying this relationship as context.
+
+<DeckFig name="p1-wu-wd" />
+
+So after the part that does attention, we introduce another pair of matrices, called Wu and Wd. They're the biggest matrices in each layer: Wu widens the vector, with 17,408 columns of 5,120 numbers each (`intermediate_size`, sitting right next to `hidden_size` in `config.json`), and Wd narrows it back the other way.
 
 <DeckFig name="p1-detectors" />
 
@@ -203,10 +207,6 @@ Now we have a score for every possible next token, but scores are not probabilit
 
 Finally, we sample: we draw one token at random using those probabilities as weights, so a token with probability 0.42 is picked about 42% of the time. That randomness is why the same prompt can give different answers. A few common variations sit on top of this. Greedy skips the randomness and always takes the highest-scoring token. Top-k keeps only the `k` highest-probability tokens and samples from just those: with `k = 3` we keep mat, rug and floor, rescale them to 0.51, 0.28 and 0.21, and roll. Top-p sorts tokens by probability, keeps the smallest group whose probabilities add up to at least `p`, and samples from just those: with `p = 0.8`, mat and rug only reach 0.649, adding floor takes us to 0.819, and we end up with the same three.
 
-<DeckFig name="p1-sampling-board" />
-
-Temperature is the knob you'll touch most, so here it is to play with. At `T = 1` mat wins 42% of the draws; at `T = 0.5` that climbs to 64%; at `T = 2` it drops to 30%, with the other four catching up.
-
 ## Closing the loop
 
 <DeckFig name="p1-loop-closed" />
@@ -216,8 +216,6 @@ Then we do the only thing left: append the token we picked to the input, and run
 <DeckFig name="p1-trainpass" />
 
 Now step back and notice one thing about all of this. Everything we've walked through, the embedding lookup, then attention and the feed-forward step repeated across every layer, then the final scoring, is the structure of the transformer. And here's the point I want to land: this exact same structure is what runs during training. There's no separate training-time machine. At the start, every number in it is random: the embedding table, the Wq, Wk, Wv, Wu and Wd in each layer, and the output table. We run this structure forward on a piece of training text to predict the next token, we measure how far off that prediction is from the token that actually came next, and we push that single "how off we are" number back through the whole structure, nudging every number in it in proportion to how much it contributed to the error. That's gradient descent, the same mechanism I described for the embeddings, except now you can see it's tuning everything at once, in one pass, repeated over and over across enormous amounts of text. Inference, the thing that actually serves your request, is just this same forward pass with all of those numbers now frozen in place.
-
-<DeckFig name="p1-recap" />
 
 And look at what it was all built from: vectors holding meaning, matrices transforming them, dot products measuring how related they are, a softmax turning scores into weights and odds, and a silencing step switching off weak matches. The three tools from the start of this article, repeated at enormous scale, are the whole trick.
 

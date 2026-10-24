@@ -1,0 +1,139 @@
+<section class="slide" id="t603-old-never-change" data-steps="3">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">Old tokens never change.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t603-old-never-change-t t603-old-never-change-d">
+      <title id="t603-old-never-change-t">A causal score table: each token only looks backward, and a new token adds one row</title>
+      <desc id="t603-old-never-change-d">A score table with the queries gand, alf, screamed, colon, you and shall as rows and the same tokens as keys in the columns. Only the lower triangle has numbers: each token scores itself and the tokens before it. The upper triangle is empty and labelled cannot look ahead. In the next steps a seventh token, not, adds one new cyan row at the bottom and one masked column. The six old rows are marked frozen and stay exactly as they were, and the caption says appending cannot change what came before.</desc>
+      <g id="t603-old-never-change-all">
+        <g id="t603-old-never-change-g"></g>
+        <text class="tag" x="574" y="24">keys</text>
+        <text class="tag" x="95" y="72">queries</text>
+        <text class="ahead" x="722" y="196">cannot look ahead</text>
+      </g>
+      <g transform="translate(-34 0)">
+        <g id="t603-old-never-change-frozen">
+          <path class="brk" d="M984 101H992V393H984"/>
+          <text class="frz" x="1006" y="247" dy=".35em">frozen</text>
+        </g>
+        <text id="t603-old-never-change-new" class="newt" x="1006" y="422" dy=".35em">new</text>
+      </g>
+      <text id="t603-old-never-change-cap" class="capt" x="560" y="492" text-anchor="middle">appending cannot change what came before</text>
+    </svg>
+  </div>
+
+  <style>
+    #t603-old-never-change svg.diagram{width:100%;height:100%;max-width:none;}
+    #t603-old-never-change text{font-family:var(--font-mono);}
+    #t603-old-never-change .tag{font-size:20px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t603-old-never-change .chiprect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t603-old-never-change .chipt{font-size:20px;text-anchor:middle;}
+    #t603-old-never-change .chipsp{fill:var(--color-text-muted);}
+    #t603-old-never-change .cellbg{fill:var(--color-surface-deep);stroke:var(--color-hairline);stroke-width:1.5;}
+    #t603-old-never-change .mask{fill:rgba(237,237,240,.03);}
+    #t603-old-never-change .cellt{font-size:22px;text-anchor:middle;font-variant-numeric:tabular-nums;}
+    #t603-old-never-change .ahead{font-size:24px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t603-old-never-change .brk{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #t603-old-never-change .frz{font-size:24px;fill:var(--color-text-muted);}
+    #t603-old-never-change .newt{font-size:24px;fill:var(--color-accent);}
+    #t603-old-never-change .capt{font-size:24px;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't603-old-never-change';
+      var root = document.getElementById(ID);
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // REAL tokens: the last six tokens of the Gandalf sentence plus the expected next one (part2.json gandalf; continuation not model output)
+      var TOK = [' gand', 'alf', ' screamed', ':', ' you', ' shall', ' not'];
+      // TOY: 2-number queries and keys; cell (row i, column j) is q_i . k_j, only for j <= i
+      var Q = [[0.8, 0.3], [0.6, 0.7], [-0.5, 0.8], [0.3, -0.4], [0.7, 0.5], [-0.2, 0.9], [0.9, -0.1]];
+      var K = [[0.9, 0.1], [0.2, 0.8], [-0.7, 0.5], [0.1, -0.3], [0.6, 0.4], [-0.4, -0.6], [0.5, -0.7]];
+      var NT = 7, OLD = 6, CX0 = 238, CP = 112, RY0 = 122, RP = 50, CW = 104, CH = 42, HY = 66, FS = 20, ADV = FS * 0.6;
+      var CY = Deck.rgb('--color-accent'), SOFT = Deck.rgb('--color-text-soft'), DIM = Deck.rgb('--color-text-dim'), MUT = Deck.rgb('--color-text-muted');
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mix(a, b, t) { t = clamp(t); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }).join(',') + ')'; }
+      function f2(x) { var r = Math.round(Math.abs(x) * 100 + 1e-7) / 100; return (x < 0 && r > 0 ? '−' : '') + r.toFixed(2); }
+      // a chip with a token label; a leading space is drawn as a dot (pattern of s17-tokenizer); cx = centre, or right edge when right is set
+      function chip(parent, text, x, y, right) {
+        var lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text;
+        var inner = (lead ? ADV : 0) + body.length * ADV, w = Math.max(FS * 2.2, inner + 22);
+        var cx = right ? x - w / 2 : x, g = el('g', {}, parent);
+        var rect = el('rect', { 'class': 'chiprect', x: cx - w / 2, y: y - 18, width: w, height: 36, rx: 9 }, g);
+        var left = cx - inner / 2, dot = null;
+        if (lead) dot = el('circle', { 'class': 'chipsp', cx: left + ADV / 2, cy: y + FS * 0.1, r: FS * 0.11 }, g);
+        var t = el('text', { 'class': 'chipt', x: left + (lead ? ADV : 0) + body.length * ADV / 2, y: y, dy: '.35em', fill: 'currentColor' }, g, body);
+        return { g: g, rect: rect, text: t, dot: dot };
+      }
+      function style(c, col) { c.rect.style.stroke = col; c.text.style.fill = col === 'cy' ? '' : ''; }
+
+      var g = root.querySelector('#' + ID + '-g');
+      var colHead = TOK.map(function (t, j) { return chip(g, t, CX0 + j * CP, HY, false); });
+      var rowHead = TOK.map(function (t, i) { return chip(g, t, 176, RY0 + i * RP, true); });
+      var cells = [];      // {i, j, bg, txt, masked}
+      var i, j;
+      for (i = 0; i !== NT; i++) {
+        for (j = 0; j !== NT; j++) {
+          var x = CX0 + j * CP - CW / 2, y = RY0 + i * RP - CH / 2;
+          if (j > i) {
+            cells.push({ i: i, j: j, masked: true, bg: el('rect', { 'class': 'mask', x: x, y: y, width: CW, height: CH, rx: 9 }, g) });
+          } else {
+            var bg = el('rect', { 'class': 'cellbg', x: x, y: y, width: CW, height: CH, rx: 9 }, g);
+            var txt = el('text', { 'class': 'cellt', x: CX0 + j * CP, y: RY0 + i * RP + 8 }, g, f2(Deck.dot(Q[i], K[j])));
+            cells.push({ i: i, j: j, masked: false, bg: bg, txt: txt });
+          }
+        }
+      }
+      var frozen = root.querySelector('#' + ID + '-frozen'), newT = root.querySelector('#' + ID + '-new'), cap = root.querySelector('#' + ID + '-cap');
+      var all = root.querySelector('#' + ID + '-all');       // the table slides to the centre as its seventh column arrives
+
+      var T = [0, 0, 0], cancel = null;     // [new token enters, its row is computed, old rows are frozen]
+      function draw() {
+        var s1 = T[0], s2 = T[1], s3 = T[2];
+        cells.forEach(function (c) {
+          var isNewRow = c.i === OLD, isNewCol = c.j === OLD;
+          var a = (isNewRow || isNewCol) ? s1 : 1;
+          c.bg.style.opacity = a;
+          if (c.masked) return;
+          if (isNewRow) {
+            c.txt.style.opacity = s2; c.txt.style.fill = mix(CY, CY, 1);
+            c.bg.style.stroke = mix([36, 36, 41], CY, 0.5 * s2);
+          } else {
+            c.txt.style.fill = mix(SOFT, DIM, 0.6 * s3);
+          }
+        });
+        function paint(h, k) {          // header chips: the seventh one is cyan
+          var a = k === OLD ? s1 : 1, col = k === OLD ? mix([52, 52, 61], CY, 1) : '';
+          h.g.style.opacity = a;
+          h.rect.style.stroke = col; h.text.style.fill = k === OLD ? mix(SOFT, CY, 1) : mix(SOFT, DIM, 0.35 * s3);
+          if (h.dot) h.dot.style.fill = k === OLD ? mix(MUT, CY, 1) : '';
+        }
+        colHead.forEach(paint); rowHead.forEach(paint);
+        frozen.style.opacity = s3; cap.style.opacity = s3; newT.style.opacity = s1;
+        all.setAttribute('transform', 'translate(' + Deck.lerp(48, -34, s1).toFixed(1) + ' 0)');
+      }
+      draw();
+
+      var TARGET = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [1, 1, 1]];
+      Deck.slide('t603-old-never-change', {
+        enter: function () { T = TARGET[0].slice(); draw(); },
+        step: function (n, prev, c) {
+          var to = TARGET[Math.min(n, 3)];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { T = to.slice(); draw(); return; }
+          var from = T.slice();
+          cancel = Deck.tween(900, function (t) { T = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,164 @@
+<section class="slide" id="t708-kernel-speaks-format" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">A format is only useful if a kernel speaks it.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t708-kernel-speaks-format-t t708-kernel-speaks-format-d">
+      <title id="t708-kernel-speaks-format-t">From packed 4-bit bytes to the tensor core</title>
+      <desc id="t708-kernel-speaks-format-d">Left to right. Four bytes in memory, each holding two 4-bit values, for example 0xA3 holds A and 3, plus a scale. A kernel unpacks every byte into two separate 4-bit values and attaches the scale. The unpacked values then reach the tensor core, which multiplies them. Two kernel names, Marlin and Machete, are written for INT4 and FP8.</desc>
+      <g id="t708-kernel-speaks-format-all">
+        <g id="t708-kernel-speaks-format-s1"></g>
+        <g id="t708-kernel-speaks-format-s2"></g>
+        <g id="t708-kernel-speaks-format-a12"></g>
+        <g id="t708-kernel-speaks-format-a23"></g>
+        <g id="t708-kernel-speaks-format-s3"></g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t708-kernel-speaks-format svg.diagram{width:100%;height:100%;max-width:none;}
+    #t708-kernel-speaks-format text{font-family:var(--font-mono);}
+    #t708-kernel-speaks-format .nd{color:#4a4a52;transition:color .6s;}
+    #t708-kernel-speaks-format .nd.done{color:#6a6a73;}
+    #t708-kernel-speaks-format .nd.act{color:var(--color-accent);}
+    #t708-kernel-speaks-format .hd{font-size:22px;fill:currentColor;text-anchor:middle;}
+    #t708-kernel-speaks-format .bb{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #t708-kernel-speaks-format .bt{font-size:30px;font-weight:600;fill:var(--color-text-dim);text-anchor:middle;transition:fill .6s;}
+    #t708-kernel-speaks-format .nd.act .bt{fill:var(--color-text);}
+    #t708-kernel-speaks-format .sbx{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #t708-kernel-speaks-format .nd.act .sbx{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #t708-kernel-speaks-format .stx{font-size:24px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #t708-kernel-speaks-format .ob{fill:none;stroke:currentColor;stroke-width:3;}
+    #t708-kernel-speaks-format .nd.act .ob{fill:color-mix(in oklab,var(--color-accent) 5%,var(--color-surface-deep));}
+    #t708-kernel-speaks-format .nb{fill:var(--color-surface-deep);stroke:#5a5a63;stroke-width:2.5;}
+    #t708-kernel-speaks-format .nt{font-size:30px;font-weight:600;fill:var(--color-text-dim);text-anchor:middle;transition:fill .6s;}
+    #t708-kernel-speaks-format .nd.act .nt{fill:var(--color-text);}
+    #t708-kernel-speaks-format .ay{fill:none;stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t708-kernel-speaks-format .tc{fill:currentColor;stroke:currentColor;stroke-width:2.5;}
+    #t708-kernel-speaks-format .chb{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #t708-kernel-speaks-format .cht{font-size:28px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #t708-kernel-speaks-format .cpt{font-size:20px;fill:var(--color-text-dim);text-anchor:middle;transition:fill .6s;}
+    #t708-kernel-speaks-format .nd.act .cpt{fill:var(--color-text-muted);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't708-kernel-speaks-format';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function hex(n) { return n.toString(16).toUpperCase(); }
+
+      // TOY: four made-up bytes, each holding two 4-bit values; the nibbles are computed from them
+      var BYTES = [0xA3, 0x5C, 0x1E, 0x97];
+      // geometry (viewBox 1120 x 520)
+      var S1X = 60, S2X = 375, S3X = 750, BOXW = 310, BOXY = 130, BOXH = 234, HEADY = 112;
+      var BYW = 120, BYH = 60, BY0 = 150, BYP = 70;           // byte boxes: 2 x 2
+      var NW = 60, NH = 56, NX0 = S2X + 20, NY0 = 150, NPX = 70, NPY = 66;   // nibble cells inside the kernel box: 4 x 2
+      var SCY = 300, SCH = 44;                                // the scale cell and the scale strip share this row
+      var MID = 247;
+
+      var g1 = $('s1'), a12 = $('a12'), g2 = $('s2'), a23 = $('a23'), g3 = $('s3');
+      function arrow(parent, x1, x2, y) { el('path', { 'class': 'ay', d: 'M' + x1 + ' ' + y + 'H' + (x2 - 2) + 'm-11 -10l11 10l-11 10' }, parent); }
+
+      // ---- stage 1: packed bytes in memory + a scale
+      el('text', { 'class': 'hd', x: S1X + 125, y: HEADY }, g1, 'packed in memory');
+      BYTES.forEach(function (b, k) {
+        var bx = S1X + (k % 2) * (BYW + 10), by = BY0 + Math.floor(k / 2) * BYP;
+        el('rect', { 'class': 'bb', x: bx, y: by, width: BYW, height: BYH, rx: 10 }, g1);
+        el('text', { 'class': 'bt', x: bx + BYW / 2, y: by + BYH / 2 + 10 }, g1, '0x' + hex(b >> 4) + hex(b & 15));
+      });
+      el('rect', { 'class': 'sbx', x: S1X, y: SCY, width: 250, height: SCH, rx: 10 }, g1);
+      el('text', { 'class': 'stx', x: S1X + 125, y: SCY + SCH / 2 + 8 }, g1, 'scale');
+
+      // ---- arrows into the kernel box: the bytes, and the scale
+      arrow(a12, 318, 374, MID);
+      arrow(a12, 318, 394, SCY + SCH / 2);
+
+      // ---- stage 2: the kernel unpacks. Each byte splits into two nibbles; the scale strip is attached below them
+      el('text', { 'class': 'hd', x: S2X + BOXW / 2, y: HEADY }, g2, 'kernel unpacks');
+      el('rect', { 'class': 'ob', x: S2X, y: BOXY, width: BOXW, height: BOXH, rx: 16 }, g2);
+      var strip = el('g', {}, g2);
+      el('rect', { 'class': 'sbx', x: NX0, y: SCY, width: 4 * NPX - 10, height: SCH, rx: 10 }, strip);
+      el('text', { 'class': 'stx', x: NX0 + (4 * NPX - 10) / 2, y: SCY + SCH / 2 + 8 }, strip, '× scale');
+      var nibs = [];
+      BYTES.forEach(function (b, k) {
+        [b >> 4, b & 15].forEach(function (v, half) {
+          var bx = S1X + (k % 2) * (BYW + 10), by = BY0 + Math.floor(k / 2) * BYP, c = (k % 2) * 2 + half;
+          var ng = el('g', {}, g2);
+          var r = el('rect', { 'class': 'nb', width: NW, height: NH, rx: 8 }, ng);
+          var t = el('text', { 'class': 'nt' }, ng, hex(v));
+          nibs.push({ g: ng, r: r, t: t, x0: bx + half * (BYW / 2), y0: by + (BYH - NH) / 2, x1: NX0 + c * NPX, y1: NY0 + Math.floor(k / 2) * NPY });
+        });
+      });
+      // the two kernel names sit under the kernel box
+      var chips = el('g', {}, g2);
+      var chipDefs = [['Marlin', 134], ['Machete', 150]], cx = S2X + BOXW / 2 - (134 + 150 + 16) / 2;
+      chipDefs.forEach(function (c) {
+        el('rect', { 'class': 'chb', x: cx, y: 410, width: c[1], height: 44, rx: 12 }, chips);
+        el('text', { 'class': 'cht', x: cx + c[1] / 2, y: 410 + 22 + 10 }, chips, c[0]);
+        cx += c[1] + 16;
+      });
+      el('text', { 'class': 'cpt', x: S2X + BOXW / 2, y: 490 }, chips, 'kernels written for INT4 / FP8');
+
+      // ---- stage 3: the tensor core multiplies a tile
+      arrow(a23, 692, 748, MID);
+      el('text', { 'class': 'hd', x: S3X + BOXW / 2, y: HEADY }, g3, 'tensor core multiplies');
+      el('rect', { 'class': 'ob', x: S3X, y: BOXY, width: BOXW, height: BOXH, rx: 16 }, g3);
+      var tiles = [], TS = 36, TP = 46, TX = S3X + BOXW / 2 - (4 * TP - 10) / 2, TY = BOXY + BOXH / 2 - (4 * TP - 10) / 2;
+      for (var i = 0; i !== 16; i++) {
+        tiles.push(el('rect', { 'class': 'tc', x: TX + (i % 4) * TP, y: TY + Math.floor(i / 4) * TP, width: TS, height: TS, rx: 6 }, g3));
+      }
+
+      // V: how many stages are on screen (1, 2 or 3); the whole picture re-centres as stages arrive
+      var V = 1, cancel = null, RIGHT = [S1X + 250, S2X + BOXW, S3X + BOXW];
+      // the picture is zoomed and re-centred per stage: big while only the bytes are there, 1:1 once all three stages show
+      var SC = [1.4, 1.08, 1.0], PY = [225, 297, 297];
+      function pick(arr, v) { var i = Math.min(Math.floor(v), arr.length - 1), j = Math.min(i + 1, arr.length - 1); return Deck.lerp(arr[i], arr[j], v - Math.floor(v)); }
+      function draw() {
+        var px = (S1X + pick(RIGHT, V - 1)) / 2, py = pick(PY, V - 1), sc = pick(SC, V - 1);
+        $('all').setAttribute('transform', 'translate(560 260) scale(' + sc.toFixed(3) + ') translate(' + (-px).toFixed(1) + ' ' + (-py).toFixed(1) + ')');
+        var u = clamp(V - 1), w = clamp(V - 2);
+        a12.style.opacity = u.toFixed(3); a12.style.display = u > 0.001 ? '' : 'none';
+        g2.style.opacity = u.toFixed(3); g2.style.display = u > 0.001 ? '' : 'none';
+        a23.style.opacity = w.toFixed(3); a23.style.display = w > 0.001 ? '' : 'none';
+        g3.style.opacity = w.toFixed(3); g3.style.display = w > 0.001 ? '' : 'none';
+        nibs.forEach(function (n) {
+          var x = Deck.lerp(n.x0, n.x1, u), y = Deck.lerp(n.y0, n.y1, u);
+          n.r.setAttribute('x', x.toFixed(1)); n.r.setAttribute('y', y.toFixed(1));
+          n.t.setAttribute('x', (x + NW / 2).toFixed(1)); n.t.setAttribute('y', (y + NH / 2 + 10).toFixed(1));
+        });
+        strip.style.opacity = clamp((u - 0.6) / 0.4).toFixed(3);
+        tiles.forEach(function (t, i) { t.setAttribute('fill-opacity', (0.1 + 0.9 * clamp(w * 22 - i)).toFixed(3)); });
+      }
+      function paint(n) {
+        function cls(el_, c) { el_.setAttribute('class', 'nd ' + c); }
+        cls(g1, n === 0 ? 'act' : 'done');
+        cls(a12, n === 1 ? 'act' : n > 1 ? 'done' : '');
+        cls(g2, n === 1 ? 'act' : n > 1 ? 'done' : '');
+        cls(a23, n === 2 ? 'act' : '');
+        cls(g3, n === 2 ? 'act' : '');
+      }
+      draw(); paint(0);
+
+      Deck.slide('t708-kernel-speaks-format', {
+        enter: function () { V = 1; draw(); paint(0); },
+        step: function (n, prev, c) {
+          paint(n);
+          var target = Math.min(n, 2) + 1;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { V = target; draw(); return; }
+          var from = V;
+          cancel = Deck.tween(1000, function (k) { V = Deck.lerp(from, target, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

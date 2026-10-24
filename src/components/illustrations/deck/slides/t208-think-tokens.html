@@ -1,0 +1,194 @@
+<section class="slide" id="t208-think-tokens" data-steps="3">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">The &lt;think&gt; block is just more tokens.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 430" role="img" aria-labelledby="t208-think-tokens-t t208-think-tokens-d">
+      <title id="t208-think-tokens-t">The think block is ordinary tokens appended to the context</title>
+      <desc id="t208-think-tokens-d">One long row of token cells. Grey prompt cells end in a cyan think marker cell with id 248068. Cyan thinking cells then stream in one by one, labelled generated, appended to the context. A closing think marker with id 248069 and white answer cells follow. On the next turn the thinking cells stay in the context but turn a muted cyan-grey, labelled kept or dropped next turn: a template choice, with a small tag reading preserve_thinking. Below the row: same forward pass as part 1, just more tokens first, and a real sample: 2,205 think tokens.</desc>
+
+      <text id="t208-think-tokens-h1" class="hd" x="24" y="44">context</text>
+      <text id="t208-think-tokens-h2" class="hd a" x="24" y="44" opacity="0">context, next turn</text>
+
+      <!-- brackets and labels under the strip (positions and opacities are set by the script) -->
+      <path id="t208-think-tokens-bp" class="brk dim" d=""/>
+      <text id="t208-think-tokens-lp" class="lb dim" x="0" y="292">prompt</text>
+      <path id="t208-think-tokens-bt" class="brk" d="" opacity="0"/>
+      <text id="t208-think-tokens-lt" class="lb" x="0" y="292" opacity="0">generated, appended to the context</text>
+      <text id="t208-think-tokens-ld" class="lb mu" x="0" y="292" opacity="0">kept or dropped next turn: a template choice</text>
+      <g id="t208-think-tokens-pg" opacity="0">
+        <rect id="t208-think-tokens-pr" class="pill" x="0" y="306" width="232" height="34" rx="17"/>
+        <text id="t208-think-tokens-pt" class="pt" x="0" y="330">preserve_thinking</text>
+      </g>
+      <path id="t208-think-tokens-ba" class="brk soft" d="" opacity="0"/>
+      <text id="t208-think-tokens-la" class="lb soft" x="0" y="292" opacity="0">answer</text>
+
+      <g id="t208-think-tokens-strip"></g>
+
+      <text class="cap" x="520" y="382">same forward pass as part 1, just more tokens first</text>
+      <!-- REAL: part2.json datasets.openr1.think_tokens_qwen_tokenizer = 2205 -->
+      <text class="cap2" x="520" y="414">a real sample: <tspan class="n">2,205</tspan> think tokens</text>
+    </svg>
+  </div>
+
+  <style>
+    #t208-think-tokens svg.diagram{max-width:min(1203.2px,1100px);}
+    #t208-think-tokens .hd{font-size:22px;fill:var(--color-text-dim);}
+    #t208-think-tokens .hd.a{fill:var(--color-accent);}
+    #t208-think-tokens .brk{fill:none;stroke:var(--color-accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t208-think-tokens .brk.dim{stroke:var(--color-text-dim);}
+    #t208-think-tokens .brk.soft{stroke:var(--color-text-soft);}
+    #t208-think-tokens .lb{font-size:22px;fill:var(--color-accent);text-anchor:middle;}
+    #t208-think-tokens .lb.dim{fill:var(--color-text-muted);}
+    #t208-think-tokens .lb.soft{fill:var(--color-text-soft);}
+    #t208-think-tokens .lb.mu{fill:var(--color-text-soft);}
+    #t208-think-tokens .pill{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2.5;}
+    #t208-think-tokens .pt{font-size:20px;fill:var(--color-accent);text-anchor:middle;}
+    #t208-think-tokens .cap{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t208-think-tokens .cap2{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t208-think-tokens .cap2 .n{fill:var(--color-accent);font-weight:600;}
+    #t208-think-tokens .cell{fill:var(--color-surface-2);stroke:var(--color-text-dim);stroke-width:2.5;}
+    #t208-think-tokens .tag{font-size:24px;fill:var(--color-accent);text-anchor:middle;}
+    #t208-think-tokens .tid{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t208-think-tokens .cur{fill:none;stroke:var(--color-accent);stroke-width:2.5;stroke-dasharray:6 6;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't208-think-tokens';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+      var CYAN = Deck.rgb('--color-accent'), SOFT = Deck.rgb('--color-text-soft');
+      var TINT = [14, 52, 60];                 // cyan-tinted cell fill
+      var MUTE_STROKE = [86, 124, 132], MUTE_FILL = [26, 36, 38], MUTE_TEXT = [128, 168, 176];   // cyan-grey: kept in the context, not the thing that changes
+
+      // REAL: part2.json chat.special_tokens
+      var ID_OPEN = 248068, ID_CLOSE = 248069;
+      // TOY: how many cells of each kind are drawn
+      var N_PROMPT = 4, N_THINK = 9, N_ANSWER = 3;
+      var CW = 40, PITCH = 45, MW = 132, MGAP = 5, Y0 = 70, H = 160;
+
+      var items = [], think = [], answer = [], open, close, ghostCur, strip;
+      var S = { a: 0, b: 0, c: 0 };
+
+      function build() {
+        strip = $('strip');
+        while (strip.firstChild) strip.removeChild(strip.firstChild);
+        items = []; think = []; answer = [];
+        var seq = [], i;
+        for (i = 0; i < N_PROMPT; i++) seq.push({ kind: 'prompt' });
+        seq.push({ kind: 'open' });
+        for (i = 0; i < N_THINK; i++) seq.push({ kind: 'think', j: i });
+        seq.push({ kind: 'close' });
+        for (i = 0; i < N_ANSWER; i++) seq.push({ kind: 'answer', j: i });
+        function isMarker(it) { return it.kind === 'open' || it.kind === 'close'; }
+        var total = seq.reduce(function (s, it) { return s + (isMarker(it) ? MW + MGAP : PITCH); }, 0) - MGAP;
+        var x = (1040 - total) / 2;
+        seq.forEach(function (it) {
+          var w = isMarker(it) ? MW : CW;
+          it.x = x; it.w = w;
+          it.g = el('g', {}, strip);
+          it.rect = el('rect', { 'class': 'cell', x: x, y: Y0, width: w, height: H, rx: 9 }, it.g);
+          if (isMarker(it)) {
+            it.txt = el('text', { 'class': 'tag', x: x + w / 2, y: Y0 + 78 }, it.g, it.kind === 'open' ? '<think>' : '</think>');
+            it.tid = el('text', { 'class': 'tid', x: x + w / 2, y: Y0 + 114 }, it.g, String(it.kind === 'open' ? ID_OPEN : ID_CLOSE));
+          }
+          if (it.kind === 'think') think.push(it);
+          if (it.kind === 'answer') answer.push(it);
+          if (it.kind === 'open') open = it;
+          if (it.kind === 'close') close = it;
+          items.push(it);
+          x += isMarker(it) ? MW + MGAP : PITCH;
+        });
+        ghostCur = el('rect', { 'class': 'cur', x: think[0].x, y: Y0, width: CW, height: H, rx: 9, opacity: 0 }, strip);
+
+        var prompts = items.filter(function (it) { return it.kind === 'prompt'; });
+        var pa = prompts[0].x, pb = prompts[prompts.length - 1].x + CW;
+        $('bp').setAttribute('d', 'M' + pa + ' 246V254H' + pb + 'V246');
+        $('lp').setAttribute('x', (pa + pb) / 2);
+        var aa = answer[0].x, ab = answer[answer.length - 1].x + CW;
+        $('ba').setAttribute('d', 'M' + aa + ' 246V254H' + ab + 'V246');
+        $('la').setAttribute('x', (aa + ab) / 2);
+      }
+
+      function paint(it, v) {
+        it.rect.setAttribute('opacity', v.toFixed(3));
+        if (it.txt) { it.txt.setAttribute('opacity', v.toFixed(3)); it.tid.setAttribute('opacity', v.toFixed(3)); }
+        it.g.setAttribute('transform', 'translate(0 ' + ((1 - v) * 8).toFixed(1) + ')');
+      }
+
+      function draw() {
+        var a = S.a, b = S.b, c = S.c;
+        items.forEach(function (it) {
+          if (it.kind === 'prompt') return;
+          var v, live = it.kind === 'open' || it.kind === 'think' || it.kind === 'close';
+          if (it.kind === 'open') v = 1;
+          else if (it.kind === 'think') v = clamp(a * (N_THINK + 1) - it.j);
+          else if (it.kind === 'close') v = clamp(b * 4);
+          else v = clamp((b - 0.3) / 0.7 * (N_ANSWER + 0.6) - it.j);
+          if (live) {
+            // cyan while it is being generated, cyan-grey once it is just history (step 3)
+            it.rect.style.fill = mix(TINT, MUTE_FILL, c);
+            it.rect.style.stroke = mix(CYAN, MUTE_STROKE, c);
+            if (it.txt) it.txt.style.fill = mix(CYAN, MUTE_TEXT, c);
+          } else {
+            it.rect.style.fill = mix(SOFT, SOFT, 0);
+            it.rect.style.stroke = 'none';
+          }
+          paint(it, v);
+        });
+
+        // the dashed "next token goes here" cell follows the end of the thinking block while it streams
+        var k = Math.max(0, Math.min(N_THINK - 1, Math.floor(a * (N_THINK + 1))));
+        ghostCur.setAttribute('x', think[k].x);
+        ghostCur.setAttribute('opacity', (b === 0 && c === 0 ? 1 - clamp(a * (N_THINK + 1) - (N_THINK - 0.5)) : 0).toFixed(2));
+
+        // bracket under the thinking cells; at step 3 it spans the whole block, markers included
+        var tx1 = think[0].x, tx2 = think[N_THINK - 1].x + CW, o1 = open.x, o2 = close.x + MW;
+        var bx1 = Deck.lerp(tx1, o1, c), bx2 = Deck.lerp(tx1 + (tx2 - tx1) * clamp(a * (N_THINK + 1) / N_THINK), o2, c);
+        if (b > 0 || c > 0) bx2 = Deck.lerp(tx2, o2, c);
+        var bt = $('bt');
+        bt.setAttribute('d', 'M' + bx1.toFixed(1) + ' 246V254H' + bx2.toFixed(1) + 'V246');
+        bt.setAttribute('opacity', clamp(a * 6).toFixed(2));
+        bt.style.stroke = mix(CYAN, MUTE_STROKE, c);
+        var mid = Deck.lerp((tx1 + tx2) / 2, (o1 + o2) / 2, c);
+        $('lt').setAttribute('x', mid.toFixed(1));
+        $('ld').setAttribute('x', mid.toFixed(1));
+        $('lt').setAttribute('opacity', (clamp((a - 0.2) / 0.4) * (1 - clamp(c * 2))).toFixed(2));
+        $('ld').setAttribute('opacity', clamp(c * 2 - 1).toFixed(2));
+        var pw = 232;
+        $('pr').setAttribute('x', (mid - pw / 2).toFixed(1));
+        $('pt').setAttribute('x', mid.toFixed(1));
+        $('pg').setAttribute('opacity', clamp(c * 2 - 1).toFixed(2));
+        $('ba').setAttribute('opacity', clamp((b - 0.4) / 0.4).toFixed(2));
+        $('la').setAttribute('opacity', clamp((b - 0.4) / 0.4).toFixed(2));
+        $('h1').setAttribute('opacity', (1 - c).toFixed(2));
+        $('h2').setAttribute('opacity', c.toFixed(2));
+      }
+
+      var cancel = null;
+      Deck.slide('t208-think-tokens', {
+        enter: function () { build(); S = { a: 0, b: 0, c: 0 }; draw(); },
+        step: function (n, prev, ctx) {
+          var to = { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0, c: n >= 3 ? 1 : 0 };
+          if (cancel) { cancel(); cancel = null; }
+          if (ctx.instant) { S = to; draw(); return; }
+          var from = { a: S.a, b: S.b, c: S.c };
+          var streaming = to.a !== from.a;
+          var ms = streaming ? 2000 : (to.b !== from.b ? 1400 : 1100);
+          cancel = Deck.tween(ms, function (t) {
+            S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t), c: Deck.lerp(from.c, to.c, t) };
+            draw();
+          }, streaming ? { ease: Deck.ease.linear } : undefined);
+        }
+      });
+    })();
+  </script>
+</section>

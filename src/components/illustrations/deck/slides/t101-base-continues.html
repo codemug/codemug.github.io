@@ -1,0 +1,122 @@
+<section class="slide" id="t101-base-continues" data-steps="2">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">A base model only continues text.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 470" role="img" aria-labelledby="t101-base-continues-t t101-base-continues-d">
+      <title id="t101-base-continues-t">A base model continues the prompt with the most likely text</title>
+      <desc id="t101-base-continues-d">A prompt box holds the instruction Return the following message, start, This is a test, end, followed by a blinking caret. After one step six bars show what a base model might write next: another instruction 0.31, a forum post 0.24, rambling on 0.22, restating it 0.18, other 0.04 and This is a test 0.01. In the last step the This is a test bar turns cyan and is marked what we wanted: the answer we asked for is almost the least likely continuation.</desc>
+
+      <g id="t101-base-continues-prompt">
+        <text class="hd" x="12" y="172">prompt</text>
+        <rect class="pbox" x="10" y="190" width="420" height="130" rx="14"/>
+        <text class="pt" x="34" y="240">Return the following message</text>
+        <text class="pt" x="34" y="278">&lt;start&gt; This is a test &lt;end&gt;</text>
+        <rect class="caret" x="392" y="259" width="12" height="26"/>
+      </g>
+
+      <g id="t101-base-continues-bars"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t101-base-continues svg.diagram{max-width:min(1203.2px,1160px);}
+    #t101-base-continues .hd{font-size:21px;fill:var(--color-text-dim);}
+    #t101-base-continues .pbox{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t101-base-continues .pt{font-size:21px;fill:var(--color-text);}
+    #t101-base-continues .caret{fill:var(--color-text-muted);animation:t101-base-continues-blink 1.1s steps(1) infinite;}
+    @keyframes t101-base-continues-blink{0%,55%{opacity:1;}56%,100%{opacity:0;}}
+    @media(prefers-reduced-motion:reduce){#t101-base-continues .caret{animation:none;}}
+    #t101-base-continues .lab{font-size:21px;fill:var(--color-text-muted);text-anchor:end;}
+    #t101-base-continues .lab.a{fill:var(--color-accent);}
+    #t101-base-continues .val{font-size:21px;fill:var(--color-text-muted);}
+    #t101-base-continues .val.a{fill:var(--color-accent);}
+    #t101-base-continues .bar{fill:#4a4a52;}
+    #t101-base-continues .bar.a{fill:var(--color-accent);}
+    #t101-base-continues .base{stroke:var(--color-border-strong);stroke-width:2;}
+    #t101-base-continues .ptr{font-size:21px;fill:var(--color-accent);}
+    #t101-base-continues .ptl{stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't101-base-continues';
+      var NS = 'http://www.w3.org/2000/svg';
+      // TOY: what a base model might continue with (not measured); order and numbers from SPECS-p2 t101
+      var ROWS = [
+        ['another instruction', 0.31],
+        ['a forum post', 0.24],
+        ['rambling on', 0.22],
+        ['restating it', 0.18],
+        ['This is a test', 0.01],
+        ['other', 0.04]
+      ];
+      var WANTED = 4;
+      var X0 = 730, SC = 640, Y0 = 118, PITCH = 56, BH = 32, CW = 12.6, SHIFT = 303;
+      var S = 0, A = 0, B = 0, stop = null;     // S: the prompt slides left, A: the bars grow, B: the wanted bar goes cyan
+      var bars = [], vals = [], labs = [], ptr = null, promptG = null, head = null, axis = null;
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      function build(c) {
+        var g = c.qs('#' + ID + '-bars');
+        while (g.firstChild) g.removeChild(g.firstChild);
+        bars = []; vals = []; labs = [];
+        head = el('text', { 'class': 'hd', x: X0 - 252, y: 70 }, g, 'what comes next');
+        axis = el('line', { 'class': 'base', x1: X0, y1: Y0 - 22, x2: X0, y2: Y0 + 5 * PITCH + 22 }, g);
+        ROWS.forEach(function (r, i) {
+          var cy = Y0 + i * PITCH;
+          labs.push(el('text', { 'class': 'lab', x: X0 - 16, y: cy + 7 }, g, r[0]));
+          bars.push(el('rect', { 'class': 'bar', x: X0, y: cy - BH / 2, width: 0, height: BH, rx: 4 }, g));
+          vals.push(el('text', { 'class': 'val', x: X0 + 12, y: cy + 7 }, g, r[1].toFixed(2)));
+        });
+        // pointer on the wanted row, drawn after the value text
+        var wy = Y0 + WANTED * PITCH, wx = X0 + ROWS[WANTED][1] * SC + 12 + 4 * CW + 14;
+        ptr = el('g', {}, g);
+        el('path', { 'class': 'ptl', d: 'M' + (wx + 22) + ' ' + (wy - 9) + 'L' + wx + ' ' + (wy - 1) + 'L' + (wx + 22) + ' ' + (wy + 7) }, ptr);
+        el('text', { 'class': 'ptr', x: wx + 34, y: wy + 7 }, ptr, 'what we wanted');
+        promptG = c.qs('#' + ID + '-prompt');
+      }
+
+      function draw() {
+        promptG.setAttribute('transform', 'translate(' + (SHIFT * (1 - S)).toFixed(1) + ' 0)');
+        head.style.opacity = A.toFixed(3);
+        axis.style.opacity = A.toFixed(3);
+        ROWS.forEach(function (r, i) {
+          var hot = i === WANTED && B > 0.5;
+          var w = Math.max(r[1] * SC * A, 0);
+          bars[i].setAttribute('width', w.toFixed(1));
+          vals[i].setAttribute('x', (X0 + w + 12).toFixed(1));
+          vals[i].style.opacity = clamp((A - 0.5) / 0.5).toFixed(3);
+          labs[i].style.opacity = clamp(A * 2).toFixed(3);
+          bars[i].setAttribute('class', 'bar' + (hot ? ' a' : ''));
+          vals[i].setAttribute('class', 'val' + (hot ? ' a' : ''));
+          labs[i].setAttribute('class', 'lab' + (hot ? ' a' : ''));
+        });
+        ptr.style.opacity = clamp(B * 1.6 - 0.3).toFixed(3);
+      }
+
+      Deck.slide('t101-base-continues', {
+        enter: function (c) { build(c); S = 0; A = 0; B = 0; draw(); },
+        leave: function () { if (stop) { stop(); stop = null; } },
+        step: function (n, prev, c) {
+          var ta = n >= 1 ? 1 : 0, tb = n >= 2 ? 1 : 0, fs = S, fa = A, fb = B;
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { S = ta; A = ta; B = tb; draw(); return; }
+          // going forward the prompt slides left first, then the bars grow; going back the bars shrink first
+          stop = Deck.tween(1300, function (k) {
+            if (ta >= fa) { S = Deck.lerp(fs, ta, clamp(k / 0.4)); A = Deck.lerp(fa, ta, clamp((k - 0.35) / 0.65)); }
+            else { A = Deck.lerp(fa, ta, clamp(k / 0.6)); S = Deck.lerp(fs, ta, clamp((k - 0.5) / 0.5)); }
+            B = Deck.lerp(fb, tb, k); draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

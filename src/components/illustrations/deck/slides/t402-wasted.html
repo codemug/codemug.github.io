@@ -1,0 +1,109 @@
+<section class="slide" id="t402-wasted" data-steps="2">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">Most of that work is thrown away.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t402-wasted-t t402-wasted-d">
+      <title id="t402-wasted-t">Most of the wide feed-forward strip is silenced, yet every row of Wd is still multiplied</title>
+      <desc id="t402-wasted-d">A tall stack of 40 horizontal bars stands for the 17,408 numbers of the wide feed-forward vector. Next to it is Wd, drawn as 40 rows, one row per bar. At first the bars have varied lengths. Then 85 percent of them, the weak ones below a dashed threshold, collapse to zero and the matching rows of Wd turn grey, marked times zero. The few strong bars stay cyan with their rows. Finally the caption says you did those multiply-adds anyway.</desc>
+      <g id="t402-wasted-rows"></g>
+      <g id="t402-wasted-bars"></g>
+      <g id="t402-wasted-thr"></g>
+      <text class="hd" x="320" y="34">17,408 numbers</text>
+      <text class="hd big" x="638" y="34">Wd</text>
+      <path class="brk" d="M798 62h12v397h-12"/>
+      <g data-from="0" data-until="1">
+        <text class="side" x="832" y="252">one row of Wd</text>
+        <text class="side" x="832" y="282">per cell</text>
+      </g>
+      <g data-from="1">
+        <text class="zero" x="832" y="268">× 0</text>
+        <text class="side" x="832" y="306">85% of the rows</text>
+      </g>
+      <g data-from="2">
+        <text class="cap" x="832" y="382">you did those</text>
+        <text class="cap" x="832" y="412">multiply-adds</text>
+        <text class="cap" x="832" y="442">anyway</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t402-wasted svg.diagram{width:100%;height:100%;max-width:none;}
+    #t402-wasted text{font-family:var(--font-mono);}
+    #t402-wasted .hd{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t402-wasted .hd.big{font-size:30px;font-weight:600;fill:var(--color-text-soft);}
+    #t402-wasted .brk{fill:none;stroke:var(--color-text-dim);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #t402-wasted .side{font-size:22px;fill:var(--color-text-muted);}
+    #t402-wasted .zero{font-size:60px;font-weight:700;fill:var(--color-accent);}
+    #t402-wasted .cap{font-size:25px;fill:var(--color-accent);}
+    #t402-wasted .ghost{fill:none;stroke:var(--color-text-faint);stroke-width:1.5;stroke-dasharray:5 4;}
+    #t402-wasted .thr{stroke-width:3;stroke-dasharray:12 7;}
+    #t402-wasted .tl{font-size:20px;text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't402-wasted';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seeded(i) { var s = Math.sin(i * 12.9898 + 7.3) * 43758.5453; return s - Math.floor(s); }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+
+      // TOY: 40 schematic cells stand for the real 17,408 (qwen38.json config.intermediate_size); heights are made up
+      var N = 40, Y0 = 62, PITCH = 10, BH = 7, XB = 470, L = 300, WX = 496, WW = 284;
+      var SILENCED = 0.85;                                         // TOY: about 85% silenced
+      var V = [];
+      for (var i = 0; i !== N; i++) V.push(0.1 + 0.9 * Math.pow(seeded(i + 1), 1.7));
+      var sorted = V.slice().sort(function (a, b) { return a - b; });
+      var nWeak = Math.round(SILENCED * N);
+      var THR = (sorted[nWeak - 1] + sorted[nWeak]) / 2;           // exactly nWeak cells fall below the threshold
+      var MUTED = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim'), FAINT = [52, 52, 60], DEAD = [62, 62, 70], ACC = Deck.rgb('--color-accent');
+
+      var gr = $('rows'), gb = $('bars'), gt = $('thr');
+      var rows = [], bars = [], ghosts = [];
+      el('rect', { x: WX - 8, y: Y0 - 8, width: WW + 16, height: N * PITCH + 5, rx: 10, fill: 'none', stroke: 'var(--color-border-strong)', 'stroke-width': 2 }, gr);
+      V.forEach(function (v, k) {
+        var y = Y0 + k * PITCH;
+        rows.push(el('rect', { x: WX, y: y, width: WW, height: BH, rx: 2 }, gr));
+        ghosts.push(el('rect', { 'class': 'ghost', x: XB - v * L, y: y, width: v * L, height: BH, rx: 2 }, gb));
+        bars.push(el('rect', { y: y, height: BH, rx: 2 }, gb));
+      });
+      var tx = XB - THR * L;
+      var line = el('line', { 'class': 'thr', x1: tx, y1: Y0 - 8, x2: tx, y2: Y0 + N * PITCH - 2 }, gt);
+      var tl = el('text', { 'class': 'tl', x: tx, y: 496 }, gt, 'threshold');
+
+      var A = 0, cancel = null;
+      function draw() {
+        V.forEach(function (v, k) {
+          var weak = v < THR, w = weak ? v * L * (1 - A) + 2 * A : v * L;
+          bars[k].setAttribute('x', XB - w); bars[k].setAttribute('width', w);
+          bars[k].setAttribute('fill', weak ? mix(MUTED, FAINT, A) : mix(MUTED, ACC, A));
+          ghosts[k].setAttribute('opacity', weak ? (0.9 * A).toFixed(3) : 0);
+          rows[k].setAttribute('fill', weak ? mix(DIM, DEAD, A) : mix(DIM, ACC, A));
+          rows[k].setAttribute('fill-opacity', (weak ? 0.7 - 0.1 * A : 0.55 + 0.35 * A).toFixed(3));
+        });
+        var c = mix(Deck.rgb('--color-text-faint'), ACC, A);
+        line.setAttribute('stroke', c); tl.setAttribute('fill', c);
+      }
+      draw();
+
+      Deck.slide('t402-wasted', {
+        enter: function () { A = 0; draw(); },
+        step: function (n, prev, c) {
+          var target = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { A = target; draw(); return; }
+          var from = A;
+          cancel = Deck.tween(1200, function (t) { A = Deck.lerp(from, target, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

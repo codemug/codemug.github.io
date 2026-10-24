@@ -1,0 +1,130 @@
+<section class="slide" id="t102-sft-pairs" data-steps="3">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">Train it again, on instruction and answer pairs.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 470" role="img" aria-labelledby="t102-sft-pairs-t t102-sft-pairs-d">
+      <title id="t102-sft-pairs-t">Fine-tuning on instruction and answer pairs</title>
+      <desc id="t102-sft-pairs-d">A card with an Input row holding the instruction Return the following message, start, This is a test, end. Then a Good output row in cyan with start, This is a test, end, and a Bad output row, anything else, struck through. Beside the card an error bar shrinks while a row of four weight knobs turns a little, labelled imitate the good output. Finally two chips, instruct and it, are marked as fine-tuned to follow instructions.</desc>
+
+      <g id="t102-sft-pairs-card">
+        <g>
+          <rect class="row" x="10" y="40" width="600" height="110" rx="14"/>
+          <text class="rl" x="30" y="84">Input</text>
+          <text class="rt" x="190" y="84">Return the following message</text>
+          <text class="rt" x="190" y="120">&lt;start&gt; This is a test &lt;end&gt;</text>
+        </g>
+        <g data-from="1">
+          <rect class="row good" x="10" y="166" width="600" height="80" rx="14"/>
+          <text class="rl a" x="30" y="214">Good output</text>
+          <text class="rt a" x="190" y="214">&lt;start&gt; This is a test &lt;end&gt;</text>
+        </g>
+        <g data-from="1">
+          <rect class="row bad" x="10" y="262" width="600" height="80" rx="14"/>
+          <text class="rl" x="30" y="310">Bad output</text>
+          <text class="rt dim" x="190" y="310">anything else</text>
+          <line class="strike" x1="188" y1="303" x2="356" y2="303"/>
+        </g>
+      </g>
+
+      <g id="t102-sft-pairs-side" data-from="2">
+        <rect class="ghost" x="670" y="60" width="60" height="270" rx="8"/>
+        <rect id="t102-sft-pairs-err" class="errbar" x="670" y="60" width="60" height="270" rx="8"/>
+        <text class="sl" x="700" y="364" text-anchor="middle">error</text>
+        <text class="sl" x="910" y="96" text-anchor="middle">weights</text>
+        <g id="t102-sft-pairs-knobs"></g>
+        <text class="sl a" x="910" y="250" text-anchor="middle">imitate the</text>
+        <text class="sl a" x="910" y="282" text-anchor="middle">good output</text>
+      </g>
+
+      <g data-from="3">
+        <rect class="chip" x="153" y="398" width="170" height="50" rx="12"/>
+        <text class="ct" x="238" y="431" text-anchor="middle">-instruct</text>
+        <rect class="chip" x="339" y="398" width="84" height="50" rx="12"/>
+        <text class="ct" x="381" y="431" text-anchor="middle">-it</text>
+        <text class="eq" x="447" y="430">= fine-tuned to follow instructions</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t102-sft-pairs svg.diagram{max-width:min(1203.2px,1160px);}
+    #t102-sft-pairs .row{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t102-sft-pairs .row.good{fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));stroke:var(--color-accent);}
+    #t102-sft-pairs .row.bad{stroke:var(--color-text-faint);stroke-dasharray:8 7;}
+    #t102-sft-pairs .rl{font-size:21px;fill:var(--color-text-muted);}
+    #t102-sft-pairs .rl.a{fill:var(--color-accent);}
+    #t102-sft-pairs .rt{font-size:21px;fill:var(--color-text);}
+    #t102-sft-pairs .rt.a{fill:var(--color-accent);}
+    #t102-sft-pairs .rt.dim{fill:var(--color-text-dim);}
+    #t102-sft-pairs .strike{stroke:var(--color-text-dim);stroke-width:2.5;stroke-linecap:round;}
+    #t102-sft-pairs .ghost{fill:none;stroke:var(--color-border-strong);stroke-width:2;stroke-dasharray:7 6;}
+    #t102-sft-pairs .errbar{fill:var(--color-accent);}
+    #t102-sft-pairs .sl{font-size:21px;fill:var(--color-text-muted);}
+    #t102-sft-pairs .sl.a{fill:var(--color-accent);}
+    #t102-sft-pairs .knob{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:3;}
+    #t102-sft-pairs .ptr{stroke:var(--color-accent);stroke-width:4;stroke-linecap:round;}
+    #t102-sft-pairs .hub{fill:var(--color-text-muted);}
+    #t102-sft-pairs .chip{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #t102-sft-pairs .ct{font-size:25px;fill:var(--color-accent);}
+    #t102-sft-pairs .eq{font-size:21px;fill:var(--color-text-muted);}
+  </style>
+
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      var KX = [802, 868, 934, 1000], KY = 160, KR = 26, PL = 16;
+      var ANG0 = [-50, 25, -15, 60];            // knob angles in degrees before the update (toy)
+      var DANG = [26, -22, 30, -26];            // the nudge (toy)
+      var SHIFT = 210, BAR_H = 270, BAR_Y = 60, LEVEL = 0.22;   // the card slides left once the side panel arrives; error bar 100% -> 22% (toy)
+      var T = 0, N = 0, stop = null;
+      var card = null, err = null, ptrs = [];
+
+      function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      function draw() {
+        card.setAttribute('transform', 'translate(' + (SHIFT * (1 - T)).toFixed(1) + ' 0)');
+        var h = BAR_H * Deck.lerp(1, LEVEL, N);
+        err.setAttribute('y', (BAR_Y + BAR_H - h).toFixed(1));
+        err.setAttribute('height', h.toFixed(1));
+        ptrs.forEach(function (p, i) {
+          var a = (ANG0[i] + DANG[i] * N) * Math.PI / 180;
+          p.setAttribute('x2', (KX[i] + PL * Math.sin(a)).toFixed(1));
+          p.setAttribute('y2', (KY - PL * Math.cos(a)).toFixed(1));
+        });
+      }
+
+      Deck.slide('t102-sft-pairs', {
+        enter: function (c) {
+          card = c.qs('#t102-sft-pairs-card'); err = c.qs('#t102-sft-pairs-err');
+          var kg = c.qs('#t102-sft-pairs-knobs');
+          while (kg.firstChild) kg.removeChild(kg.firstChild);
+          ptrs = KX.map(function (x) {
+            el('circle', { 'class': 'knob', cx: x, cy: KY, r: KR }, kg);
+            var p = el('line', { 'class': 'ptr', x1: x, y1: KY, x2: x, y2: KY - PL }, kg);
+            el('circle', { 'class': 'hub', cx: x, cy: KY, r: 4 }, kg);
+            return p;
+          });
+          T = 0; N = 0; draw();
+        },
+        leave: function () { if (stop) { stop(); stop = null; } },
+        step: function (n, prev, c) {
+          var tt = n >= 2 ? 1 : 0, tn = n >= 2 ? 1 : 0, ft = T, fn = N;
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { T = tt; N = tn; draw(); return; }
+          // arriving at step 2: the card slides left and the panel appears (first third), then the update plays; leaving: reverse
+          stop = Deck.tween(tn > fn ? 1800 : 900, function (k) {
+            if (tn > fn) { T = Deck.lerp(ft, tt, clamp(k / 0.3)); N = Deck.lerp(fn, tn, clamp((k - 0.35) / 0.65)); }
+            else { N = Deck.lerp(fn, tn, clamp(k / 0.6)); T = Deck.lerp(ft, tt, clamp((k - 0.4) / 0.6)); }
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,131 @@
+<section class="slide" id="t704-snap-to-levels" data-steps="3">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">The honest version: round each weight to the nearest of a few levels.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t704-snap-to-levels-t t704-snap-to-levels-d">
+      <title id="t704-snap-to-levels-t">Real weights snapping to 16 int4 levels</title>
+      <desc id="t704-snap-to-levels-d">A number line from minus 0.032 to plus 0.032 carries 32 grey dots: the real weights of one group of 32, over a faint histogram of all 327,680 sampled weights. Sixteen cyan ticks mark the int4 levels, the multiples of the group scale 0.0039 from minus 8 to plus 7; each dot then slides to its nearest level, leaving a small grey error tick behind.</desc>
+      <g id="t704-snap-to-levels-chart"></g>
+      <g data-from="0" data-until="1"><text class="cap" x="560" y="452">where 32 real weights sit</text></g>
+      <g data-from="1" data-until="2"><text class="cap" x="560" y="452">the 16 levels: multiples of the scale</text></g>
+      <g data-from="2"><text class="cap" x="560" y="452">snap each weight to its nearest level</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t704-snap-to-levels svg.diagram{width:100%;height:100%;max-width:none;}
+    #t704-snap-to-levels text{font-family:var(--font-mono);}
+    #t704-snap-to-levels .axis{stroke:var(--color-text-faint);stroke-width:3;stroke-linecap:round;}
+    #t704-snap-to-levels .tick{stroke:var(--color-text-faint);stroke-width:3;stroke-linecap:round;}
+    #t704-snap-to-levels .end{font-size:20px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t704-snap-to-levels .lvl{stroke:var(--color-accent);stroke-width:2.5;stroke-linecap:round;}
+    #t704-snap-to-levels .lll{font-size:20px;fill:var(--color-accent);text-anchor:middle;}
+    #t704-snap-to-levels .scap{font-size:20px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t704-snap-to-levels .etick{stroke:var(--color-text-dim);stroke-width:2;stroke-linecap:round;}
+    #t704-snap-to-levels .ecap{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+    #t704-snap-to-levels .cap{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't704-snap-to-levels';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function mix(a, b, c) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * c); }).join(',') + ')'; }
+      var MUTED = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim'), FAINT = Deck.rgb('--color-text-faint'), ACC = Deck.rgb('--color-accent');
+
+      // ---- REAL DATA (literals from deck/data/part2.json)
+      var VALUES = [-0.02722, -0.00568, 0.00418, 0.00311, 0.01526, -0.008, 0.01648, 0.00259, 0.00137, -0.02332, 0.00812, -0.00424, -0.01807, 0.00812, 0.00117, -0.00763, -0.00665, -0.00145, -0.0004, -0.00427, 0.00244, -0.02295, 0.00546, -0.00577, 0.00151, 0.00897, -0.00977, -0.00195, 0.0105, -0.00656, -0.01459, -0.02271]; // quant.int4_rtn.group_32.first_group.values
+      var DEQUANT = [-0.02722, -0.00389, 0.00389, 0.00389, 0.01556, -0.00778, 0.01556, 0.00389, 0.0, -0.02333, 0.00778, -0.00389, -0.01944, 0.00778, 0.0, -0.00778, -0.00778, -0.0, -0.0, -0.00389, 0.00389, -0.02333, 0.00389, -0.00389, 0.0, 0.00778, -0.01167, -0.00389, 0.01167, -0.00778, -0.01556, -0.02333]; // quant.int4_rtn.group_32.first_group.dequant
+      var LEVELS = [-0.03111, -0.027222, -0.023333, -0.019444, -0.015555, -0.011666, -0.007778, -0.003889, 0.0, 0.003889, 0.007778, 0.011666, 0.015555, 0.019444, 0.023333, 0.027222]; // quant.int4_rtn.group_32.first_group.levels
+      var SCALE = 0.00388881;   // quant.int4_rtn.group_32.first_group.scale
+      var REL_RMSE = 0.097486;  // quant.int4_rtn.group_32.relative_rmse
+      var HIST_COUNTS = [2, 1, 1, 4, 2, 8, 18, 21, 56, 103, 110, 226, 311, 538, 808, 1105, 1655, 2495, 3233, 4376, 5668, 7569, 8985, 11108, 13241, 14994, 17140, 18744, 19999, 20889, 21259, 20640, 20223, 18574, 16921, 14827, 13403, 10882, 9129, 7677, 5676, 4281, 3305, 2499, 1627, 1175, 756, 580, 290, 211, 132, 98, 51, 25, 14, 9, 2, 1, 0, 3, 0]; // quant.histogram.counts
+      var HIST_MIN = -0.053, HIST_BW = 0.0017377; // quant.histogram.range[0] / quant.histogram.bin_width
+
+      // ---- geometry (viewBox 1120 x 520): number line x 60..1060 at y 300, range -0.032..+0.032
+      var AX0 = 60, AX1 = 1060, AY = 300, VMIN = -0.032, VMAX = 0.032;
+      var PX = (AX1 - AX0) / (VMAX - VMIN);
+      function xv(v) { return AX0 + (v - VMIN) * PX; }
+
+      var g = document.getElementById(ID + '-chart');
+
+      // faint histogram backdrop, clipped to the visible range
+      var maxC = Math.max.apply(null, HIST_COUNTS);
+      for (var i = 0; i !== HIST_COUNTS.length; i++) {
+        var c = HIST_MIN + (i + 0.5) * HIST_BW;
+        if (c < VMIN || c > VMAX || !HIST_COUNTS[i]) continue;
+        var hx1 = Math.max(AX0, xv(c - HIST_BW / 2)), hx2 = Math.min(AX1, xv(c + HIST_BW / 2));
+        var hh = HIST_COUNTS[i] / maxC * 150;
+        el('rect', { x: hx1.toFixed(1), y: (AY - hh).toFixed(1), width: (hx2 - hx1).toFixed(1), height: hh.toFixed(1), fill: 'rgb(' + FAINT.join(',') + ')', opacity: 0.55 }, g);
+      }
+
+      // number line with end labels
+      el('line', { 'class': 'axis', x1: AX0, y1: AY, x2: AX1, y2: AY }, g);
+      el('line', { 'class': 'tick', x1: AX0, y1: AY - 12, x2: AX0, y2: AY + 12 }, g);
+      el('line', { 'class': 'tick', x1: AX1, y1: AY - 12, x2: AX1, y2: AY + 12 }, g);
+      el('text', { 'class': 'end', x: AX0, y: AY + 32 }, g, '\u22120.032');
+      el('text', { 'class': 'end', x: (AX0 + AX1) / 2, y: AY + 32 }, g, '0');
+      el('text', { 'class': 'end', x: AX1, y: AY + 32 }, g, '+0.032');
+
+      // the 16 levels (step 1): full-height cyan ticks, labels for first / zero / last
+      var lvlG = el('g', {}, g);
+      LEVELS.forEach(function (lv) {
+        el('line', { 'class': 'lvl', x1: xv(lv).toFixed(1), y1: 240, x2: xv(lv).toFixed(1), y2: 314 }, lvlG);
+      });
+      el('text', { 'class': 'lll', x: xv(LEVELS[0]).toFixed(1), y: 228 }, lvlG, '\u22128');
+      el('text', { 'class': 'lll', x: xv(0).toFixed(1), y: 228 }, lvlG, '0');
+      el('text', { 'class': 'lll', x: xv(LEVELS[LEVELS.length - 1]).toFixed(1), y: 228 }, lvlG, '7');
+      el('text', { 'class': 'scap', x: 560, y: 410 }, lvlG, 'one scale per group of 32 weights \u00b7 scale = ' + SCALE.toFixed(4));
+
+      // the 32 real weights as dots (beeswarm above the line) + error ticks
+      var dotY = VALUES.map(function (v, i) {
+        var xi = xv(v), n = 0;
+        for (var j = 0; j < i; j++) { if (Math.abs(xv(VALUES[j]) - xi) < 10) n++; }
+        return AY - 14 - n * 12;
+      });
+      var ticks = [];
+      VALUES.forEach(function (v, i) {
+        var xa = Math.min(xv(v), xv(DEQUANT[i])), xb = Math.max(xv(v), xv(DEQUANT[i]));
+        ticks.push(el('line', { 'class': 'etick', x1: xa.toFixed(1), y1: dotY[i], x2: xb.toFixed(1), y2: dotY[i] }, g));
+      });
+      var dots = [];
+      VALUES.forEach(function (v, i) {
+        dots.push(el('circle', { cy: dotY[i], r: 8 }, g));
+      });
+
+      // the error number (step 3)
+      var errCap = el('text', { 'class': 'ecap', x: 560, y: 110 }, g, 'error: ' + REL_RMSE.toFixed(2) + ' of the weight spread');
+
+      // L: levels appear, S: dots slide to their levels, E: the error number appears
+      var L = 0, S = 0, E = 0, cancel = null;
+      function draw() {
+        lvlG.style.opacity = L.toFixed(3);
+        dots.forEach(function (d, i) {
+          d.setAttribute('cx', xv(Deck.lerp(VALUES[i], DEQUANT[i], S)).toFixed(1));
+          d.setAttribute('fill', mix(MUTED, ACC, S));
+        });
+        ticks.forEach(function (t) { t.style.opacity = S.toFixed(3); });
+        errCap.style.opacity = E.toFixed(3);
+      }
+      draw();
+
+      Deck.slide('t704-snap-to-levels', {
+        enter: function () { L = 0; S = 0; E = 0; draw(); },
+        step: function (n, prev, c) {
+          var tL = n >= 1 ? 1 : 0, tS = n >= 2 ? 1 : 0, tE = n >= 3 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { L = tL; S = tS; E = tE; draw(); return; }
+          var fL = L, fS = S, fE = E, dur = n === 1 ? 900 : n === 2 ? 1000 : 600;
+          cancel = Deck.tween(dur, function (k) { L = Deck.lerp(fL, tL, k); S = Deck.lerp(fS, tS, k); E = Deck.lerp(fE, tE, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

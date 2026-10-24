@@ -1,0 +1,59 @@
+<section class="slide" id="t507-cuda-to-silicon" data-steps="1">
+  <p class="kicker reveal">the GPU</p>
+  <p class="statement reveal">From CUDA C++ to the GPU.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 456" role="img" aria-labelledby="t507-cuda-to-silicon-t t507-cuda-to-silicon-d">
+      <title id="t507-cuda-to-silicon-t">CUDA C++ is compiled to PTX, which becomes machine code for the GPU</title>
+      <desc id="t507-cuda-to-silicon-d">Three chips stacked top to bottom with arrows between them: CUDA C++, then PTX (assembly for GPUs), then machine code. The first step shows the first two chips and an empty outline for the third; the last step fills in the machine code chip in cyan.</desc>
+      <g id="t507-cuda-to-silicon-c1" class="chip">
+        <rect class="cb" x="280" y="8" width="560" height="104" rx="18"/>
+        <text class="ct" x="560" y="60" dy=".35em">CUDA C++</text>
+      </g>
+      <path id="t507-cuda-to-silicon-a1" class="ay" d="M560 122V166m-14 -14l14 14l14 -14"/>
+      <g id="t507-cuda-to-silicon-c2" class="chip">
+        <rect class="cb" x="280" y="176" width="560" height="104" rx="18"/>
+        <text class="ct" x="560" y="228" dy=".35em"><tspan class="b">PTX</tspan> (assembly for GPUs)</text>
+      </g>
+      <g data-until="1"><rect class="ph" x="280" y="344" width="560" height="104" rx="18"/></g>
+      <g data-from="1">
+        <path id="t507-cuda-to-silicon-a2" class="ay on" d="M560 290V334m-14 -14l14 14l14 -14"/>
+        <g id="t507-cuda-to-silicon-c3" class="chip on">
+          <rect class="cb" x="280" y="344" width="560" height="104" rx="18"/>
+          <text class="ct" x="560" y="396" dy=".35em">machine code</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t507-cuda-to-silicon svg.diagram{width:100%;height:100%;max-width:none;}
+    #t507-cuda-to-silicon text{font-family:var(--font-mono);}
+    #t507-cuda-to-silicon .chip{color:var(--color-text-soft);transition:color .6s;}
+    #t507-cuda-to-silicon .chip.dim{color:var(--color-text-dim);}
+    #t507-cuda-to-silicon .chip.on{color:var(--color-accent);}
+    #t507-cuda-to-silicon .cb{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #t507-cuda-to-silicon .chip.on .cb{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #t507-cuda-to-silicon .ct{font-size:34px;text-anchor:middle;fill:currentColor;}
+    #t507-cuda-to-silicon .ct .b{font-weight:700;}
+    #t507-cuda-to-silicon .ay{fill:none;stroke:var(--color-text-dim);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;transition:stroke .6s;}
+    #t507-cuda-to-silicon .ay.on{stroke:var(--color-accent);}
+    #t507-cuda-to-silicon .ph{fill:none;stroke:var(--color-border-strong);stroke-width:2.5;stroke-dasharray:8 8;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't507-cuda-to-silicon';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      // step 0: the first two chips are plain; step 1: the new chip is cyan and the earlier ones step back to grey
+      function paint(n) {
+        ['c1', 'c2'].forEach(function (k) { $(k).setAttribute('class', 'chip' + (n >= 1 ? ' dim' : '')); });
+        $('a1').setAttribute('class', 'ay');
+      }
+      paint(0);
+      Deck.slide('t507-cuda-to-silicon', {
+        enter: function () { paint(0); },
+        step: function (n) { paint(n); }
+      });
+    })();
+  </script>
+</section>

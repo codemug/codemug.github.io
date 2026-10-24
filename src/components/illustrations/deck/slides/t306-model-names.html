@@ -1,0 +1,82 @@
+<section class="slide" id="t306-model-names" data-steps="1">
+  <p class="kicker reveal">alignment</p>
+  <p class="statement reveal">Read the model name.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 420" role="img" aria-labelledby="t306-model-names-t t306-model-names-d">
+      <title id="t306-model-names-t">What the suffix in a model name tells you</title>
+      <desc id="t306-model-names-d">Four model-name suffixes, each with an arrow to its meaning. Dash it and dash instruct mean instruction-tuned. Dash heretic and dash abliterated mean safety tuning reversed. First the instruction-tuned pair is highlighted; then the safety-reversed pair is highlighted and the first pair goes grey.</desc>
+      <g id="t306-model-names-rows"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t306-model-names svg.diagram{max-width:min(1203.2px,1100px);}
+    #t306-model-names .tg{fill:var(--color-surface-deep);stroke-width:3;}
+    #t306-model-names .tt{font-size:30px;text-anchor:middle;font-weight:600;}
+    #t306-model-names .ar{fill:none;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t306-model-names .mn{font-size:30px;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't306-model-names';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+      var CYAN = Deck.rgb('--color-accent'), FAINT = Deck.rgb('--color-text-faint'), DIM = Deck.rgb('--color-text-dim'), MUTED = Deck.rgb('--color-text-muted'), WHITE = Deck.rgb('--color-text');
+
+      // name tag -> meaning; group 0 is lit first, group 1 second
+      var ROWS = [
+        { tag: '...-it', meaning: 'instruction-tuned', group: 0, y: 14 },
+        { tag: '...-instruct', meaning: 'instruction-tuned', group: 0, y: 114 },
+        { tag: '...-heretic', meaning: 'safety tuning reversed', group: 1, y: 234 },
+        { tag: '...-abliterated', meaning: 'safety tuning reversed', group: 1, y: 334 }
+      ];
+      var TAG_X = 40, TAG_W = 340, TAG_H = 72, AR_X = 400, AR_LEN = 150, MEAN_X = 584;
+      var rows = [], S = 0;
+
+      function build() {
+        var g = $('rows');
+        while (g.firstChild) g.removeChild(g.firstChild);
+        rows = ROWS.map(function (r) {
+          var rect = el('rect', { 'class': 'tg', x: TAG_X, y: r.y, width: TAG_W, height: TAG_H, rx: 14 }, g);
+          var tt = el('text', { 'class': 'tt', x: TAG_X + TAG_W / 2, y: r.y + 47 }, g, r.tag);
+          var ar = el('path', { 'class': 'ar', d: 'M' + AR_X + ' ' + (r.y + TAG_H / 2) + 'H' + (AR_X + AR_LEN) + 'M' + (AR_X + AR_LEN - 15) + ' ' + (r.y + TAG_H / 2 - 13) + 'L' + (AR_X + AR_LEN) + ' ' + (r.y + TAG_H / 2) + 'L' + (AR_X + AR_LEN - 15) + ' ' + (r.y + TAG_H / 2 + 13) }, g);
+          var mn = el('text', { 'class': 'mn', x: MEAN_X, y: r.y + 47 }, g, r.meaning);
+          return { def: r, rect: rect, tt: tt, ar: ar, mn: mn };
+        });
+      }
+
+      function draw() {
+        rows.forEach(function (r) {
+          var first = r.def.group === 0, lit = first ? 1 - S : S;       // 1 = cyan, 0 = grey
+          var shown = first ? 1 : clamp((S - 0.2) / 0.5);                 // the second pair gets its arrow and meaning at step 1
+          r.rect.style.stroke = mix(FAINT, CYAN, lit);
+          r.tt.style.fill = mix(DIM, CYAN, lit);
+          r.ar.style.stroke = mix(DIM, CYAN, lit);
+          r.mn.style.fill = mix(DIM, WHITE, lit);
+          r.ar.setAttribute('opacity', shown.toFixed(2));
+          r.mn.setAttribute('opacity', shown.toFixed(2));
+        });
+      }
+      var cancel = null;
+      Deck.slide('t306-model-names', {
+        enter: function () { build(); S = 0; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = S;
+          cancel = Deck.tween(1000, function (t) { S = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

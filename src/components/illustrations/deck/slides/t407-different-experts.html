@@ -1,0 +1,87 @@
+<section class="slide" id="t407-different-experts" data-steps="3">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">The next token picks different experts.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t407-different-experts-t t407-different-experts-d">
+      <title id="t407-different-experts-t">Three tokens, each picks its own pair of experts</title>
+      <desc id="t407-different-experts-d">A matrix with one row per token, le, def and knight, and one column per expert E1 to E8. At first it is empty. Then the token le lights up its two cells, E2 and E5. Then def lights E1 and E7. Then knight lights E3 and E8. Each lit cell shows the softmax weight of that expert for that token.</desc>
+      <g id="t407-different-experts-grid"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t407-different-experts svg.diagram{width:100%;height:100%;max-width:none;}
+    #t407-different-experts text{font-family:var(--font-mono);}
+    #t407-different-experts .eh{font-size:24px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t407-different-experts .tk{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;transition:stroke .5s,fill .5s;}
+    #t407-different-experts .tt{font-size:30px;fill:var(--color-text);text-anchor:middle;}
+    #t407-different-experts .sp{fill:var(--color-text-muted);}
+    #t407-different-experts .sub{font-size:20px;fill:var(--color-text-dim);text-anchor:middle;transition:fill .5s;}
+    #t407-different-experts .cr{fill:var(--color-surface-deep);stroke:var(--color-hairline);stroke-width:2;transition:fill .5s,stroke .5s;}
+    #t407-different-experts .cv{font-size:28px;font-weight:600;fill:var(--color-accent);text-anchor:middle;opacity:0;transition:opacity .5s;}
+    #t407-different-experts .cur .tk{stroke:var(--color-accent);}
+    #t407-different-experts .cur .sub{fill:var(--color-accent);}
+    #t407-different-experts .cur .ch .cr{fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3.5;}
+    #t407-different-experts .cur .ch .cv{opacity:1;}
+    #t407-different-experts .done .tk{stroke:color-mix(in oklab,var(--color-accent) 50%,var(--color-border-strong));}
+    #t407-different-experts .done .ch .cr{fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);stroke-width:3;}
+    #t407-different-experts .done .ch .cv{opacity:.7;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't407-different-experts';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function f2(v) { return (Math.round(v * 100) / 100).toFixed(2); }
+
+      // MOE TOY (spec section 5): three tokens and their router scores over E1..E8
+      var TOK = [
+        { text: ' le', tag: 'French', scores: [0.2, 2.1, -0.5, 0.3, 1.8, -1.2, 0.1, 0.4] },
+        { text: 'def', tag: 'Python', scores: [1.9, 0.1, 0.3, -0.2, 0.0, 0.4, 1.7, 0.2] },
+        { text: ' knight', tag: 'chess', scores: [0.1, -0.4, 2.2, 0.5, 0.2, 0.3, 0.0, 1.9] }
+      ];
+      TOK.forEach(function (t) {
+        var order = t.scores.map(function (s, j) { return j; }).sort(function (a, b) { return t.scores[b] - t.scores[a]; });
+        t.pair = order.slice(0, 2).sort(function (a, b) { return a - b; });       // top 2 experts of this token
+        var e = t.pair.map(function (j) { return Math.exp(t.scores[j]); }), z = e[0] + e[1];
+        t.w = {}; t.pair.forEach(function (j, i) { t.w[j] = e[i] / z; });          // softmax over the two chosen scores
+      });
+
+      var CX0 = 260, CP = 100, CW = 92, CH = 104, RY0 = 110, RP = 120, FS = 30, ADV = FS * 0.6;
+      var g = document.getElementById(ID + '-grid');
+      for (var j = 0; j !== 8; j++) el('text', { 'class': 'eh', x: CX0 + j * CP + CW / 2, y: 90 }, g, 'E' + (j + 1));
+      var rows = TOK.map(function (t, r) {
+        var y = RY0 + r * RP, rg = el('g', {}, g);
+        // token chip, a leading space is drawn as a dot
+        var lead = t.text.charAt(0) === ' ', body = lead ? t.text.slice(1) : t.text;
+        var inner = (lead ? ADV : 0) + body.length * ADV, w = inner + 36, cx = 130;
+        el('rect', { 'class': 'tk', x: cx - w / 2, y: y + 8, width: w, height: 54, rx: 10 }, rg);
+        if (lead) el('circle', { 'class': 'sp', cx: cx - inner / 2 + ADV / 2, cy: y + 8 + 27 + 4, r: FS * 0.11 }, rg);
+        el('text', { 'class': 'tt', x: cx + (lead ? ADV : 0) / 2, y: y + 8 + 27 + 10 }, rg, body);
+        el('text', { 'class': 'sub', x: cx, y: y + 92 }, rg, t.tag);
+        for (var k = 0; k !== 8; k++) {
+          var cg = el('g', { 'class': t.pair.indexOf(k) !== -1 ? 'ch' : '' }, rg);
+          el('rect', { 'class': 'cr', x: CX0 + k * CP, y: y, width: CW, height: CH, rx: 12 }, cg);
+          if (t.pair.indexOf(k) !== -1) el('text', { 'class': 'cv', x: CX0 + k * CP + CW / 2, y: y + CH / 2 + 10 }, cg, f2(t.w[k]));
+        }
+        return rg;
+      });
+
+      function paint(n) {
+        rows.forEach(function (rg, r) { rg.setAttribute('class', n === r + 1 ? 'cur' : n > r + 1 ? 'done' : ''); });
+      }
+      paint(0);
+      Deck.slide('t407-different-experts', {
+        enter: function () { paint(0); },
+        step: function (n) { paint(n); }
+      });
+    })();
+  </script>
+</section>

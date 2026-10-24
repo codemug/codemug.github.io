@@ -1,0 +1,150 @@
+<section class="slide" id="t601-gandalf-loop" data-steps="3">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">The loop, run for real.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t601-gandalf-loop-t t601-gandalf-loop-d">
+      <title id="t601-gandalf-loop-t">The Gandalf sentence as 18 tokens, growing one token per loop</title>
+      <desc id="t601-gandalf-loop-d">The sentence And then on the bridge of khazad-dum, gandalf screamed: you shall is drawn as 18 token chips on two rows. A token counter reads 18 and an arrow leads down into the model. In three steps the model produces the next token, not, then pass, then an exclamation mark; each one is drawn as a cyan chip, an arrow carries it back up and appends it to the end of the sentence, and the counter grows to 19, 20 and 21.</desc>
+      <defs>
+        <marker id="t601-gandalf-loop-am" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,1 L12,7 L0,13 Z" fill="var(--color-text-muted)"/></marker>
+        <marker id="t601-gandalf-loop-ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,1 L12,7 L0,13 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+      <g id="t601-gandalf-loop-chips"></g>
+      <line class="down" x1="500" y1="172" x2="500" y2="312" marker-end="url(#t601-gandalf-loop-am)"/>
+      <text id="t601-gandalf-loop-count" class="count" x="480" y="250"><tspan id="t601-gandalf-loop-num" class="num">18</tspan> tokens</text>
+      <rect class="model" x="390" y="320" width="220" height="68" rx="14"/>
+      <text class="modelt" x="500" y="354" dy=".35em">model</text>
+      <line class="fwd" x1="618" y1="354" x2="722" y2="354" marker-end="url(#t601-gandalf-loop-ah)"/>
+      <g id="t601-gandalf-loop-out"></g>
+      <text class="cap" x="700" y="274" text-anchor="end">append and</text>
+      <text class="cap" x="700" y="300" text-anchor="end">feed back</text>
+      <text class="cap2" x="735" y="420" text-anchor="start">next token</text>
+    </svg>
+  </div>
+
+  <style>
+    #t601-gandalf-loop svg.diagram{width:100%;height:100%;max-width:none;}
+    #t601-gandalf-loop text{font-family:var(--font-mono);}
+    #t601-gandalf-loop .tk rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t601-gandalf-loop .tk text{font-size:26px;fill:var(--color-text);text-anchor:middle;}
+    #t601-gandalf-loop .tk .sp{fill:var(--color-text-muted);}
+    #t601-gandalf-loop .down{stroke:var(--color-text-muted);stroke-width:2.5;fill:none;}
+    #t601-gandalf-loop .fwd{stroke:var(--color-accent);stroke-width:2.5;fill:none;}
+    #t601-gandalf-loop .count{font-size:30px;fill:var(--color-text-muted);text-anchor:end;}
+    #t601-gandalf-loop .num{fill:var(--color-accent);font-weight:700;}
+    #t601-gandalf-loop .model{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #t601-gandalf-loop .modelt{font-size:28px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t601-gandalf-loop .ph rect{fill:none;stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:7 6;}
+    #t601-gandalf-loop .ph text{font-size:26px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t601-gandalf-loop .ret{fill:none;stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;}
+    #t601-gandalf-loop .rh{fill:var(--color-accent);}
+    #t601-gandalf-loop .cap{font-size:22px;fill:var(--color-accent);}
+    #t601-gandalf-loop .cap2{font-size:20px;fill:var(--color-text-dim);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't601-gandalf-loop';
+      var root = document.getElementById(ID);
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // REAL: deck/data/part2.json gandalf.steps[0].tokens (Qwen3.8-27B tokenizer), [id, text]; n_tokens 18
+      var BASE = [[2939, "And"], [1179, " then"], [383, " on"], [279, " the"], [13759, " bridge"], [314, " of"], [22442, " kh"], [1322, "az"], [327, "ad"], [1676, "-d"], [367, "um"], [11, ","], [225823, " gand"], [3004, "alf"], [58330, " screamed"], [25, ":"], [488, " you"], [4723, " shall"]];
+      // REAL: gandalf.continuation_pieces; EXPECTED continuation from The Lord of the Rings, NOT model output
+      var CONT = [[524, " not"], [1440, " pass"], [0, "!"]];
+      var N0 = BASE.length;                                   // 18, equals gandalf.steps[0].n_tokens
+      var ALL = BASE.concat(CONT);
+      var FS = 26, ADV = FS * 0.6, PAD = 13, H = 52, GAP = 10, W = 1120;
+      var ROW1 = 64, ROW2 = ROW1 + H + 12, OUT_L = 735, OUTY = 354;
+      var CY = Deck.rgb('--color-accent'), BORDER = [52, 52, 61], DEEP = [13, 13, 15];
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mix(a, b, t) { t = clamp(t); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }).join(',') + ')'; }
+      function chipW(t) {
+        var lead = t.charAt(0) === ' ';
+        return Math.max(FS * 1.4, (lead ? ADV : 0) + (lead ? t.length - 1 : t.length) * ADV + 2 * PAD);
+      }
+      // token label centred on x = 0; a leading space is drawn as a dot (pattern of s17-tokenizer)
+      function label(parent, text, y) {
+        var lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text;
+        var inner = (lead ? ADV : 0) + body.length * ADV, left = -inner / 2;
+        if (lead) el('circle', { 'class': 'sp', cx: left + ADV / 2, cy: y + FS * 0.1, r: FS * 0.11 }, parent);
+        el('text', { x: left + (lead ? ADV : 0) + body.length * ADV / 2, y: y, dy: '.35em' }, parent, body);
+      }
+      function chip(parent, t, cx, cy) {
+        var w = chipW(t), g = el('g', { 'class': 'tk', transform: 'translate(' + cx.toFixed(1) + ' ' + cy + ')' }, parent);
+        var r = el('rect', { x: -w / 2, y: -H / 2, width: w, height: H, rx: 12 }, g);
+        label(g, t, 0);
+        return { g: g, rect: r };
+      }
+
+      // two rows, computed for all 21 tokens so nothing moves later; the break comes after the comma
+      var widths = ALL.map(function (t) { return chipW(t[1]); });
+      function rowW(a, b) { var s = 0, i; for (i = a; i !== b; i++) s += widths[i]; return s + GAP * (b - a - 1); }
+      var split = 12;
+      var best = Math.max(rowW(0, split), rowW(split, ALL.length));
+      var x0 = (W - best) / 2, pos = [], x = x0;
+      ALL.forEach(function (t, i) {
+        if (i === split) x = x0;
+        pos.push({ cx: x + widths[i] / 2, cy: i < split ? ROW1 : ROW2 });
+        x += widths[i] + GAP;
+      });
+
+      var gChips = root.querySelector('#' + ID + '-chips');
+      var chips = ALL.map(function (t, i) { return chip(gChips, t[1], pos[i].cx, pos[i].cy); });
+
+      // the next-token slot: a dashed placeholder, and one cyan chip + return arrow per continuation token
+      var gOut = root.querySelector('#' + ID + '-out');
+      var ph = el('g', { 'class': 'ph', transform: 'translate(' + (OUT_L + 45) + ' ' + OUTY + ')' }, gOut);
+      el('rect', { x: -45, y: -H / 2, width: 90, height: H, rx: 12 }, ph);
+      el('text', { x: 0, y: 0, dy: '.35em' }, ph, '?');
+      var outs = CONT.map(function (t, i) {
+        var ox = OUT_L + chipW(t[1]) / 2;                   // the next-token chip is left-aligned under the model arrow
+        var c = chip(gOut, t[1], ox, OUTY);
+        c.rect.style.stroke = 'var(--color-accent)';
+        c.rect.style.fill = mix(DEEP, CY, 0.12);
+        var tx = pos[N0 + i].cx, ty = ROW2 + H / 2 + 6;
+        var path = el('path', { 'class': 'ret', d: 'M' + ox.toFixed(1) + ' ' + (OUTY - H / 2 - 6) + 'C' + ox.toFixed(1) + ' ' + (OUTY - H / 2 - 38) + ' ' + tx.toFixed(1) + ' ' + (ty + 48) + ' ' + tx.toFixed(1) + ' ' + (ty + 20), pathLength: 1, 'stroke-dasharray': 1 }, gOut);
+        var head = el('polygon', { 'class': 'rh', points: tx.toFixed(1) + ',' + ty + ' ' + (tx - 9).toFixed(1) + ',' + (ty + 20) + ' ' + (tx + 9).toFixed(1) + ',' + (ty + 20) }, gOut);
+        return { chip: c, path: path, head: head };
+      });
+      var num = root.querySelector('#' + ID + '-num');
+
+      var M = 0, cancel = null;      // M: how many continuation tokens have been appended (fractional while animating)
+      function draw() {
+        outs.forEach(function (o, i) {
+          var kk = clamp(M - i), vis = clamp(kk * 5) * (1 - clamp((M - (i + 1)) * 5));
+          var nw = kk * (1 - clamp(M - (i + 1)));                          // 1 while this is the newest token
+          o.chip.g.style.opacity = vis;
+          o.path.style.opacity = vis; o.head.style.opacity = vis * clamp((kk - 0.6) / 0.2);
+          o.path.style.strokeDashoffset = (1 - clamp((kk - 0.2) / 0.5)).toFixed(3);
+          var ap = chips[N0 + i], a = clamp((kk - 0.6) / 0.4);              // the appended chip in the sentence
+          ap.g.style.opacity = a;
+          ap.rect.style.stroke = mix(BORDER, CY, 0.45 + 0.55 * nw);
+          ap.rect.style.fill = mix(DEEP, CY, 0.12 * nw);
+        });
+        ph.style.opacity = 1 - clamp(M * 4);
+        num.textContent = String(N0 + Math.floor(M + 0.5));
+      }
+      CONT.forEach(function (t, i) { chips[N0 + i].g.style.opacity = 0; });
+      draw();
+
+      Deck.slide('t601-gandalf-loop', {
+        enter: function () { M = 0; draw(); },
+        step: function (n, prev, c) {
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { M = n; draw(); return; }
+          var from = M;
+          cancel = Deck.tween(900, function (t) { M = Deck.lerp(from, n, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

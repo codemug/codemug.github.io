@@ -1,0 +1,86 @@
+<section class="slide" id="t205-score-source" data-steps="2">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">Where does the score come from? Two answers.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 460" role="img" aria-labelledby="t205-score-source-t t205-score-source-d">
+      <title id="t205-score-source-t">Two sources of a score: a check you can run, or a reward model</title>
+      <desc id="t205-score-source-d">A split screen with two headers, checkable on the left and not checkable on the right. The left side fills in with a three-line code block that extracts the final number and gives reward 1 if it equals 408, and a unit-test line, 7 of 10 pass, reward 0.7. The right side fills in with an answer going into a box called reward model and the score 0.82 coming out.</desc>
+      <defs>
+        <marker id="t205-score-source-ah" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="14" refY="9" orient="auto"><path d="M0,1 L16,9 L0,17 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <line class="div" x1="580" y1="24" x2="580" y2="440"/>
+      <text class="hd hl" x="285" y="56" text-anchor="middle">checkable</text>
+      <text class="hd hr" x="805" y="56" text-anchor="middle">not checkable</text>
+
+      <!-- step 0: a faint icon under each header -->
+      <g data-from="0" data-until="1">
+        <circle class="ic" cx="285" cy="250" r="64"/>
+        <path class="ic" d="M251 252L275 278L322 222"/>
+      </g>
+      <g data-from="0" data-until="2">
+        <circle class="ic" cx="805" cy="250" r="64"/>
+        <text class="icq" x="805" y="278" text-anchor="middle">?</text>
+      </g>
+
+      <!-- step 1: the checkable side -->
+      <g data-from="1" class="L">
+        <rect class="card lc" x="10" y="108" width="550" height="150" rx="14"/>
+        <text class="code" x="38" y="166">answer = final_number(attempt)</text>
+        <text class="code" x="38" y="216">reward = 1 if answer == 408 else 0</text>
+        <rect class="card lc" x="10" y="296" width="550" height="76" rx="14"/>
+        <text class="code2" x="38" y="342">unit tests: 7 of 10 pass <tspan class="lv">-&gt; reward 0.7</tspan></text>
+      </g>
+
+      <!-- step 2: the not-checkable side (staggered by the CSS delays) -->
+      <g data-from="2" class="R r1">
+        <rect class="card rc" x="735" y="108" width="140" height="52" rx="12"/>
+        <text class="rt" x="805" y="143" text-anchor="middle">answer</text>
+      </g>
+      <g data-from="2" class="R r2">
+        <line class="ra" x1="805" y1="168" x2="805" y2="206" marker-end="url(#t205-score-source-ah)"/>
+      </g>
+      <g data-from="2" class="R r3">
+        <rect class="card rc" x="690" y="214" width="230" height="86" rx="14"/>
+        <text class="rt" x="805" y="264" text-anchor="middle">reward model</text>
+      </g>
+      <g data-from="2" class="R r4">
+        <line class="ra" x1="805" y1="308" x2="805" y2="346" marker-end="url(#t205-score-source-ah)"/>
+      </g>
+      <g data-from="2" class="R r5">
+        <text class="score" x="805" y="418" text-anchor="middle">0.82</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t205-score-source svg.diagram{max-width:min(1203.2px,1100px);}
+    #t205-score-source .div{stroke:var(--color-border-strong);stroke-width:2;}
+    #t205-score-source .hd{font-size:34px;font-weight:600;fill:var(--color-text-muted);transition:fill .5s ease;}
+    #t205-score-source[data-cur="1"] .hl{fill:var(--color-accent);}
+    #t205-score-source[data-cur="2"] .hr{fill:var(--color-accent);}
+    #t205-score-source .ic{fill:none;stroke:var(--color-text-faint);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;}
+    #t205-score-source .icq{font-size:84px;font-weight:600;fill:var(--color-text-faint);}
+    #t205-score-source .card{fill:var(--color-surface-deep);stroke-width:2.5;transition:stroke .5s ease;}
+    #t205-score-source .lc{stroke:var(--color-border-strong);}
+    #t205-score-source[data-cur="1"] .lc{stroke:var(--color-accent);}
+    #t205-score-source .rc{stroke:var(--color-accent);}
+    #t205-score-source .code{font-size:22px;fill:var(--color-text);}
+    #t205-score-source .code2{font-size:20px;fill:var(--color-text);}
+    #t205-score-source .lv{fill:var(--color-text-muted);transition:fill .5s ease;}
+    #t205-score-source[data-cur="1"] .lv{fill:var(--color-accent);}
+    #t205-score-source .rt{font-size:24px;fill:var(--color-text);}
+    #t205-score-source .ra{stroke:var(--color-accent);stroke-width:4;stroke-linecap:round;}
+    #t205-score-source .score{font-size:72px;font-weight:600;fill:var(--color-accent);}
+    #t205-score-source .r2.on{transition-delay:.35s;}
+    #t205-score-source .r3.on{transition-delay:.7s;}
+    #t205-score-source .r4.on{transition-delay:1.05s;}
+    #t205-score-source .r5.on{transition-delay:1.4s;}
+  </style>
+  <script>
+    (function () {
+      // all motion is CSS: data-from / data-cur drive the reveals and the cyan highlight
+      Deck.slide('t205-score-source', {});
+    })();
+  </script>
+</section>

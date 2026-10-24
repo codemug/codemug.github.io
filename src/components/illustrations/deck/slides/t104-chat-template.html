@@ -1,0 +1,131 @@
+<section class="slide" id="t104-chat-template" data-steps="3">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">Every request is compiled through a chat template.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1100 490" role="img" aria-labelledby="t104-chat-template-t t104-chat-template-d">
+      <title id="t104-chat-template-t">A user message compiled by the chat template into the string the model sees</title>
+      <desc id="t104-chat-template-d">A user chat bubble holding the instruction Return the following message, start, This is a test, end. An arrow leads into a box named chat_template.jinja, and another arrow to the rendered string: a system turn with the reasoning effort sentence, the user turn and the start of the assistant turn with an open think tag, with the control tokens im_start, im_end and think in cyan. In the last step their real vocabulary ids appear under them: 248045, 248046 and 248068.</desc>
+      <defs>
+        <marker id="t104-chat-template-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,1 L14,8 L0,15 Z" fill="var(--color-text-muted)"/></marker>
+      </defs>
+
+      <g id="t104-chat-template-left">
+        <!-- 1: the user message -->
+        <rect class="bub" x="8" y="123" width="212" height="215" rx="16"/>
+        <text class="hd" x="26" y="158">user</text>
+        <text class="bt" x="26" y="196">Return the</text>
+        <text class="bt" x="26" y="226">following</text>
+        <text class="bt" x="26" y="256">message &lt;start&gt;</text>
+        <text class="bt" x="26" y="286">This is a test</text>
+        <text class="bt" x="26" y="316">&lt;end&gt;</text>
+
+        <!-- 2: the template -->
+        <g data-from="1">
+          <line class="flow" x1="228" y1="230" x2="258" y2="230" marker-end="url(#t104-chat-template-ah)"/>
+          <rect class="tpl" x="266" y="155" width="140" height="150" rx="12"/>
+          <text class="tt" x="336" y="206" text-anchor="middle">chat_</text>
+          <text class="tt" x="336" y="236" text-anchor="middle">template</text>
+          <text class="tt" x="336" y="266" text-anchor="middle">.jinja</text>
+        </g>
+      </g>
+
+      <!-- 3: the rendered string -->
+      <g id="t104-chat-template-right">
+        <line class="flow" x1="414" y1="230" x2="438" y2="230" marker-end="url(#t104-chat-template-ah)"/>
+        <rect class="frame" x="446" y="30" width="646" height="402" rx="14"/>
+        <text class="cap" x="769" y="468" text-anchor="middle">what the model actually sees</text>
+      </g>
+      <g id="t104-chat-template-lines"></g>
+      <g id="t104-chat-template-ids"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t104-chat-template svg.diagram{max-width:min(1203.2px,1200px);}
+    #t104-chat-template .bub{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t104-chat-template .hd{font-size:20px;fill:var(--color-text-dim);}
+    #t104-chat-template .bt{font-size:20px;fill:var(--color-text);}
+    #t104-chat-template .flow{stroke:var(--color-text-muted);stroke-width:3.5;stroke-linecap:round;}
+    #t104-chat-template .tpl{fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #t104-chat-template .tt{font-size:20px;fill:var(--color-text);}
+    #t104-chat-template .frame{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2;}
+    #t104-chat-template .cap{font-size:20px;fill:var(--color-text-dim);}
+    #t104-chat-template .tx{font-size:20px;fill:var(--color-text-soft);white-space:pre;}
+    #t104-chat-template .tx.sp{fill:var(--color-accent);}
+    #t104-chat-template .idl{font-size:19px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      // REAL: part2.json chat.variants.default.rendered (Qwen3.8-27B chat_template.jinja, default settings), shown as
+      // lines; sp = control token. The reasoning-effort sentence is elided with "..." and the message line is wrapped.
+      var LINES = [
+        [['<|im_start|>', 1], ['system', 0]],
+        [['Reasoning effort is set to xhigh. ...', 0], ['<|im_end|>', 1]],
+        [['<|im_start|>', 1], ['user', 0]],
+        [['Return the following message', 0]],
+        [['  <start> This is a test <end>', 0], ['<|im_end|>', 1]],
+        [['<|im_start|>', 1], ['assistant', 0]],
+        [['<think>', 1]]
+      ];
+      // REAL: part2.json chat.special_tokens
+      var IDS = { '<|im_start|>': 248045, '<|im_end|>': 248046, '<think>': 248068 };
+      var X0 = 468, Y0 = 76, PITCH = 52, CW = 12;
+      var SHIFT = [436, 346, 0, 0];     // the left group slides toward the centre while the right side is still empty
+      var SH = SHIFT[0], R = 0, D = 0, stop = null;
+      var left = null, right = null, lines = [], ids = [];
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      function build(c) {
+        var gl = c.qs('#t104-chat-template-lines'), gi = c.qs('#t104-chat-template-ids');
+        while (gl.firstChild) gl.removeChild(gl.firstChild);
+        while (gi.firstChild) gi.removeChild(gi.firstChild);
+        lines = []; ids = [];
+        LINES.forEach(function (segs, i) {
+          var y = Y0 + i * PITCH, col = 0, g = el('g', {}, gl);
+          segs.forEach(function (s) {
+            var x = X0 + col * CW;
+            el('text', { 'class': 'tx' + (s[1] ? ' sp' : ''), x: x, y: y }, g, s[0]);
+            if (s[1]) ids.push(el('text', { 'class': 'idl', x: x + s[0].length * CW / 2, y: y + 24 }, gi, String(IDS[s[0]])));
+            col += s[0].length;
+          });
+          lines.push(g);
+        });
+        left = c.qs('#t104-chat-template-left'); right = c.qs('#t104-chat-template-right');
+      }
+
+      function draw() {
+        left.setAttribute('transform', 'translate(' + SH.toFixed(1) + ' 0)');
+        right.style.opacity = clamp(R * 4).toFixed(3);
+        lines.forEach(function (g, i) { g.style.opacity = clamp(R * (lines.length + 1) - i).toFixed(3); });
+        ids.forEach(function (t) { t.style.opacity = D.toFixed(3); });
+      }
+
+      Deck.slide('t104-chat-template', {
+        enter: function (c) { build(c); SH = SHIFT[0]; R = 0; D = 0; draw(); },
+        leave: function () { if (stop) { stop(); stop = null; } },
+        step: function (n, prev, c) {
+          var ts = SHIFT[Math.min(n, 3)], tr = n >= 2 ? 1 : 0, td = n >= 3 ? 1 : 0, fs = SH, fr = R, fd = D;
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { SH = ts; R = tr; D = td; draw(); return; }
+          // arriving at step 2: the left group slides to the left first, then the rendered string appears (reverse when leaving)
+          var up = tr > fr + 0.001, down = tr < fr - 0.001;
+          stop = Deck.tween(up || down ? 1600 : 900, function (k) {
+            var ks = up ? clamp(k / 0.4) : down ? clamp((k - 0.45) / 0.55) : k;
+            var kr = up ? clamp((k - 0.4) / 0.6) : down ? clamp(k / 0.55) : k;
+            SH = Deck.lerp(fs, ts, ks); R = Deck.lerp(fr, tr, kr); D = Deck.lerp(fd, td, k); draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

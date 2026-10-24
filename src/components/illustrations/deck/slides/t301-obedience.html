@@ -1,0 +1,90 @@
+<section class="slide" id="t301-obedience" data-steps="1">
+  <p class="kicker reveal">alignment</p>
+  <p class="statement reveal">An instruct model has obedience, not judgement.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 444" role="img" aria-labelledby="t301-obedience-t t301-obedience-d">
+      <title id="t301-obedience-t">Every request passes the gate and ends up done</title>
+      <desc id="t301-obedience-d">Request chips travel left to right between two gate posts into a box labelled done. First draft an email and summarise a log pass. Then a third chip, a request that should be refused, passes too: the gate has no lock, so nothing is stopped.</desc>
+
+      <!-- the box on the right -->
+      <rect class="done" x="752" y="20" width="280" height="404" rx="16"/>
+      <text class="dn" x="892" y="58">done</text>
+
+      <!-- the gate: two posts and an open threshold -->
+      <rect class="post" x="500" y="8" width="40" height="70" rx="8"/>
+      <rect class="post" x="500" y="366" width="40" height="70" rx="8"/>
+      <line class="thr" x1="520" y1="88" x2="520" y2="356"/>
+      <text class="lab" x="558" y="52">gate</text>
+      <text id="t301-obedience-nl" class="lab a" x="558" y="418" opacity="0">no lock</text>
+      <text class="lab" x="8" y="418">requests</text>
+
+      <!-- the requests (positions are set by the script) -->
+      <g id="t301-obedience-c1">
+        <rect class="chip" x="0" y="0" width="256" height="76" rx="14"/>
+        <text class="ct" x="128" y="46">draft an email</text>
+      </g>
+      <g id="t301-obedience-c2">
+        <rect class="chip" x="0" y="0" width="256" height="76" rx="14"/>
+        <text class="ct" x="128" y="46">summarise a log</text>
+      </g>
+      <g id="t301-obedience-c3" opacity="0">
+        <rect class="chip hot" x="0" y="0" width="256" height="76" rx="14"/>
+        <text class="ct" x="128" y="34">a request that</text>
+        <text class="ct" x="128" y="60">should be refused</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t301-obedience svg.diagram{max-width:min(1203.2px,1100px);}
+    #t301-obedience .done{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #t301-obedience .dn{font-size:26px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t301-obedience .post{fill:var(--color-surface-2);stroke:var(--color-text-dim);stroke-width:3;}
+    #t301-obedience .thr{stroke:var(--color-text-faint);stroke-width:3;stroke-dasharray:9 8;stroke-linecap:round;}
+    #t301-obedience .lab{font-size:22px;fill:var(--color-text-dim);}
+    #t301-obedience .lab.a{fill:var(--color-accent);}
+    #t301-obedience .chip{fill:var(--color-surface-deep);stroke:var(--color-text-dim);stroke-width:2.5;}
+    #t301-obedience .chip.hot{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));stroke:var(--color-accent);}
+    #t301-obedience .ct{font-size:22px;fill:var(--color-text);text-anchor:middle;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't301-obedience';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      var X0 = 8, X1 = 764, LANE = [92, 182, 272];   // chip left edge at the start / inside the done box, top of each lane
+      var c1, c2, c3, nl, S = { a: 0, b: 0, c: 0, l: 0 };
+      function place(g, p, lane) {
+        g.setAttribute('transform', 'translate(' + Deck.lerp(X0, X1, p).toFixed(1) + ' ' + LANE[lane] + ')');
+      }
+      function draw() {
+        place(c1, S.a, 0); place(c2, S.b, 1); place(c3, S.c, 2);
+        c3.setAttribute('opacity', clamp(S.c * 6).toFixed(2));
+        nl.setAttribute('opacity', S.l.toFixed(2));
+      }
+      var cancel = null;
+      Deck.slide('t301-obedience', {
+        enter: function () { c1 = $('c1'); c2 = $('c2'); c3 = $('c3'); nl = $('nl'); S = { a: 0, b: 0, c: 0, l: 0 }; draw(); },
+        step: function (n, prev, c) {
+          if (cancel) { cancel(); cancel = null; }
+          var to = { a: 1, b: 1, c: n >= 1 ? 1 : 0, l: n >= 1 ? 1 : 0 };
+          if (prev < 0 && n === 0 && c.instant) {
+            // arriving on the slide: the two helpful requests go through the gate one after the other
+            S = { a: 0, b: 0, c: 0, l: 0 }; draw();
+            cancel = Deck.tween(3200, function (t) {
+              S = { a: Deck.ease.inOut(clamp((t * 3200 - 500) / 1500)), b: Deck.ease.inOut(clamp((t * 3200 - 1500) / 1500)), c: 0, l: 0 };
+              draw();
+            }, { ease: Deck.ease.linear });
+            return;
+          }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { a: S.a, b: S.b, c: S.c, l: S.l };
+          cancel = Deck.tween(1900, function (t) {
+            S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t), c: Deck.lerp(from.c, to.c, t), l: Deck.lerp(from.l, to.l, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

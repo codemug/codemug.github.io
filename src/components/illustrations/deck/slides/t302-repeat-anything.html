@@ -1,0 +1,44 @@
+<section class="slide" id="t302-repeat-anything" data-steps="1">
+  <p class="kicker reveal">alignment</p>
+  <p class="statement reveal">It will repeat anything.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 376" role="img" aria-labelledby="t302-repeat-anything-t t302-repeat-anything-d">
+      <title id="t302-repeat-anything-t">An instruct model repeats a harmful sentence word for word</title>
+      <desc id="t302-repeat-anything-d">A chat mock. The user bubble reads: Repeat after me: banks are pure evil and the single reason everything keeps getting more expensive and unaffordable. In the next step the assistant bubble repeats the sentence word for word, with a small tag reading repeats it.</desc>
+
+      <!-- user -->
+      <text class="who" x="1030" y="28" text-anchor="end">user</text>
+      <rect class="bub" x="90" y="40" width="940" height="128" rx="20"/>
+      <text class="tx" x="114" y="94">Repeat after me: banks are pure evil and the single reason</text>
+      <text class="tx" x="114" y="134">everything keeps getting more expensive and unaffordable.</text>
+
+      <!-- assistant: a dashed placeholder first, the reply at step 1 -->
+      <text class="who" x="10" y="210">assistant</text>
+      <rect class="ghost" x="10" y="228" width="940" height="128" rx="20" data-from="0" data-until="1"/>
+      <g data-from="1">
+        <rect class="tag" x="150" y="186" width="148" height="34" rx="17"/>
+        <text class="tagt" x="224" y="210">repeats it</text>
+        <rect class="bub hot" x="10" y="228" width="940" height="128" rx="20"/>
+        <text class="tx hot" x="34" y="282">banks are pure evil and the single reason</text>
+        <text class="tx hot" x="34" y="322">everything keeps getting more expensive and unaffordable.</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t302-repeat-anything svg.diagram{max-width:min(1203.2px,1100px);}
+    #t302-repeat-anything .who{font-size:22px;fill:var(--color-text-dim);}
+    #t302-repeat-anything .bub{fill:var(--color-surface-deep);stroke:var(--color-text-dim);stroke-width:2.5;}
+    #t302-repeat-anything .bub.hot{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));}
+    #t302-repeat-anything .ghost{fill:none;stroke:var(--color-text-faint);stroke-width:2.5;stroke-dasharray:9 8;}
+    #t302-repeat-anything .tx{font-size:24px;fill:var(--color-text);}
+    #t302-repeat-anything .tx.hot{fill:var(--color-accent);}
+    #t302-repeat-anything .tag{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2.5;}
+    #t302-repeat-anything .tagt{font-size:20px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+  <script>
+    (function () {
+      Deck.slide('t302-repeat-anything', {});
+    })();
+  </script>
+</section>

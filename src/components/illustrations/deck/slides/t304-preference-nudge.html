@@ -1,0 +1,87 @@
+<section class="slide" id="t304-preference-nudge" data-steps="1">
+  <p class="kicker reveal">alignment</p>
+  <p class="statement reveal">Chosen goes up. Rejected goes down.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 430" role="img" aria-labelledby="t304-preference-nudge-t t304-preference-nudge-d">
+      <title id="t304-preference-nudge-t">One training round raises the chosen answer and lowers the rejected one</title>
+      <desc id="t304-preference-nudge-d">Two horizontal bars show how likely the model finds each answer. Chosen starts at 0.10 and rejected at 0.60. After one round the chosen bar grows to 0.45 with an up arrow and the rejected bar shrinks to 0.12 with a down arrow. Dashed outlines keep the starting lengths. Caption: relative to where the model started.</desc>
+
+      <text class="hd" x="20" y="44">likelihood of each answer</text>
+
+      <!-- bars (the script sets lengths, colours and value labels) -->
+      <rect id="t304-preference-nudge-b1" class="bar" x="320" y="104" width="60" height="82" rx="8"/>
+      <rect id="t304-preference-nudge-b2" class="bar" x="320" y="224" width="360" height="82" rx="8"/>
+      <text id="t304-preference-nudge-l1" class="nm" x="300" y="156" text-anchor="end">chosen</text>
+      <text id="t304-preference-nudge-l2" class="nm" x="300" y="276" text-anchor="end">rejected</text>
+      <text id="t304-preference-nudge-v1" class="val" x="0" y="156"></text>
+      <text id="t304-preference-nudge-v2" class="val" x="0" y="276"></text>
+
+      <!-- ghosts: where the model started (dashed outlines) -->
+      <rect id="t304-preference-nudge-g1" class="ghost" x="314" y="98" width="72" height="94" rx="13" opacity="0"/>
+      <rect id="t304-preference-nudge-g2" class="ghost" x="314" y="218" width="372" height="94" rx="13" opacity="0"/>
+
+      <!-- arrows: chosen goes up, rejected goes down -->
+      <path id="t304-preference-nudge-a1" class="arw up" d="M0 24V-24M-13 -10L0 -25L13 -10" opacity="0"/>
+      <path id="t304-preference-nudge-a2" class="arw dn" d="M0 -24V24M-13 10L0 25L13 10" opacity="0"/>
+
+      <text id="t304-preference-nudge-cap" class="cap" x="520" y="388" text-anchor="middle" opacity="0">relative to where the model started</text>
+    </svg>
+  </div>
+
+  <style>
+    #t304-preference-nudge svg.diagram{max-width:min(1203.2px,1100px);}
+    #t304-preference-nudge .hd{font-size:24px;fill:var(--color-text-dim);}
+    #t304-preference-nudge .ghost{fill:none;stroke:var(--color-text-soft);stroke-width:2.5;stroke-dasharray:8 7;}
+    #t304-preference-nudge .nm{font-size:26px;}
+    #t304-preference-nudge .val{font-size:32px;font-weight:600;font-variant-numeric:tabular-nums;}
+    #t304-preference-nudge .arw{fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;}
+    #t304-preference-nudge .arw.up{stroke:var(--color-accent);}
+    #t304-preference-nudge .arw.dn{stroke:var(--color-text-muted);}
+    #t304-preference-nudge .cap{font-size:27px;fill:var(--color-text-soft);}
+  </style>
+  <script>
+    (function () {
+      var ID = 't304-preference-nudge';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+      var GREY = Deck.rgb('--color-text-faint'), DARK = [58, 58, 66], CYAN = Deck.rgb('--color-accent'), LAB = Deck.rgb('--color-text-muted'), LABW = Deck.rgb('--color-text');
+
+      // TOY: likelihood of the chosen and of the rejected answer, at the start and after one round
+      var C0 = 0.10, C1 = 0.45, R0 = 0.60, R1 = 0.12;
+      var X0 = 320, LEN = 600;                  // a bar for 1.0 would be 600 units long
+
+      var b1, b2, g1, g2, l1, l2, v1, v2, a1, a2, cap, S = 0;
+      function draw() {
+        var c = Deck.lerp(C0, C1, S), r = Deck.lerp(R0, R1, S);
+        b1.setAttribute('width', (LEN * c).toFixed(1)); b2.setAttribute('width', (LEN * r).toFixed(1));
+        b1.setAttribute('fill', mix(GREY, CYAN, S)); b2.setAttribute('fill', mix(GREY, DARK, S));
+        l1.setAttribute('fill', mix(LAB, CYAN, S)); l2.setAttribute('fill', mix(LABW, LAB, S));
+        v1.setAttribute('fill', mix(LABW, CYAN, S)); v2.setAttribute('fill', mix(LABW, LAB, S));
+        v1.textContent = c.toFixed(2); v2.textContent = r.toFixed(2);
+        var e1 = X0 + LEN * c, e2 = X0 + LEN * r, sh = 62 * S;
+        v1.setAttribute('x', (e1 + 18 + sh).toFixed(1)); v2.setAttribute('x', (e2 + 18 + sh).toFixed(1));
+        a1.setAttribute('transform', 'translate(' + (e1 + 30).toFixed(1) + ' 145)');
+        a2.setAttribute('transform', 'translate(' + (e2 + 30).toFixed(1) + ' 265)');
+        var o = clamp(S * 1.6).toFixed(2);
+        a1.setAttribute('opacity', o); a2.setAttribute('opacity', o);
+        g1.setAttribute('opacity', o); g2.setAttribute('opacity', o);
+        cap.setAttribute('opacity', clamp((S - 0.5) / 0.5).toFixed(2));
+      }
+      var cancel = null;
+      Deck.slide('t304-preference-nudge', {
+        enter: function () {
+          b1 = $('b1'); b2 = $('b2'); g1 = $('g1'); g2 = $('g2'); l1 = $('l1'); l2 = $('l2'); v1 = $('v1'); v2 = $('v2');
+          a1 = $('a1'); a2 = $('a2'); cap = $('cap'); S = 0; draw();
+        },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = S;
+          cancel = Deck.tween(1300, function (t) { S = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

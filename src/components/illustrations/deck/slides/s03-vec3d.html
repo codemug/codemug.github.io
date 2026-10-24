@@ -1,10 +1,10 @@
-<section class="slide" id="s03-vec3d" data-steps="3" data-tool="vector">
+<section class="slide" id="s03-vec3d" data-steps="0" data-tool="vector">
   <p class="kicker reveal">refresher 1</p>
   <p class="statement reveal">3 numbers: a vector in 3D space.</p>
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 900 420" role="img" aria-labelledby="s03-vec3d-t s03-vec3d-d">
       <title id="s03-vec3d-t">A vector in three dimensions</title>
-      <desc id="s03-vec3d-d">The array three, two, one is drawn as an arrow in a 3D space with x, y and z axes: three along x, one toward the viewer along z and two up along y. A third number adds a third dimension, and the camera turns slowly to show the depth.</desc>
+      <desc id="s03-vec3d-d">The array three, two, one is drawn as an arrow in a 3D space with x, y and z axes: three along x, one toward the viewer along z and two up along y. A third number appears on its own and adds a third dimension, then the camera turns slowly to show the depth.</desc>
       <defs>
         <marker id="s03-vec3d-ah" markerUnits="userSpaceOnUse" markerWidth="20" markerHeight="20" refX="15" refY="10" orient="auto"><path d="M0,0 L17,10 L0,20 z" fill="var(--color-accent)"/></marker>
       </defs>
@@ -54,7 +54,7 @@
       var NS = 'http://www.w3.org/2000/svg';
       var EL = 0.5, AZ0 = -0.85;
       var cam = Deck.cam3({ ox: 640, oy: 268, u: 62, az: AZ0, el: EL });
-      var S = { z: 0, az: AZ0, stopLoop: null };
+      var S = { z: 0, az: AZ0, stop: null };
       var el = {}, gridLines = [];
       var GX = [-1, 0, 1, 2, 3, 4], GZ = [-1, 0, 1, 2];
 
@@ -87,10 +87,15 @@
         el.c3.setAttribute('x', Deck.lerp(140, 157, a));
       }
 
-      function go(target, ms) {
-        var from = S.z;
-        if (ms === 0) { S.z = target; draw(); return; }
-        Deck.tween(ms, function (t) { S.z = Deck.lerp(from, target, t); draw(); });
+      var WAIT = 0.8, GROW = 0.9; // seconds: rest as a 2D vector, then grow the third dimension
+      function ramp(x) { return Deck.ease.inOut(Math.max(0, Math.min(1, x))); }
+
+      // one timeline: the third number grows in, then the camera starts its slow turn
+      function frame(t) {
+        var s = t - (WAIT + GROW), r = ramp(s / 0.8);
+        S.z = ramp((t - WAIT) / GROW);
+        S.az = Deck.lerp(AZ0, -0.7, r) + 0.3 * Math.sin(0.7 * Math.max(0, s)) * r;
+        draw();
       }
 
       Deck.slide('s03-vec3d', {
@@ -98,20 +103,12 @@
           ['ax', 'ay', 'az', 'lx', 'ly', 'lz', 'guide', 'vec', 't2', 't3', 'n1', 'n2', 'n3', 'br', 'c3'].forEach(function (k) { el[k] = $(k); });
           var g = $('grid');
           if (!gridLines.length) for (var i = 0; i < GX.length + GZ.length; i++) { var l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'grid'); g.appendChild(l); gridLines.push(l); }
-          S.z = 0; S.az = AZ0; draw();
+          if (S.stop) S.stop();
+          var skip = c.instant ? WAIT + GROW + 1.2 : 0; // jumped straight here (hash, export): show the finished state
+          frame(skip);
+          S.stop = Deck.loop(function (t) { frame(t + skip); });
         },
-        step: function (n, prev, c) {
-          if (S.stopLoop) { S.stopLoop(); S.stopLoop = null; }
-          var z = n >= 1 ? 1 : 0;
-          if (c.instant) { S.z = z; S.az = n >= 2 ? -0.7 : AZ0; draw(); } else { go(z, 800); }
-          if (n >= 2) {
-            // gentle idle turn so the depth reads
-            S.stopLoop = Deck.loop(function (t) { S.az = -0.7 + 0.3 * Math.sin(t * 0.7); draw(); });
-          } else if (!c.instant) {
-            var f = S.az; Deck.tween(700, function (t) { S.az = Deck.lerp(f, AZ0, t); draw(); });
-          }
-        },
-        leave: function () { if (S.stopLoop) { S.stopLoop(); S.stopLoop = null; } }
+        leave: function () { if (S.stop) { S.stop(); S.stop = null; } }
       });
     })();
   </script>

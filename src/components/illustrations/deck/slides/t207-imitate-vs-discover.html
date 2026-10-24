@@ -1,0 +1,90 @@
+<section class="slide" id="t207-imitate-vs-discover" data-steps="2">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">Imitation copies. Reinforcement learning discovers.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 480" role="img" aria-labelledby="t207-imitate-vs-discover-t t207-imitate-vs-discover-d">
+      <title id="t207-imitate-vs-discover-t">Imitation stays inside the data; reinforcement learning can leave it</title>
+      <desc id="t207-imitate-vs-discover-d">Two panels, each with a dashed boundary labelled the data. On the left, imitation: a dataset feeds a model, and the model stays inside the boundary. On the right, reinforcement learning: a loop of generate, score and reinforce around a model that sits inside the same boundary. Finally a cyan star labelled an approach nobody wrote down appears outside the boundary, attached to the model on the right.</desc>
+
+      <!-- left panel: imitation (centred at step 0, slides left when the right panel arrives) -->
+      <g class="lp">
+        <text class="hd" x="260" y="40">imitation</text>
+        <ellipse class="bound" cx="260" cy="215" rx="240" ry="145"/>
+        <text class="bl" x="260" y="108">the data</text>
+        <rect class="nd" x="116" y="191" width="126" height="48" rx="12"/>
+        <text class="nt" x="179" y="222">dataset</text>
+        <path class="ln" d="M248 215H288"/>
+        <polygon class="ah" points="300,215 288,209 288,221"/>
+        <rect class="nd" x="304" y="191" width="106" height="48" rx="12"/>
+        <text class="nt" x="357" y="222">model</text>
+      </g>
+
+      <line class="dv d0" data-from="1" x1="520" y1="40" x2="520" y2="440"/>
+
+      <!-- right panel: reinforcement learning -->
+      <g data-from="1" class="d0">
+        <text class="hd" x="780" y="40">reinforcement learning</text>
+        <ellipse class="bound" cx="780" cy="215" rx="240" ry="145"/>
+        <text class="bl" x="780" y="108">the data</text>
+      </g>
+      <g data-from="1" class="d1"><rect class="nd lo" x="579" y="166" width="122" height="48" rx="12"/><text class="nt" x="640" y="197">generate</text></g>
+      <g data-from="1" class="d2"><path class="ln lo" d="M705 190H720"/><polygon class="ah lo" points="729,190 717,184 717,196"/></g>
+      <g data-from="1" class="d3"><rect class="nd lo" x="731" y="166" width="86" height="48" rx="12"/><text class="nt" x="774" y="197">score</text></g>
+      <g data-from="1" class="d4"><path class="ln lo" d="M821 190H836"/><polygon class="ah lo" points="845,190 833,184 833,196"/></g>
+      <g data-from="1" class="d5"><rect class="nd lo" x="847" y="166" width="134" height="48" rx="12"/><text class="nt" x="914" y="197">reinforce</text></g>
+      <g data-from="1" class="d6"><path class="ln lo" d="M914 220V292H850"/><polygon class="ah lo" points="836,292 848,286 848,298"/></g>
+      <g data-from="1" class="d7"><rect class="nd md" x="728" y="268" width="104" height="48" rx="12"/><text class="nt" x="780" y="299">model</text></g>
+      <g data-from="1" class="d8"><path class="ln lo" d="M724 292H640V228"/><polygon class="ah lo" points="640,218 634,230 646,230"/></g>
+
+      <!-- step 2: the star, outside the data, attached to the model -->
+      <g data-from="2" class="e0"><path class="ln sl" d="M780 318V380"/></g>
+      <g data-from="2" class="star e1"><polygon class="sp" points="780,385 787,403 807,404 791,417 796,436 780,425 764,436 769,417 753,404 773,403"/></g>
+      <g data-from="2" class="e2"><text class="sl2" x="780" y="472">an approach nobody wrote down</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t207-imitate-vs-discover svg.diagram{max-width:min(1203.2px,1100px);}
+    #t207-imitate-vs-discover .lp{transform:translate(260px,0);transition:transform .7s ease;}
+    #t207-imitate-vs-discover[data-cur="1"] .lp, #t207-imitate-vs-discover[data-cur="2"] .lp{transform:translate(0,0);}
+    #t207-imitate-vs-discover .hd{font-size:30px;font-weight:600;fill:var(--color-text-soft);text-anchor:middle;}
+    #t207-imitate-vs-discover .bound{fill:none;stroke:var(--color-text-dim);stroke-width:2.5;stroke-dasharray:9 8;}
+    #t207-imitate-vs-discover .bl{font-size:21px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t207-imitate-vs-discover .dv{stroke:var(--color-border-strong);stroke-width:2;}
+    #t207-imitate-vs-discover .nd{fill:var(--color-surface-deep);stroke:var(--color-text-muted);stroke-width:2.5;transition:stroke .5s ease;}
+    #t207-imitate-vs-discover .nt{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #t207-imitate-vs-discover .ln{fill:none;stroke:var(--color-text-muted);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .5s ease;}
+    #t207-imitate-vs-discover .ah{fill:var(--color-text-muted);transition:fill .5s ease;}
+    
+    #t207-imitate-vs-discover[data-cur="1"] .nd.lo{stroke:var(--color-accent);}
+    #t207-imitate-vs-discover[data-cur="1"] .ln.lo{stroke:var(--color-accent);}
+    #t207-imitate-vs-discover[data-cur="1"] .ah.lo{fill:var(--color-accent);}
+    #t207-imitate-vs-discover[data-cur="2"] .nd.md{stroke:var(--color-accent);}
+    #t207-imitate-vs-discover .ln.sl{stroke:var(--color-accent);}
+    #t207-imitate-vs-discover .sp{fill:var(--color-accent);stroke:var(--color-accent);stroke-width:3;stroke-linejoin:round;}
+    #t207-imitate-vs-discover .sl2{font-size:23px;fill:var(--color-accent);text-anchor:middle;}
+    #t207-imitate-vs-discover .star{transform-box:fill-box;transform-origin:center;transform:scale(.3);transition:opacity .5s ease,transform .6s ease;}
+    #t207-imitate-vs-discover .star.on{transform:scale(1);}
+    
+    #t207-imitate-vs-discover .d0.on{transition-delay:.35s;}
+    #t207-imitate-vs-discover .d1.on{transition-delay:.55s;}
+    #t207-imitate-vs-discover .d2.on{transition-delay:.7s;}
+    #t207-imitate-vs-discover .d3.on{transition-delay:.85s;}
+    #t207-imitate-vs-discover .d4.on{transition-delay:1s;}
+    #t207-imitate-vs-discover .d5.on{transition-delay:1.15s;}
+    #t207-imitate-vs-discover .d6.on{transition-delay:1.3s;}
+    #t207-imitate-vs-discover .d7.on{transition-delay:1.45s;}
+    #t207-imitate-vs-discover .d8.on{transition-delay:1.6s;}
+    #t207-imitate-vs-discover .e1.on{transition-delay:.35s;}
+    #t207-imitate-vs-discover .e2.on{transition-delay:.7s;}
+    @media (prefers-reduced-motion: reduce){
+      #t207-imitate-vs-discover .lp, #t207-imitate-vs-discover .star{transition:none;}
+    }
+  </style>
+  <script>
+    (function () {
+      // all motion is CSS: data-from toggles the reveals, data-cur drives the panel slide and the cyan highlight
+      Deck.slide('t207-imitate-vs-discover', {});
+    })();
+  </script>
+</section>

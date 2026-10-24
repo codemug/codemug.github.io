@@ -1,0 +1,129 @@
+<section class="slide" id="t105-control-tokens" data-steps="2">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">Control tokens mean nothing until fine-tuning teaches them.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1100 474" role="img" aria-labelledby="t105-control-tokens-t t105-control-tokens-d">
+      <title id="t105-control-tokens-t">Control tokens never occur in pre-training text, only in fine-tuning text</title>
+      <desc id="t105-control-tokens-d">Top panel, pre-training text: the sentence I can dependably deploy LLMs as eight grey token chips, with the caption never contains control tokens. Bottom panel, fine-tuning text: a chat as token chips, where the control tokens im_start and im_end are cyan. In the last step each cyan chip shows its vocabulary id, 248045 or 248046, and a label, opens a turn or closes a turn.</desc>
+
+      <g id="t105-control-tokens-top">
+        <rect class="frame" x="10" y="18" width="1080" height="146" rx="14"/>
+        <text class="hd" x="34" y="52">pre-training text</text>
+        <g id="t105-control-tokens-prose"></g>
+        <text class="cap" x="34" y="148">never contains control tokens</text>
+      </g>
+
+      <g id="t105-control-tokens-bot">
+        <rect class="frame" x="10" y="184" width="1080" height="282" rx="14"/>
+        <text class="hd" x="34" y="218">fine-tuning text</text>
+        <g id="t105-control-tokens-chat"></g>
+        <g id="t105-control-tokens-ann"></g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t105-control-tokens svg.diagram{max-width:min(1203.2px,1200px);}
+    #t105-control-tokens .frame{fill:none;stroke:var(--color-border);stroke-width:2;}
+    #t105-control-tokens .hd{font-size:20px;fill:var(--color-text-muted);}
+    #t105-control-tokens .cap{font-size:20px;fill:var(--color-text-dim);}
+    #t105-control-tokens .chip rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t105-control-tokens .chip text{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #t105-control-tokens .chip .sp{fill:var(--color-text-muted);}
+    #t105-control-tokens .chip.nl text{fill:var(--color-text-dim);}
+    #t105-control-tokens .chip.gap rect{stroke:var(--color-text-faint);stroke-dasharray:6 5;}
+    #t105-control-tokens .chip.gap text{fill:var(--color-text-dim);}
+    #t105-control-tokens .chip.ctl rect{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));stroke:var(--color-accent);}
+    #t105-control-tokens .chip.ctl text{fill:var(--color-accent);}
+    #t105-control-tokens .idl{font-size:19px;fill:var(--color-accent);text-anchor:middle;}
+    #t105-control-tokens .lbl{font-size:19px;fill:var(--color-text-muted);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      // REAL: qwen38.json tokenization.examples[0], [id, text]; ids are not shown here
+      var PROSE = [[40, 'I'], [628, ' can'], [6549, ' depend'], [2752, 'ably'], [10204, ' deploy'], [436, ' L'], [10673, 'LM'], [82, 's']];
+      // REAL: part2.json chat.variants.thinking_off.tokens[0..6] and [17..21]; kind: c = control token, n = newline, g = elided, t = text
+      var CHAT = [
+        [
+          [248045, '<|im_start|>', 'c'], [846, 'user', 't'], [198, '\\n', 'n'], [5423, 'Return', 't'], [279, ' the', 't'],
+          [2614, ' following', 't'], [1876, ' message', 't'], [0, '...', 'g']
+        ],
+        [
+          [248046, '<|im_end|>', 'c'], [198, '\\n', 'n'], [248045, '<|im_start|>', 'c'], [74455, 'assistant', 't'], [198, '\\n', 'n']
+        ]
+      ];
+      var LABEL = { '<|im_start|>': 'opens a turn', '<|im_end|>': 'closes a turn' };   // short labels from the spec
+      var FS = 20, ADV = FS * 0.6, PAD = 12, H = 44, GAP = 8, X0 = 34;
+      var SHIFT = 150;                          // the top panel sits in the middle until the bottom panel arrives
+      var B = 0, O = 0, C = 0, stop = null;      // B: top panel slides up, O: bottom panel fades in, C: ids and labels
+      var topG = null, botG = null, annG = null;
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function clear(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+
+      // a chip at (x, y top-left); a leading space is drawn as a dot (as in s17-tokenizer); returns its width
+      function chip(parent, x, y, text, cls) {
+        var lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text;
+        var inner = (lead ? ADV : 0) + body.length * ADV, w = Math.max(44, inner + 2 * PAD);
+        var g = el('g', { 'class': 'chip' + (cls ? ' ' + cls : ''), transform: 'translate(' + x + ' ' + y + ')' }, parent);
+        el('rect', { x: 0, y: 0, width: w, height: H, rx: 10 }, g);
+        var left = w / 2 - inner / 2;
+        if (lead) el('circle', { 'class': 'sp', cx: left + ADV / 2, cy: H / 2 + FS * 0.1, r: FS * 0.11 }, g);
+        el('text', { x: left + (lead ? ADV : 0) + body.length * ADV / 2, y: H / 2, dy: '.35em' }, g, body);
+        return w;
+      }
+
+      function build(c) {
+        var prose = c.qs('#t105-control-tokens-prose'), chat = c.qs('#t105-control-tokens-chat'), ann = c.qs('#t105-control-tokens-ann');
+        [prose, chat, ann].forEach(clear);
+        var x = X0;
+        PROSE.forEach(function (t) { x += chip(prose, x, 70, t[1]) + GAP; });
+        CHAT.forEach(function (row, r) {
+          var rx = X0, y = 236 + r * 114;
+          row.forEach(function (t) {
+            var cls = t[2] === 'c' ? 'ctl' : t[2] === 'n' ? 'nl' : t[2] === 'g' ? 'gap' : '';
+            var w = chip(chat, rx, y, t[1], cls);
+            if (t[2] === 'c') {
+              el('text', { 'class': 'idl', x: rx + w / 2, y: y + H + 26 }, ann, String(t[0]));
+              el('text', { 'class': 'lbl', x: rx + w / 2, y: y + H + 52 }, ann, LABEL[t[1]]);
+            }
+            rx += w + GAP;
+          });
+        });
+        topG = c.qs('#t105-control-tokens-top'); botG = c.qs('#t105-control-tokens-bot'); annG = ann;
+      }
+
+      function draw() {
+        topG.setAttribute('transform', 'translate(0 ' + (SHIFT * (1 - B)).toFixed(1) + ')');
+        botG.style.opacity = O.toFixed(3);
+        annG.style.opacity = C.toFixed(3);
+      }
+
+      Deck.slide('t105-control-tokens', {
+        enter: function (c) { build(c); B = 0; O = 0; C = 0; draw(); },
+        leave: function () { if (stop) { stop(); stop = null; } },
+        step: function (n, prev, c) {
+          var tb = n >= 1 ? 1 : 0, tc = n >= 2 ? 1 : 0, fb = B, fo = O, fc = C;
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { B = tb; O = tb; C = tc; draw(); return; }
+          // arriving at step 1: the top panel moves up first, then the bottom panel fades in (reverse when leaving)
+          var up = tb > fb, down = tb < fb;
+          stop = Deck.tween(up || down ? 1400 : 900, function (k) {
+            var kb = up ? clamp(k / 0.45) : down ? clamp((k - 0.5) / 0.5) : k;
+            var ko = up ? clamp((k - 0.4) / 0.6) : down ? clamp(k / 0.5) : k;
+            B = Deck.lerp(fb, tb, kb); O = Deck.lerp(fo, tb, ko); C = Deck.lerp(fc, tc, k); draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

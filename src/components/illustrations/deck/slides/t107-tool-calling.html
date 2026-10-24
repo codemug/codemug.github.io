@@ -1,0 +1,60 @@
+<section class="slide" id="t107-tool-calling" data-steps="2">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">Instruction-following is the base of tool calling.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 470" role="img" aria-labelledby="t107-tool-calling-t t107-tool-calling-d">
+      <title id="t107-tool-calling-t">From following instructions to calling tools to acting as an agent</title>
+      <desc id="t107-tool-calling-d">Three chips in a vertical chain joined by arrows: follows instructions, then calls tools, then acts as an agent. One chip appears per step and the newest one is cyan.</desc>
+      <defs>
+        <marker id="t107-tool-calling-amg" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="14" refY="9" orient="auto"><path d="M0,1 L16,9 L0,17 Z" fill="var(--color-text-dim)"/></marker>
+        <marker id="t107-tool-calling-amc" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="14" refY="9" orient="auto"><path d="M0,1 L16,9 L0,17 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <g class="item" data-k="0">
+        <rect x="270" y="18" width="500" height="96" rx="18"/>
+        <text x="520" y="78" text-anchor="middle">follows instructions</text>
+      </g>
+
+      <g class="item arrow" data-k="0.5" data-from="1">
+        <line x1="520" y1="122" x2="520" y2="178"/>
+      </g>
+      <g class="item" data-k="1" data-from="1">
+        <rect x="270" y="186" width="500" height="96" rx="18"/>
+        <text x="520" y="246" text-anchor="middle">calls tools</text>
+      </g>
+
+      <g class="item arrow" data-k="1.5" data-from="2">
+        <line x1="520" y1="290" x2="520" y2="346"/>
+      </g>
+      <g class="item" data-k="2" data-from="2">
+        <rect x="270" y="354" width="500" height="96" rx="18"/>
+        <text x="520" y="414" text-anchor="middle">acts as an agent</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t107-tool-calling svg.diagram{max-width:min(1203.2px,1100px);}
+    #t107-tool-calling .item rect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;transition:stroke .5s ease,fill .5s ease;}
+    #t107-tool-calling .item text{font-size:36px;fill:var(--color-text-muted);transition:fill .5s ease;}
+    #t107-tool-calling .item line{stroke:var(--color-text-dim);stroke-width:4;stroke-linecap:round;transition:stroke .5s ease;marker-end:url(#t107-tool-calling-amg);}
+    #t107-tool-calling .item.now line{marker-end:url(#t107-tool-calling-amc);}
+    #t107-tool-calling .item.now rect{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));stroke:var(--color-accent);}
+    #t107-tool-calling .item.now text{fill:var(--color-accent);}
+    #t107-tool-calling .item.now line{stroke:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      Deck.slide('t107-tool-calling', {
+        step: function (n, prev, c) {
+          // the newest chip (and the arrow that leads to it) is cyan, the earlier ones are grey context
+          c.qsa('.item').forEach(function (g) {
+            var k = +g.getAttribute('data-k');
+            g.classList.toggle('now', k === n || k === n - 0.5);
+          });
+        }
+      });
+    })();
+  </script>
+</section>

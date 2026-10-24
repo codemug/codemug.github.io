@@ -1,0 +1,110 @@
+<section class="slide" id="t703-fewer-bits" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">Fewer bits per weight, almost the same model.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t703-fewer-bits-t t703-fewer-bits-d">
+      <title id="t703-fewer-bits-t">The same 32 real weights, stored as bf16 and as int4</title>
+      <desc id="t703-fewer-bits-d">Two stacked bar charts on the same vertical scale, showing one group of 32 real weights: the bf16 values as grey bars, and the int4 dequantized values as cyan bars directly below. Every cyan bar sits at one of 16 levels, a little shorter or taller than its grey twin. Rounding to int4 costs 4 times fewer bytes and 0.10 of the weight spread in error.</desc>
+      <g id="t703-fewer-bits-chart"></g>
+      <g id="t703-fewer-bits-nums"></g>
+      <g data-from="0" data-until="1"><text class="cap" x="560" y="48">one group of 32 real weights</text></g>
+      <g data-from="1" data-until="2"><text class="cap" x="560" y="48">each value snapped to its nearest level</text></g>
+      <g data-from="2"><text class="cap" x="560" y="48">same shape, 4× fewer bytes</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t703-fewer-bits svg.diagram{width:100%;height:100%;max-width:none;}
+    #t703-fewer-bits text{font-family:var(--font-mono);}
+    #t703-fewer-bits .base{stroke:#34343d;stroke-width:2;}
+    #t703-fewer-bits .bar{rx:3;}
+    #t703-fewer-bits .gh{fill:none;stroke:var(--color-text-faint);stroke-width:2.5;stroke-dasharray:6 6;}
+    #t703-fewer-bits .row{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #t703-fewer-bits .row.a{fill:var(--color-accent);}
+    #t703-fewer-bits .big{font-size:56px;font-weight:600;}
+    #t703-fewer-bits .big.a{fill:var(--color-accent);}
+    #t703-fewer-bits .small{font-size:20px;fill:var(--color-text-dim);}
+    #t703-fewer-bits .note{font-size:20px;fill:var(--color-text-faint);text-anchor:middle;}
+    #t703-fewer-bits .cap{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't703-fewer-bits';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var MUTED = Deck.rgb('--color-text-muted'), TEXT = Deck.rgb('--color-text'), DIM = Deck.rgb('--color-text-dim'), FAINT = Deck.rgb('--color-text-faint'), ACC = Deck.rgb('--color-accent');
+
+      // ---- REAL DATA (literals from deck/data/part2.json)
+      var VALUES = [-0.02722, -0.00568, 0.00418, 0.00311, 0.01526, -0.008, 0.01648, 0.00259, 0.00137, -0.02332, 0.00812, -0.00424, -0.01807, 0.00812, 0.00117, -0.00763, -0.00665, -0.00145, -0.0004, -0.00427, 0.00244, -0.02295, 0.00546, -0.00577, 0.00151, 0.00897, -0.00977, -0.00195, 0.0105, -0.00656, -0.01459, -0.02271]; // quant.int4_rtn.group_32.first_group.values
+      var DEQUANT = [-0.02722, -0.00389, 0.00389, 0.00389, 0.01556, -0.00778, 0.01556, 0.00389, 0.0, -0.02333, 0.00778, -0.00389, -0.01944, 0.00778, 0.0, -0.00778, -0.00778, -0.0, -0.0, -0.00389, 0.00389, -0.02333, 0.00389, -0.00389, 0.0, 0.00778, -0.01167, -0.00389, 0.01167, -0.00778, -0.01556, -0.02333]; // quant.int4_rtn.group_32.first_group.dequant
+      var ABSMAX = 0.027222;   // quant.int4_rtn.group_32.first_group.absmax
+      var REL_RMSE = 0.097486; // quant.int4_rtn.group_32.relative_rmse
+      var BPW_BF16 = 2, BPW_INT4 = 0.5; // quant.bytes_per_weight.bf16 / .int4
+
+      // ---- geometry (viewBox 1120 x 520): two stacked signed charts, same vertical scale
+      var ZT = 160, ZB = 340, HALF = 80, S = HALF / ABSMAX;
+      var X0 = 150, PITCH = 24.5, BW = 16, X1 = X0 + 32 * PITCH; // 934
+      function colx(i) { return X0 + i * PITCH + (PITCH - BW) / 2; }
+
+      var gc = document.getElementById(ID + '-chart');
+      el('line', { 'class': 'base', x1: X0, y1: ZT, x2: X1, y2: ZT }, gc);
+      el('text', { 'class': 'row', x: 60, y: ZT + 9 }, gc, 'BF16');
+      var frame = el('rect', { 'class': 'gh', x: X0 - 8, y: ZB - HALF - 8, width: X1 - X0 + 16, height: 2 * HALF + 16 }, gc);
+      var baseB = el('line', { 'class': 'base', x1: X0, y1: ZB, x2: X1, y2: ZB }, gc);
+      var labB = el('text', { 'class': 'row a', x: 60, y: ZB + 9 }, gc, 'INT4');
+
+      var topBars = [], botBars = [];
+      VALUES.forEach(function (v, i) {
+        topBars.push(el('rect', { 'class': 'bar', x: colx(i).toFixed(1), y: (v >= 0 ? ZT - Math.abs(v) * S : ZT).toFixed(1), width: BW, height: Math.max(0.01, Math.abs(v) * S).toFixed(1), fill: 'rgb(' + MUTED.join(',') + ')' }, gc));
+      });
+      DEQUANT.forEach(function (d, i) {
+        botBars.push(el('rect', { 'class': 'bar', x: colx(i).toFixed(1), width: BW, fill: 'rgb(' + ACC.join(',') + ')' }, gc));
+      });
+
+      // ---- the two bottom numbers (step 2)
+      var gn = document.getElementById(ID + '-nums');
+      var times4 = String(Math.round(BPW_BF16 / BPW_INT4)) + 'x';
+      var nums = [
+        el('text', { 'class': 'big a', x: 225, y: 474 }, gn, times4),
+        el('text', { 'class': 'small', x: 304, y: 474 }, gn, 'fewer bytes'),
+        el('text', { 'class': 'small', x: 508, y: 474 }, gn, 'error:'),
+        el('text', { 'class': 'big', x: 616, y: 474, fill: 'rgb(' + TEXT.join(',') + ')' }, gn, REL_RMSE.toFixed(2)),
+        el('text', { 'class': 'small', x: 762, y: 474 }, gn, 'of the weight spread'),
+        el('text', { 'class': 'note', x: 755, y: 504 }, gn, 'rmse / std, plain rounding, groups of 32')
+      ];
+
+      // S1: int4 chart grows from zero, N2: the two numbers fade in
+      var S1 = 0, N2 = 0, cancel = null;
+      function draw() {
+        DEQUANT.forEach(function (d, i) {
+          var h = Math.abs(d) * S * S1;
+          botBars[i].setAttribute('y', (d >= 0 ? ZB - h : ZB).toFixed(1));
+          botBars[i].setAttribute('height', Math.max(0.01, h).toFixed(1));
+        });
+        frame.style.opacity = (1 - S1).toFixed(3);
+        baseB.setAttribute('opacity', S1.toFixed(3));
+        labB.setAttribute('opacity', S1.toFixed(3));
+        nums.forEach(function (t) { t.style.opacity = N2.toFixed(3); });
+      }
+      draw();
+
+      Deck.slide('t703-fewer-bits', {
+        enter: function () { S1 = 0; N2 = 0; draw(); },
+        step: function (n, prev, c) {
+          var ts1 = n >= 1 ? 1 : 0, tn2 = n >= 2 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S1 = ts1; N2 = tn2; draw(); return; }
+          var fs1 = S1, fn2 = N2;
+          cancel = Deck.tween(n >= 1 ? 900 : 600, function (k) { S1 = Deck.lerp(fs1, ts1, k); N2 = Deck.lerp(fn2, tn2, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

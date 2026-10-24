@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1100 520" role="img" aria-labelledby="s14-not-words-t s14-not-words-d">
       <title id="s14-not-words-t">Words versus tokens</title>
-      <desc id="s14-not-words-d">The sentence I can reliably deploy LLMs is five words. The real Qwen3.8-27B tokenizer splits it into seven tokens: the word LLMs breaks into three pieces, and a dot marks a leading space.</desc>
+      <desc id="s14-not-words-d">The sentence I can dependably deploy LLMs is five words. The real Qwen3.8-27B tokenizer splits it into eight tokens: dependably breaks into two pieces, LLMs into three, and a dot marks a leading space.</desc>
 
       <g id="s14-not-words-conn"></g>
       <g id="s14-not-words-words"></g>
@@ -42,8 +42,8 @@
     (function () {
       var NS = 'http://www.w3.org/2000/svg';
       // REAL: deck/data/qwen38.json tokenization.examples[0] (Qwen3.8-27B tokenizer), [id, text]
-      var TEXT = "I can reliably deploy LLMs";
-      var TOKS = [[40,"I"],[628," can"],[54488," reliably"],[10204," deploy"],[436," L"],[10673,"LM"],[82,"s"]];
+      var TEXT = "I can dependably deploy LLMs";
+      var TOKS = [[40,"I"],[628," can"],[6549," depend"],[2752,"ably"],[10204," deploy"],[436," L"],[10673,"LM"],[82,"s"]];
       var WORDS = TEXT.split(' ');
       var FS = 38, ADV = FS * 0.6, PAD = 20, H = 72, CX = 550;
       var Y_W0 = 252, Y_W1 = 124, Y_T0 = 252, Y_T1 = 306;
@@ -53,6 +53,8 @@
         OWNER.push(TEXT.slice(0, at).split(' ').length - 1);
         pos += s.length;
       });
+
+      var SPLIT = OWNER.map(function (o) { return OWNER.filter(function (x) { return x === o; }).length > 1; });
 
       var words = [], toks = [], links = [], wx = [], tx = [], x0 = [], P = 0, stop = null;
 
@@ -116,8 +118,8 @@
           var gw = c.qs('#s14-not-words-words'), gt = c.qs('#s14-not-words-toks'), gl = c.qs('#s14-not-words-conn');
           [gw, gt, gl].forEach(function (g) { while (g.firstChild) g.removeChild(g.firstChild); });
           words = WORDS.map(function (w) { return chip(gw, w, 'word'); });
-          toks = TOKS.map(function (t, i) { return chip(gt, t[1], OWNER[i] === 4 ? 'tok lw' : 'tok'); });
-          links = TOKS.map(function (t, i) { return el('path', { class: OWNER[i] === 4 ? 'link lw' : 'link' }, gl); });
+          toks = TOKS.map(function (t, i) { return chip(gt, t[1], SPLIT[i] ? 'tok lw' : 'tok'); });
+          links = TOKS.map(function (t, i) { return el('path', { class: SPLIT[i] ? 'link lw' : 'link' }, gl); });
           wx = centers(WORDS.map(function (w) { return measure(w).w; }), 26);
           tx = centers(TOKS.map(function (t) { return measure(t[1]).w; }), 14);
           x0 = startX();

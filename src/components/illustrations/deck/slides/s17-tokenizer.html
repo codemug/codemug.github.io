@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1100 520" role="img" aria-labelledby="s17-tokenizer-t s17-tokenizer-d">
       <title id="s17-tokenizer-t">The tokenizer maps text to vocabulary ids</title>
-      <desc id="s17-tokenizer-d">The sentence I can reliably deploy LLMs goes into the tokenizer and comes out as seven token chips. Under each chip appears its id in the vocabulary, 40, 628, 54488, 10204, 436, 10673 and 82, and a small excerpt of the vocabulary shows three of those lookups.</desc>
+      <desc id="s17-tokenizer-d">The sentence I can dependably deploy LLMs goes into the tokenizer and comes out as eight token chips. Under each chip appears its id in the vocabulary, 40, 628, 6549, 2752, 10204, 436, 10673 and 82, and a small excerpt of the vocabulary shows three of those lookups.</desc>
       <defs>
         <marker id="s17-tokenizer-ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,1 L12,7 L0,13 Z" fill="var(--color-accent)"/></marker>
         <marker id="s17-tokenizer-am" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,1 L12,7 L0,13 Z" fill="var(--color-text-muted)"/></marker>
@@ -12,7 +12,7 @@
 
       <g id="s17-tokenizer-main">
       <g class="top">
-        <text class="raw" x="550" y="38">I can reliably deploy LLMs</text>
+        <text class="raw" x="550" y="38">I can dependably deploy LLMs</text>
         <line class="arr m" x1="550" y1="58" x2="550" y2="90" marker-end="url(#s17-tokenizer-am)"/>
         <rect class="tzr" x="430" y="96" width="240" height="56" rx="13"/>
         <text class="tzt" x="550" y="133">tokenizer</text>
@@ -58,7 +58,7 @@
     (function () {
       var NS = 'http://www.w3.org/2000/svg';
       // REAL: deck/data/qwen38.json tokenization.examples[0] (Qwen3.8-27B tokenizer), [id, text]
-      var TOKS = [[40,"I"],[628," can"],[54488," reliably"],[10204," deploy"],[436," L"],[10673,"LM"],[82,"s"]];
+      var TOKS = [[40,"I"],[628," can"],[6549," depend"],[2752,"ably"],[10204," deploy"],[436," L"],[10673,"LM"],[82,"s"]];
       // REAL id -> token pairs from the examples (examples[0], examples[3]), sorted by id: an excerpt of the vocabulary
       var VOCAB = [[40,"I"],[279," the"],[628," can"],[7993," cat"],[10204," deploy"]];
       var FS = 38, ADV = FS * 0.6, PAD = 20, H = 72, CX = 550, Y_CHIP = 224, Y_ID = 312, Y_LINK0 = 326;

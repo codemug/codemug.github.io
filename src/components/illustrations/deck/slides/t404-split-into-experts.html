@@ -1,0 +1,130 @@
+<section class="slide" id="t404-split-into-experts" data-steps="2">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">Split the feed-forward into many small ones: experts.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t404-split-into-experts-t t404-split-into-experts-d">
+      <title id="t404-split-into-experts-t">One big feed-forward box is split into eight experts, with a router in front</title>
+      <desc id="t404-split-into-experts-d">At first one big box holds the two feed-forward matrices Wu and Wd. The box splits into eight smaller boxes labelled E1 to E8, each with its own Wu and Wd. Then a small router matrix box appears in front of them, with an arrow fanning out to each of the eight experts.</desc>
+      <defs>
+        <marker id="t404-split-into-experts-ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-accent)"/></marker>
+      </defs>
+      <g id="t404-split-into-experts-big"></g>
+      <g id="t404-split-into-experts-experts"></g>
+      <g id="t404-split-into-experts-fan"></g>
+      <g id="t404-split-into-experts-router"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t404-split-into-experts svg.diagram{width:100%;height:100%;max-width:none;}
+    #t404-split-into-experts text{font-family:var(--font-mono);}
+    #t404-split-into-experts .bx{fill:var(--color-surface-deep);stroke:var(--color-text-dim);stroke-width:3;}
+    #t404-split-into-experts .blk{fill:var(--color-surface-2);stroke:var(--color-text-dim);stroke-width:2.5;}
+    #t404-split-into-experts .bt{font-size:36px;font-weight:600;fill:var(--color-text-soft);text-anchor:middle;}
+    #t404-split-into-experts .bl{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t404-split-into-experts .ar{fill:none;stroke:var(--color-text-dim);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t404-split-into-experts .ex{fill:var(--color-surface-deep);stroke-width:3;}
+    #t404-split-into-experts .en{font-size:27px;font-weight:600;}
+    #t404-split-into-experts .ew{font-size:22px;text-anchor:end;}
+    #t404-split-into-experts .rt{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #t404-split-into-experts .rl{font-size:28px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #t404-split-into-experts .fan{stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;fill:none;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't404-split-into-experts';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seeded(i) { var s = Math.sin(i * 12.9898 + 2.7) * 43758.5453; return s - Math.floor(s); }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+
+      // TOY: 8 experts (Mixtral 8x7B has 8; Qwen3-30B-A3B has 128, see the notes)
+      var NE = 8, TOP = 34, SPAN = 452, SLICE = SPAN / NE, EH = 44, BW = 420, X0 = 350, SHIFT = 210;
+      var RX = 120, RW = 200, RY = 190, RH = 140, RCY = 260;
+      var GREY = [98, 98, 108], MUTED = Deck.rgb('--color-text-muted'), ACC = Deck.rgb('--color-accent');
+
+      // step 0: the big box with Wu (wide, flat) and Wd (tall, narrow) inside
+      var gb = $('big');
+      var bigBox = el('g', {}, gb);
+      el('rect', { 'class': 'bx', x: X0, y: TOP, width: BW, height: SPAN, rx: 18 }, bigBox);
+      el('text', { 'class': 'bl', x: X0 + BW / 2, y: TOP + 40 }, bigBox, 'feed-forward');
+      el('rect', { 'class': 'blk', x: X0 + 36, y: 220, width: 170, height: 80, rx: 10 }, bigBox);
+      el('text', { 'class': 'bt', x: X0 + 36 + 85, y: 270 }, bigBox, 'Wu');
+      el('path', { 'class': 'ar', d: 'M' + (X0 + 216) + ' 260H' + (X0 + 262) + 'm-10 -9l10 9l-10 9' }, bigBox);
+      el('rect', { 'class': 'blk', x: X0 + 276, y: 140, width: 70, height: 240, rx: 10 }, bigBox);
+      el('text', { 'class': 'bt', x: X0 + 276 + 35, y: 270 }, bigBox, 'Wd');
+
+      // step 1: eight slices of the same box that pull apart into E1..E8
+      var ge = $('experts'), ex = [];
+      for (var i = 0; i !== NE; i++) {
+        var g = el('g', {}, ge);
+        var r = el('rect', { 'class': 'ex', width: BW }, g);
+        var n = el('text', { 'class': 'en' }, g, 'E' + (i + 1));
+        var w = el('text', { 'class': 'ew' }, g, 'Wu · Wd');
+        ex.push({ g: g, r: r, n: n, w: w });
+      }
+
+      // step 2: the router in front, with a fan of arrows to the experts
+      var gr = $('router'), gf = $('fan');
+      var router = el('g', {}, gr);
+      el('rect', { 'class': 'rt', x: RX, y: RY, width: RW, height: RH, rx: 14 }, router);
+      el('text', { 'class': 'rl', x: RX + RW / 2, y: RY + 38 }, router, 'router');
+      for (var rr = 0; rr !== 4; rr++) {
+        for (var cc = 0; cc !== NE; cc++) {
+          var a = 0.15 + 0.85 * seeded(rr * 8 + cc);
+          el('rect', { x: RX + 22 + cc * 19, y: RY + 58 + rr * 19, width: 16, height: 16, rx: 3, fill: 'var(--color-accent)', 'fill-opacity': a.toFixed(2) }, router);
+        }
+      }
+      var lines = [];
+      for (var k = 0; k !== NE; k++) lines.push(el('line', { 'class': 'fan', 'marker-end': 'url(#' + ID + '-ah)' }, gf));
+
+      var S = { a: 0, b: 0 }, cancel = null;
+      function draw() {
+        var a = S.a, b = S.b;
+        var shift = SHIFT * clamp(b / 0.5), fanP = clamp((b - 0.45) / 0.55);
+        var show = clamp(a * 8), cyan = a * (1 - clamp(b * 1.5));
+        bigBox.style.opacity = (1 - show).toFixed(3);
+        bigBox.querySelectorAll('.blk,.bt,.ar').forEach(function (e) { e.style.opacity = (1 - clamp(a * 3)).toFixed(3); });
+        ex.forEach(function (e, i) {
+          var h = Deck.lerp(SLICE, EH, a), y = TOP + SLICE * i + (SLICE - h) / 2, x = X0 + shift;
+          e.g.style.opacity = show.toFixed(3);
+          e.r.setAttribute('x', x); e.r.setAttribute('y', y); e.r.setAttribute('height', h); e.r.setAttribute('rx', Deck.lerp(2, 10, a));
+          e.r.style.stroke = mix(GREY, ACC, cyan);
+          e.n.setAttribute('x', x + 22); e.n.setAttribute('y', y + h / 2 + 9); e.n.style.fill = mix(MUTED, ACC, cyan);
+          e.w.setAttribute('x', x + BW - 22); e.w.setAttribute('y', y + h / 2 + 8); e.w.style.fill = mix([128, 128, 138], MUTED, cyan);
+          e.w.style.opacity = clamp((a - 0.5) * 2).toFixed(3); e.n.style.opacity = clamp((a - 0.4) * 2).toFixed(3);
+          var yc = TOP + SLICE * i + SLICE / 2, x2 = X0 + SHIFT - 6, x1 = RX + RW + 4;
+          lines[i].setAttribute('x1', x1); lines[i].setAttribute('y1', RCY);
+          lines[i].setAttribute('x2', Deck.lerp(x1, x2, fanP)); lines[i].setAttribute('y2', Deck.lerp(RCY, yc, fanP));
+          lines[i].style.opacity = fanP > 0.02 ? 1 : 0;
+        });
+        router.style.opacity = clamp((b - 0.35) / 0.4).toFixed(3);
+      }
+      draw();
+
+      function target(n) { return { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 }; }
+      Deck.slide('t404-split-into-experts', {
+        enter: function () { S = target(0); draw(); },
+        step: function (n, prev, c) {
+          var to = target(n), from = { a: S.a, b: S.b };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          // forward: first the split, then the router; backward: the router first
+          cancel = Deck.tween(1000, function (t) {
+            S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

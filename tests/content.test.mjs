@@ -26,7 +26,7 @@ test('Part 1 uses only the deck figures', () => {
 
 test('every figure appears exactly once, in figures.json order', () => {
   const used = [...body.matchAll(/<DeckFig name="([^"]+)" \/>/g)].map((m) => m[1]);
-  assert.deepEqual(used, figures);
+  assert.deepEqual(used, figures.filter((n) => n.startsWith('p1-')));
 });
 
 test('the appendix and the retired examples are gone', () => {
@@ -37,7 +37,9 @@ test('the appendix and the retired examples are gone', () => {
 });
 
 test('frontmatter marks the revision', () => {
-  assert.match(p1, /^---[\s\S]*?\nupdatedDate: 2026-10-17\n[\s\S]*?---/);
+  const m = p1.match(/^---[\s\S]*?\nupdatedDate:\s*([^\n]+)\n[\s\S]*?---/);
+  assert.ok(m, 'updatedDate in frontmatter');
+  assert.ok(m[1].trim() > '2026-10-17', `updatedDate ${m[1]} is later than 2026-10-17`);
 });
 
 // Usman's review of the first local build (2026-10-17)
@@ -57,8 +59,8 @@ test('review: hidden_size leads into a brief, sourced explanation of scaling law
 });
 
 test('review: the key is described as the influence a token has to offer', () => {
-  assert.ok(body.includes('what influence this token has to offer'));
-  assert.ok(body.includes('K holds what influence a token has to offer'));
+  assert.ok(body.includes('what kind of influence this token has to offer'));
+  assert.ok(body.includes('K holds what kind of influence a token has to offer'));
   assert.ok(!body.includes('K, which represents what this token has to offer'));
 });
 
@@ -66,4 +68,34 @@ test('review: the feed-forward overview figure closes the feed-forward mechanics
   const at = (n) => body.indexOf(`<DeckFig name="${n}" />`);
   assert.ok(at('p1-detectors') < at('p1-ffn-flow') && at('p1-ffn-flow') < at('p1-ffn-recap'));
   assert.ok(body.indexOf("That's the entire feed-forward step") > at('p1-ffn-flow'));
+});
+
+test("Part 1 uses the deck's example sentence", () => {
+  assert.ok(body.includes('I can dependably deploy LLMs'));
+  assert.ok(body.includes('[40, 628, 6549, 2752, 10204, 436, 10673, 82]'));
+  assert.ok(body.includes('the token count is eight'));
+  assert.ok(!body.includes('reliably deploy LLMs'));
+  assert.ok(!body.includes('54488'));
+});
+
+test('the matrix paragraph names the linear transformation', () => {
+  const mat = body.indexOf('linear transformation');
+  const dot = body.indexOf('<DeckFig name="p1-dot" />');
+  assert.ok(mat > -1 && dot > -1 && mat < dot);
+});
+
+test('the board and the recap are gone', () => {
+  assert.ok(!body.includes('p1-sampling-board'));
+  assert.ok(!body.includes('p1-recap'));
+  assert.ok(!body.includes('here it is to play with'));
+});
+
+test('feed-forward opens with Wu widening and Wd narrowing', () => {
+  const at = (n) => body.indexOf(`<DeckFig name="${n}" />`);
+  assert.ok(at('p1-world-cup') < at('p1-wu-wd'));
+  assert.ok(at('p1-wu-wd') < at('p1-detectors'));
+  const wuIdx = at('p1-wu-wd');
+  const detIdx = at('p1-detectors');
+  const numIdx = body.indexOf('17,408', wuIdx);
+  assert.ok(numIdx > wuIdx && numIdx < detIdx, '17,408 appears between p1-wu-wd and p1-detectors');
 });

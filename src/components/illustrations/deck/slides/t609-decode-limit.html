@@ -1,0 +1,84 @@
+<section class="slide" id="t609-decode-limit" data-steps="1">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">Decode speed limit, back of the envelope.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t609-decode-limit-t t609-decode-limit-d">
+      <title id="t609-decode-limit-t">Decode speed limit: tokens per second is roughly memory bandwidth divided by the 55.6 gigabytes of weights read per token, with an illustrative bandwidth table</title>
+      <desc id="t609-decode-limit-d">A large formula: tokens per second approximately equals memory bandwidth over bytes of weights read per token, with 55.6 GB read per token below it. Then a three-row table: 1000, 2000 and 3000 gigabytes per second of bandwidth give roughly 18, 36 and 54 tokens per second. Labeled as illustrative bandwidths, not a specific GPU.</desc>
+      <g id="t609-decode-limit-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t609-decode-limit svg.diagram{width:100%;height:100%;max-width:none;}
+    #t609-decode-limit text{font-family:var(--font-mono);}
+    #t609-decode-limit .f1{font-size:34px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t609-decode-limit .f2{font-size:34px;text-anchor:middle;font-weight:700;fill:var(--color-text);}
+    #t609-decode-limit .bpt{font-size:28px;text-anchor:middle;fill:var(--color-accent);}
+    #t609-decode-limit .head{font-size:24px;fill:var(--color-text-muted);}
+    #t609-decode-limit .cell{font-size:28px;fill:var(--color-text);}
+    #t609-decode-limit .big{font-size:34px;font-weight:700;fill:var(--color-accent);}
+    #t609-decode-limit .rule{stroke:var(--color-text-faint);stroke-width:2.5;}
+    #t609-decode-limit .cap{font-size:24px;text-anchor:middle;fill:var(--color-text-dim);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't609-decode-limit';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // real data: kv.weights_gb_bf16 (deck/data/part2.json)
+      var W_BYTES = 55562855904, W_GB = 55.562856;
+      var BPT_GB = Math.round(W_BYTES / 1e8) / 10; // = 55.6 GB read per token
+      var BW = [1000, 2000, 3000]; // illustrative bandwidths (GB/s), named in the notes
+
+      var g = document.getElementById(ID + '-g');
+
+      // ---- step 0: formula + bytes per token (always visible)
+      el('text', { 'class': 'f1', x: 560, y: 150 }, g, 'tokens per second \u2248');
+      el('text', { 'class': 'f2', x: 560, y: 205 }, g, 'memory bandwidth \u00f7 bytes of weights read per token');
+      var bpt = el('text', { 'class': 'bpt', x: 560, y: 270 }, g, BPT_GB.toFixed(1) + ' GB read per token');
+
+      // ---- step 1: table
+      var tab = el('g', {}, g);
+      el('text', { 'class': 'head', x: 420, y: 345, 'text-anchor': 'middle' }, tab, 'bandwidth');
+      el('text', { 'class': 'head', x: 760, y: 345, 'text-anchor': 'middle' }, tab, 'tokens per second');
+      el('line', { 'class': 'rule', x1: 220, y1: 358, x2: 900, y2: 358 }, tab);
+      var rows = [[1000, 390], [2000, 430], [3000, 470]];
+      rows.forEach(function (r) {
+        el('text', { 'class': 'cell', x: 420, y: r[1], 'text-anchor': 'middle' }, tab, r[0].toLocaleString('en-US') + ' GB/s');
+        el('text', { 'class': 'big', x: 760, y: r[1], 'text-anchor': 'middle' }, tab, String(Math.round(r[0] / W_GB)));
+      });
+      el('text', { 'class': 'cap', x: 560, y: 505 }, tab, 'illustrative bandwidths, not a specific GPU');
+      tab.setAttribute('opacity', '0');
+
+      // ---- state
+      var s1 = 0, cancel = null;
+      function draw() {
+        tab.setAttribute('opacity', s1.toFixed(3));
+      }
+      draw();
+
+      Deck.slide('t609-decode-limit', {
+        enter: function () { s1 = 0; draw(); },
+        step: function (n, prev, c) {
+          var t = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s1 = t; draw(); return; }
+          var f = s1;
+          cancel = Deck.tween(700, function (k) {
+            s1 = Deck.lerp(f, t, k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

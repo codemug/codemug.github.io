@@ -1,0 +1,178 @@
+<section class="slide" id="t604-keep-kv-drop-q" data-steps="3" data-tool="dot">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">Keep K and V. Drop Q.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t604-keep-kv-drop-q-t t604-keep-kv-drop-q-d">
+      <title id="t604-keep-kv-drop-q-t">The cache keeps every token's k and v; the new query is used once and old queries are dropped</title>
+      <desc id="t604-keep-kv-drop-q-d">Six stored token cards in a row, each holding a key k1 to k6 and a value v1 to v6. Below them a small plane shows the query of the new token not as a cyan arrow. Thin cyan lines run from the query to every stored key. Finally six faded, crossed-out queries q1 to q6 appear with the caption used once, never again.</desc>
+      <g id="t604-keep-kv-drop-q-plane"></g>
+      <g id="t604-keep-kv-drop-q-cards"></g>
+      <g id="t604-keep-kv-drop-q-lines"></g>
+      <g id="t604-keep-kv-drop-q-qarrow"></g>
+      <text id="t604-keep-kv-drop-q-qlab" class="qlab" x="648" y="350">q(not)</text>
+      <g id="t604-keep-kv-drop-q-newtok"></g>
+      <text class="cap2" x="840" y="410" text-anchor="middle">new token</text>
+      <text class="cap1" x="24" y="330" data-from="2">q · k for every stored key</text>
+      <g id="t604-keep-kv-drop-q-oldq"></g>
+      <text id="t604-keep-kv-drop-q-never" class="never" x="24" y="486">used once, never again</text>
+    </svg>
+  </div>
+
+  <style>
+    #t604-keep-kv-drop-q svg.diagram{width:100%;height:100%;max-width:none;}
+    #t604-keep-kv-drop-q text{font-family:var(--font-mono);}
+    #t604-keep-kv-drop-q .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #t604-keep-kv-drop-q .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #t604-keep-kv-drop-q .axh{fill:var(--color-text-faint);}
+    #t604-keep-kv-drop-q .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #t604-keep-kv-drop-q .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t604-keep-kv-drop-q .tok{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t604-keep-kv-drop-q .tsp{fill:var(--color-text-dim);}
+    #t604-keep-kv-drop-q .cell{fill:var(--color-bg);stroke:var(--color-border-strong);stroke-width:2;}
+    #t604-keep-kv-drop-q .cellt{font-size:22px;font-weight:600;text-anchor:middle;fill:var(--color-text-muted);}
+    #t604-keep-kv-drop-q .sh{stroke:var(--color-accent);stroke-width:4.5;stroke-linecap:round;fill:none;}
+    #t604-keep-kv-drop-q .hd{fill:var(--color-accent);stroke:none;}
+    #t604-keep-kv-drop-q .qlab{font-size:24px;font-weight:600;fill:var(--color-accent);}
+    #t604-keep-kv-drop-q .ln{stroke:var(--color-accent);stroke-width:2;fill:none;stroke-linecap:round;}
+    #t604-keep-kv-drop-q .dot{fill:var(--color-accent);}
+    #t604-keep-kv-drop-q .chiprect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t604-keep-kv-drop-q .chipt{font-size:26px;fill:var(--color-text);text-anchor:middle;}
+    #t604-keep-kv-drop-q .cap1{font-size:24px;fill:var(--color-accent);}
+    #t604-keep-kv-drop-q .cap2{font-size:20px;fill:var(--color-text-dim);}
+    #t604-keep-kv-drop-q .oq{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t604-keep-kv-drop-q .oqt{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t604-keep-kv-drop-q .strike{stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;}
+    #t604-keep-kv-drop-q .never{font-size:24px;fill:var(--color-text-soft);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't604-keep-kv-drop-q';
+      var root = document.getElementById(ID);
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // REAL tokens (part2.json gandalf): the last six tokens of the sentence; " not" is the expected continuation, not model output
+      var TOK = [' gand', 'alf', ' screamed', ':', ' you', ' shall'], NEW = ' not';
+      // TOY: the new token's query in the attention plane (same plane convention as s33 to s38)
+      var Q = [0.35, 0.80];
+      var CX0 = 190, CPITCH = 148, CARD_Y = 40, CARD_H = 116, FOOT_Y = 160;
+      var OX = 560, OY = 460, U = 190, X0 = -0.95, X1 = 0.95, Y0 = -0.12, Y1 = 1.0;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+      var CY = Deck.rgb('--color-accent'), BORDER = [52, 52, 61], MUT = Deck.rgb('--color-text-muted');
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mix(a, b, t) { t = clamp(t); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }).join(',') + ')'; }
+      // token label centred on cx (mono, 0.6 em advance); a leading space is drawn as a dot (pattern of s17-tokenizer)
+      function label(parent, text, cx, y, fs, cls, dotCls) {
+        var adv = fs * 0.6, lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text;
+        var inner = (lead ? adv : 0) + body.length * adv, left = cx - inner / 2;
+        if (lead) el('circle', { 'class': dotCls, cx: left + adv / 2, cy: y + fs * 0.1, r: fs * 0.11 }, parent);
+        el('text', { 'class': cls, x: left + (lead ? adv : 0) + body.length * adv / 2, y: y, dy: '.35em' }, parent, body);
+      }
+
+      // ---- the plane (same look as the part-1 attention plane) ----
+      (function buildPlane() {
+        var g = root.querySelector('#' + ID + '-plane'), k;
+        [-0.5, 0.5].forEach(function (v) { el('line', { 'class': 'grd', x1: P.X(v), y1: P.Y(Y0), x2: P.X(v), y2: P.Y(Y1) }, g); });
+        el('line', { 'class': 'grd', x1: P.X(X0), y1: P.Y(0.5), x2: P.X(X1), y2: P.Y(0.5) }, g);
+        el('line', { 'class': 'axl', x1: P.X(X0), y1: OY, x2: P.X(X1) - 8, y2: OY }, g);
+        el('line', { 'class': 'axl', x1: OX, y1: P.Y(Y0), x2: OX, y2: P.Y(Y1) + 8 }, g);
+        [[P.X(X1), OY, -1, 0], [OX, P.Y(Y1), 0, 1]].forEach(function (h) {
+          var bx = h[0] + h[2] * 14, by = h[1] + h[3] * 14, nx = -h[3] * 6, ny = h[2] * 6;
+          el('polygon', { 'class': 'axh', points: [h[0], h[1], bx + nx, by + ny, bx - nx, by - ny].join(' ') }, g);
+        });
+      })();
+
+      // ---- the cache: one card per token, each with its k and v ----
+      var gCards = root.querySelector('#' + ID + '-cards');
+      var kCells = TOK.map(function (t, i) {
+        var cx = CX0 + i * CPITCH, g = el('g', {}, gCards);
+        el('rect', { 'class': 'card', x: cx - 64, y: CARD_Y, width: 128, height: CARD_H, rx: 14 }, g);
+        label(g, t, cx, CARD_Y + 22, 20, 'tok', 'tsp');
+        var kr = el('rect', { 'class': 'cell', x: cx - 58, y: CARD_Y + 44, width: 52, height: 56, rx: 9 }, g);
+        var kt = el('text', { 'class': 'cellt', x: cx - 32, y: CARD_Y + 72, dy: '.35em' }, g, 'k' + (i + 1));
+        el('rect', { 'class': 'cell', x: cx + 6, y: CARD_Y + 44, width: 52, height: 56, rx: 9 }, g);
+        el('text', { 'class': 'cellt', x: cx + 32, y: CARD_Y + 72, dy: '.35em' }, g, 'v' + (i + 1));
+        return { rect: kr, text: kt, foot: [cx - 32, FOOT_Y] };
+      });
+
+      // ---- the query arrow of the new token (cyan, same arrow style as s33) ----
+      var gq = root.querySelector('#' + ID + '-qarrow');
+      var shaft = el('line', { 'class': 'sh' }, gq), head = el('polygon', { 'class': 'hd' }, gq);
+      var qlab = root.querySelector('#' + ID + '-qlab');
+      function setArrow(v, alpha) {
+        var t = P.P(v[0], v[1]), dx = t[0] - OX, dy = t[1] - OY, len = Math.hypot(dx, dy);
+        gq.style.opacity = len < 4 ? 0 : alpha;
+        if (len < 4) return;
+        var ux = dx / len, uy = dy / len, L = Math.min(22, len * 0.5), bx = t[0] - ux * L, by = t[1] - uy * L;
+        shaft.setAttribute('x1', OX); shaft.setAttribute('y1', OY);
+        shaft.setAttribute('x2', t[0] - ux * (L - 3)); shaft.setAttribute('y2', t[1] - uy * (L - 3));
+        head.setAttribute('points', [t[0], t[1], bx - uy * 10, by + ux * 10, bx + uy * 10, by - ux * 10].join(' '));
+      }
+      var tip = P.P(Q[0], Q[1]);
+
+      // ---- the dot-product lines: from the tip of q to the foot of every stored key ----
+      var gl = root.querySelector('#' + ID + '-lines');
+      var lines = kCells.map(function (k) {
+        var path = el('line', { 'class': 'ln', x1: tip[0], y1: tip[1], x2: k.foot[0], y2: k.foot[1], pathLength: 1, 'stroke-dasharray': 1 }, gl);
+        var dot = el('circle', { 'class': 'dot', cx: k.foot[0], cy: k.foot[1], r: 5 }, gl);
+        return { path: path, dot: dot };
+      });
+
+      // ---- the new token chip ----
+      (function () {
+        var g = root.querySelector('#' + ID + '-newtok'), adv = 26 * 0.6, w = adv * (NEW.length) + 28;
+        el('rect', { 'class': 'chiprect', x: 840 - w / 2, y: 422, width: w, height: 48, rx: 12 }, g);
+        label(g, NEW, 840, 446, 26, 'chipt', 'tsp');
+      })();
+
+      // ---- old queries q1..q6: faded and crossed out ----
+      var gO = root.querySelector('#' + ID + '-oldq');
+      var olds = TOK.map(function (t, i) {
+        var cx = 52 + i * 64, g = el('g', {}, gO);
+        el('rect', { 'class': 'oq', x: cx - 28, y: 396, width: 56, height: 44, rx: 9 }, g);
+        el('text', { 'class': 'oqt', x: cx, y: 418, dy: '.35em' }, g, 'q' + (i + 1));
+        el('line', { 'class': 'strike', x1: cx - 22, y1: 434, x2: cx + 22, y2: 402 }, g);
+        return g;
+      });
+      var never = root.querySelector('#' + ID + '-never');
+
+      var T = [0, 0, 0], cancel = null;      // [query arrow, dot-product lines, old queries]
+      function draw() {
+        var a = T[0], l = T[1], x = T[2];
+        setArrow(Deck.lerp([0, 0], Q, a), Math.min(1, a * 10));
+        qlab.style.opacity = clamp((a - 0.6) / 0.4);
+        lines.forEach(function (ln, i) {
+          var p = clamp((l - 0.5 * i / 5) / 0.5);
+          ln.path.style.strokeDashoffset = (1 - p).toFixed(3);
+          ln.path.style.opacity = p > 0 ? 0.8 : 0;
+          ln.dot.style.opacity = clamp((p - 0.9) / 0.1);
+          kCells[i].rect.style.stroke = mix(BORDER, CY, p);
+          kCells[i].text.style.fill = mix(MUT, CY, p);
+        });
+        olds.forEach(function (g, i) { g.style.opacity = clamp(x * 1.5 - i * 0.1) * 0.7; });
+        never.style.opacity = clamp((x - 0.4) / 0.6);
+      }
+      draw();
+
+      var TARGET = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [1, 1, 1]];
+      Deck.slide('t604-keep-kv-drop-q', {
+        enter: function () { T = TARGET[0].slice(); draw(); },
+        step: function (n, prev, c) {
+          var to = TARGET[Math.min(n, 3)];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { T = to.slice(); draw(); return; }
+          var from = T.slice();
+          cancel = Deck.tween(900, function (t) { T = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

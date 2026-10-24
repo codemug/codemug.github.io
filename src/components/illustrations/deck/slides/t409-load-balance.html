@@ -1,0 +1,149 @@
+<section class="slide" id="t409-load-balance" data-steps="2">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">Without balance, a few experts do all the work.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t409-load-balance-t t409-load-balance-d">
+      <title id="t409-load-balance-t">Share of tokens per expert during training, without and with a balancing penalty</title>
+      <desc id="t409-load-balance-d">Eight vertical bars show the share of tokens each expert receives, with a dashed line at one eighth. At the start they are nearly even. As training runs, without a penalty, E2 and E5 grow to about 45 percent each while the other six shrink to a sliver and are marked wasted. Then the run restarts with a balancing penalty and the bars stay close to one eighth.</desc>
+      <line id="t409-load-balance-eighth" class="eighth" x1="92" y1="352" x2="1028" y2="352"/>
+      <text class="e8" x="84" y="359">1/8</text>
+      <g id="t409-load-balance-bars"></g>
+      <text class="cl" x="92" y="40">training steps</text>
+      <text class="cn" id="t409-load-balance-count" x="92" y="86">0</text>
+      <g data-from="1" data-until="2"><text class="mode" x="1028" y="64">no penalty</text></g>
+      <g data-from="2"><text class="mode a" x="1028" y="64">add a balancing penalty</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t409-load-balance svg.diagram{width:100%;height:100%;max-width:none;}
+    #t409-load-balance text{font-family:var(--font-mono);}
+    #t409-load-balance .eighth{stroke:var(--color-text-faint);stroke-width:3;stroke-dasharray:12 8;}
+    #t409-load-balance .e8{font-size:22px;text-anchor:end;}
+    #t409-load-balance .cl{font-size:22px;fill:var(--color-text-muted);}
+    #t409-load-balance .cn{font-size:44px;font-weight:600;fill:var(--color-accent);font-variant-numeric:tabular-nums;}
+    #t409-load-balance .mode{font-size:24px;fill:var(--color-text-muted);text-anchor:end;}
+    #t409-load-balance .mode.a{fill:var(--color-accent);}
+    #t409-load-balance .en{font-size:24px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t409-load-balance .pv{font-size:24px;font-weight:600;text-anchor:middle;font-variant-numeric:tabular-nums;}
+    #t409-load-balance .wt{font-size:20px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t409-load-balance .base{stroke:var(--color-border-strong);stroke-width:2;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't409-load-balance';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mixv(a, b, t) { t = clamp(t); return a.map(function (v, i) { return v + (b[i] - v) * t; }); }
+      function rgb(a) { return 'rgb(' + a.map(Math.round).join(',') + ')'; }
+      function norm(p) { var s = p.reduce(function (a, b) { return a + b; }, 0); return p.map(function (v) { return v / s; }); }
+
+      // MOE TOY: a simple recurrence for the share of tokens per expert (not a real training run).
+      // Each step: the two experts with the highest share grow in proportion to their lead over the third (top-2 routing
+      // trains the chosen experts), the rest shrink; the penalty pulls every expert back toward 1/8 (+ a little seeded jitter).
+      var NE = 8, STEPS = 100, K = 0.5, LAM = 1.2, JIT = 0.035, EPS = 0.015;
+      var INIT = norm([0.118, 0.135, 0.122, 0.113, 0.135, 0.120, 0.125, 0.123]);        // nearly even; E2 and E5 start slightly ahead
+      function simulate(lam, amp) {
+        var p = INIT.slice(), out = [p.slice()];
+        for (var t = 0; t !== STEPS; t++) {
+          var thr = p.slice().sort(function (a, b) { return b - a; })[2];
+          p = norm(p.map(function (pi, i) {
+            var nz = amp * (Math.sin(1.3 * t + 2.7 * i) + Math.sin(0.41 * t + 5.3 * i)) / 2;
+            return pi * Math.exp(K * (pi - thr) - lam * (pi - 1 / NE) + nz);
+          }));
+          out.push(p.slice());
+        }
+        return out;
+      }
+      var TRAJ = [simulate(0, 0), simulate(LAM, JIT)];            // [no penalty, with penalty]
+      function disp(p) { return EPS + (1 - NE * EPS) * p; }       // a floor: tokens still reach a loser now and then
+
+      var BASE = 432, SCALE = 640, CX0 = 147, PITCH = 118, BW = 72;
+      var MUTED = Deck.rgb('--color-text-muted'), FAINT = Deck.rgb('--color-text-faint'), ACC = Deck.rgb('--color-accent');
+      var gb = $('bars'), bars = [], pv = [], wt = [];
+      el('line', { 'class': 'base', x1: 88, y1: BASE, x2: 1032, y2: BASE }, gb);
+      for (var j = 0; j !== NE; j++) {
+        var cx = CX0 + j * PITCH;
+        bars.push(el('rect', { x: cx - BW / 2, y: BASE, width: BW, height: 0, rx: 5 }, gb));
+        pv.push(el('text', { 'class': 'pv', x: cx, y: BASE - 12 }, gb, ''));
+        wt.push(el('text', { 'class': 'wt', x: cx, y: BASE - 40 }, gb, 'wasted'));
+        el('text', { 'class': 'en', x: cx, y: BASE + 38 }, gb, 'E' + (j + 1));
+      }
+      var count = $('count'), eighth = $('eighth'), e8 = document.querySelector('#' + ID + ' .e8');
+
+      var S = { p: INIT.slice(), t: 0, m: 0 }, cancel = null;       // m: 0 = start, 1 = no penalty, 2 = with penalty
+      function draw() {
+        var m = S.m;
+        S.p.forEach(function (raw, i) {
+          var d = disp(raw), h = d * SCALE;
+          var base = d >= 1 / NE ? mixv(MUTED, ACC, (d - 0.14) / 0.12) : mixv(MUTED, FAINT, (0.11 - d) / 0.07);
+          var col = rgb(mixv(base, ACC, m - 1));
+          bars[i].setAttribute('y', BASE - h); bars[i].setAttribute('height', h);
+          bars[i].setAttribute('fill', col);
+          pv[i].setAttribute('y', BASE - h - 12); pv[i].style.fill = col;
+          pv[i].textContent = (d * 100).toFixed(d < 0.05 ? 1 : 0) + '%';
+          wt[i].setAttribute('y', BASE - h - 44);
+          wt[i].style.opacity = (clamp((0.05 - d) / 0.03) * (1 - clamp(m - 1))).toFixed(3);
+        });
+        count.textContent = String(Math.round(S.t));
+        var c = rgb(mixv(FAINT, ACC, m - 1));
+        eighth.style.stroke = c; e8.style.fill = c;
+      }
+      draw();
+
+      function stateAt(run, s) {                                     // run 0 or 1, s in [0,1]
+        var idx = clamp(s) * STEPS, i0 = Math.min(STEPS - 1, Math.floor(idx)), f = idx - i0, tr = TRAJ[run];
+        return { p: Deck.lerp(tr[i0], tr[i0 + 1], f), t: idx };
+      }
+      function finalOf(n) {
+        if (n === 0) return { p: INIT.slice(), t: 0, m: 0 };
+        var st = stateAt(n - 1, 1);
+        return { p: st.p, t: STEPS, m: n };
+      }
+      function blendTo(to, ms, done) {
+        var from = { p: S.p.slice(), t: S.t, m: S.m };
+        return Deck.tween(ms, function (k) {
+          S = { p: Deck.lerp(from.p, to.p, k), t: Deck.lerp(from.t, to.t, k), m: Deck.lerp(from.m, to.m, k) };
+          draw();
+        }, { done: done });
+      }
+      function playRun(run, m0, m1, ms) {
+        return Deck.tween(ms, function (k) {
+          var st = stateAt(run, k);
+          S = { p: st.p, t: st.t, m: Deck.lerp(m0, m1, k) };
+          draw();
+        }, { ease: Deck.ease.linear });
+      }
+
+      Deck.slide('t409-load-balance', {
+        enter: function () { S = finalOf(0); draw(); },
+        step: function (n, prev, c) {
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = finalOf(n); draw(); return; }
+          if (n === 1 && prev === 0) { cancel = playRun(0, 0, 1, 4500); return; }
+          if (n === 2) {
+            // re-run from the start, this time with the penalty
+            var cur = null, dead = false;
+            cancel = function () { dead = true; if (cur) cur(); };
+            if (prev === 1) {
+              cur = blendTo({ p: INIT.slice(), t: 0, m: 1 }, 700, function () { if (!dead) cur = playRun(1, 1, 2, 4500); });
+            } else {
+              cur = playRun(1, S.m, 2, 4500);
+            }
+            return;
+          }
+          cancel = blendTo(finalOf(n), 800);
+        }
+      });
+    })();
+  </script>
+</section>

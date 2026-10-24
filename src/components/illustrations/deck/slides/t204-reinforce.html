@@ -1,0 +1,111 @@
+<section class="slide" id="t204-reinforce" data-steps="2">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">Reinforce the good attempts. Repeat, millions of times.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 450" role="img" aria-labelledby="t204-reinforce-t t204-reinforce-d">
+      <title id="t204-reinforce-t">Reinforcing the good attempts shifts how answers start</title>
+      <desc id="t204-reinforce-d">Two horizontal bars show how an answer starts: works step by step at 0.30 and rushes to an answer at 0.70. After one update the step-by-step bar grows slightly to 0.32 and the other shrinks to 0.68, with a small arrow on the winner and a counter reading 1 update. The counter then runs up to 1,000,000 prompts while the bars settle at 0.92 and 0.08. Caption: what the good attempts share becomes the default.</desc>
+
+      <text class="hd" x="20" y="44">how an answer starts</text>
+      <text id="t204-reinforce-count" class="cnt" x="1030" y="50" text-anchor="end"></text>
+
+      <!-- ghosts: where the bars started -->
+      <g id="t204-reinforce-ghosts" opacity="0">
+        <path class="ghost" id="t204-reinforce-g2" d="M330 224H732Q740 224 740 232V298Q740 306 732 306H330"/>
+      </g>
+
+      <!-- bars (script sets lengths and colours) -->
+      <rect id="t204-reinforce-b1" class="bar" x="320" y="104" width="180" height="82" rx="8"/>
+      <rect id="t204-reinforce-b2" class="bar" x="320" y="224" width="420" height="82" rx="8"/>
+      <text id="t204-reinforce-l1" class="nm" x="300" y="156" text-anchor="end">works step by step</text>
+      <text id="t204-reinforce-l2" class="nm" x="300" y="276" text-anchor="end">rushes to an answer</text>
+      <text id="t204-reinforce-v1" class="val" x="0" y="156"></text>
+      <text id="t204-reinforce-v2" class="val" x="0" y="276"></text>
+
+      <!-- where the winner started: a dashed tick over its bar -->
+      <line id="t204-reinforce-g1" class="tick" x1="500" y1="94" x2="500" y2="196" opacity="0"/>
+
+      <!-- small arrow on the winner -->
+      <g id="t204-reinforce-arrow" opacity="0">
+        <path class="arw" d="M0 0H36M25 -11L38 0L25 11"/>
+      </g>
+
+      <text id="t204-reinforce-cap" class="cap" x="520" y="398" text-anchor="middle" opacity="0">what the good attempts share becomes the default</text>
+    </svg>
+  </div>
+
+  <style>
+    #t204-reinforce svg.diagram{max-width:min(1203.2px,1100px);}
+    #t204-reinforce .hd{font-size:24px;fill:var(--color-text-dim);}
+    #t204-reinforce .cnt{font-size:26px;fill:var(--color-text-muted);font-variant-numeric:tabular-nums;}
+    #t204-reinforce .cnt .n{font-size:44px;font-weight:600;}
+    #t204-reinforce .ghost{fill:none;stroke:var(--color-text-faint);stroke-width:2.5;stroke-dasharray:8 7;}
+    #t204-reinforce .tick{stroke:var(--color-bg);stroke-width:3.5;stroke-dasharray:7 6;}
+    #t204-reinforce .nm{font-size:25px;}
+    #t204-reinforce .val{font-size:32px;font-weight:600;font-variant-numeric:tabular-nums;}
+    #t204-reinforce .arw{fill:none;stroke:var(--color-accent);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;}
+    #t204-reinforce .cap{font-size:27px;fill:var(--color-text-soft);}
+  </style>
+  <script>
+    (function () {
+      var ID = 't204-reinforce';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+      var GREY = Deck.rgb('--color-text-faint'), CYAN = Deck.rgb('--color-accent'), LAB = Deck.rgb('--color-text-muted'), LABW = Deck.rgb('--color-text');
+
+      // TOY: probability that an answer starts "works step by step" (winner) or "rushes to an answer" (loser)
+      var V0 = 0.30, V1 = 0.32, V2 = 0.92;     // winner: start, after one update, after a million prompts
+      var X0 = 320, LEN = 600;                    // bar for 1.0 is 600 units long
+      var FINAL = 1000000;
+
+      var b1, b2, g1, g2, l1, l2, v1, v2, arrow, count, cap, ghosts;
+      function counterText(u, p) {
+        var n = p > 0 ? Math.max(1, Math.round(Math.pow(10, 6 * p))) : (u > 0.5 ? 1 : 0);
+        var unit = n === 0 ? 'updates' : n === 1 ? 'update' : 'prompts';
+        return { n: n.toLocaleString('en-US'), unit: unit, on: n > 0 };
+      }
+      var S = { u: 0, p: 0 };
+      function draw() {
+        // winner value: V0 -> V1 (one update) -> V2 (a million prompts); the loser is the complement
+        var w = V0 + (V1 - V0) * S.u + (V2 - V1) * S.p, l = 1 - w;
+        b1.setAttribute('width', (LEN * w).toFixed(1)); b2.setAttribute('width', (LEN * l).toFixed(1));
+        b1.setAttribute('fill', mix(GREY, CYAN, S.u)); b2.setAttribute('fill', mix(GREY, GREY, 0));
+        l1.setAttribute('fill', mix(LAB, CYAN, S.u)); l2.setAttribute('fill', mix(LAB, LAB, 0));
+        v1.setAttribute('fill', mix(LABW, CYAN, S.u)); v2.setAttribute('fill', mix(LABW, LAB, S.u));
+        v1.textContent = w.toFixed(2); v2.textContent = l.toFixed(2);
+        var arrowW = 54 * S.u, e1 = X0 + LEN * w, e2 = X0 + LEN * l;
+        v1.setAttribute('x', (e1 + 18 + arrowW).toFixed(1)); v2.setAttribute('x', (X0 + LEN * (1 - V0) + 18).toFixed(1));   // loser label stays clear of its ghost outline
+        arrow.setAttribute('transform', 'translate(' + (e1 + 18).toFixed(1) + ' 145)');
+        arrow.setAttribute('opacity', clamp(S.u * 1.5).toFixed(2));
+        ghosts.setAttribute('opacity', clamp(S.u * 1.5).toFixed(2)); g1.setAttribute('opacity', clamp(S.u * 1.5).toFixed(2));
+        cap.setAttribute('opacity', clamp((S.p - 0.7) / 0.3).toFixed(2));
+        var c = counterText(S.u, S.p);
+        count.innerHTML = '';
+        var tn = document.createElementNS(NS, 'tspan'); tn.setAttribute('class', 'n'); tn.setAttribute('fill', c.on ? 'var(--color-accent)' : 'var(--color-text-dim)'); tn.textContent = c.n;
+        var tu = document.createElementNS(NS, 'tspan'); tu.setAttribute('dx', '12'); tu.textContent = c.unit;
+        count.appendChild(tn); count.appendChild(tu);
+      }
+      var cancel = null;
+      Deck.slide('t204-reinforce', {
+        enter: function () {
+          b1 = $('b1'); b2 = $('b2'); g1 = $('g1'); g2 = $('g2'); l1 = $('l1'); l2 = $('l2'); v1 = $('v1'); v2 = $('v2');
+          arrow = $('arrow'); count = $('count'); cap = $('cap'); ghosts = $('ghosts');
+                    S = { u: 0, p: 0 }; draw();
+        },
+        step: function (n, prev, c) {
+          var to = { u: n >= 1 ? 1 : 0, p: n >= 2 ? 1 : 0 };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { u: S.u, p: S.p };
+          // a long run to a million prompts, a short nudge for the first update
+          cancel = Deck.tween(to.p !== from.p ? 3200 : 900, function (t) {
+            S = { u: Deck.lerp(from.u, to.u, t), p: Deck.lerp(from.p, to.p, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

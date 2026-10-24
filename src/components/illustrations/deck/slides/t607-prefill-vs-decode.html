@@ -1,0 +1,161 @@
+<section class="slide" id="t607-prefill-vs-decode" data-steps="2">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">Prefill: many tokens per weight read. Decode: one.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t607-prefill-vs-decode-t t607-prefill-vs-decode-d">
+      <title id="t607-prefill-vs-decode-t">Prefill versus decode: a memory box of weights, a pipe to a compute grid, and utilisation bars showing compute-bound prefill and memory-bound decode</title>
+      <desc id="t607-prefill-vs-decode-d">Left: a memory box holding six weight blocks, with small tokens streaming through a pipe to a grid of 48 compute cells on the right. Prefill lights the whole grid and the compute bar reads 90 percent; decode leaves one column lit and the memory bar reads 90 percent.</desc>
+      <g id="t607-prefill-vs-decode-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t607-prefill-vs-decode svg.diagram{width:100%;height:100%;max-width:none;}
+    #t607-prefill-vs-decode text{font-family:var(--font-mono);}
+    #t607-prefill-vs-decode .lab{font-size:24px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t607-prefill-vs-decode .ph{font-size:24px;text-anchor:middle;fill:var(--color-text);}
+    #t607-prefill-vs-decode .box{fill:none;stroke:var(--color-text-muted);stroke-width:2.5;}
+    #t607-prefill-vs-decode .wblock{fill:color-mix(in oklab,var(--color-text-muted) 26%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:2.5;rx:6;}
+    #t607-prefill-vs-decode .pipe{stroke:var(--color-text-dim);stroke-width:2.5;}
+    #t607-prefill-vs-decode .sq{fill:var(--color-accent);}
+    #t607-prefill-vs-decode .cap{font-size:24px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t607-prefill-vs-decode .cell0{fill:var(--color-surface-deep);stroke:var(--color-text-faint);stroke-width:2;rx:6;}
+    #t607-prefill-vs-decode .cell1{fill:var(--color-accent);rx:6;}
+    #t607-prefill-vs-decode .btrack{fill:var(--color-surface-deep);stroke:var(--color-text-faint);stroke-width:2;rx:9;}
+    #t607-prefill-vs-decode .bfill{fill:var(--color-accent);rx:9;}
+    #t607-prefill-vs-decode .bfillm{fill:var(--color-text-dim);rx:9;}
+    #t607-prefill-vs-decode .blab{font-size:22px;text-anchor:end;fill:var(--color-text-muted);}
+    #t607-prefill-vs-decode .bval{font-size:22px;fill:var(--color-text);}
+    #t607-prefill-vs-decode .chip{fill:none;stroke:var(--color-accent);stroke-width:2.5;rx:15;}
+    #t607-prefill-vs-decode .chipt{font-size:20px;text-anchor:middle;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't607-prefill-vs-decode';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // illustrative utilisation numbers (not measured) - named in the notes
+      var PRE = { compute: 90, memory: 45 };
+      var DEC = { compute: 8, memory: 90 };
+      var COLS = 8, ROWS = 6, CELL_W = 48, CELL_H = 40, GAP = 12, DECODE_COL = 7;
+
+      var g = document.getElementById(ID + '-g');
+
+      // ---- memory box with six weight blocks (left)
+      var BX = 40, BW = 220, BY = 140, BH = 300;
+      el('text', { 'class': 'lab', x: BX + BW / 2, y: 124 }, g, 'memory');
+      el('rect', { 'class': 'box', x: BX, y: BY, width: BW, height: BH, rx: 12 }, g);
+      for (var w = 0; w < 6; w++) {
+        el('rect', { 'class': 'wblock', x: BX + 30, y: BY + 12 + w * 48, width: BW - 60, height: 36, rx: 6 }, g);
+      }
+      el('text', { 'class': 'lab', x: BX + BW / 2, y: 464 }, g, 'weights');
+
+      // ---- pipe from the box to the grid (two thin lines + streaming tokens)
+      var PX0 = 260, PX1 = 520, PY = 295;
+      el('line', { 'class': 'pipe', x1: PX0, y1: PY - 6, x2: PX1, y2: PY - 6 }, g);
+      el('line', { 'class': 'pipe', x1: PX0, y1: PY + 6, x2: PX1, y2: PY + 6 }, g);
+      var pips = [];
+      for (var p = 0; p < 4; p++) {
+        pips.push(el('rect', { 'class': 'sq', x: PX0, y: PY - 6, width: 12, height: 12, rx: 3 }, g));
+      }
+      var stopPipe = null;
+      function animatePipe(secs) {
+        var ph = secs / 1.5;
+        pips.forEach(function (s, i) {
+          var x = PX0 + 2 + ((ph + i / 4) % 1) * (PX1 - PX0 - 16);
+          s.setAttribute('x', x.toFixed(1));
+        });
+      }
+
+      var cap = el('text', { 'class': 'cap', x: (PX0 + PX1) / 2, y: 345 }, g, 'reading all the weights');
+
+      // ---- compute grid (right)
+      var GX = 520, GY = 140;
+      var ph1 = el('text', { 'class': 'ph', x: (GX + 988) / 2, y: 110 }, g, 'prefill: all prompt tokens at once');
+      var ph2 = el('text', { 'class': 'ph', x: (GX + 988) / 2, y: 110 }, g, 'decode: one token');
+      ph1.setAttribute('opacity', '0');
+      ph2.setAttribute('opacity', '0');
+      var cells = [];
+      for (var r = 0; r < ROWS; r++) {
+        for (var c = 0; c < COLS; c++) {
+          el('rect', { 'class': 'cell0', x: GX + c * (CELL_W + GAP), y: GY + r * (CELL_H + GAP), width: CELL_W, height: CELL_H, rx: 6 }, g);
+          cells.push(el('rect', { 'class': 'cell1', x: GX + c * (CELL_W + GAP), y: GY + r * (CELL_H + GAP), width: CELL_W, height: CELL_H, rx: 6 }, g));
+        }
+      }
+
+      // ---- utilisation bars (below the grid)
+      var bars = el('g', {}, g);
+      var TX = 620, TW = 368;
+      el('rect', { 'class': 'btrack', x: TX, y: 462, width: TW, height: 20, rx: 9 }, bars);
+      var fc = el('rect', { 'class': 'bfill', x: TX, y: 462, width: 0, height: 20, rx: 9 }, bars);
+      el('text', { 'class': 'blab', x: TX - 10, y: 472, dy: '.35em' }, bars, 'compute');
+      var vc = el('text', { 'class': 'bval', x: TX + TW + 10, y: 472, dy: '.35em' }, bars, '0%');
+      el('rect', { 'class': 'btrack', x: TX, y: 490, width: TW, height: 20, rx: 9 }, bars);
+      var fm = el('rect', { 'class': 'bfillm', x: TX, y: 490, width: 0, height: 20, rx: 9 }, bars);
+      el('text', { 'class': 'blab', x: TX - 10, y: 500, dy: '.35em' }, bars, 'memory');
+      var vm = el('text', { 'class': 'bval', x: TX + TW + 10, y: 500, dy: '.35em' }, bars, '0%');
+
+      // ---- chip (bottom-left, below the box)
+      var chip1 = el('g', {}, g), chip2 = el('g', {}, g);
+      el('rect', { 'class': 'chip', x: 62, y: 486, width: 168, height: 30, rx: 15 }, chip1);
+      el('text', { 'class': 'chipt', x: 146, y: 501, dy: '.35em' }, chip1, 'compute-bound');
+      el('rect', { 'class': 'chip', x: 62, y: 486, width: 168, height: 30, rx: 15 }, chip2);
+      el('text', { 'class': 'chipt', x: 146, y: 501, dy: '.35em' }, chip2, 'memory-bound');
+      chip1.setAttribute('opacity', '0');
+      chip2.setAttribute('opacity', '0');
+
+      // ---- state
+      var s1 = 0, s2 = 0, cancel = null;
+      function lit(i) { // 0..1 per cell, col = i % COLS
+        var col = i % COLS;
+        var pre = Math.max(0, Math.min(1, (s1 - col * 0.1) / 0.3)); // staggered column fill
+        var target = (col === DECODE_COL ? 1 : 0);
+        return Deck.lerp(pre, target, s2);
+      }
+      function draw() {
+        cells.forEach(function (cell, i) { cell.setAttribute('opacity', lit(i).toFixed(3)); });
+        ph1.setAttribute('opacity', (s1 * (1 - s2)).toFixed(3));
+        ph2.setAttribute('opacity', s2.toFixed(3));
+        cap.setAttribute('opacity', (1 - s1).toFixed(3));
+        bars.setAttribute('opacity', s1.toFixed(3));
+        var cw = Deck.lerp(Deck.lerp(0, PRE.compute, s1), DEC.compute, s2);
+        var mw = Deck.lerp(Deck.lerp(0, PRE.memory, s1), DEC.memory, s2);
+        fc.setAttribute('width', (cw / 100 * TW).toFixed(2));
+        fm.setAttribute('width', (mw / 100 * TW).toFixed(2));
+        vc.textContent = Math.round(cw) + '%';
+        vm.textContent = Math.round(mw) + '%';
+        chip1.setAttribute('opacity', (s1 * (1 - s2)).toFixed(3));
+        chip2.setAttribute('opacity', s2.toFixed(3));
+      }
+      draw();
+
+      Deck.slide('t607-prefill-vs-decode', {
+        enter: function () {
+          s1 = 0; s2 = 0; draw();
+          if (stopPipe) stopPipe();
+          stopPipe = Deck.loop(animatePipe);
+        },
+        leave: function () { if (stopPipe) { stopPipe(); stopPipe = null; } },
+        step: function (n, prev, c) {
+          var t = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s1 = t[0]; s2 = t[1]; draw(); return; }
+          var f = [s1, s2];
+          cancel = Deck.tween(700, function (k) {
+            s1 = Deck.lerp(f[0], t[0], k);
+            s2 = Deck.lerp(f[1], t[1], k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

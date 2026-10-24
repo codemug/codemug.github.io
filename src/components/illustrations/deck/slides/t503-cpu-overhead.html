@@ -1,0 +1,139 @@
+<section class="slide" id="t503-cpu-overhead" data-steps="1">
+  <p class="kicker reveal">the GPU</p>
+  <p class="statement reveal">The CPU spends cycles on coordination.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 440" role="img" aria-labelledby="t503-cpu-overhead-t t503-cpu-overhead-d">
+      <title id="t503-cpu-overhead-t">A CPU multiplies one pair of numbers in a loop of four boxes, and most of the time goes to coordination</title>
+      <desc id="t503-cpu-overhead-d">Four boxes in a loop: load into registers, multiply, read the accumulator, next pair, with a return arrow from the last box back to the first. In the last step a token runs once around the loop while a time bar fills underneath. The multiply slice of the bar is a thin cyan sliver; the rest of the bar is bracketed as coordination, not maths.</desc>
+      <g id="t503-cpu-overhead-loop"></g>
+      <g data-from="1" id="t503-cpu-overhead-timewrap"><g id="t503-cpu-overhead-time"></g></g>
+    </svg>
+  </div>
+
+  <style>
+    #t503-cpu-overhead svg.diagram{width:100%;height:100%;max-width:none;}
+    #t503-cpu-overhead text{font-family:var(--font-mono);}
+    #t503-cpu-overhead .nd{color:var(--color-text-muted);transition:color .25s;}
+    #t503-cpu-overhead .nd.lit{color:var(--color-accent);}
+    #t503-cpu-overhead .ob{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #t503-cpu-overhead .nd.lit .ob{fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));}
+    #t503-cpu-overhead .ot{font-size:25px;text-anchor:middle;fill:currentColor;}
+    #t503-cpu-overhead .ay{fill:none;stroke:var(--color-text-dim);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t503-cpu-overhead .tok{fill:var(--color-accent);}
+    #t503-cpu-overhead .trk{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t503-cpu-overhead .fl{fill:var(--color-border-strong);}
+    #t503-cpu-overhead .fl.mul{fill:var(--color-accent);}
+    #t503-cpu-overhead .sl{font-size:22px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t503-cpu-overhead .tl{font-size:22px;text-anchor:middle;fill:var(--color-text-dim);}
+    #t503-cpu-overhead .ml{font-size:24px;text-anchor:middle;fill:var(--color-accent);}
+    #t503-cpu-overhead .lead{stroke:var(--color-accent);stroke-width:2.5;stroke-linecap:round;}
+    #t503-cpu-overhead .br{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #t503-cpu-overhead .brl{font-size:30px;font-weight:600;text-anchor:middle;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't503-cpu-overhead';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // ---- the loop: four boxes, arrows between them, a return arrow underneath
+      var LABELS = [['load into', 'registers'], ['multiply'], ['read the', 'accumulator'], ['next', 'pair']];
+      var BX = [60, 330, 600, 870], BW = 190, BY = 34, BH = 92, CY = BY + BH / 2;
+      var CXS = BX.map(function (x) { return x + BW / 2; });
+      var gl = $('loop'), nodes = [];
+      BX.forEach(function (x, i) {
+        var g = el('g', { 'class': 'nd' }, gl);
+        el('rect', { 'class': 'ob', x: x, y: BY, width: BW, height: BH, rx: 14 }, g);
+        var L = LABELS[i];
+        L.forEach(function (t, k) { el('text', { 'class': 'ot', x: x + BW / 2, y: CY + (L.length === 1 ? 0 : (k ? 14 : -14)), dy: '.35em' }, g, t); });
+        nodes.push(g);
+        if (i < 3) el('path', { 'class': 'ay', d: 'M' + (x + BW + 8) + ' ' + CY + 'H' + (BX[i + 1] - 10) + 'm-10 -9l10 9l-10 9' }, gl);
+      });
+      // return arrow: from the last box, along the bottom, back up into the first
+      el('path', { 'class': 'ay', d: 'M' + CXS[3] + ' ' + (BY + BH + 8) + 'V168q0 16 -16 16H' + (CXS[0] + 16) + 'q-16 0 -16 -16V' + (BY + BH + 10) + 'm-9 9l9 -9l9 9' }, gl);
+      var tok = el('circle', { 'class': 'tok', r: 12, cx: CXS[0], cy: CY }, gl);
+
+      // ---- the time bar: ILLUSTRATIVE shares of one round (load, multiply, read, next)
+      var SH = [0.27, 0.06, 0.34, 0.33], T0 = [0, 0.27, 0.33, 0.67, 1];
+      var X0 = 120, W = 880, TY = 300, TH = 44;
+      var gt = $('time'), tx = X0, slices = [];
+      el('text', { 'class': 'tl', x: 62, y: TY + TH / 2, dy: '.35em' }, gt, 'time');
+      SH.forEach(function (sh, i) {
+        var w = sh * W;
+        el('rect', { 'class': 'trk', x: tx, y: TY, width: w, height: TH, rx: 6 }, gt);
+        var fl = el('rect', { 'class': 'fl' + (i === 1 ? ' mul' : ''), x: tx, y: TY, width: 0, height: TH, rx: 6 }, gt);
+        if (i !== 1) el('text', { 'class': 'sl', x: tx + w / 2, y: TY + TH / 2, dy: '.35em' }, gt, ['load', '', 'read', 'next'][i]);
+        slices.push({ x: tx, w: w, fl: fl });
+        tx += w;
+      });
+      var mx = slices[1].x + slices[1].w / 2;
+      var mlab = el('g', {}, gt);
+      el('text', { 'class': 'ml', x: mx, y: 262 }, mlab, 'multiply');
+      el('line', { 'class': 'lead', x1: mx, y1: 274, x2: mx, y2: TY - 6 }, mlab);
+      var brk = el('g', {}, gt);
+      el('path', { 'class': 'br', d: 'M' + X0 + ' ' + (TY + TH + 14) + 'v12H' + (X0 + W) + 'v-12' }, brk);
+      el('text', { 'class': 'brl', x: X0 + W / 2, y: TY + TH + 74 }, brk, 'coordination, not maths');
+
+      // ---- the token's route: along the arrows, then the return path
+      var RET = [[CXS[3], CY], [CXS[3], 184], [CXS[0], 184], [CXS[0], CY]];
+      var RLEN = [0], r;
+      for (r = 1; r !== RET.length; r++) RLEN.push(RLEN[r - 1] + Math.hypot(RET[r][0] - RET[r - 1][0], RET[r][1] - RET[r - 1][1]));
+      function retAt(k) {
+        var d = k * RLEN[RLEN.length - 1], i = 1;
+        while (i < RET.length - 1 && d > RLEN[i]) i++;
+        var u = clamp((d - RLEN[i - 1]) / (RLEN[i] - RLEN[i - 1]));
+        return [RET[i - 1][0] + (RET[i][0] - RET[i - 1][0]) * u, RET[i - 1][1] + (RET[i][1] - RET[i - 1][1]) * u];
+      }
+      function tokenAt(s) {
+        var i = s < T0[1] ? 0 : s < T0[2] ? 1 : s < T0[3] ? 2 : 3;
+        var u = (s - T0[i]) / (T0[i + 1] - T0[i]);
+        if (i < 3) {
+          var dwell = 0.72;
+          if (u <= dwell) return { x: CXS[i], y: CY, lit: i };
+          return { x: Deck.lerp(CXS[i], CXS[i + 1], Deck.ease.inOut(clamp((u - dwell) / (1 - dwell)))), y: CY, lit: -1 };
+        }
+        if (u <= 0.4) return { x: CXS[3], y: CY, lit: 3 };
+        var p = retAt(Deck.ease.inOut(clamp((u - 0.4) / 0.6)));
+        return { x: p[0], y: p[1], lit: -1 };
+      }
+
+      // S = 0..1 over the whole step: the first 8% lifts the loop to make room for the bar, the rest is the token's round
+      var S = 0, cancel = null, lastLit = -2, LIFT = 100, PRE = 0.08;
+      function draw() {
+        var R = clamp((S - PRE) / (1 - PRE)), U = clamp(S / PRE);
+        var t = tokenAt(R), running = R > 0.001 && R < 0.999;
+        gl.setAttribute('transform', 'translate(0 ' + (LIFT * (1 - Deck.ease.inOut(U))).toFixed(2) + ')');
+        tok.setAttribute('cx', t.x); tok.setAttribute('cy', t.y);
+        var lit = running ? t.lit : -1;
+        tok.style.opacity = running && lit < 0 ? 1 : 0;      // the token disappears into a box while that box is lit
+        if (lit !== lastLit) { nodes.forEach(function (n, i) { n.setAttribute('class', 'nd' + (i === lit ? ' lit' : '')); }); lastLit = lit; }
+        slices.forEach(function (sl) { sl.fl.setAttribute('width', Math.max(0, Math.min(sl.w, R * W - (sl.x - X0)))); });
+        mlab.style.opacity = clamp((R - 0.33) / 0.08);
+        brk.style.opacity = clamp((R - 0.92) / 0.08);
+      }
+      gl.setAttribute('transform', 'translate(0 ' + LIFT + ')');
+      draw();
+
+      Deck.slide('t503-cpu-overhead', {
+        enter: function () { S = 0; lastLit = -2; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = S;
+          cancel = Deck.tween(to > from ? 5600 * (to - from) : 600, function (k) { S = Deck.lerp(from, to, k); draw(); },
+            { ease: to > from ? Deck.ease.linear : Deck.ease.inOut });
+        }
+      });
+    })();
+  </script>
+</section>

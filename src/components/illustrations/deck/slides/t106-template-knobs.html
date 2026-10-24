@@ -1,0 +1,161 @@
+<section class="slide" id="t106-template-knobs" data-steps="3">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">The template is a behaviour knob. No weight changes.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 -14 1100 436" role="img" aria-labelledby="t106-template-knobs-t t106-template-knobs-d">
+      <title id="t106-template-knobs-t">Chat template switches change the rendered prompt, not the weights</title>
+      <desc id="t106-template-knobs-d">On the left the rendered Qwen3.8-27B prompt: a system turn with the reasoning effort sentence, the user turn, and the assistant cue with an open think tag highlighted in cyan. On the right three switches and a badge, 0 weights changed. Step 1 turns the assistant cue off: the assistant lines go grey and struck through and the caption says the model keeps writing as the user. Step 2 sets enable_thinking to false: the system turn disappears and the think tag is followed by an empty line and a closing think tag. Step 3 sets reasoning_effort to low: the xhigh sentence is struck through and the low sentence replaces it. Each switch is flipped on its own.</desc>
+
+      <rect class="frame" x="10" y="20" width="680" height="352" rx="14"/>
+      <g id="t106-template-knobs-lines"></g>
+      <text id="t106-template-knobs-cap" class="cap" x="12" y="412">the model keeps writing as the user</text>
+
+      <g id="t106-template-knobs-sw"></g>
+
+      <g>
+        <rect class="badge" x="712" y="306" width="378" height="66" rx="14"/>
+        <text class="bnum" x="782" y="352">0</text>
+        <text class="btxt" x="818" y="349">weights changed</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t106-template-knobs svg.diagram{max-width:min(1203.2px,1200px);}
+    #t106-template-knobs .frame{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2;}
+    #t106-template-knobs .tx{font-size:19px;white-space:pre;}
+    #t106-template-knobs .strike{stroke:var(--color-text-dim);stroke-width:2.5;stroke-linecap:round;}
+    #t106-template-knobs .cap{font-size:20px;fill:var(--color-accent);}
+    #t106-template-knobs .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t106-template-knobs .track{stroke-width:2;}
+    #t106-template-knobs .knob{fill:var(--color-text-soft);}
+    #t106-template-knobs .sw-k{font-size:19px;fill:var(--color-text-muted);}
+    #t106-template-knobs .sw-v{fill:var(--color-text-muted);}
+    #t106-template-knobs .badge{fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #t106-template-knobs .bnum{font-size:40px;font-weight:600;fill:var(--color-accent);}
+    #t106-template-knobs .btxt{font-size:23px;fill:var(--color-text-soft);}
+  </style>
+
+  <script>
+    (function () {
+      var NS = 'http://www.w3.org/2000/svg';
+      var CW = 11.4, X0 = 30, Y0 = 56, PITCH = 36;
+      var BASE = Deck.rgb('--color-text-soft'), CYAN = Deck.rgb('--color-accent'), DIM = Deck.rgb('--color-text-dim');
+      // REAL: part2.json chat.variants.{default, no_generation_prompt, thinking_off, effort_low}.rendered, split into lines.
+      // The two reasoning-effort sentences are cut with "..."; the user line is wrapped before <end>.
+      var LINES = [
+        { k: 's1',  segs: ['<|im_start|>', 'system'] },
+        { k: 's2x', segs: ['Reasoning effort is set to xhigh. Please ...', '<|im_end|>'] },
+        { k: 's2l', segs: ['Reasoning effort is set to low. Keep your ...', '<|im_end|>'] },
+        { k: 'u1',  segs: ['<|im_start|>', 'user'] },
+        { k: 'u2',  segs: ['Return the following message <start> This is a test'] },
+        { k: 'u3',  ind: 2, segs: ['<end>', '<|im_end|>'] },
+        { k: 'a1',  segs: ['<|im_start|>', 'assistant'] },
+        { k: 't1',  segs: ['<think>'] },
+        { k: 't3',  segs: ['</think>'] }
+      ];
+      // per state: key -> [row, highlight, struck]; keys that are missing are hidden
+      var STATES = [
+        { s1: [0, 0, 0], s2x: [1, 0, 0], u1: [2, 0, 0], u2: [3, 0, 0], u3: [4, 0, 0], a1: [5, 1, 0], t1: [6, 1, 0] },            // baseline: default
+        { s1: [0, 0, 0], s2x: [1, 0, 0], u1: [2, 0, 0], u2: [3, 0, 0], u3: [4, 0, 0], a1: [5, 0, 1], t1: [6, 0, 1] },            // add_generation_prompt = false
+        { s1: [0, 0, 1], s2x: [1, 0, 1], u1: [2, 0, 0], u2: [3, 0, 0], u3: [4, 0, 0], a1: [5, 0, 0], t1: [6, 1, 0], t3: [8, 1, 0] }, // enable_thinking = false
+        { s1: [0, 0, 0], s2x: [1, 0, 1], s2l: [2, 1, 0], u1: [3, 0, 0], u2: [4, 0, 0], u3: [5, 0, 0], a1: [6, 0, 0], t1: [7, 0, 0] } // reasoning_effort = low
+      ];
+      var HIDDEN_ROW = { s2l: 2, t3: 8 };
+      // the three switches: [key, default value, flipped value]
+      var SWITCHES = [['assistant cue', 'on', 'off'], ['enable_thinking', 'true', 'false'], ['reasoning_effort', 'xhigh', 'low']];
+      var CARD_Y = [20, 112, 204], CARD_H = 78, CARD_X = 712, CARD_W = 378;
+
+      var cur = [], sw = [0, 0, 0], cap = 0, els = [], swEls = [], capEl = null, stop = null;
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        parent.appendChild(e);
+        return e;
+      }
+      function clear(g) { while (g.firstChild) g.removeChild(g.firstChild); }
+      function rgb(hl, x) {
+        return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(BASE[i] + (CYAN[i] - BASE[i]) * hl + (DIM[i] - BASE[i]) * x); }).join(',') + ')';
+      }
+      function mixc(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+
+      function target(n) {
+        var st = STATES[n];
+        return LINES.map(function (L) {
+          var s = st[L.k];
+          return s ? { row: s[0], hl: s[1], x: s[2], op: 1 } : { row: HIDDEN_ROW[L.k], hl: 0, x: 0, op: 0 };
+        });
+      }
+      function swTarget(n) { return [n === 1 ? 1 : 0, n === 2 ? 1 : 0, n === 3 ? 1 : 0]; }
+
+      function build(c) {
+        var g = c.qs('#t106-template-knobs-lines'), sg = c.qs('#t106-template-knobs-sw');
+        clear(g); clear(sg);
+        els = LINES.map(function (L) {
+          var grp = el('g', {}, g), col = L.ind || 0, texts = [];
+          L.segs.forEach(function (s) {
+            texts.push(el('text', { 'class': 'tx', x: X0 + col * CW, y: 0 }, grp, s));
+            col += s.length;
+          });
+          var strike = el('line', { 'class': 'strike', x1: X0 + (L.ind || 0) * CW - 3, x2: X0 + col * CW + 3, y1: -6, y2: -6 }, grp);
+          return { grp: grp, texts: texts, strike: strike };
+        });
+        swEls = SWITCHES.map(function (s, i) {
+          var y = CARD_Y[i], cy = y + CARD_H / 2;
+          var card = el('rect', { 'class': 'card', x: CARD_X, y: y, width: CARD_W, height: CARD_H, rx: 14 }, sg);
+          var track = el('rect', { 'class': 'track', x: CARD_X + 20, y: cy - 15, width: 52, height: 30, rx: 15 }, sg);
+          var knob = el('circle', { 'class': 'knob', cx: 0, cy: cy, r: 10 }, sg);
+          var t = el('text', { 'class': 'sw-k', x: CARD_X + 92, y: cy + 7 }, sg);
+          var k = el('tspan', {}, t, s[0] + ': ');
+          var v = el('tspan', { 'class': 'sw-v' }, t, s[1]);
+          return { card: card, track: track, knob: knob, v: v, i: i };
+        });
+        capEl = c.qs('#t106-template-knobs-cap');
+      }
+
+      function draw() {
+        cur.forEach(function (s, i) {
+          var e = els[i];
+          e.grp.setAttribute('transform', 'translate(0 ' + (Y0 + s.row * PITCH).toFixed(1) + ')');
+          e.grp.style.opacity = s.op.toFixed(3);
+          e.texts.forEach(function (t) { t.style.fill = rgb(s.hl, s.x); });
+          e.strike.style.opacity = s.x.toFixed(3);
+        });
+        swEls.forEach(function (w, i) {
+          var f = sw[i];
+          w.knob.setAttribute('cx', (CARD_X + 20 + 15 + 22 * f).toFixed(1));
+          w.track.style.fill = mixc([26, 26, 31], [18, 62, 70], f);
+          w.track.style.stroke = mixc([52, 52, 61], CYAN, f);
+          w.card.style.stroke = mixc([52, 52, 61], CYAN, f);
+          w.v.textContent = f > 0.5 ? SWITCHES[i][2] : SWITCHES[i][1];
+          w.v.style.fill = f > 0.5 ? 'var(--color-accent)' : 'var(--color-text-muted)';
+        });
+        capEl.style.opacity = cap.toFixed(3);
+      }
+
+      function apply(n) { cur = target(n); sw = swTarget(n); cap = n === 1 ? 1 : 0; }
+
+      Deck.slide('t106-template-knobs', {
+        enter: function (c) { build(c); apply(0); draw(); },
+        leave: function () { if (stop) { stop(); stop = null; } },
+        step: function (n, prev, c) {
+          if (stop) { stop(); stop = null; }
+          if (c.instant) { apply(n); draw(); return; }
+          var f0 = cur.map(function (s) { return { row: s.row, hl: s.hl, x: s.x, op: s.op }; }), s0 = sw.slice(), c0 = cap;
+          var t1 = target(n), s1 = swTarget(n), c1 = n === 1 ? 1 : 0;
+          stop = Deck.tween(900, function (k) {
+            cur = f0.map(function (a, i) {
+              var b = t1[i];
+              return { row: Deck.lerp(a.row, b.row, k), hl: Deck.lerp(a.hl, b.hl, k), x: Deck.lerp(a.x, b.x, k), op: Deck.lerp(a.op, b.op, k) };
+            });
+            sw = s0.map(function (v, i) { return Deck.lerp(v, s1[i], k); });
+            cap = Deck.lerp(c0, c1, k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

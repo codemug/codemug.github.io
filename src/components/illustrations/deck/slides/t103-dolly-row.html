@@ -1,0 +1,65 @@
+<section class="slide" id="t103-dolly-row" data-steps="3">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">Real instruction data looks exactly like this.</p>
+  <div class="stage reveal">
+    <div class="t103-dolly-row-wrap">
+      <!-- REAL: deck/data/part2.json datasets.dolly (instruction, context, response, category); context and response cut with "..." -->
+      <div class="t103-dolly-row-card" role="group" aria-label="One row of databricks-dolly-15k">
+        <div class="f" data-show="0">
+          <span class="k">instruction</span>
+          <span class="v">Given a reference text about Lollapalooza, where does it take place, who started it and what is it?</span>
+        </div>
+        <div class="f" data-show="1">
+          <span class="k">context</span>
+          <span class="v" data-from="1">Lollapalooza /ˌlɒləpəˈluːzə/ (Lolla) is an annual American four-day music festival held in Grant Park in Chicago. It originally started as a touring event in 1991...</span>
+        </div>
+        <div class="f" data-show="2">
+          <span class="k">response</span>
+          <span class="v" data-from="2">Lollapalooze is an annual musical festival held in Grant Park in Chicago, Illinois. It was started in 1991 as a farewell tour by Perry Farrell, singe of the group Jane's Addiction. ...</span>
+        </div>
+        <div class="f" data-show="0">
+          <span class="k">category</span>
+          <span class="v">closed_qa</span>
+        </div>
+      </div>
+      <div class="t103-dolly-row-foot">
+        <span class="src">databricks-dolly-15k</span>
+        <span class="badge" data-from="3"><b id="t103-dolly-row-count">15,011</b> rows</span>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    #t103-dolly-row .stage{align-items:center;}
+    #t103-dolly-row .t103-dolly-row-wrap{width:min(100%,1040px);display:flex;flex-direction:column;gap:18px;}
+    #t103-dolly-row .t103-dolly-row-card{background:var(--color-surface-deep);border:1px solid var(--color-border-strong);border-radius:14px;padding:22px 28px;display:flex;flex-direction:column;gap:18px;font-family:var(--font-mono);}
+    #t103-dolly-row .f{display:grid;grid-template-columns:150px 1fr;column-gap:18px;align-items:start;}
+    #t103-dolly-row .k{font-size:20px;line-height:31px;color:var(--color-text-faint);transition:color .5s ease;}
+    #t103-dolly-row .f.lit .k{color:var(--color-accent);}
+    #t103-dolly-row .v{font-size:21px;line-height:31px;color:var(--color-text);overflow-wrap:anywhere;}
+    #t103-dolly-row .t103-dolly-row-foot{display:flex;align-items:center;justify-content:space-between;min-height:64px;}
+    #t103-dolly-row .src{font-family:var(--font-mono);font-size:20px;color:var(--color-text-dim);}
+    #t103-dolly-row .badge{font-family:var(--font-mono);font-size:28px;color:var(--color-text-muted);border:2px solid var(--color-accent);border-radius:14px;padding:8px 22px;background:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));}
+    #t103-dolly-row .badge b{font-size:44px;font-weight:600;color:var(--color-accent);font-variant-numeric:tabular-nums;margin-right:6px;}
+  </style>
+
+  <script>
+    (function () {
+      var ROWS = 15011;   // REAL: part2.json datasets.dolly.num_rows
+      var stop = null, shown = 0;
+      function setCount(el, v) { el.textContent = Math.round(v).toLocaleString('en-US'); }
+      Deck.slide('t103-dolly-row', {
+        enter: function (c) { shown = 0; setCount(c.qs('#t103-dolly-row-count'), ROWS); },
+        leave: function () { if (stop) { stop(); stop = null; } },
+        step: function (n, prev, c) {
+          c.qsa('.f').forEach(function (f) { f.classList.toggle('lit', +f.getAttribute('data-show') <= n); });
+          var el = c.qs('#t103-dolly-row-count');
+          if (stop) { stop(); stop = null; }
+          if (n >= 3 && prev < 3 && !c.instant) {
+            stop = Deck.tween(1500, function (k) { setCount(el, ROWS * k); }, { ease: Deck.ease.out });
+          } else { setCount(el, ROWS); }
+        }
+      });
+    })();
+  </script>
+</section>

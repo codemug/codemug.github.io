@@ -1,0 +1,75 @@
+<section class="slide" id="t709-native-support" data-steps="1">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">Whether the GPU multiplies FP8 or FP4 natively depends on its generation.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t709-native-support-t t709-native-support-d">
+      <title id="t709-native-support-t">The four questions that decide what you can serve, handed over to part 3</title>
+      <desc id="t709-native-support-d">A stack of four chips: how much memory, how much bandwidth, which interconnect and which GPU. The first three are grey. In the last step the fourth chip, which GPU, turns cyan and an arrow from it points to the words part 3.</desc>
+      <defs>
+        <marker id="t709-native-support-ah" markerUnits="userSpaceOnUse" markerWidth="26" markerHeight="26" refX="20" refY="13" orient="auto"><path d="M0,2 L22,13 L0,24 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+      <g id="t709-native-support-stack"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t709-native-support svg.diagram{width:100%;height:100%;max-width:none;}
+    #t709-native-support text{font-family:var(--font-mono);}
+    #t709-native-support .chipbox{fill:var(--color-surface-deep);stroke:#4a4a52;stroke-width:3.5;}
+    #t709-native-support .chiptxt{font-size:38px;font-weight:600;fill:var(--color-text-muted);text-anchor:middle;}
+    #t709-native-support .hot .chipbox{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #t709-native-support .hot .chiptxt{fill:var(--color-accent);}
+    #t709-native-support .link{stroke:var(--color-accent);stroke-width:5;stroke-linecap:round;fill:none;}
+    #t709-native-support .p3{font-size:60px;font-weight:600;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't709-native-support';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      var LABELS = ['how much memory', 'how much bandwidth', 'which interconnect', 'which GPU'];
+      var CX = 110, CW = 580, CH = 88, PITCH = 112, Y0 = 36;
+      var g = document.getElementById(ID + '-stack');
+      var chips = LABELS.map(function (label, i) {
+        var cg = el('g', { 'class': i === 3 ? 'hot' : '' }, g), y = Y0 + i * PITCH;
+        el('rect', { 'class': 'chipbox', x: CX, y: y, width: CW, height: CH, rx: 20 }, cg);
+        el('text', { 'class': 'chiptxt', x: CX + CW / 2, y: y + CH / 2 + 13 }, cg, label);
+        return cg;
+      });
+      // the arrow and the words "part 3" leave the fourth chip
+      var yc = Y0 + 3 * PITCH + CH / 2;
+      var out = el('g', {}, g);
+      el('line', { 'class': 'link', x1: CX + CW + 14, y1: yc, x2: CX + CW + 130, y2: yc, 'marker-end': 'url(#t709-native-support-ah)' }, out);
+      el('text', { 'class': 'p3', x: CX + CW + 152, y: yc + 21 }, out, 'part 3');
+
+      // V: how many chips are on screen (3 at step 0, 4 at step 1); the stack re-centres as the fourth arrives
+      var V = 3, cancel = null;
+      function draw() {
+        g.setAttribute('transform', 'translate(0 ' + ((4 - V) * PITCH / 2).toFixed(1) + ')');
+        chips.forEach(function (c, i) { c.style.opacity = clamp(V - i).toFixed(3); c.style.display = V - i > 0.001 ? '' : 'none'; });
+        out.style.opacity = clamp(V - 3).toFixed(3); out.style.display = V - 3 > 0.001 ? '' : 'none';
+      }
+      draw();
+
+      Deck.slide('t709-native-support', {
+        enter: function () { V = 3; draw(); },
+        step: function (n, prev, c) {
+          var target = n >= 1 ? 4 : 3;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { V = target; draw(); return; }
+          var from = V;
+          cancel = Deck.tween(800, function (k) { V = Deck.lerp(from, target, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

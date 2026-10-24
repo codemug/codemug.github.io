@@ -1,0 +1,92 @@
+<section class="slide" id="t705-float-anatomy" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">A float is a sign, an exponent and a mantissa.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t705-float-anatomy-t t705-float-anatomy-d">
+      <title id="t705-float-anatomy-t">Bit layouts of the number formats, drawn to scale</title>
+      <desc id="t705-float-anatomy-d">One strip per format with one box per bit and the same box width everywhere, so lengths compare honestly. The first box is the sign, then the exponent bits in cyan, then the mantissa bits in light grey. FP32 has 1, 8 and 23 bits; FP16 has 1, 5 and 10; BF16 has 1, 8 and 7. In the next step the two FP8 formats appear, E4M3 with 1, 4 and 3 bits and E5M2 with 1, 5 and 2. Then FP4 appears with 1, 2 and 1 bits, and the legend says exponent equals range and mantissa equals precision.</desc>
+      <g id="t705-float-anatomy-legend">
+        <rect class="sw sg" x="200" y="20" width="22" height="22" rx="3"/><text class="lg" x="234" y="38">sign</text>
+        <rect class="sw ex" x="340" y="20" width="22" height="22" rx="3"/><text class="lg" x="374" y="38">exponent</text>
+        <text class="lg lc" data-from="2" x="492" y="38">= range</text>
+        <rect class="sw ma" x="650" y="20" width="22" height="22" rx="3"/><text class="lg" x="684" y="38">mantissa</text>
+        <text class="lg lg2" data-from="2" x="802" y="38">= precision</text>
+      </g>
+      <g id="t705-float-anatomy-rows"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t705-float-anatomy svg.diagram{width:100%;height:100%;max-width:none;}
+    #t705-float-anatomy text{font-family:var(--font-mono);}
+    #t705-float-anatomy .sw.sg, #t705-float-anatomy .bs{fill:#4a4a52;}
+    #t705-float-anatomy .sw.ex, #t705-float-anatomy .be{fill:var(--color-accent);}
+    #t705-float-anatomy .sw.ma, #t705-float-anatomy .bm{fill:#b4b4bc;}
+    #t705-float-anatomy .lg{font-size:22px;fill:var(--color-text-muted);}
+    #t705-float-anatomy .lc{fill:var(--color-accent);}
+    #t705-float-anatomy .lg2{fill:var(--color-text-soft);}
+    #t705-float-anatomy .fn{font-size:26px;font-weight:600;fill:var(--color-text);text-anchor:end;}
+    #t705-float-anatomy .fc{font-size:20px;fill:var(--color-text-dim);text-anchor:end;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't705-float-anatomy';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // layouts from the blog's table: sign / exponent / mantissa bits
+      var FORMATS = [
+        { name: 'FP32', s: 1, e: 8, m: 23 },
+        { name: 'FP16', s: 1, e: 5, m: 10 },
+        { name: 'BF16', s: 1, e: 8, m: 7 },
+        { name: 'FP8 E4M3', s: 1, e: 4, m: 3 },
+        { name: 'FP8 E5M2', s: 1, e: 5, m: 2 },
+        { name: 'FP4', s: 1, e: 2, m: 1 }
+      ];
+      var PITCH = 27, BOXW = 24, FGAP = 8, X0 = 190, Y0 = 102, ROWH = 68, BH = 44;
+      var SHOW = [3, 5, 6];                       // rows visible at steps 0, 1, 2
+
+      var g = document.getElementById(ID + '-rows');
+      var rows = FORMATS.map(function (f, i) {
+        var cy = Y0 + i * ROWH, rg = el('g', {}, g);
+        el('text', { 'class': 'fn', x: X0 - 22, y: cy - 2 }, rg, f.name);
+        el('text', { 'class': 'fc', x: X0 - 22, y: cy + 22 }, rg, f.s + ' · ' + f.e + ' · ' + f.m);
+        var x = X0;
+        [['bs', f.s], ['be', f.e], ['bm', f.m]].forEach(function (part) {
+          for (var k = 0; k !== part[1]; k++) {
+            el('rect', { 'class': part[0], x: x, y: cy - BH / 2, width: BOXW, height: BH, rx: 3 }, rg);
+            x += PITCH;
+          }
+          x += FGAP;
+        });
+        return rg;
+      });
+
+      var V = SHOW[0], cancel = null;
+      function draw() {
+        g.setAttribute('transform', 'translate(0 ' + ((6 - V) * ROWH * 0.4).toFixed(1) + ')');
+        rows.forEach(function (rg, i) { rg.style.opacity = clamp(V - i).toFixed(3); rg.style.display = V - i > 0.001 ? '' : 'none'; });
+      }
+      draw();
+
+      Deck.slide('t705-float-anatomy', {
+        enter: function () { V = SHOW[0]; draw(); },
+        step: function (n, prev, c) {
+          var target = SHOW[Math.min(n, 2)];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { V = target; draw(); return; }
+          var from = V;
+          cancel = Deck.tween(900, function (k) { V = Deck.lerp(from, target, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

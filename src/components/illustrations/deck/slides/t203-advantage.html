@@ -1,0 +1,115 @@
+<section class="slide" id="t203-advantage" data-steps="2">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">Compared with the group average: the advantage.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 470" role="img" aria-labelledby="t203-advantage-t t203-advantage-d">
+      <title id="t203-advantage-t">Rewards turned into advantages by subtracting the group average</title>
+      <desc id="t203-advantage-d">Four bars for attempts A1 to A4 show the rewards 1, 0, 1, 0. A dashed line at the average, 0.5, is drawn across. Then the bars slide so that they are measured from that line: A1 and A3 become advantages of plus 0.5 (cyan, up) and A2 and A4 become minus 0.5 (grey, down). The formula advantage equals reward minus average appears at the right.</desc>
+
+      <line class="base" x1="60" y1="410" x2="700" y2="410"/>
+      <g id="t203-advantage-bars"></g>
+
+      <!-- step 1: the average line -->
+      <g id="t203-advantage-avg" opacity="0">
+        <line class="avg" id="t203-advantage-avgl" x1="40" y1="240" x2="720" y2="240"/>
+        <text class="avl" x="720" y="226" text-anchor="end">average 0.5</text>
+      </g>
+
+      <!-- right column: legend (steps 0-1), formula (step 2) -->
+      <g id="t203-advantage-legend">
+        <text class="lg" x="770" y="176">reward</text>
+        <rect class="sw on" x="772" y="206" width="22" height="22" rx="4"/>
+        <text class="lg2" x="808" y="225">1 = right</text>
+        <rect class="sw" x="772" y="250" width="22" height="22" rx="4"/>
+        <text class="lg2" x="808" y="269">0 = wrong</text>
+      </g>
+      <g id="t203-advantage-form" opacity="0">
+        <text class="fm" x="770" y="190">advantage</text>
+        <text class="fm" x="770" y="236">= reward</text>
+        <text class="fm" x="770" y="282">&minus; average</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t203-advantage svg.diagram{max-width:min(1203.2px,1100px);}
+    #t203-advantage .base{stroke:var(--color-border-strong);stroke-width:2.5;}
+    #t203-advantage .avg{stroke:var(--color-text-muted);stroke-width:3;stroke-dasharray:12 8;}
+    #t203-advantage .avl{font-size:24px;fill:var(--color-text-soft);}
+    #t203-advantage .xl{font-size:24px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t203-advantage .vl{font-size:36px;font-weight:600;text-anchor:middle;}
+    #t203-advantage .al{font-size:32px;font-weight:600;text-anchor:middle;}
+    #t203-advantage .lg{font-size:24px;fill:var(--color-text-dim);}
+    #t203-advantage .lg2{font-size:24px;fill:var(--color-text-muted);}
+    #t203-advantage .sw{fill:var(--color-border-strong);}
+    #t203-advantage .sw.on{fill:var(--color-accent);}
+    #t203-advantage .fm{font-size:34px;fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 't203-advantage';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function sign(x) { return (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(1); }
+
+      // TOY: the rewards of the four attempts (1 if the final number is 408); average and advantages are computed
+      var REWARDS = [1, 0, 1, 0];
+      var AVG = REWARDS.reduce(function (a, b) { return a + b; }, 0) / REWARDS.length;   // 0.5
+      var ADV = REWARDS.map(function (r) { return r - AVG; });                         // +0.5 -0.5 +0.5 -0.5
+
+      var BASE = 410, U = 340, BW = 104, CX0 = 130, PITCH = 150;
+      var ZERO = BASE - AVG * U;          // the average line becomes the zero line
+      var g = $('bars');
+      var bars = REWARDS.map(function (r, i) {
+        var cx = CX0 + i * PITCH, up = ADV[i] > 0;
+        var rect = el('rect', { x: cx - BW / 2, width: BW, rx: 6, fill: up ? 'var(--color-accent)' : 'var(--color-border-strong)' }, g);
+        var rl = el('text', { 'class': 'vl', x: cx, fill: up ? 'var(--color-accent)' : 'var(--color-text-muted)' }, g, String(r));
+        var al = el('text', { 'class': 'al', x: cx, y: ZERO + (up ? -(ADV[i] * U) / 2 : (-ADV[i] * U) / 2) + 11, fill: up ? 'var(--color-bg)' : 'var(--color-text)', opacity: 0 }, g, sign(ADV[i]));
+        el('text', { 'class': 'xl', x: cx, y: BASE + 40 }, g, 'A' + (i + 1));
+        // span of the bar before (reward, from the baseline) and after (advantage, from the zero line)
+        var t0 = BASE - r * U, b0 = BASE;
+        var t2 = up ? ZERO - ADV[i] * U : ZERO, b2 = up ? ZERO : ZERO - ADV[i] * U;
+        return { rect: rect, rl: rl, al: al, t0: t0, b0: b0, t2: t2, b2: b2, cx: cx, up: up };
+      });
+
+      var avg, legend, form, S = { a: 0, b: 0 };
+      function draw() {
+        avg.setAttribute('opacity', clamp(S.a * 1.4).toFixed(2));
+        $('avgl').setAttribute('x2', (40 + 680 * clamp(S.a * 1.2)).toFixed(1));
+        legend.setAttribute('opacity', (1 - clamp(S.b * 2)).toFixed(2));
+        form.setAttribute('opacity', clamp(S.b * 2 - 1).toFixed(2));
+        bars.forEach(function (b) {
+          var top = Deck.lerp(b.t0, b.t2, S.b), bot = Deck.lerp(b.b0, b.b2, S.b);
+          var h = Math.max(bot - top, 3.5);
+          b.rect.setAttribute('y', (bot - h).toFixed(1));
+          b.rect.setAttribute('height', h.toFixed(1));
+          b.rl.setAttribute('y', (bot - h - 14).toFixed(1));
+          b.rl.setAttribute('opacity', (1 - clamp(S.b * 2)).toFixed(2));
+          b.al.setAttribute('opacity', clamp(S.b * 2 - 1).toFixed(2));
+        });
+      }
+      var cancel = null;
+      Deck.slide('t203-advantage', {
+        enter: function () { avg = $('avg'); legend = $('legend'); form = $('form'); S = { a: 0, b: 0 }; draw(); },
+        step: function (n, prev, c) {
+          var to = { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { a: S.a, b: S.b };
+          cancel = Deck.tween(n === 1 || (prev === 2 && n === 1) ? 800 : 1100, function (t) {
+            S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

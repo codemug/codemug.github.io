@@ -1,0 +1,102 @@
+<section class="slide" id="t702-memory-formula" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">Memory = parameters × bytes per weight.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t702-memory-formula-t t702-memory-formula-d">
+      <title id="t702-memory-formula-t">Model memory per format as bars on one scale</title>
+      <desc id="t702-memory-formula-d">Four horizontal bars on a single 0 to 111 GB scale, one per format, all for the same 27,781,427,952 parameters: fp32 at 111.1 GB, bf16 at 55.6 GB, 8-bit at 27.8 GB, 4-bit at 13.9 GB. A cyan tick marks the real FP8 repo at 30.9 GB, just past the 8-bit bar.</desc>
+      <g id="t702-memory-formula-chart"></g>
+      <g data-from="0" data-until="1"><text class="cap" x="560" y="492">the bf16 weights, as shipped</text></g>
+      <g data-from="1" data-until="2"><text class="cap" x="560" y="492">fp32 would double the memory</text></g>
+      <g data-from="2"><text class="cap" x="560" y="492">8-bit and 4-bit: halve it, quarter it</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t702-memory-formula svg.diagram{width:100%;height:100%;max-width:none;}
+    #t702-memory-formula text{font-family:var(--font-mono);}
+    #t702-memory-formula .nm{font-size:28px;font-weight:600;fill:var(--color-text);}
+    #t702-memory-formula .mul{font-size:20px;fill:var(--color-text-dim);}
+    #t702-memory-formula .vb{font-size:26px;font-weight:600;}
+    #t702-memory-formula .gh{fill:none;stroke:var(--color-text-faint);stroke-width:2.5;stroke-dasharray:6 6;}
+    #t702-memory-formula .tick{stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;}
+    #t702-memory-formula .tickl{font-size:20px;fill:var(--color-accent);}
+    #t702-memory-formula .cap{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't702-memory-formula';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var TEXT = Deck.rgb('--color-text'), BAR = [138, 138, 147], ACC = Deck.rgb('--color-accent'), DARK = [9, 44, 49];
+
+      // ---- REAL DATA (literals from deck/data/part2.json)
+      var PARAMS = 27781427952;                                        // quant.model_gb_by_format.all_tensors.params
+      var GB = { fp32: 111.126, bf16: 55.563, fp8: 27.781, int4: 13.891 };  // quant.model_gb_by_format.all_tensors.<fmt>.gb
+      var BPW = { fp32: 4, bf16: 2, fp8: 1, int4: 0.5 };               // quant.bytes_per_weight
+      var FP8_REPO_GB = 30.89;                                          // fp8['Qwen3.8-27B-FP8'].files_total_gb
+
+      // ---- geometry (viewBox 1120 x 520): one horizontal scale 0..113 GB
+      var X0 = 300, PX = 760 / 113, BH = 56;
+      var ROWS = [
+        { fmt: 'fp32', name: 'FP32', y: 104, appear: 'p1' },
+        { fmt: 'bf16', name: 'BF16', y: 204, appear: null },
+        { fmt: 'fp8', name: '8-bit', y: 304, appear: 'p2' },
+        { fmt: 'int4', name: '4-bit', y: 404, appear: 'p2' }
+      ];
+      function byLabel(b) { return b === 1 ? '1 byte' : b + ' bytes'; }
+
+      var g = document.getElementById(ID + '-chart');
+      var ghosts = {}, bars = {}, names = {}, muls = {}, vals = {};
+      ROWS.forEach(function (r) {
+        var w = GB[r.fmt] * PX, inside = w > 160;
+        if (r.appear) ghosts[r.fmt] = el('rect', { 'class': 'gh', x: X0, y: r.y, width: w.toFixed(1), height: BH, rx: 8 }, g);
+        bars[r.fmt] = el('rect', { x: X0, y: r.y, width: '0.01', height: BH, rx: 8, fill: r.fmt === 'bf16' ? 'rgb(' + ACC.join(',') + ')' : 'rgb(' + BAR.join(',') + ')' }, g);
+        names[r.fmt] = el('text', { 'class': 'nm', x: 60, y: r.y + 24 }, g, r.name);
+        muls[r.fmt] = el('text', { 'class': 'mul', x: 60, y: r.y + 50 }, g, (PARAMS / 1e9).toFixed(1) + 'B \u00d7 ' + byLabel(BPW[r.fmt]));
+        vals[r.fmt] = el('text', {
+          'class': 'vb',
+          x: (inside ? X0 + w - 14 : X0 + w + 12).toFixed(1),
+          y: r.y + 38,
+          'text-anchor': inside ? 'end' : 'start',
+          fill: r.fmt === 'bf16' ? 'rgb(' + DARK.join(',') + ')' : 'rgb(' + TEXT.join(',') + ')'
+        }, g, GB[r.fmt].toFixed(1) + ' GB');
+      });
+      // real FP8 repo tick on the 8-bit row
+      var tickG = el('g', {}, g);
+      el('line', { 'class': 'tick', x1: (X0 + FP8_REPO_GB * PX).toFixed(1), y1: 304, x2: (X0 + FP8_REPO_GB * PX).toFixed(1), y2: 360 }, tickG);
+      el('text', { 'class': 'tickl', x: (X0 + FP8_REPO_GB * PX + 8).toFixed(1), y: 296 }, tickG, 'real FP8 repo: ' + FP8_REPO_GB.toFixed(1) + ' GB');
+
+      // P1: fp32 bar appears, P2: 8-bit + 4-bit bars + FP8 tick appear
+      var P1 = 0, P2 = 0, cancel = null;
+      function draw() {
+        ROWS.forEach(function (r) {
+          var p = r.appear === 'p1' ? P1 : r.appear === 'p2' ? P2 : 1;
+          bars[r.fmt].setAttribute('width', Math.max(0.01, GB[r.fmt] * PX * p).toFixed(1));
+          [names[r.fmt], muls[r.fmt], vals[r.fmt]].forEach(function (t) { t.style.opacity = p.toFixed(3); });
+          if (r.appear) ghosts[r.fmt].style.opacity = (1 - p).toFixed(3);
+        });
+        tickG.style.opacity = P2.toFixed(3);
+      }
+      draw();
+
+      Deck.slide('t702-memory-formula', {
+        enter: function () { P1 = 0; P2 = 0; draw(); },
+        step: function (n, prev, c) {
+          var tp1 = n >= 1 ? 1 : 0, tp2 = n >= 2 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { P1 = tp1; P2 = tp2; draw(); return; }
+          var f1 = P1, f2 = P2;
+          cancel = Deck.tween(900, function (k) { P1 = Deck.lerp(f1, tp1, k); P2 = Deck.lerp(f2, tp2, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

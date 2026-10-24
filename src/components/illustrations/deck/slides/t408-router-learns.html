@@ -1,0 +1,124 @@
+<section class="slide" id="t408-router-learns" data-steps="2">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">How the router learns.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t408-router-learns-t t408-router-learns-d">
+      <title id="t408-router-learns-t">The top-2 choice is a switch; the two weights are sliders that can be nudged</title>
+      <desc id="t408-router-learns-d">Two panels. On the left, top 2 is all or nothing: a switch for E2 that is either in or out, which cannot be nudged a little. On the right, the two weights 0.57 and 0.43 are sliders that can be nudged. When trusting E2 helped, E2's score rises from 2.1 to 2.3 and the weights move to 0.62 and 0.38. A grey mirrored arrow shows that if it hurt, the weights move a little the other way.</desc>
+      <line class="div" x1="560" y1="44" x2="560" y2="486"/>
+      <text class="hd" x="290" y="46">top 2: all or nothing</text>
+      <text class="hd" x="830" y="46">the two weights</text>
+      <g id="t408-router-learns-sw"></g>
+      <text class="capl" x="290" y="462">cannot be nudged a little</text>
+      <g id="t408-router-learns-sl"></g>
+      <text class="capr" x="830" y="462">can be nudged</text>
+    </svg>
+  </div>
+
+  <style>
+    #t408-router-learns svg.diagram{width:100%;height:100%;max-width:none;}
+    #t408-router-learns text{font-family:var(--font-mono);}
+    #t408-router-learns .div{stroke:var(--color-hairline);stroke-width:2;}
+    #t408-router-learns .hd{font-size:24px;fill:var(--color-text-soft);text-anchor:middle;}
+    #t408-router-learns .capl{font-size:23px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t408-router-learns .capr{font-size:23px;fill:var(--color-accent);text-anchor:middle;}
+    #t408-router-learns .trk{fill:var(--color-surface-2);stroke:var(--color-border-strong);stroke-width:3;}
+    #t408-router-learns .kb{fill:var(--color-text-muted);}
+    #t408-router-learns .sl{font-size:26px;font-weight:600;fill:var(--color-text-soft);}
+    #t408-router-learns .st{font-size:22px;}
+    #t408-router-learns .swin{font-size:24px;fill:var(--color-text-soft);}
+    #t408-router-learns .swout{font-size:24px;fill:var(--color-text-dim);}
+    #t408-router-learns .line{stroke:var(--color-text-faint);stroke-width:6;stroke-linecap:round;}
+    #t408-router-learns .val{font-size:24px;font-weight:600;text-anchor:middle;}
+    #t408-router-learns .note{font-size:22px;text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't408-router-learns';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+      function soft2(a, b) { var ea = Math.exp(a), eb = Math.exp(b); return [ea / (ea + eb), eb / (ea + eb)]; }
+      var SOFT = Deck.rgb('--color-text-soft'), MUTED = Deck.rgb('--color-text-muted'), ACC = Deck.rgb('--color-accent');
+
+      // MOE TOY: the two chosen scores of the first token (E2 = 2.1, E5 = 1.8)
+      var S_E2 = 2.1, S_E5 = 1.8, S_E2_UP = 2.3, S_E2_DOWN = 1.9;      // helped: E2 up to 2.3; hurt: E2 a little lower
+      var W0 = soft2(S_E2, S_E5), W_DOWN = soft2(S_E2_DOWN, S_E5);
+
+      // ---- left: a switch, in or out, nothing in between
+      var sw = $('sw');
+      el('text', { 'class': 'sl', x: 290, y: 206, 'text-anchor': 'middle' }, sw, 'E2');
+      el('rect', { 'class': 'trk', x: 170, y: 232, width: 240, height: 92, rx: 46 }, sw);
+      el('circle', { 'class': 'kb', cx: 364, cy: 278, r: 36 }, sw);
+      el('text', { 'class': 'swout', x: 150, y: 286, 'text-anchor': 'end' }, sw, 'out');
+      el('text', { 'class': 'swin', x: 430, y: 286 }, sw, 'in');
+
+      // ---- right: two sliders (the weights of E2 and E5)
+      var sl = $('sl'), TX0 = 610, TX1 = 1060, TW = TX1 - TX0;
+      var gHelp = el('text', { 'class': 'note', x: 830, y: 98, fill: 'var(--color-accent)' }, sl, 'if trusting E2 helped');
+      var rows = [{ name: 'E2', y: 172, k: 0 }, { name: 'E5', y: 306, k: 1 }];
+      rows.forEach(function (r) {
+        r.w = W0[r.k]; r.down = W_DOWN[r.k];
+        el('line', { 'class': 'line', x1: TX0, y1: r.y, x2: TX1, y2: r.y }, sl);
+        r.label = el('text', { 'class': 'st', x: TX0, y: r.y - 32 }, sl);
+        el('tspan', { 'class': 'sl' }, r.label, r.name);
+        r.sc = el('tspan', {}, r.label, '');
+        r.ghost = el('circle', { cx: TX0 + r.w * TW, cy: r.y, r: 15, fill: 'none', stroke: 'rgb(106,106,115)', 'stroke-width': 3, 'stroke-dasharray': '5 4' }, sl);
+        r.arUp = el('path', { fill: 'none', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, sl);
+        r.arDn = el('path', { fill: 'none', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', stroke: 'rgb(138,138,148)' }, sl);
+        r.knob = el('circle', { cy: r.y, r: 15 }, sl);
+        r.val = el('text', { 'class': 'val', y: r.y - 28 }, sl, '');
+      });
+      var gNote = el('text', { 'class': 'note', x: 830, y: 408, fill: 'rgb(154,154,163)' }, sl, 'if it hurt: a little lower');
+
+      function arrowD(x1, x2, y) {            // a short horizontal arrow with a head at x2
+        var dir = x2 >= x1 ? 1 : -1;
+        return 'M' + x1 + ' ' + y + 'H' + x2 + 'm' + (-dir * 11) + ' -9l' + (dir * 11) + ' 9l' + (-dir * 11) + ' 9';
+      }
+
+      var S = { a: 0, b: 0 }, cancel = null;
+      function draw() {
+        var a = S.a, b = S.b;
+        var sE2 = Deck.lerp(S_E2, S_E2_UP, a), w = soft2(sE2, S_E5);
+        rows.forEach(function (r, i) {
+          var cur = w[i], x = TX0 + cur * TW, gx = TX0 + r.w * TW, lx = TX0 + r.down * TW;
+          r.knob.setAttribute('cx', x); r.knob.setAttribute('fill', mix(SOFT, ACC, a));
+          r.val.setAttribute('x', x); r.val.textContent = cur.toFixed(2); r.val.style.fill = mix(SOFT, ACC, a);
+          r.ghost.style.opacity = clamp(a * 3).toFixed(3);
+          r.arUp.setAttribute('d', Math.abs(x - gx) > 9 ? arrowD(gx, x, r.y + 36) : '');
+          r.arUp.setAttribute('stroke', mix(MUTED, ACC, 1));
+          r.arUp.style.opacity = clamp(a * 3).toFixed(3);
+          r.arDn.setAttribute('d', arrowD(gx, lx, r.y + 62));
+          r.arDn.style.opacity = b.toFixed(3);
+        });
+        rows[0].sc.textContent = '  ' + sE2.toFixed(1);
+        rows[1].sc.textContent = '  ' + S_E5.toFixed(1);
+        rows[0].sc.style.fill = mix(MUTED, ACC, a);
+        rows[1].sc.style.fill = mix(MUTED, MUTED, 0);
+        gHelp.style.opacity = a.toFixed(3);
+        gNote.style.opacity = b.toFixed(3);
+      }
+      draw();
+
+      function target(n) { return { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 }; }
+      Deck.slide('t408-router-learns', {
+        enter: function () { S = target(0); draw(); },
+        step: function (n, prev, c) {
+          var to = target(n), from = { a: S.a, b: S.b };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          cancel = Deck.tween(1000, function (t) { S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) }; draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

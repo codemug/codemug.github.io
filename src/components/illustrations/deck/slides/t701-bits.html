@@ -1,0 +1,148 @@
+<section class="slide" id="t701-bits" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">A model is a bunch of numbers. Numbers are bits.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t701-bits-t t701-bits-d">
+      <title id="t701-bits-t">One byte, and what a single flipped bit does to its value</title>
+      <desc id="t701-bits-d">Eight bit boxes 1 0 1 1 0 1 0 0 with place values 128 down to 1 give the value 180, marked on a number line from 0 to 255. Flipping the leftmost bit gives 0 0 1 1 0 1 0 0 = 52, a big swing of minus 128 along the number line. Flipping the rightmost bit instead gives 1 0 1 1 0 1 0 1 = 181, a tiny step of plus 1.</desc>
+      <defs>
+        <marker id="t701-bits-ah" markerUnits="userSpaceOnUse" markerWidth="22" markerHeight="22" refX="17" refY="11" orient="auto"><path d="M0,2 L19,11 L0,20 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+      <g id="t701-bits-all">
+        <g id="t701-bits-rows"></g>
+        <g id="t701-bits-nl"></g>
+      </g>
+      <g data-from="0" data-until="1"><text class="cap" x="560" y="486">one byte holds 0 to 255</text></g>
+      <g data-from="1" data-until="2"><text class="cap" x="560" y="486">flip the leftmost bit</text></g>
+      <g data-from="2"><text class="cap" x="560" y="486">flip the rightmost bit instead</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t701-bits svg.diagram{width:100%;height:100%;max-width:none;}
+    #t701-bits text{font-family:var(--font-mono);}
+    #t701-bits .bx{stroke-width:3;}
+    #t701-bits .bit{font-size:34px;font-weight:600;text-anchor:middle;}
+    #t701-bits .pv{font-size:22px;text-anchor:middle;}
+    #t701-bits .val{font-size:76px;font-weight:600;}
+    #t701-bits .nline{stroke:var(--color-text-faint);stroke-width:3;stroke-linecap:round;}
+    #t701-bits .tick{stroke:var(--color-text-faint);stroke-width:3;stroke-linecap:round;}
+    #t701-bits .end{font-size:22px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t701-bits .mlab{font-size:28px;font-weight:600;}
+    #t701-bits .swing{fill:none;stroke:var(--color-accent);stroke-width:4;stroke-linecap:round;}
+    #t701-bits .swl{font-size:32px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #t701-bits .cap{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't701-bits';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function mix(a, b, c) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * c); }).join(',') + ')'; }
+      var TEXT = Deck.rgb('--color-text'), MUTED = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim'), FAINT = Deck.rgb('--color-text-faint'), ACC = Deck.rgb('--color-accent'), SURF = [13, 13, 15];
+
+      // TOY: one unsigned 8-bit integer; every value below is computed from the bit patterns
+      var BITS = [1, 0, 1, 1, 0, 1, 0, 0];
+      var PLACE = [128, 64, 32, 16, 8, 4, 2, 1];
+      function flip(bits, k) { return bits.map(function (b, i) { return i === k ? 1 - b : b; }); }
+      function value(bits) { return parseInt(bits.join(''), 2); }
+      var B0 = flip(BITS, 0), B1 = flip(BITS, 7);
+      var VA = value(BITS), VB0 = value(B0), VB1 = value(B1);   // 180, 52, 181
+
+      var BW = 60, PITCH = 70, X0 = 195, VALX = 800, YA = 30, YB = 170, BH = 60;
+      var NL = 330, NX0 = 60, NX1 = 1060, XS = (NX1 - NX0) / 255;
+      function nx(v) { return NX0 + v * XS; }
+
+      var gr = $('rows'), gn = $('nl');
+      // ---- row A (the original byte) and row B (one bit flipped)
+      var aBox = [], aTxt = [], aPv = [], bBox = [], bTxt = [];
+      BITS.forEach(function (b, i) {
+        var x = X0 + i * PITCH;
+        aBox.push(el('rect', { 'class': 'bx', x: x, y: YA, width: BW, height: BH, rx: 9 }, gr));
+        aTxt.push(el('text', { 'class': 'bit', x: x + BW / 2, y: YA + BH / 2 + 12 }, gr, String(b)));
+        aPv.push(el('text', { 'class': 'pv', x: x + BW / 2, y: YA + BH + 34 }, gr, String(PLACE[i])));
+        bBox.push(el('rect', { 'class': 'bx', x: x, y: YB, width: BW, height: BH, rx: 9 }, gr));
+        bTxt.push(el('text', { 'class': 'bit', x: x + BW / 2, y: YB + BH / 2 + 12 }, gr, String(B0[i])));
+      });
+      var aVal = el('text', { 'class': 'val', x: VALX, y: YA + BH / 2 + 27 }, gr, String(VA));
+      var bVal = el('text', { 'class': 'val', x: VALX, y: YB + BH / 2 + 27 }, gr, String(VB0));
+
+      // ---- number line 0..255 with the two values on it
+      el('line', { 'class': 'nline', x1: NX0, y1: NL, x2: NX1, y2: NL }, gn);
+      el('line', { 'class': 'tick', x1: NX0, y1: NL - 12, x2: NX0, y2: NL + 12 }, gn);
+      el('line', { 'class': 'tick', x1: NX1, y1: NL - 12, x2: NX1, y2: NL + 12 }, gn);
+      el('text', { 'class': 'end', x: NX0, y: NL + 44 }, gn, '0');
+      el('text', { 'class': 'end', x: NX1, y: NL + 44 }, gn, '255');
+      var swingG = el('g', {}, gn), tinyG = el('g', {}, gn);
+      var swing = el('path', { 'class': 'swing', 'marker-end': 'url(#t701-bits-ah)' }, swingG);
+      var swingL = el('text', { 'class': 'swl', x: 0, y: NL + 66 }, swingG, '−' + (VA - VB0));
+      var tiny = el('path', { 'class': 'swing', 'marker-end': 'url(#t701-bits-ah)' }, tinyG);
+      var tinyL = el('text', { 'class': 'swl', x: 0, y: NL + 76 }, tinyG, '+' + (VB1 - VA));
+      var aDot = el('circle', { cx: nx(VA), cy: NL, r: 11 }, gn);
+      var bDot = el('circle', { cy: NL, r: 11 }, gn);
+      var aLab = el('text', { 'class': 'mlab', x: nx(VA) - 20, y: NL - 20, 'text-anchor': 'end' }, gn, String(VA));
+      var bLab = el('text', { 'class': 'mlab', y: NL - 20 }, gn, '');
+
+      // p: 0 = only the byte, 1 = the byte stays (grey) and the flipped copy appears; s: 0 = leftmost flipped, 1 = rightmost flipped
+      var P = 0, S = 0, cancel = null;
+      function draw() {
+        var shift = (1 - P) * 120, nlUp = (1 - P) * 130;
+        $('all').setAttribute('transform', 'translate(0 ' + shift.toFixed(1) + ')');
+        gn.setAttribute('transform', 'translate(0 ' + (-nlUp).toFixed(1) + ')');
+        var ink = mix(TEXT, MUTED, P), edge = mix(DIM, FAINT, P);
+        BITS.forEach(function (b, i) {
+          aBox[i].setAttribute('fill', mix(SURF, SURF, 0)); aBox[i].setAttribute('stroke', edge);
+          aTxt[i].setAttribute('fill', b ? ink : mix(DIM, FAINT, P));
+          aPv[i].setAttribute('fill', b ? mix(MUTED, DIM, P) : mix(DIM, FAINT, P));
+        });
+        aVal.setAttribute('fill', ink);
+        // row B: the flipped bit moves from the leftmost to the rightmost box as S goes 0 -> 1
+        var cur = S < 0.5 ? B0 : B1;
+        BITS.forEach(function (b, i) {
+          var hot = i === 0 ? 1 - S : i === 7 ? S : 0;
+          bBox[i].setAttribute('fill', mix(SURF, [14, 48, 54], hot));
+          bBox[i].setAttribute('stroke', mix(FAINT, ACC, hot));
+          bTxt[i].setAttribute('fill', mix(cur[i] ? MUTED : DIM, ACC, hot));
+          bTxt[i].textContent = String(cur[i]);
+          bBox[i].style.opacity = bTxt[i].style.opacity = P.toFixed(3);
+        });
+        var vb = Math.round(Deck.lerp(VB0, VB1, S));
+        bVal.textContent = String(vb); bVal.setAttribute('fill', mix(DIM, ACC, 1)); bVal.style.opacity = P.toFixed(3);
+        // number line markers and arrows
+        var xb = nx(Deck.lerp(VB0, VB1, S));
+        aDot.setAttribute('fill', mix(TEXT, MUTED, P)); aLab.setAttribute('fill', mix(TEXT, MUTED, P));
+        bDot.setAttribute('cx', xb.toFixed(1)); bDot.setAttribute('fill', mix(ACC, ACC, 0)); bDot.style.opacity = P.toFixed(3);
+        bLab.setAttribute('x', (xb + 20).toFixed(1)); bLab.textContent = String(vb); bLab.setAttribute('fill', mix(ACC, ACC, 0)); bLab.style.opacity = P.toFixed(3);
+        var xa = nx(VA), xs = nx(VB0);
+        swing.setAttribute('d', 'M' + xa.toFixed(1) + ' ' + (NL + 18) + 'C' + xa.toFixed(1) + ' ' + (NL + 118) + ' ' + xs.toFixed(1) + ' ' + (NL + 118) + ' ' + xs.toFixed(1) + ' ' + (NL + 22));
+        swingL.setAttribute('x', ((xa + xs) / 2).toFixed(1));
+        swingL.setAttribute('y', NL + 62);
+        swingG.style.opacity = (P * (1 - S)).toFixed(3);
+        var xm = (xa + nx(VB1)) / 2;
+        tiny.setAttribute('d', 'M' + (xm - 18).toFixed(1) + ' ' + (NL + 36) + 'H' + (xm + 22).toFixed(1));
+        tinyL.setAttribute('x', xm.toFixed(1));
+        tinyG.style.opacity = (P * S).toFixed(3);
+      }
+      draw();
+
+      Deck.slide('t701-bits', {
+        enter: function () { P = 0; S = 0; draw(); },
+        step: function (n, prev, c) {
+          var tp = n >= 1 ? 1 : 0, ts = n >= 2 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { P = tp; S = ts; draw(); return; }
+          var fp = P, fs = S;
+          cancel = Deck.tween(900, function (k) { P = Deck.lerp(fp, tp, k); S = Deck.lerp(fs, ts, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

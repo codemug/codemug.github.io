@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1140 540" role="img" aria-labelledby="s19-embedding-table-t s19-embedding-table-d">
       <title id="s19-embedding-table-t">The embedding table of Qwen3.8-27B: one row per token number</title>
-      <desc id="s19-embedding-table-d">Seven token chips with their real ids 40, 628, 54488, 10204, 436, 10673 and 82. Below them a huge heat-grid table of 248,320 rows by 5,120 columns, rows ordered by id. Each chip drops a line to its own row. Row 628 then lifts out as a long strip showing its first eight real numbers.</desc>
+      <desc id="s19-embedding-table-d">Eight token chips with their real ids 40, 628, 6549, 2752, 10204, 436, 10673 and 82. Below them a huge heat-grid table of 248,320 rows by 5,120 columns, rows ordered by id. Each chip drops a line to its own row. Row 628 then lifts out as a long strip showing its first eight real numbers.</desc>
 
       <g id="s19-embedding-table-tbl" class="tbl"></g>
       <g id="s19-embedding-table-hl" class="hl"></g>
@@ -78,7 +78,7 @@
   <script>
     (function () {
       var ID = 's19-embedding-table', NS = 'http://www.w3.org/2000/svg';
-      var NC = 24, GX0 = 150, GW = 920, CP = GW / NC, TOP = 80, RP = 24;
+      var NC = 24, GX0 = 150, GW = 920, CP = GW / NC, TOP = 80, RP = 22;
 
       /* REAL values, copied from deck/data/qwen38.json: embedding_rows[id].first16 and embedding_full["628"] (first 24) */
       var REAL = {
@@ -88,15 +88,16 @@
         628: [0.0332, -0.0244, -0.0047, 0.0156, 0.0135, -0.0048, 0.1069, 0.0078, -0.0004, -0.001, 0.0259, 0.0019, 0.0045, 0.0001, 0.0167, 0.0045, 0.0073, -0.0015, 0.0003, 0.0037, -0.0104, 0.0016, 0.0111, 0.0388],
         10204: [-0.0142, 0.0201, 0.0236, 0.0223, -0.0432, 0.0282, 0.0025, 0.017, -0.0074, 0, 0.0023, -0.0155, 0.01, -0.0251, 0.0216, -0.0107],
         10673: [0.0015, -0.0016, 0.0127, 0.0085, -0.0071, 0.022, 0.0125, -0.0226, -0.015, -0.0289, 0.0003, 0.0092, 0.019, -0.0134, 0.0092, 0.0156],
-        54488: [-0.004, -0.0083, -0.0041, 0.007, -0.0029, 0.0036, 0.0305, -0.0003, -0.0074, -0.0045, -0.0094, 0.0004, -0.0089, 0.0109, 0.012, -0.0058]
+        2752: [-0.0344, 0.0007, 0.0005, 0.0107, 0.0082, 0.0012, 0.0121, 0.0209, 0.0053, -0.003, 0.0061, 0.0112, -0.0121, 0.0022, 0.0043, -0.0106],
+        6549: [0.027, -0.0023, -0.0223, -0.0077, -0.0177, -0.0028, 0.0177, 0.0247, -0.0165, -0.0132, -0.0197, -0.0101, -0.0199, -0.0309, -0.0062, 0.0103]
       };
-      /* real sentence "I can reliably deploy LLMs" (tokenization.examples[0]) in sentence order */
+      /* real sentence "I can dependably deploy LLMs" (tokenization.examples[0]) in sentence order */
       var CHIPS = [
-        { id: 40, t: 'I' }, { id: 628, t: ' can' }, { id: 54488, t: ' reliably' }, { id: 10204, t: ' deploy' },
-        { id: 436, t: ' L' }, { id: 10673, t: 'LM' }, { id: 82, t: 's' }
+        { id: 40, t: 'I' }, { id: 628, t: ' can' }, { id: 6549, t: ' depend' }, { id: 2752, t: 'ably' },
+        { id: 10204, t: ' deploy' }, { id: 436, t: ' L' }, { id: 10673, t: 'LM' }, { id: 82, t: 's' }
       ];
       /* table rows in id order; 0 = a "..." row of skipped ids */
-      var ROWS = [0, 40, 0, 82, 0, 436, 0, 628, 0, 10204, 0, 10673, 0, 54488, 0];
+      var ROWS = [0, 40, 0, 82, 0, 436, 0, 628, 0, 2752, 0, 6549, 0, 10204, 0, 10673];
 
       function el(tag, attrs, parent, text) {
         var e = document.createElementNS(NS, tag), k;

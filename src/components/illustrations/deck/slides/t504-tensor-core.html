@@ -1,0 +1,106 @@
+<section class="slide" id="t504-tensor-core" data-steps="2">
+  <p class="kicker reveal">the GPU</p>
+  <p class="statement reveal">A tensor core swallows a small matrix tile whole.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 470" role="img" aria-labelledby="t504-tensor-core-t t504-tensor-core-d">
+      <title id="t504-tensor-core-t">A CUDA core does one multiply-add, a tensor core does a whole tile of them in one instruction</title>
+      <desc id="t504-tensor-core-d">On the left, a CUDA core multiplies two single numbers a and b and adds a third, c: one multiply-add. On the right, a tensor core takes three tiles A, B and C, drawn as 4 by 4 grids and labelled for example 16 by 16, and computes A times B plus C in one go. At the end the count one instruction equals 16 times 16 times 16 equals 4,096 multiply-adds appears.</desc>
+      <g id="t504-tensor-core-left"></g>
+      <g id="t504-tensor-core-right"></g>
+      <g data-from="2"><text class="cnt" x="560" y="440" id="t504-tensor-core-count"></text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t504-tensor-core svg.diagram{width:100%;height:100%;max-width:none;}
+    #t504-tensor-core text{font-family:var(--font-mono);}
+    #t504-tensor-core .nd{color:var(--color-text-dim);transition:color .6s;}
+    #t504-tensor-core .nd.act{color:var(--color-accent);}
+    #t504-tensor-core .tc{fill:currentColor;fill-opacity:.1;stroke:currentColor;stroke-width:2.5;}
+    #t504-tensor-core .hd{font-size:30px;font-weight:700;text-anchor:middle;fill:currentColor;}
+    #t504-tensor-core .op{font-size:40px;text-anchor:middle;fill:var(--color-text-dim);}
+    #t504-tensor-core .lt{font-size:28px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t504-tensor-core .cap{font-size:24px;text-anchor:middle;fill:currentColor;}
+    #t504-tensor-core .cnt{font-size:30px;font-weight:600;text-anchor:middle;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't504-tensor-core';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function commas(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+      var CELL = 44, GAP = 4, N = 4, TILE = N * CELL, TY = 110;      // a 4 x 4 tile of 44 px cells (drawn small; real tiles can be 16 x 16)
+      var cells = [];                                               // every cell of both panels, for the pulse
+
+      // ---- left: a CUDA core = one multiply-add  a x b + c, built from single cells of the same size
+      var gL = $('left'), topY = TY;                                 // top-aligned with the tile: one cell versus sixteen
+      var LX = [72, 170, 268];
+      el('text', { 'class': 'hd', x: 192, y: 60 }, gL, 'CUDA core');
+      ['a', 'b', 'c'].forEach(function (l, i) {
+        cells.push(el('rect', { 'class': 'tc', x: LX[i] + GAP / 2, y: topY + GAP / 2, width: CELL - GAP, height: CELL - GAP, rx: 6 }, gL));
+        el('text', { 'class': 'lt', x: LX[i] + CELL / 2, y: topY + CELL + 36 }, gL, l);
+      });
+      el('text', { 'class': 'op', x: 143, y: topY + CELL / 2, dy: '.35em' }, gL, '×');
+      el('text', { 'class': 'op', x: 241, y: topY + CELL / 2, dy: '.35em' }, gL, '+');
+      el('text', { 'class': 'cap', x: 192, y: topY + CELL + 96 }, gL, '1 multiply-add');
+
+      // ---- right: a tensor core = a tile multiply-accumulate  A x B + C
+      var gR = $('right');
+      var RX = [412, 642, 872];
+      el('text', { 'class': 'hd', x: 730, y: 60 }, gR, 'tensor core');
+      ['A', 'B', 'C'].forEach(function (l, i) {
+        for (var r = 0; r !== N; r++) for (var c = 0; c !== N; c++)
+          cells.push(el('rect', { 'class': 'tc', x: RX[i] + c * CELL + GAP / 2, y: TY + r * CELL + GAP / 2, width: CELL - GAP, height: CELL - GAP, rx: 6 }, gR));
+        el('text', { 'class': 'lt', x: RX[i] + TILE / 2, y: TY + TILE + 36 }, gR, l);
+      });
+      el('text', { 'class': 'op', x: 615, y: TY + TILE / 2, dy: '.35em' }, gR, '×');
+      el('text', { 'class': 'op', x: 845, y: TY + TILE / 2, dy: '.35em' }, gR, '+');
+      el('text', { 'class': 'cap', x: 730, y: TY + TILE + 96 }, gR, 'e.g. 16 x 16');
+
+      // ARITH: one tile instruction = 16 x 16 outputs, each a sum of 16 products
+      var T = 16;
+      $('count').textContent = 'one instruction = ' + T + ' x ' + T + ' x ' + T + ' = ' + commas(T * T * T) + ' multiply-adds';
+
+      // ---- state: shift = how far the left panel is off to the middle (1 = centred alone), right = tile panel visible, pulse
+      var SHIFT = 368, DROP = 96;                           // alone, the left panel sits in the middle of the picture
+      var S = { shift: 1, pulse: 0 }, cancel = null;
+      function draw() {
+        gL.setAttribute('transform', 'translate(' + (SHIFT * S.shift).toFixed(1) + ' ' + (DROP * S.shift).toFixed(1) + ')');
+        // the tile panel fades in only once the CUDA core panel has slid clear of it
+        gR.style.opacity = Math.max(0, Math.min(1, (0.25 - S.shift) / 0.25));
+        cells.forEach(function (c) { c.style.fillOpacity = 0.1 + 0.5 * S.pulse; });
+      }
+      function paint(n) {
+        gL.setAttribute('class', 'nd' + (n === 0 ? ' act' : ''));
+        gR.setAttribute('class', 'nd' + (n >= 1 ? ' act' : ''));
+      }
+      function target(n) { return { shift: n >= 1 ? 0 : 1, pulse: 0 }; }
+      draw(); paint(0);
+
+      Deck.slide('t504-tensor-core', {
+        enter: function () { S = target(0); draw(); paint(0); },
+        step: function (n, prev, c) {
+          paint(n);
+          var to = target(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { shift: S.shift };
+          var flash = n === 2 && prev === 1;                 // all tile cells fire together, once
+          cancel = Deck.tween(flash ? 900 : 1000, function (t) {
+            S = { shift: Deck.lerp(from.shift, to.shift, t), pulse: flash ? Math.sin(Math.PI * t) : 0 };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

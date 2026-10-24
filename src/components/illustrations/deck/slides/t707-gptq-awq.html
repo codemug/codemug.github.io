@@ -1,0 +1,143 @@
+<section class="slide" id="t707-gptq-awq" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">GPTQ and AWQ: smarter than rounding blindly.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t707-gptq-awq-t t707-gptq-awq-d">
+      <title id="t707-gptq-awq-t">Blind rounding, GPTQ and AWQ on one row of eight toy weights</title>
+      <desc id="t707-gptq-awq-d">Three rows of eight columns: the size of the input each weight meets, the weight itself, and the rounding error as a small bar going up or down from a baseline. With blind rounding every weight is rounded on its own and the output error is about 0.41. With GPTQ some weights are rounded the other way so that the errors cancel, and the output error falls to about 0.11. With AWQ the two weights that meet the tallest inputs are scaled up by 2 before rounding, which nearly removes their error, and the output error is about 0.12. All numbers are computed from the toy arrays in the slide.</desc>
+      <g id="t707-gptq-awq-chart"></g>
+      <g id="t707-gptq-awq-panel">
+        <g data-from="0" data-until="1"><text class="mn" x="965" y="120">blind rounding</text></g>
+        <g data-from="1" data-until="2"><text class="mn a" x="965" y="120">GPTQ</text></g>
+        <g data-from="2"><text class="mn a" x="965" y="120">AWQ</text></g>
+        <text class="pl" x="965" y="215">output error</text>
+      </g>
+      <g data-from="0" data-until="1"><text class="cap" x="560" y="492">each weight rounds on its own</text></g>
+      <g data-from="1" data-until="2"><text class="cap" x="560" y="492">choose the roundings so the errors cancel</text></g>
+      <g data-from="2"><text class="cap" x="560" y="492">scale up the weights that meet big inputs</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t707-gptq-awq svg.diagram{width:100%;height:100%;max-width:none;}
+    #t707-gptq-awq text{font-family:var(--font-mono);}
+    #t707-gptq-awq .rl{font-size:20px;fill:var(--color-text-dim);text-anchor:end;}
+    #t707-gptq-awq .base{stroke:#34343d;stroke-width:2;}
+    #t707-gptq-awq .wc{fill:var(--color-surface-deep);stroke-width:2.5;}
+    #t707-gptq-awq .wt{font-size:21px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t707-gptq-awq .gh{fill:none;stroke:#6a6a73;stroke-width:2.5;stroke-dasharray:6 5;}
+    #t707-gptq-awq .sx{font-size:22px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #t707-gptq-awq .mn{font-size:28px;font-weight:600;fill:var(--color-text);text-anchor:middle;}
+    #t707-gptq-awq .mn.a{fill:var(--color-accent);}
+    #t707-gptq-awq .pl{font-size:22px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t707-gptq-awq .num{font-weight:600;text-anchor:middle;}
+    #t707-gptq-awq .cap{font-size:26px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't707-gptq-awq';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mix(a, b, c) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * c); }).join(',') + ')'; }
+      var TEXT = Deck.rgb('--color-text'), DIM = Deck.rgb('--color-text-dim'), FAINT = Deck.rgb('--color-text-faint'), BAR = [138, 138, 147], ACC = Deck.rgb('--color-accent');
+
+      // ---- TOY DATA (all results below are computed from these two arrays)
+      var W = [0.31, -0.66, -0.89, -0.34, 0.15, -0.38, -0.58, 0.22];   // weights
+      var X = [0.8, 1.1, 2.4, 0.7, 0.6, 1.9, 0.9, 1.0];                // size of the input each weight meets
+      var STEP = 0.25, S = 2, N_SALIENT = 2;                           // levels every 0.25; AWQ scales the salient weights by 2
+      function nearest(v) { return Math.round(v / STEP) * STEP; }
+      function outErr(E) { return Math.abs(E.reduce(function (s, e, i) { return s + e * X[i]; }, 0)); }
+
+      var E0 = W.map(function (w) { return nearest(w) - w; });         // blind rounding: error of every weight on its own
+      var E1 = (function () {                                           // GPTQ (simplest form): push each leftover output error onto the next weight
+        var carry = 0;
+        return W.map(function (w, i) {
+          var t = w + carry, q = nearest(t);
+          carry = i < W.length - 1 ? -((q - t) * X[i]) / X[i + 1] : 0;
+          return q - w;
+        });
+      })();
+      var SAL = X.map(function (v, i) { return [v, i]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, N_SALIENT).map(function (p) { return p[1]; });
+      var E2 = W.map(function (w, i) { return SAL.indexOf(i) >= 0 ? nearest(S * w) / S - w : nearest(w) - w; });   // AWQ: scale up, round, scale back
+      var L = [E0, E1, E2], O = L.map(outErr);                          // output errors
+      var CH = [E0, E1, E2].map(function (E) { return E.map(function (e, i) { return Math.abs(e - E0[i]) > 1e-9 ? 1 : 0; }); });
+
+      // ---- geometry (viewBox 1120 x 520)
+      var CX0 = 205, CP = 82, YA = 150, XS = 42, YB = 190, YC = 350, ES = 600, BW = 40;
+      function cx(i) { return CX0 + i * CP; }
+      var gc = document.getElementById(ID + '-chart');
+      var gp = document.getElementById(ID + '-panel');
+
+      el('text', { 'class': 'rl', x: 142, y: YA - 46 }, gc, 'input');
+      el('text', { 'class': 'rl', x: 142, y: YB + 26 }, gc, 'weight');
+      el('text', { 'class': 'rl', x: 142, y: YC - 6 }, gc, 'rounding');
+      el('text', { 'class': 'rl', x: 142, y: YC + 18 }, gc, 'error');
+      el('line', { 'class': 'base', x1: 166, y1: YA, x2: 818, y2: YA }, gc);
+      el('line', { 'class': 'base', x1: 166, y1: YC, x2: 818, y2: YC }, gc);
+
+      var ins = [], cells = [], xs = [], ghosts = [], bars = [];
+      X.forEach(function (x, i) {
+        ins.push(el('rect', { x: cx(i) - BW / 2, y: YA - x * XS, width: BW, height: x * XS, rx: 5 }, gc));
+        cells.push(el('rect', { 'class': 'wc', x: cx(i) - 38, y: YB, width: 76, height: 40, rx: 8 }, gc));
+        el('text', { 'class': 'wt', x: cx(i), y: YB + 27 }, gc, W[i].toFixed(2));
+        xs.push(el('text', { 'class': 'sx', x: cx(i), y: YB - 8 }, gc, '×' + S));
+        ghosts.push(el('rect', { 'class': 'gh', x: cx(i) - BW / 2, rx: 4, width: BW }, gc));
+        bars.push(el('rect', { x: cx(i) - BW / 2, width: BW, rx: 4 }, gc));
+      });
+      function place(rect, e) {
+        rect.setAttribute('y', (e >= 0 ? YC - e * ES : YC).toFixed(1));
+        rect.setAttribute('height', Math.max(0.01, Math.abs(e) * ES).toFixed(1));
+      }
+
+      // ---- the output error numbers: the old one (blind rounding) shrinks and is struck through, the new one is cyan
+      var oldN = el('text', { 'class': 'num', x: 965 }, gp, O[0].toFixed(2));
+      var newN = el('text', { 'class': 'num', x: 965 }, gp, O[1].toFixed(2));
+      newN.setAttribute('fill', 'var(--color-accent)');
+
+      // T: 0 = blind rounding, 1 = GPTQ, 2 = AWQ (continuous while a step animates)
+      var T = 0, cancel = null;
+      function pw(arr, t) { var s = Math.min(Math.floor(t), 1); return Deck.lerp(arr[s], arr[s + 1], t - s); }
+      function draw() {
+        var s = Math.min(Math.floor(T), 1), f = T - s, a2 = clamp(T - 1);
+        for (var i = 0; i !== W.length; i++) {
+          var e = Deck.lerp(L[s][i], L[s + 1][i], f);
+          var c = Deck.lerp(CH[s][i], CH[s + 1][i], f);
+          place(bars[i], e); bars[i].setAttribute('fill', mix(BAR, ACC, c));
+          place(ghosts[i], E0[i]); ghosts[i].style.opacity = c.toFixed(3);
+          var sal = SAL.indexOf(i) >= 0;
+          ins[i].setAttribute('fill', mix(FAINT, ACC, sal ? a2 : 0));
+          cells[i].setAttribute('stroke', mix(FAINT, ACC, sal ? a2 : 0));
+          xs[i].style.opacity = (sal ? a2 : 0).toFixed(3);
+        }
+        var p = clamp(T);
+        oldN.setAttribute('font-size', Deck.lerp(76, 46, p).toFixed(1));
+        oldN.setAttribute('y', Deck.lerp(300, 280, p).toFixed(1));
+        oldN.setAttribute('fill', mix(TEXT, DIM, p));
+        oldN.style.textDecoration = p > 0.35 ? 'line-through' : 'none';
+        newN.setAttribute('font-size', 76);
+        newN.setAttribute('y', 372);
+        newN.textContent = pw([O[0], O[1], O[2]], T).toFixed(2);
+        newN.style.opacity = clamp(T * 1.5).toFixed(3);
+      }
+      draw();
+
+      Deck.slide('t707-gptq-awq', {
+        enter: function () { T = 0; draw(); },
+        step: function (n, prev, c) {
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { T = n; draw(); return; }
+          var from = T;
+          cancel = Deck.tween(1000, function (k) { T = Deck.lerp(from, n, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

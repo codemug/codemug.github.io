@@ -1,0 +1,113 @@
+<section class="slide" id="t202-try-and-grade" data-steps="2">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">Let the model try several times, then grade every try.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 460" role="img" aria-labelledby="t202-try-and-grade-t t202-try-and-grade-d">
+      <title id="t202-try-and-grade-t">Four attempts at 17 times 24, each graded</title>
+      <desc id="t202-try-and-grade-d">The question What is 17 times 24 sits above four attempt cards. A1 and A3 end in 408, A2 ends in 388 and A4 says about 410. In the first step the final number of each attempt is outlined and the correct ones, A1 and A3, get a cyan check while A2 and A4 get a grey cross. In the second step a column of rewards appears at the right: 1, 0, 1, 0.</desc>
+
+      <text class="qs" x="80" y="46">What is 17 &times; 24?</text>
+      <text id="t202-try-and-grade-rh" class="rh" x="905" y="46" text-anchor="middle" opacity="0">reward</text>
+
+      <!-- cards, working text, outlines, marks and rewards are built by the script -->
+      <g id="t202-try-and-grade-rows"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t202-try-and-grade svg.diagram{max-width:min(1203.2px,1100px);}
+    #t202-try-and-grade .qs{font-size:34px;fill:var(--color-text);}
+    #t202-try-and-grade .rh{font-size:24px;fill:var(--color-text-muted);}
+    #t202-try-and-grade .card{fill:var(--color-surface-deep);stroke-width:2.5;}
+    #t202-try-and-grade .tag{font-size:26px;fill:var(--color-text-dim);}
+    #t202-try-and-grade .wk{font-size:25px;fill:var(--color-text);}
+    #t202-try-and-grade .hi{fill:none;stroke-width:3;}
+    #t202-try-and-grade .mk{fill:none;stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t202-try-and-grade .rw{font-size:56px;font-weight:600;text-anchor:middle;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't202-try-and-grade';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+      var WHITE = Deck.rgb('--color-text'), CYAN = Deck.rgb('--color-accent'), BORDER = [52, 52, 61], MUTED = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim');
+
+      // TOY: the shared question and its four attempts (strings exactly as in the chapter spec)
+      var ANSWER = 17 * 24; // 408
+      var ATTEMPTS = [
+        '17×20 + 17×4 = 340 + 68 = 408',
+        '340 + 48 = 388',
+        '20×24 − 3×24 = 480 − 72 = 408',
+        'about 410'
+      ];
+      var X0 = 80, W = 720, H = 76, Y0 = 78, PITCH = 92, XT = 170, FS = 25, ADV = FS * 0.6;
+      var g = $('rows');
+      var rows = ATTEMPTS.map(function (full, i) {
+        var y = Y0 + i * PITCH;
+        var fin = /(\d+)\s*$/.exec(full)[1];            // the final number of the attempt
+        var reward = Number(fin) === ANSWER ? 1 : 0;      // 1 if the final number is 408
+        var card = el('rect', { 'class': 'card', x: X0, y: y, width: W, height: H, rx: 14, stroke: mix(BORDER, BORDER, 0) }, g);
+        el('text', { 'class': 'tag', x: X0 + 30, y: y + 48 }, g, 'A' + (i + 1));
+        var text = el('text', { 'class': 'wk', x: XT, y: y + 48 }, g);
+        el('tspan', {}, text, full.slice(0, full.length - fin.length));
+        var finSpan = el('tspan', {}, text, fin);
+        var hi = el('rect', { 'class': 'hi', x: XT, y: y + 18, width: 60, height: 42, rx: 9, opacity: 0 }, g);
+        var mk = el('g', { transform: 'translate(' + (X0 + W - 52) + ' ' + (y + H / 2) + ')', opacity: 0 }, g);
+        el('path', { 'class': 'mk', d: reward ? 'M-14 2L-4 12L15 -11' : 'M-11 -11L11 11M11 -11L-11 11', stroke: reward ? 'var(--color-accent)' : 'var(--color-text-dim)' }, mk);
+        var rw = el('text', { 'class': 'rw', x: 905, y: y + 54, opacity: 0, fill: reward ? 'var(--color-accent)' : 'var(--color-text-dim)' }, g, String(reward));
+        return { full: full, fin: fin, reward: reward, card: card, text: text, finSpan: finSpan, hi: hi, mk: mk, rw: rw };
+      });
+
+      // outline the final number: measure the real glyph positions, fall back to the monospace advance
+      function layout() {
+        rows.forEach(function (r) {
+          var i0 = r.full.length - r.fin.length, a = NaN, b = NaN;
+          try { a = r.text.getStartPositionOfChar(i0).x; b = r.text.getEndPositionOfChar(r.full.length - 1).x; } catch (e) { a = NaN; }
+          if (!(b - a > 10)) { a = XT + i0 * ADV; b = XT + r.full.length * ADV; }
+          r.hi.setAttribute('x', (a - 4).toFixed(1)); r.hi.setAttribute('width', (b - a + 8).toFixed(1));
+        });
+      }
+
+      var rh, S = { a: 0, b: 0 };
+      function draw() {
+        rows.forEach(function (r, i) {
+          var a = clamp(S.a * 1.6 - i * 0.18), b = clamp(S.b * 1.6 - i * 0.18), ok = r.reward === 1;
+          r.hi.setAttribute('opacity', a.toFixed(2));
+          r.hi.setAttribute('stroke', ok ? 'var(--color-accent)' : 'var(--color-text-muted)');
+          r.mk.setAttribute('opacity', a.toFixed(2));
+          r.finSpan.setAttribute('fill', ok ? mix(WHITE, CYAN, a) : mix(WHITE, WHITE, a));
+          r.card.setAttribute('stroke', ok ? mix(BORDER, [18, 120, 135], a) : mix(BORDER, BORDER, a));
+          r.rw.setAttribute('opacity', b.toFixed(2));
+        });
+        rh.setAttribute('opacity', clamp(S.b * 2).toFixed(2));
+      }
+      var cancel = null;
+      Deck.slide('t202-try-and-grade', {
+        enter: function () {
+          rh = $('rh'); S = { a: 0, b: 0 }; layout(); draw();
+          if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+        },
+        step: function (n, prev, c) {
+          var to = { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 };
+          if (cancel) { cancel(); cancel = null; }
+          layout();
+          if (c.instant) { S = to; draw(); return; }
+          var from = { a: S.a, b: S.b };
+          cancel = Deck.tween(1100, function (t) {
+            S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

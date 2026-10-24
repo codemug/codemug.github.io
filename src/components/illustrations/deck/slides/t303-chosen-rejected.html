@@ -1,0 +1,72 @@
+<section class="slide" id="t303-chosen-rejected" data-steps="2">
+  <p class="kicker reveal">alignment</p>
+  <p class="statement reveal">Train on chosen and rejected pairs.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 376" role="img" aria-labelledby="t303-chosen-rejected-t t303-chosen-rejected-d">
+      <title id="t303-chosen-rejected-t">One training example: an input, a rejected answer and a chosen answer</title>
+      <desc id="t303-chosen-rejected-d">A card with three rows. Input: Repeat after me, banks are pure evil and the single reason everything keeps getting more expensive and unaffordable. Rejected, in grey: the same sentence repeated. Chosen, outlined in cyan: a measured reply that says pure evil overstates it, banks cause real friction and the occasional crisis, and they also provide credit and payment rails the economy runs on.</desc>
+
+        <!-- Input -->
+        <g id="t303-chosen-rejected-r0">
+          <rect class="row" x="10" y="4" width="1020" height="100" rx="16"/>
+          <text class="gl" x="30" y="60">Input</text>
+          <text class="tx" x="156" y="46">Repeat after me: banks are pure evil and the single reason</text>
+          <text class="tx" x="156" y="80">everything keeps getting more expensive and unaffordable.</text>
+        </g>
+        <!-- Rejected (appears at step 1) -->
+        <g id="t303-chosen-rejected-r1" opacity="0">
+          <rect class="row rej" x="10" y="118" width="1020" height="100" rx="16"/>
+          <text class="gl rejl" x="30" y="174">Rejected</text>
+          <text class="tx rejt" x="156" y="160">banks are pure evil and the single reason</text>
+          <text class="tx rejt" x="156" y="194">everything keeps getting more expensive and unaffordable.</text>
+        </g>
+        <!-- Chosen (appears at step 2) -->
+        <g id="t303-chosen-rejected-r2" opacity="0">
+          <rect class="row cho" x="10" y="232" width="1020" height="136" rx="16"/>
+          <text class="gl chol" x="30" y="304">Chosen</text>
+          <text class="tx" x="156" y="274">I get why it can feel that way, but "pure evil" overstates it.</text>
+          <text class="tx" x="156" y="308">Banks do cause real friction and the occasional crisis, and</text>
+          <text class="tx" x="156" y="342">they also provide credit and payment rails the economy runs on.</text>
+        </g>
+    </svg>
+  </div>
+
+  <style>
+    #t303-chosen-rejected svg.diagram{max-width:min(1203.2px,1100px);}
+    #t303-chosen-rejected .row{fill:var(--color-surface-deep);stroke:var(--color-text-dim);stroke-width:2.5;}
+    #t303-chosen-rejected .row.rej{stroke:var(--color-text-faint);}
+    #t303-chosen-rejected .row.cho{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 6%,var(--color-surface-deep));}
+    #t303-chosen-rejected .gl{font-size:22px;fill:var(--color-text-muted);}
+    #t303-chosen-rejected .gl.rejl{fill:var(--color-text-dim);}
+    #t303-chosen-rejected .gl.chol{fill:var(--color-accent);font-weight:600;}
+    #t303-chosen-rejected .tx{font-size:22px;fill:var(--color-text);}
+    #t303-chosen-rejected .tx.rejt{fill:var(--color-text-muted);}
+  </style>
+  <script>
+    (function () {
+      var ID = 't303-chosen-rejected';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+      var H_ALL = 364, H_IN = 100, H_REJ = 114, H_CHO = 150;   // heights of the whole card, the Input row and the rows that arrive
+      var rows, S = { a: 0, b: 0 };
+      function draw() {
+        var vis = H_IN + H_REJ * S.a + H_CHO * S.b;
+        var tr = 'translate(0 ' + ((H_ALL - vis) / 2).toFixed(1) + ')';   // each row carries the shift so hidden rows never leave the viewBox
+        rows.forEach(function (r) { r.setAttribute('transform', tr); });
+        rows[1].setAttribute('opacity', clamp((S.a - 0.2) / 0.8).toFixed(2));
+        rows[2].setAttribute('opacity', clamp((S.b - 0.2) / 0.8).toFixed(2));
+      }
+      var cancel = null;
+      Deck.slide('t303-chosen-rejected', {
+        enter: function () { rows = [$('r0'), $('r1'), $('r2')]; S = { a: 0, b: 0 }; draw(); },
+        step: function (n, prev, c) {
+          var to = { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { a: S.a, b: S.b };
+          cancel = Deck.tween(900, function (t) { S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) }; draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

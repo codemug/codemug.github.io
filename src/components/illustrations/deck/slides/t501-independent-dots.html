@@ -1,0 +1,126 @@
+<section class="slide" id="t501-independent-dots" data-steps="2" data-tool="matrix dot">
+  <p class="kicker reveal">the GPU</p>
+  <p class="statement reveal">A matrix times a vector is a pile of independent dot products.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 500" role="img" aria-labelledby="t501-independent-dots-t t501-independent-dots-d">
+      <title id="t501-independent-dots-t">A row vector times a matrix is one independent dot product per column</title>
+      <desc id="t501-independent-dots-d">A row vector of four numbers times a matrix with four rows and eight drawn columns, under a bracket that says the real Wu has 17,408 columns. Below the matrix is an empty row of eight output cells. In the first step each column is joined to its own output cell by a thin line. In the last step all eight output cells fill at the same moment, with the caption nothing branches, nothing waits.</desc>
+      <g id="t501-independent-dots-g"></g>
+      <g data-from="2"><text class="cap" x="560" y="478">nothing branches, nothing waits</text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t501-independent-dots svg.diagram{width:100%;height:100%;max-width:none;}
+    #t501-independent-dots text{font-family:var(--font-mono);}
+    #t501-independent-dots .cb{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t501-independent-dots .cv{fill:var(--color-surface-2);stroke:var(--color-text-dim);stroke-width:2;}
+    #t501-independent-dots .ph{fill:none;stroke:var(--color-border-strong);stroke-width:2;stroke-dasharray:6 6;}
+    #t501-independent-dots .ob{fill:color-mix(in oklab,var(--color-accent) 14%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #t501-independent-dots .pl{fill:var(--color-accent);}
+    #t501-independent-dots .num{font-size:22px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t501-independent-dots .num.v{fill:var(--color-text);}
+    #t501-independent-dots .num.o{fill:var(--color-accent);font-weight:600;}
+    #t501-independent-dots .op{font-size:38px;text-anchor:middle;fill:var(--color-text-dim);}
+    #t501-independent-dots .dots{fill:var(--color-text-dim);}
+    #t501-independent-dots .br{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #t501-independent-dots .brl{font-size:24px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t501-independent-dots .frame{fill:none;stroke:var(--color-accent);stroke-width:2.5;}
+    #t501-independent-dots .pair{stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;}
+    #t501-independent-dots .cap{font-size:28px;text-anchor:middle;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't501-independent-dots';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seeded(i) { var s = Math.sin(i * 12.9898 + 4.1) * 43758.5453; return s - Math.floor(s); }
+      function f1(x) { return (Math.round(x * 10) / 10).toFixed(1); }
+
+      // TOY numbers: a 4-number row vector and 4 x 8 matrix. REAL: the bracket label 17,408 = qwen38.json config.intermediate_size
+      // (Wu is 5,120 x 17,408: config.hidden_size x config.intermediate_size)
+      var K = 4, N = 8;
+      var V = [0.8, 0.3, 0.6, 0.5];
+      var M = [];
+      for (var i = 0; i !== K; i++) { M[i] = []; for (var j = 0; j !== N; j++) M[i][j] = Math.round((0.1 + 0.85 * seeded(i * 8 + j + 3)) * 10) / 10; }
+      var OUT = [];
+      for (j = 0; j !== N; j++) { var s = 0; for (i = 0; i !== K; i++) s += V[i] * M[i][j]; OUT.push(s); }   // the real dot products
+
+      var CW = 56, CH = 48, PX = 68, PY = 52;          // cell size and pitch
+      var VX = 80, MX = 440, MY = 96, OY = 380;        // vector x, matrix origin, output row y
+      var MID = MY + K * PY / 2 - 2;                   // vertical middle of the matrix
+      var g = document.getElementById(ID + '-g');
+
+      // vector (grey), x sign, matrix
+      for (i = 0; i !== K; i++) {
+        el('rect', { 'class': 'cv', x: VX + i * PX, y: MID - CH / 2, width: CW, height: CH, rx: 8 }, g);
+        el('text', { 'class': 'num v', x: VX + i * PX + CW / 2, y: MID, dy: '.35em' }, g, f1(V[i]));
+      }
+      el('text', { 'class': 'op', x: 392, y: MID, dy: '.35em' }, g, '×');
+      for (i = 0; i !== K; i++) for (j = 0; j !== N; j++) {
+        el('rect', { 'class': 'cb', x: MX + j * PX, y: MY + i * PY, width: CW, height: CH, rx: 8 }, g);
+        el('text', { 'class': 'num', x: MX + j * PX + CW / 2, y: MY + i * PY + CH / 2, dy: '.35em' }, g, f1(M[i][j]));
+      }
+      // "and so on": the real matrix goes on for 17,408 columns
+      [0, 1, 2].forEach(function (k) {
+        el('circle', { 'class': 'dots', cx: MX + N * PX + 14 + k * 14, cy: MID, r: 3.5 }, g);
+        el('circle', { 'class': 'dots', cx: MX + N * PX + 14 + k * 14, cy: OY + CH / 2, r: 3.5 }, g);
+      });
+      // bracket with the real column count
+      var BX0 = MX, BX1 = MX + N * PX + 56;
+      el('path', { 'class': 'br', d: 'M' + BX0 + ' 82v-12H' + BX1 + 'v12' }, g);
+      el('text', { 'class': 'brl', x: (BX0 + BX1) / 2, y: 46 }, g, '17,408 columns in the real Wu');
+
+      // output row: empty slots, the pair lines, the column frames, then the filled cells on top
+      el('text', { 'class': 'op', x: 392, y: OY + CH / 2, dy: '.35em' }, g, '=');
+      var frames = [], pairs = [], slots = [], outs = [], outT = [], pulses = [];
+      for (j = 0; j !== N; j++) {
+        var cx = MX + j * PX + CW / 2;
+        frames.push(el('rect', { 'class': 'frame', x: MX + j * PX - 4, y: MY - 4, width: CW + 8, height: K * PY - 4 + 8 - 0, rx: 11 }, g));
+        pairs.push(el('line', { 'class': 'pair', x1: cx, y1: MY + K * PY + 4, x2: cx, y2: OY - 6 }, g));
+        slots.push(el('rect', { 'class': 'ph', x: MX + j * PX, y: OY, width: CW, height: CH, rx: 8 }, g));
+        outs.push(el('rect', { 'class': 'ob', x: MX + j * PX, y: OY, width: CW, height: CH, rx: 8 }, g));
+        outT.push(el('text', { 'class': 'num o', x: cx, y: OY + CH / 2, dy: '.35em' }, g, f1(OUT[j])));
+        pulses.push(el('rect', { 'class': 'pl', x: MX + j * PX - 5, y: OY - 5, width: CW + 10, height: CH + 10, rx: 12 }, g));
+      }
+
+      var Y1 = MY + K * PY + 4, Y2 = OY - 6;
+      var S = { pair: 0, fill: 0, pulse: 0 }, cancel = null;
+      function draw() {
+        for (var c = 0; c !== N; c++) {
+          frames[c].style.opacity = S.pair;
+          pairs[c].setAttribute('y2', Y1 + (Y2 - Y1) * S.pair);
+          pairs[c].style.opacity = S.pair > 0.01 ? 1 : 0;
+          pairs[c].style.strokeWidth = 3 + 3 * S.pulse;
+          outs[c].style.opacity = S.fill;
+          outT[c].style.opacity = S.fill;
+          pulses[c].style.opacity = 0.35 * S.pulse;
+        }
+      }
+      function target(n) { return { pair: n >= 1 ? 1 : 0, fill: n >= 2 ? 1 : 0, pulse: 0 }; }
+      draw();
+
+      Deck.slide('t501-independent-dots', {
+        enter: function () { S = target(0); draw(); },
+        step: function (n, prev, c) {
+          var to = target(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { pair: S.pair, fill: S.fill };
+          var flash = to.fill > from.fill;                  // all eight cells fill at the same moment: one pulse
+          cancel = Deck.tween(flash ? 900 : 800, function (t) {
+            S = { pair: Deck.lerp(from.pair, to.pair, t), fill: Deck.lerp(from.fill, to.fill, t), pulse: flash ? Math.sin(Math.PI * t) : 0 };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

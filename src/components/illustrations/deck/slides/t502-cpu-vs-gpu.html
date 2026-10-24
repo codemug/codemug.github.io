@@ -1,0 +1,119 @@
+<section class="slide" id="t502-cpu-vs-gpu" data-steps="1">
+  <p class="kicker reveal">the GPU</p>
+  <p class="statement reveal">CPU: a few big cores. GPU: thousands of small lanes.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 470" role="img" aria-labelledby="t502-cpu-vs-gpu-t t502-cpu-vs-gpu-d">
+      <title id="t502-cpu-vs-gpu-t">A CPU with eight big cores and a GPU with a field of tiny lanes work through the same 160 cells</title>
+      <desc id="t502-cpu-vs-gpu-d">Two machines side by side, each feeding the same grid of 160 work cells. The CPU on the left has eight big cores and fills one column of eight cells per tick, so it needs 20 ticks. The GPU on the right has a field of about 400 tiny lanes and fills all 160 cells in one tick. The tick counters read 20 ticks and 1 tick. The counts are illustrative.</desc>
+      <line class="divider" x1="560" y1="20" x2="560" y2="440"/>
+      <g id="t502-cpu-vs-gpu-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t502-cpu-vs-gpu svg.diagram{width:100%;height:100%;max-width:none;}
+    #t502-cpu-vs-gpu text{font-family:var(--font-mono);}
+    #t502-cpu-vs-gpu .divider{stroke:var(--color-hairline);stroke-width:2;}
+    #t502-cpu-vs-gpu .hd{font-size:32px;font-weight:700;text-anchor:middle;fill:var(--color-text);}
+    #t502-cpu-vs-gpu .core{fill:var(--color-surface-deep);stroke:var(--color-text-dim);stroke-width:3;}
+    #t502-cpu-vs-gpu .core.on{fill:color-mix(in oklab,var(--color-accent) 30%,var(--color-surface-deep));stroke:var(--color-accent);}
+    #t502-cpu-vs-gpu .ln{fill:var(--color-border-strong);}
+    #t502-cpu-vs-gpu .ln.on{fill:var(--color-accent);}
+    #t502-cpu-vs-gpu .wc{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:1.5;}
+    #t502-cpu-vs-gpu .wc.on{fill:var(--color-accent);stroke:var(--color-accent);}
+    #t502-cpu-vs-gpu .wc.old{fill:var(--color-accent);fill-opacity:.42;stroke:var(--color-accent);stroke-opacity:.42;}
+    #t502-cpu-vs-gpu .ay{fill:none;stroke:var(--color-text-faint);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t502-cpu-vs-gpu .ay.on{stroke:var(--color-accent);}
+    #t502-cpu-vs-gpu .cnt{font-size:32px;font-weight:600;text-anchor:middle;fill:var(--color-text-muted);}
+    #t502-cpu-vs-gpu .cnt.on{fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't502-cpu-vs-gpu';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function cls(e, c) { if (e.getAttribute('class') !== c) e.setAttribute('class', c); }
+
+      // ILLUSTRATIVE counts: 8 cores, ~400 lanes, a 20 x 8 = 160 cell work grid (a CPU does one column of 8 per tick)
+      var NC = 8, LC = 40, LR = 10, GC = 20, GR = 8, TICKS = GC;
+      var X0 = [60, 620], CX = [280, 840];
+      var g = document.getElementById(ID + '-g');
+
+      el('text', { 'class': 'hd', x: CX[0], y: 38 }, g, 'CPU');
+      el('text', { 'class': 'hd', x: CX[1], y: 38 }, g, 'GPU');
+
+      // compute units: 8 big cores, and a field of 40 x 10 = 400 tiny lanes
+      var cores = [], lanes = [], i, j;
+      for (i = 0; i !== NC; i++) cores.push(el('rect', { 'class': 'core', x: X0[0] + i * 56 + 1.5, y: 92 + 1.5, width: 43, height: 43, rx: 8 }, g));
+      for (j = 0; j !== LR; j++) for (i = 0; i !== LC; i++) lanes.push(el('rect', { 'class': 'ln', x: X0[1] + i * 11, y: 62 + j * 11, width: 8, height: 8, rx: 2 }, g));
+
+      // arrows from units to work
+      var arr = [0, 1].map(function (k) {
+        return el('path', { 'class': 'ay', d: 'M' + CX[k] + ' 180V204m-11 -11l11 11l11 -11' }, g);
+      });
+
+      // the work grid (same 160 cells on both sides)
+      var cpuCells = [], gpuCells = [];
+      for (i = 0; i !== GC; i++) {
+        cpuCells.push([]);
+        gpuCells.push([]);
+        for (j = 0; j !== GR; j++) {
+          cpuCells[i].push(el('rect', { 'class': 'wc', x: X0[0] + i * 22 + 1, y: 216 + j * 22 + 1, width: 17, height: 17, rx: 3 }, g));
+          gpuCells[i].push(el('rect', { 'class': 'wc', x: X0[1] + i * 22 + 1, y: 216 + j * 22 + 1, width: 17, height: 17, rx: 3 }, g));
+        }
+      }
+      var cntC = el('text', { 'class': 'cnt', x: CX[0], y: 438 }, g, '0 ticks');
+      var cntG = el('text', { 'class': 'cnt', x: CX[1], y: 438 }, g, '0 ticks');
+
+      // p = progress 0..1 across the 20 CPU ticks; the GPU needs only the first one
+      var p = 0, last = { ct: -1, cb: null, gs: null }, cancel = null;
+      function draw() {
+        var ct = p <= 0 ? 0 : Math.min(TICKS, Math.ceil(p * TICKS - 1e-9));
+        var cb = ct > 0 && p < 1;                                  // the CPU cores are busy while it still has columns to do
+        var gt = p > 0 ? 1 : 0;
+        var gb = p > 0 && p * TICKS <= 1;                          // the GPU is busy only during its single tick
+        var gs = gt ? (gb ? 'on' : 'old') : '';
+        if (ct !== last.ct || cb !== last.cb) {
+          cores.forEach(function (c) { cls(c, cb ? 'core on' : 'core'); });
+          for (var a = 0; a !== GC; a++) {
+            var st = a < ct - 1 || (a === ct - 1 && !cb) ? 'wc old' : a === ct - 1 ? 'wc on' : 'wc';
+            for (var b = 0; b !== GR; b++) cls(cpuCells[a][b], st);
+          }
+          cls(cntC, ct > 0 ? 'cnt on' : 'cnt');
+          cntC.textContent = ct + (ct === 1 ? ' tick' : ' ticks');
+          cls(arr[0], cb ? 'ay on' : 'ay');
+          last.ct = ct; last.cb = cb;
+        }
+        if (gs !== last.gs) {
+          lanes.forEach(function (l) { cls(l, gb ? 'ln on' : 'ln'); });
+          gpuCells.forEach(function (col) { col.forEach(function (c) { cls(c, gs ? 'wc ' + gs : 'wc'); }); });
+          cls(cntG, gt ? 'cnt on' : 'cnt');
+          cntG.textContent = gt + (gt === 1 ? ' tick' : ' ticks');
+          cls(arr[1], gb ? 'ay on' : 'ay');
+          last.gs = gs;
+        }
+      }
+      draw();
+
+      Deck.slide('t502-cpu-vs-gpu', {
+        enter: function () { p = 0; last = { ct: -1, cb: null, gs: null }; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { p = to; draw(); return; }
+          var from = p;
+          // forward: 20 discrete ticks of 230 ms; back: a quick reset
+          cancel = Deck.tween(to > from ? 4600 * (to - from) : 600, function (t) { p = Deck.lerp(from, to, t); draw(); },
+            { ease: to > from ? Deck.ease.linear : Deck.ease.inOut });
+        }
+      });
+    })();
+  </script>
+</section>

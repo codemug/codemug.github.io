@@ -1,0 +1,120 @@
+<section class="slide" id="t401-dense-touches-all" data-steps="2">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">A dense model touches every weight for every token.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t401-dense-touches-all-t t401-dense-touches-all-d">
+      <title id="t401-dense-touches-all-t">A dense model touches every weight for every token</title>
+      <desc id="t401-dense-touches-all-d">The feed-forward chain drawn in grey: a token vector of 5,120 numbers goes through Wu to a wide vector of 17,408 numbers, through Wd, and back to 5,120 numbers. In the second step a cyan sweep lights the whole chain from left to right. In the third step a caption says about 24 billion multiply-adds for one token.</desc>
+      <g id="t401-dense-touches-all-flow"></g>
+      <g data-from="2"><text class="cap" id="t401-dense-touches-all-cap" x="560" y="462"></text></g>
+    </svg>
+  </div>
+
+  <style>
+    #t401-dense-touches-all svg.diagram{width:100%;height:100%;max-width:none;}
+    #t401-dense-touches-all text{font-family:var(--font-mono);}
+    #t401-dense-touches-all .nd{color:#5a5a63;}
+    #t401-dense-touches-all .nd.act{color:var(--color-accent);}
+    #t401-dense-touches-all .ob{fill:var(--color-surface-deep);stroke:currentColor;stroke-width:3;}
+    #t401-dense-touches-all .nd.act .ob{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #t401-dense-touches-all .ot{font-size:34px;font-weight:600;fill:currentColor;text-anchor:middle;}
+    #t401-dense-touches-all .tn{font-size:22px;fill:currentColor;text-anchor:middle;}
+    #t401-dense-touches-all .cnt{font-size:22px;fill:currentColor;text-anchor:middle;}
+    #t401-dense-touches-all .cell{fill:currentColor;}
+    #t401-dense-touches-all .ay{fill:none;stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t401-dense-touches-all .cap{font-size:34px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't401-dense-touches-all';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function seeded(i) { var s = Math.sin(i * 12.9898 + 4.1) * 43758.5453; return s - Math.floor(s); }
+
+      // REAL data (deck/data/part2.json params.groups.language_model.params, and qwen38.json layer-3 shapes):
+      var LM_PARAMS = 24353201664; // params.groups.language_model.params
+      var HID = '5,120', MID = '17,408';
+      var PITCH = 7, CW = 6, SH = 124, CY = 240, G = 34;
+      var N_SHORT = 16, N_LONG = 54;
+
+      var gf = document.getElementById(ID + '-flow');
+      var cap = document.getElementById(ID + '-cap');
+      cap.textContent = 'about ' + Math.round(LM_PARAMS / 1e9) + ' billion multiply-adds for one token';
+
+      // every chain element is one sweep part; the sweep lights parts whose centre x the front has passed
+      var sweep = [];
+      function part(cx, build) {
+        var g = el('g', { 'class': 'nd' }, gf);
+        build(g);
+        sweep.push({ e: g, cx: cx });
+        return g;
+      }
+      function arrow(x1, x2) {
+        part((x1 + x2) / 2, function (g) {
+          el('path', { 'class': 'ay', d: 'M' + x1 + ' ' + CY + 'H' + (x2 - 2) + 'm-10 -9l10 9l-10 9' }, g);
+        });
+      }
+      function strip(x0, n, count) {
+        for (var i = 0; i !== n; i++) {
+          (function (i) {
+            var h = SH * (0.2 + 0.8 * seeded(i + n * 7));
+            part(x0 + i * PITCH + CW / 2, function (g) {
+              el('rect', { 'class': 'cell', x: x0 + i * PITCH, y: CY - h / 2, width: CW, height: h, rx: 1 }, g);
+            });
+          })(i);
+        }
+        part(x0 + n * PITCH / 2, function (g) {
+          el('text', { 'class': 'cnt', x: x0 + n * PITCH / 2, y: CY + SH / 2 + 38 }, g, count);
+        });
+      }
+      function matrix(x0, w, h, name, tensor) {
+        part(x0 + w / 2, function (g) {
+          el('rect', { 'class': 'ob', x: x0, y: CY - h / 2, width: w, height: h, rx: 14 }, g);
+          el('text', { 'class': 'ot', x: x0 + w / 2, y: CY + 12 }, g, name);
+          el('text', { 'class': 'tn', x: x0 + w / 2, y: CY - h / 2 - 16 }, g, tensor);
+        });
+      }
+
+      var x = 36;
+      strip(x, N_SHORT, HID); x += N_SHORT * PITCH + G;
+      arrow(x - G, x);
+      matrix(x, 240, 70, 'Wu', 'up_proj'); x += 240 + G;
+      arrow(x - G, x);
+      strip(x, N_LONG, MID); x += N_LONG * PITCH + G;
+      arrow(x - G, x);
+      matrix(x, 70, 240, 'Wd', 'down_proj'); x += 70 + G;
+      arrow(x - G, x);
+      strip(x, N_SHORT, HID);
+
+      var cxMin = Infinity, cxMax = -Infinity;
+      sweep.forEach(function (o) { cxMin = Math.min(cxMin, o.cx); cxMax = Math.max(cxMax, o.cx); });
+      sweep.forEach(function (o) { o.pos = (o.cx - cxMin) / (cxMax - cxMin); });
+
+      var S = 0, cancel = null;
+      function draw() {
+        sweep.forEach(function (o) {
+          o.e.setAttribute('class', 'nd' + (S > 0 && S >= o.pos ? ' act' : ''));
+        });
+      }
+      draw();
+
+      Deck.slide('t401-dense-touches-all', {
+        enter: function () { S = 0; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = S;
+          cancel = Deck.tween(1200, function (t) { S = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

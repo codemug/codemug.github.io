@@ -1,0 +1,159 @@
+<section class="slide" id="t405-router-scores" data-steps="3" data-tool="matrix dot">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">The router: one score per expert.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t405-router-scores-t t405-router-scores-d">
+      <title id="t405-router-scores-t">The router multiplies the token by a 4 by 8 matrix and gets one score per expert</title>
+      <desc id="t405-router-scores-d">A token vector x with four numbers stands left of a router matrix with four rows and eight columns, one column per expert E1 to E8. Each column dotted with x gives one score, shown below the matrix as numbers and bars: E2 and E5 are the tallest. The arithmetic for E2 is written out: four products that add up to 2.10. A last caption gives the real router shape of Qwen3-30B-A3B and says it is tiny next to a single expert.</desc>
+      <g id="t405-router-scores-left"></g>
+      <g data-from="2" id="t405-router-scores-ledger"></g>
+      <g data-from="3" id="t405-router-scores-real"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t405-router-scores svg.diagram{width:100%;height:100%;max-width:none;}
+    #t405-router-scores text{font-family:var(--font-mono);}
+    #t405-router-scores .hl{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t405-router-scores .eh{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;transition:fill .5s;}
+    #t405-router-scores .xc{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t405-router-scores .xn{font-size:24px;fill:var(--color-text-soft);text-anchor:middle;}
+    #t405-router-scores .op{font-size:34px;fill:var(--color-text-dim);text-anchor:middle;}
+    #t405-router-scores .ph{fill:none;stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:5 5;}
+    #t405-router-scores .sn{font-size:21px;text-anchor:middle;font-weight:600;}
+    #t405-router-scores .zero{stroke:var(--color-text-faint);stroke-width:2;}
+    #t405-router-scores .ring{fill:none;stroke:var(--color-accent);stroke-width:3.5;}
+    #t405-router-scores .lt{font-size:24px;fill:var(--color-text-soft);}
+    #t405-router-scores .lh{font-size:22px;fill:var(--color-text-muted);}
+    #t405-router-scores .lr{font-size:24px;fill:var(--color-accent);text-anchor:end;}
+    #t405-router-scores .rule{stroke:var(--color-border-strong);stroke-width:2;}
+    #t405-router-scores .sum{font-size:36px;font-weight:600;fill:var(--color-accent);}
+    #t405-router-scores .big{font-size:42px;font-weight:700;fill:var(--color-accent);}
+    #t405-router-scores .cp{font-size:22px;fill:var(--color-text-muted);}
+    #t405-router-scores .cq{font-size:24px;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't405-router-scores';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mix(a, b, t) { return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')'; }
+      function fx(v, d) { var r = Math.round(Math.abs(v) * Math.pow(10, d) + 1e-7) / Math.pow(10, d); return (v < 0 && r > 0 ? '−' : '') + r.toFixed(d); }
+      function wrap(v, d) { return v < 0 ? '(' + fx(v, d) + ')' : fx(v, d); }
+
+      // REAL (deck/data/part2.json, moe.qwen3_30b_a3b.router.slide_shape_hidden_x_experts = [2048, 128]; tensor model.layers.0.mlp.gate.weight is stored [128, 2048])
+      var REAL_ROUTER_HIDDEN = 2048;
+      var REAL_ROUTER_EXPERTS = 128;
+
+      // MOE TOY: token x, router scores of the first token, router matrix built so that dot(x, column j) = score j
+      var X = [0.3, 0.5, -0.2, 0.7];
+      var SC0 = [0.2, 2.1, -0.5, 0.3, 1.8, -1.2, 0.1, 0.4];
+      var N2 = X.reduce(function (s, v) { return s + v * v; }, 0);                     // |x|^2 = 0.87
+      var R = X.map(function (xi) { return SC0.map(function (s) { return s * xi / N2; }); });   // R[i][j], 4 x 8
+      var SC = SC0.map(function (s, j) { return X.reduce(function (a, xi, i) { return a + xi * R[i][j]; }, 0); });   // = SC0
+      var ORDER = SC.map(function (s, j) { return j; }).sort(function (a, b) { return SC[b] - SC[a]; });
+      var TOP = [ORDER[0], ORDER[1]];                                                    // E2 and E5
+      var RMAX = Math.max.apply(null, R.map(function (row) { return Math.max.apply(null, row.map(Math.abs)); }));
+
+      var MUTED = Deck.rgb('--color-text-muted'), SOFT = Deck.rgb('--color-text-soft'), ACC = Deck.rgb('--color-accent');
+      // layout of the left drawing (it starts centred and slides left when the ledger arrives)
+      var CX = 140, PITCH = 60, CW = 56, RY0 = 78, RP = 56, RH = 52, XW = 72, XX = 28;
+      var SY = 312, SH = 42, BY = 448, BS = 36, BW = 40;
+      var left = $('left'), body = el('g', {}, left);
+      function colX(j) { return CX + j * PITCH; }
+      function rowY(i) { return RY0 + i * RP; }
+
+      el('text', { 'class': 'hl', x: XX + XW / 2, y: 28 }, body, 'x');
+      el('text', { 'class': 'hl', x: CX + 4 * PITCH - 2, y: 28 }, body, 'router matrix');
+      el('text', { 'class': 'op', x: 118, y: rowY(1) + RH + 12 }, body, '×');
+      el('text', { 'class': 'hl', x: XX + XW / 2, y: SY + 30, 'font-size': 20 }, body, 'scores');
+
+      // x: four cells
+      X.forEach(function (v, i) {
+        el('rect', { 'class': 'xc', x: XX, y: rowY(i), width: XW, height: RH, rx: 8 }, body);
+        el('text', { 'class': 'xn', x: XX + XW / 2, y: rowY(i) + RH / 2 + 8 }, body, fx(v, 1));
+      });
+      // router: a heat grid, cyan = positive, grey = negative, intensity = size
+      var heads = [];
+      for (var j = 0; j !== 8; j++) {
+        heads.push(el('text', { 'class': 'eh', x: colX(j) + CW / 2, y: 66 }, body, 'E' + (j + 1)));
+        for (var i = 0; i !== 4; i++) {
+          var v = R[i][j], a = 0.1 + 0.9 * Math.abs(v) / RMAX;
+          el('rect', { x: colX(j), y: rowY(i), width: CW, height: RH, rx: 6, fill: v >= 0 ? 'var(--color-accent)' : 'rgb(154,154,163)', 'fill-opacity': a.toFixed(3) }, body);
+        }
+      }
+      // scores: dashed placeholders, then numbers and bars
+      var snum = [], bars = [], sbox = [];
+      var zero = el('line', { 'class': 'zero', x1: CX - 4, y1: BY, x2: CX + 8 * PITCH - 4, y2: BY }, body);
+      for (var k = 0; k !== 8; k++) {
+        sbox.push(el('rect', { 'class': 'ph', x: colX(k), y: SY, width: CW, height: SH, rx: 8 }, body));
+        snum.push(el('text', { 'class': 'sn', x: colX(k) + CW / 2, y: SY + SH / 2 + 8 }, body, fx(SC[k], 1)));
+        bars.push(el('rect', { x: colX(k) + (CW - BW) / 2, y: BY, width: BW, height: 0, rx: 4 }, body));
+      }
+      // step 2: E2 highlighted (its column of the router and the whole of x)
+      var E = TOP[0];
+      var ringCol = el('rect', { 'class': 'ring', x: colX(E) - 3, y: RY0 - 4, width: CW + 6, height: 3 * RP + RH + 8, rx: 9, 'data-from': 2 }, body);
+      var ringX = el('rect', { 'class': 'ring', x: XX - 3, y: RY0 - 4, width: XW + 6, height: 3 * RP + RH + 8, rx: 9, 'data-from': 2 }, body);
+      var ringS = el('rect', { 'class': 'ring', x: colX(E) - 3, y: SY - 3, width: CW + 6, height: SH + 6, rx: 9, 'data-from': 2 }, body);
+
+      // the ledger for E2 only (computed from the grid)
+      var lg = $('ledger'), LX = 690, LR = 1090;
+      el('text', { 'class': 'lh', x: LX, y: 92 }, lg, 'E' + (E + 1) + ' = x · column E' + (E + 1));
+      var terms = X.map(function (xi, i) { return [xi, R[i][E]]; });
+      terms.forEach(function (t, i) {
+        var y = 144 + i * 44;
+        el('text', { 'class': 'lt', x: LX, y: y }, lg, wrap(t[0], 1) + ' × ' + wrap(t[1], 2));
+        el('text', { 'class': 'lr', x: LR, y: y }, lg, '= ' + fx(t[0] * t[1], 2));
+      });
+      el('line', { 'class': 'rule', x1: LX, y1: 316, x2: LR, y2: 316 }, lg);
+      el('text', { 'class': 'sum', x: LX, y: 360 }, lg, 'score');
+      el('text', { 'class': 'sum', x: LR, y: 360, 'text-anchor': 'end' }, lg, '= ' + fx(SC[E], 2));
+
+      // step 3: the real router shape
+      var rl = $('real');
+      function num(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+      el('text', { 'class': 'big', x: LX, y: 432 }, rl, num(REAL_ROUTER_HIDDEN) + ' × ' + num(REAL_ROUTER_EXPERTS));
+      el('text', { 'class': 'cp', x: LX, y: 462 }, rl, 'real router, Qwen3-30B-A3B');
+      el('text', { 'class': 'cq', x: LX, y: 494 }, rl, 'tiny next to a single expert');
+
+      // state: A = scores revealed, B = layout slid left
+      var S = { a: 0, b: 0 }, cancel = null;
+      function draw() {
+        var a = S.a, b = S.b;
+        body.setAttribute('transform', 'translate(' + (250 * (1 - b)).toFixed(1) + ' ' + (34 * (1 - a)).toFixed(1) + ')');
+        zero.style.opacity = a.toFixed(3);
+        for (var k = 0; k !== 8; k++) {
+          var sc = SC[k], top = TOP.indexOf(k) !== -1, h = sc * BS * a;
+          var g = clamp(a * 1.6 - k * 0.08);
+          bars[k].setAttribute('y', h >= 0 ? BY - h : BY); bars[k].setAttribute('height', Math.abs(h));
+          bars[k].setAttribute('fill', top ? 'rgb(34,211,238)' : 'rgb(106,106,115)');
+          snum[k].style.opacity = g.toFixed(3);
+          snum[k].style.fill = top ? 'var(--color-accent)' : 'var(--color-text-muted)';
+          sbox[k].style.opacity = (1 - g).toFixed(3);
+          heads[k].style.fill = (top && a > 0.5) ? 'var(--color-accent)' : '';
+        }
+      }
+      draw();
+
+      function target(n) { return { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 }; }
+      Deck.slide('t405-router-scores', {
+        enter: function () { S = target(0); draw(); },
+        step: function (n, prev, c) {
+          var to = target(n), from = { a: S.a, b: S.b };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          cancel = Deck.tween(900, function (t) { S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) }; draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

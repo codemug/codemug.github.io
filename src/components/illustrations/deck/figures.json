@@ -2,17 +2,11 @@
   "p1-vectors": {
     "slides": [
       "s02-vec2d",
-      {
-        "id": "s03-vec3d",
-        "steps": [
-          0,
-          3
-        ]
-      }
+      "s03-vec3d"
     ],
     "captions": {
       "s02-vec2d": "Two numbers are a point, and the arrow from the origin to it. The array [3, 2] and the arrow are the same thing.",
-      "s03-vec3d": "Three numbers are a point in 3D: three along x, two up along y, one toward you along z. Real models just keep adding numbers."
+      "s03-vec3d": "Three numbers are a point in 3D: three along x, two up along y, one toward you along z, and the view turns so the depth reads. Real models just keep adding numbers."
     }
   },
   "p1-matmul": {
@@ -21,8 +15,8 @@
       "s06-matmul-variants"
     ],
     "captions": {
-      "s05-matmul-example": "Multiplying a vector by a matrix gives a new vector. This matrix shears the arrow sideways: [1, 1] becomes [1.5, 1].",
-      "s06-matmul-variants": "Different matrices move the same vector in different ways. Training is what finds the useful ones."
+      "s05-matmul-example": "Multiplying a vector by a matrix gives a new vector. This operation is called a linear transformation. For this matrix the arrow shears sideways: [1, 1] becomes [1.5, 1].",
+      "s06-matmul-variants": "Different matrices move the same vector in different ways. It cycles through the identity, two shears and a stretch. Training is what finds the useful ones."
     }
   },
   "p1-dot": {
@@ -60,7 +54,7 @@
       "s14-not-words"
     ],
     "captions": {
-      "s14-not-words": "Models read tokens, not words. Qwen3.8-27B's real tokenizer turns these 5 words into 7 tokens. The dot marks a leading space, which is part of the token."
+      "s14-not-words": "Models read tokens, not words. Qwen3.8-27B's real tokenizer turns these 5 words into 8 tokens. The dot marks a leading space, which is part of the token."
     }
   },
   "p1-model-folder": {
@@ -168,7 +162,7 @@
       "s35-value"
     ],
     "captions": {
-      "s34-key": "The key is the embedding times Wk: what influence this token has to offer. Tar's key says: I am a modifier.",
+      "s34-key": "The key is the embedding times Wk: what kind of influence this token has to offer. Tar's key says: I am a modifier.",
       "s35-value": "The value is the embedding times Wv: what gets blended into another token when that token's query matches this key. Tar's value would make the ball tar-like."
     }
   },
@@ -200,6 +194,14 @@
       "s40-world-cup": "Some answers are not in the sentence. Nothing in \"Who won the 2026 FIFA World Cup?\" says Spain, so something has to move this vector toward it. (Real tokenization; a toy vector on two readable axes.)"
     }
   },
+  "p1-wu-wd": {
+    "slides": [
+      "s41-wu-wd-intro"
+    ],
+    "captions": {
+      "s41-wu-wd-intro": "Wu widens 5,120 numbers to 17,408, and Wd brings them back. In between, something happens to the long vector: the next figures open each piece."
+    }
+  },
   "p1-detectors": {
     "slides": [
       "s42-wu-detectors",
@@ -214,10 +216,10 @@
   },
   "p1-ffn-flow": {
     "slides": [
-      "s41-ffn-flow"
+      "s45-ffn-flow"
     ],
     "captions": {
-      "s41-ffn-flow": "The feed-forward step: Wu asks 17,408 questions at once, the weak answers are silenced, and Wd turns the strong ones into a change that is added back onto the token. (Real shapes. Qwen3.8-27B also has a gate_proj and a smooth SiLU, folded here into one silencing step.)"
+      "s45-ffn-flow": "The feed-forward step: Wu asks 17,408 questions at once, the weak answers are silenced, and Wd turns the strong ones into a change that is added back onto the token. (Real shapes. Qwen3.8-27B also has a gate_proj and a smooth SiLU, folded here into one silencing step.)"
     }
   },
   "p1-ffn-recap": {
@@ -261,14 +263,6 @@
       "s52-top-k": "Top-k keeps the k most likely tokens, here 3, rescales them to add up to 1 again, and rolls a weighted die. That is why the same prompt can give different answers."
     }
   },
-  "p1-sampling-board": {
-    "slides": [
-      "s53-sampling-board"
-    ],
-    "captions": {
-      "s53-sampling-board": "One knob. At a low temperature the top token almost always wins; at a high one it is nearly a coin toss between all five. Drag or hover over the knob to try it."
-    }
-  },
   "p1-loop-closed": {
     "slides": [
       "s54-loop-closed"
@@ -285,12 +279,376 @@
       "x01-trainpass": "Training runs this very same pass. The guess is scored against the real next word, and the error flows back to nudge every number in every stage. Inference is the same pass with the numbers frozen."
     }
   },
-  "p1-recap": {
+  "p2-left-off": {
     "slides": [
-      "s55-recap"
+      "t002-left-off"
     ],
     "captions": {
-      "s55-recap": "Vectors hold meaning, matrices transform them, dot products measure similarity, blending adds them up, softmax turns scores into odds, and silencing switches off weak matches. That is the whole trick."
+      "t002-left-off": "Part 1 in one row: tokens become vectors, 64 layers of attention and feed-forward turn them into scores across 248,320 vocabulary slots, and sampling picks the next token. That token is appended and the row runs again."
+    }
+  },
+  "p2-two-threads": {
+    "slides": [
+      "t003-two-threads"
+    ],
+    "captions": {
+      "t003-two-threads": "Part 2 follows two threads: how the model behaves (fine-tuning, reasoning, alignment) and what it costs to serve (mixture of experts, the GPU, the KV cache, quantization). (Illustrative.)"
+    }
+  },
+  "p2-base-continues": {
+    "slides": [
+      "t101-base-continues"
+    ],
+    "captions": {
+      "t101-base-continues": "A base model only continues the document. Given the instruction to return \"This is a test\", the actual answer gets only 0.01 probability, while plausible continuations like forum replies take the rest. (Toy numbers.)"
+    }
+  },
+  "p2-sft": {
+    "slides": [
+      "t102-sft-pairs"
+    ],
+    "captions": {
+      "t102-sft-pairs": "Fine-tuning trains the model on pairs: the instruction, and the answer we want it to give. Nudging the weights toward the good answer teaches the model to answer instead of rambling. (Toy example.)"
+    }
+  },
+  "p2-dolly": {
+    "slides": [
+      "t103-dolly-row"
+    ],
+    "captions": {
+      "t103-dolly-row": "One real row from Databricks Dolly 15k: an instruction about Lollapalooza, context, and a human-written answer. Thousands of demonstrations like this turn a base model into an instruct model."
+    }
+  },
+  "p2-chat-template": {
+    "slides": [
+      "t104-chat-template",
+      "t105-control-tokens"
+    ],
+    "captions": {
+      "t104-chat-template": "The chat template wraps every message in role markers, opening with im_start and closing with im_end. It ends with the assistant cue, so the model starts writing its reply. (Real Qwen3.8-27B template render and token ids.)",
+      "t105-control-tokens": "Pre-training text like \"I can dependably deploy LLMs\" never uses control tokens like im_start and im_end. Fine-tuning teaches the model what they mean: where a turn opens, where it closes, and where to stop writing. (Real Qwen3.8-27B tokens.)"
+    }
+  },
+  "p2-template-knobs": {
+    "slides": [
+      "t106-template-knobs"
+    ],
+    "dwell": 4500,
+    "captions": {
+      "t106-template-knobs": "Template switches change the prompt before the model ever sees it, without touching any weights. Flipping switches can drop the assistant cue, turn off thinking, or inject a low reasoning-effort instruction. (Real Qwen3.8-27B template options.)"
+    }
+  },
+  "p2-tool-calling": {
+    "slides": [
+      "t107-tool-calling"
+    ],
+    "captions": {
+      "t107-tool-calling": "A model that follows instructions can be taught to emit a tool call when it needs a calculator. The runtime executes the call and returns the answer as text, repeating the loop into an agent. (Illustrative.)"
+    }
+  },
+  "p2-imitation-cap": {
+    "slides": [
+      "t201-imitation-cap"
+    ],
+    "captions": {
+      "t201-imitation-cap": "When a question like 17 x 24 has one right answer, imitation can only match the examples. When there are ten good answers to a crash question, there is nothing single to copy. (Toy illustration.)"
+    }
+  },
+  "p2-rl-loop": {
+    "slides": [
+      "t202-try-and-grade",
+      "t203-advantage",
+      "t204-reinforce"
+    ],
+    "captions": {
+      "t202-try-and-grade": "The model answers 17 x 24 four times, and a program checks only the final number: 408 earns a reward of 1, anything else 0. (Toy numbers; real training samples 8 to 64 attempts per question.)",
+      "t203-advantage": "Comparing each attempt with the 0.5 average gives the advantage: the two 408 answers get +0.5, while the wrong answers get -0.5. That relative signal is what decides which attempts to reinforce. (Toy numbers.)",
+      "t204-reinforce": "Nudging the weights toward positive advantages makes working step by step grow from 0.30 to 0.32 after one update. Repeat that over a million prompts, and working step by step reaches 0.92 to become the default. (Toy numbers.)"
+    }
+  },
+  "p2-score-source": {
+    "slides": [
+      "t205-score-source",
+      "t206-reward-model"
+    ],
+    "captions": {
+      "t205-score-source": "Some tasks can be checked by code: checking for 408 gives reward 1, and passing 7 of 10 unit tests gives 0.7. For subjective answers with no checkable outcome, a separate reward model scores the text. (Toy numbers.)",
+      "t206-reward-model": "Thousands of human A/B choices train the reward model to predict which answer people prefer. Once trained, it gives any answer a score like 0.82 and stands in for human raters inside the loop. (Toy numbers.)"
+    }
+  },
+  "p2-imitate-vs-discover": {
+    "slides": [
+      "t207-imitate-vs-discover"
+    ],
+    "captions": {
+      "t207-imitate-vs-discover": "Imitation can only reproduce what is inside the training data. Because reinforcement learning only checks the final outcome, the model can discover a winning approach that nobody wrote down. (Illustrative.)"
+    }
+  },
+  "p2-think-tokens": {
+    "slides": [
+      "t208-think-tokens"
+    ],
+    "captions": {
+      "t208-think-tokens": "Thinking tokens inside the think tags are ordinary tokens generated and appended to the context one at a time. Each thinking token costs one more trip round the Part 1 loop before the answer begins. (Real Qwen3.8-27B marker ids.)"
+    }
+  },
+  "p2-cold-start": {
+    "slides": [
+      "t209-cold-start"
+    ],
+    "captions": {
+      "t209-cold-start": "Seed data for a reasoning model already contains the reasoning: this OpenR1-Math-220k row thinks for 2,205 tokens before it answers. Fine-tuning on rows like it teaches the think-then-answer format, and reinforcement learning takes over from there. (Not Qwen's own data; the kind used for a cold start.)"
+    }
+  },
+  "p2-obedience": {
+    "slides": [
+      "t301-obedience",
+      "t302-repeat-anything"
+    ],
+    "captions": {
+      "t301-obedience": "An instruct model is trained to obey, not to judge. A request to draft an email goes through, and a request that should be refused passes through the same open gate. (Illustrative.)",
+      "t302-repeat-anything": "Asked to repeat that banks are pure evil, the instruct model echoes the sentence word for word. Training taught it to follow the instruction without weighing what it says. (Toy example.)"
+    }
+  },
+  "p2-chosen-rejected": {
+    "slides": [
+      "t303-chosen-rejected",
+      "t304-preference-nudge"
+    ],
+    "captions": {
+      "t303-chosen-rejected": "Safety tuning pairs the banks prompt with two answers: the repeated sentence as the rejected answer, and a measured reply as the chosen one. (Toy example.)",
+      "t304-preference-nudge": "One round on the pair raises the chosen answer from 0.10 to 0.45 and pushes the rejected repetition down from 0.60 to 0.12. Nudging the weights shifts what the model prefers without wiping out what it knows. (Toy numbers.)"
+    }
+  },
+  "p2-safety-data": {
+    "slides": [
+      "t305-safety-data"
+    ],
+    "dwell": 4500,
+    "captions": {
+      "t305-safety-data": "Real safety data has the same shape at scale: PKU-SafeRLHF has 82,118 rows across 16 columns, each with a prompt, two candidate responses and safety labels. Because the text includes harmful prompts, the dataset is inspected by schema and row counts rather than raw rows."
+    }
+  },
+  "p2-model-names": {
+    "slides": [
+      "t306-model-names"
+    ],
+    "captions": {
+      "t306-model-names": "Model name suffixes tell you what was done to the weights. Suffixes like -it and -instruct mean the model follows instructions, while -heretic and -abliterated mean safety refusals were deliberately stripped out. (Illustrative.)"
+    }
+  },
+  "p2-dense-waste": {
+    "slides": [
+      "t401-dense-touches-all",
+      "t402-wasted"
+    ],
+    "captions": {
+      "t401-dense-touches-all": "A dense model runs every weight for every single token: a 5,120-number vector expands through Wu to 17,408 numbers and back through Wd. One token costs about 24 billion multiply-adds across the whole model.",
+      "t402-wasted": "Most of the 17,408 numbers are weak, and the silencing step collapses them near zero so their matching rows in Wd are multiplied by zero. A dense model still computes every one of those multiply-adds anyway. (Toy activations.)"
+    }
+  },
+  "p2-experts": {
+    "slides": [
+      "t403-not-all-knowledge",
+      "t404-split-into-experts"
+    ],
+    "captions": {
+      "t403-not-all-knowledge": "A dense feed-forward block holds all the model knows, but the token le only needs French and def only needs Python syntax. Activating the whole block for every word does far more work than the token needs. (Illustrative.)",
+      "t404-split-into-experts": "Splitting the feed-forward block cuts it into smaller blocks called experts, each with its own Wu and Wd. A small router matrix sits in front of them to decide which experts a token should visit. (Toy architecture.)"
+    }
+  },
+  "p2-router": {
+    "slides": [
+      "t405-router-scores",
+      "t406-top2"
+    ],
+    "captions": {
+      "t405-router-scores": "The router dots the token vector with each expert's column to get one score per expert: four products for E2 add up to 2.10. E2 and E5 get the highest scores, while the other six score lower. (Toy numbers.)",
+      "t406-top2": "Only the top two experts run: E2 and E5 produce outputs, while the other six sit out. Softmax turns their scores of 2.1 and 1.8 into weights of 0.57 and 0.43, scaling their outputs before adding them back onto the token. (Toy numbers.)"
+    }
+  },
+  "p2-different-experts": {
+    "slides": [
+      "t407-different-experts"
+    ],
+    "captions": {
+      "t407-different-experts": "Every token runs the router again to pick its own pair: le chooses E2 and E5, def chooses E1 and E7, and knight chooses E3 and E8. Each lit cell shows the softmax weight that expert receives for that token. (Toy numbers.)"
+    }
+  },
+  "p2-router-learns": {
+    "slides": [
+      "t408-router-learns",
+      "t409-load-balance"
+    ],
+    "captions": {
+      "t408-router-learns": "You cannot nudge an all-or-nothing choice a little at a time, so the top-two switch gives no smooth training signal. Training nudges the softmax weights instead: raising E2's score moves the weights from 0.57 and 0.43 to 0.62 and 0.38 when E2 helps. (Toy numbers.)",
+      "t409-load-balance": "Left alone, favored experts get picked more, improve faster, and soon handle almost every token while the rest are wasted. Training adds a balancing penalty that pushes each expert's share back toward one eighth. (Toy simulation.)"
+    }
+  },
+  "p2-total-vs-active": {
+    "slides": [
+      "t410-total-vs-active",
+      "t411-memory-not-compute"
+    ],
+    "dwell": 4500,
+    "captions": {
+      "t410-total-vs-active": "Total parameters are what the model stores, while active parameters are what one token actually uses. Dense Qwen3.8-27B uses all 27.8B (100%), while sparse Mixtral uses 12.9B of 46.7B (28%) and DeepSeek-V3 uses 37B of 671B (6%).",
+      "t411-memory-not-compute": "Mixtral computes like a 12.9B model, but every one of its 46.7B parameters must stay loaded in GPU memory because any expert could be picked next. In BF16, holding those weights alone requires 93.4 GB of memory before adding the cache."
+    }
+  },
+  "p2-independent-dots": {
+    "slides": [
+      "t501-independent-dots"
+    ],
+    "captions": {
+      "t501-independent-dots": "Multiplying a token vector by Wu is just one independent dot product per column: nothing branches and nothing waits. The real Wu has 17,408 columns, and a GPU calculates all of them at once. (Toy dimensions.)"
+    }
+  },
+  "p2-cpu-vs-gpu": {
+    "slides": [
+      "t502-cpu-vs-gpu",
+      "t503-cpu-overhead"
+    ],
+    "captions": {
+      "t502-cpu-vs-gpu": "Given 160 cells of work, an eight-core CPU finishes eight cells per tick and needs 20 ticks. A GPU uses roughly 400 simpler lanes to finish every cell in a single tick. (Illustrative.)",
+      "t503-cpu-overhead": "A CPU spends most of its clock cycles on coordination: fetching numbers into registers, reading accumulators, and looping to the next pair. The actual multiplication is only a tiny sliver of each step. (Illustrative.)"
+    }
+  },
+  "p2-tensor-core": {
+    "slides": [
+      "t504-tensor-core",
+      "t505-keep-the-sum"
+    ],
+    "captions": {
+      "t504-tensor-core": "A standard core does one multiply-add at a time, but a tensor core swallows whole matrix tiles at once. Multiplying two 16x16 tiles computes 4,096 multiply-adds from a single instruction. (Toy tiles.)",
+      "t505-keep-the-sum": "Matrix products are computed tile by tile, keeping the running sum in fast registers as it steps through the shared dimension. Storing the partial sums on-chip means the finished tile is written out to memory only once. (Toy tiles.)"
+    }
+  },
+  "p2-kernel": {
+    "slides": [
+      "t506-kernel-schedules",
+      "t507-cuda-to-silicon"
+    ],
+    "captions": {
+      "t506-kernel-schedules": "A kernel chops large matrices into tiles and stages them down the memory ladder from VRAM into shared memory, registers, and tensor cores. Scheduling this flow keeps tensor cores fed so they never sit idle waiting for data. (Illustrative.)",
+      "t507-cuda-to-silicon": "Code written in CUDA C++ compiles into PTX, an assembly-like language that stays stable across GPU generations. The compiler then turns PTX into the specific machine code that the silicon actually executes."
+    }
+  },
+  "p2-gandalf-loop": {
+    "slides": [
+      "t601-gandalf-loop",
+      "t602-redo-everything"
+    ],
+    "captions": {
+      "t601-gandalf-loop": "The loop from Part 1 runs on the 18 tokens of the Gandalf sentence. The model predicts the next token \" not\", appends it to make 19 tokens, and takes another trip round the loop to produce \" pass\".",
+      "t602-redo-everything": "Taken literally, every step recomputes q, k and v for every token: two new tokens cost 18 + 19 = 37 recomputed old ones, in every one of the 64 layers. (Schematic of one layer.)"
+    }
+  },
+  "p2-old-never-change": {
+    "slides": [
+      "t603-old-never-change"
+    ],
+    "captions": {
+      "t603-old-never-change": "Because tokens only look backward, appending \" not\" to the Gandalf sentence adds a seventh row to the score table without altering the six rows above it. Everything computed for earlier tokens stays frozen forever. (Toy numbers.)"
+    }
+  },
+  "p2-decode-step": {
+    "slides": [
+      "t604-keep-kv-drop-q",
+      "t605-decode-step"
+    ],
+    "captions": {
+      "t604-keep-kv-drop-q": "The cache stores the key and value of each earlier token so they never need recomputing. The newest token computes its own query, compares it against the stored keys, and drops the query once the step finishes. (Toy vectors.)",
+      "t605-decode-step": "To predict \" pass\", only the new token \" not\" computes its vectors: its query dots against the six cached keys to weight the cached values into an output. Its key and value are then appended to the cache for future steps. (Toy numbers.)"
+    }
+  },
+  "p2-kv-memory": {
+    "slides": [
+      "t606-kv-memory"
+    ],
+    "dwell": 4500,
+    "captions": {
+      "t606-kv-memory": "Qwen3.8-27B keeps 64 KiB of keys and values per token in its 16 full-attention layers: 0.25 GiB at a 4k context and 16 GiB at the full 262k, for every request in flight. Four requests at 131k add about 32 GiB of cache to the 51.7 GiB of weights."
+    }
+  },
+  "p2-prefill-decode": {
+    "slides": [
+      "t607-prefill-vs-decode",
+      "t608-two-phases"
+    ],
+    "captions": {
+      "t607-prefill-vs-decode": "Prefill reads the 51.7 GiB of weights once and applies them across all prompt tokens together, keeping the GPU compute-bound. Decode generates only one new token per step, having to stream those same weights from memory for every single token.",
+      "t608-two-phases": "Inference has two bottlenecks with different feels: time-to-first-token is the compute-bound prefill batch, while inter-token delay is the memory-bandwidth-bound decode stream. SREs must tune each phase with different tools. (Illustrative.)"
+    }
+  },
+  "p2-decode-limit": {
+    "slides": [
+      "t609-decode-limit"
+    ],
+    "dwell": 4500,
+    "captions": {
+      "t609-decode-limit": "A single-stream decode step reads all 55.6 GB of BF16 weights to produce one token, so speed is capped by memory bandwidth divided by model size. Bandwidths of 1,000, 2,000, and 3,000 GB/s yield rough speed ceilings of 18, 36, and 54 tokens per second. (Illustrative.)"
+    }
+  },
+  "p2-bits": {
+    "slides": [
+      "t701-bits"
+    ],
+    "captions": {
+      "t701-bits": "One unsigned 8-bit number, 180: flip its leftmost bit and it drops to 52, flip the rightmost and it only moves to 181. Not every bit matters equally. (A toy integer, not a real weight format.)"
+    }
+  },
+  "p2-memory-formula": {
+    "slides": [
+      "t702-memory-formula"
+    ],
+    "dwell": 4500,
+    "captions": {
+      "t702-memory-formula": "Memory footprint is parameters times bytes per weight: Qwen3.8-27B needs 111.1 GB in FP32, 55.6 GB in BF16, 27.8 GB in 8-bit, and 13.9 GB in 4-bit. A real FP8 repository weighs 30.9 GB because it also includes the per-block scale tensors."
+    }
+  },
+  "p2-fewer-bits": {
+    "slides": [
+      "t703-fewer-bits",
+      "t704-snap-to-levels"
+    ],
+    "captions": {
+      "t703-fewer-bits": "32 real weights from Qwen3.8-27B, the first 32 of layer 3's Wu, before and after rounding to int4: each moves to the nearest of 16 levels, and storage drops from 2 bytes to about half a byte per weight. Over the first 327,680 weights of that matrix the error is about a tenth of the weights' spread (0.097).",
+      "t704-snap-to-levels": "The 32 real weights sit on a number line, snapping to the 16 available INT4 levels defined by the group scale of 0.0039. The grey error ticks show how far each weight moved, producing a relative error of 0.097 over the first 327,680 weights of that matrix."
+    }
+  },
+  "p2-float-anatomy": {
+    "slides": [
+      "t705-float-anatomy"
+    ],
+    "captions": {
+      "t705-float-anatomy": "A floating-point number splits bits into sign, exponent (dynamic range), and mantissa (precision). BF16 retains FP32's 8 exponent bits while trimming the mantissa to 7, preserving the same range in half the bytes."
+    }
+  },
+  "p2-block-scales": {
+    "slides": [
+      "t706-block-scales"
+    ],
+    "captions": {
+      "t706-block-scales": "Sixteen levels are too coarse for a full tensor, so 4-bit formats store a separate scale for each small block of weights. NVFP4 uses blocks of 16 values with an FP8 scale, while GGUF formats mix precisions to average about 4.9 bits for Q4_K_M and about 4.7 for Q4_K_S. (Toy values.)"
+    }
+  },
+  "p2-gptq-awq": {
+    "slides": [
+      "t707-gptq-awq"
+    ],
+    "captions": {
+      "t707-gptq-awq": "Rounding each weight on its own lets small errors pile up in the output. GPTQ picks the roundings so the errors cancel, and AWQ scales up the few weights that meet the biggest inputs so they survive rounding. (Toy numbers.)"
+    }
+  },
+  "p2-kernel-format": {
+    "slides": [
+      "t708-kernel-speaks-format",
+      "t709-native-support"
+    ],
+    "captions": {
+      "t708-kernel-speaks-format": "A 4-bit format packs two values into each byte alongside a scale factor. Kernels like Marlin and Machete unpack those bytes, attach the scale, and feed the values into tensor cores so the format can run fast. (Toy bytes.)",
+      "t709-native-support": "Quantization only speeds up inference if the GPU can multiply that format directly in silicon. Whether a chip natively executes FP8 or FP4 depends on its generation, leading directly to the hardware choices in Part 3. (Illustrative.)"
     }
   }
 }

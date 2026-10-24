@@ -109,6 +109,11 @@ export function extractBaseCss(html) {
   return mapSelectors(css, scope).replace(/\n\s*\n+/g, '\n').trim() + '\n';
 }
 
+/** Whether a slide is decorative (covers, about-me, and section title dividers). */
+export function isDecorative(id) {
+  return id.startsWith('s01-') || id === 't001-cover' || id.includes('-title-');
+}
+
 /* Slide-specific adaptations to the article's scaled frame. Each [old, new] must match once. */
 const FIXUPS = {
   // positions its tags from getBoundingClientRect deltas, which the frame's CSS scale shrinks
@@ -117,20 +122,81 @@ const FIXUPS = {
     ['(a.top - t0).toFixed(1)', '((a.top - t0) / k).toFixed(1)'],
     ['(b.bottom - a.top).toFixed(1)', '((b.bottom - a.top) / k).toFixed(1)'],
   ],
-  // Usman's review: the key is the influence a token has to offer
-  's34-key': [
-    ['Embedding × Wk = key: what this token has to offer.', 'Embedding × Wk = key: what influence this token has to offer.'],
-  ],
   // its grey ghost arrow is coloured once, with the dark theme's faint text colour
   's45-ffn-recap': [
     ["setArrow(ghost, X0, 4, '#4a4a52');", "setArrow(ghost, X0, 4, '#4a4a52'); ghost.sh.style.stroke = ghost.hd.style.fill = 'var(--color-text-faint)';"],
   ],
-  's53-sampling-board': [
-    // the readout ("T 1.00 · mat 42%") is read in the prose: readable once the frame is scaled down
-    ['.embed .iso-legend{display:none}', '.embed .iso-legend{display:none} .iso-plate-corner{font-size:18px!important} .iso-plate-corner[data-readout]{font-size:28px!important}'],
-    // once the reader drives the knob, the step's pending temperature resends must not override it
-    ["frame.addEventListener('load', burst);",
-      "frame.addEventListener('load', function () {\n            burst();\n            var w = frame.contentWindow;\n            ['pointerdown', 'pointermove', 'keydown', 'wheel'].forEach(function (t) { w.addEventListener(t, function () { timers.forEach(clearTimeout); }, { passive: true }); });\n          });"],
+  // llama.cpp's measured bits per weight
+  't706-block-scales': [
+    ["'~4.5 bits'", "'~4.9 bits'"],
+    ["'~4 bits'", "'~4.7 bits'"],
+    [
+      'about 4.5 bits per weight for Q4_K_M and about 4 bits for Q4_K_S',
+      'about 4.9 bits per weight for Q4_K_M and about 4.7 bits for Q4_K_S',
+    ],
+  ],
+  // switch value text follows theme tokens for light theme contrast
+  't106-template-knobs': [
+    [
+      "w.v.style.fill = f > 0.5 ? 'rgb(34,211,238)' : 'rgb(154,154,163)';",
+      "w.v.style.fill = f > 0.5 ? 'var(--color-accent)' : 'var(--color-text-muted)';",
+    ],
+  ],
+  // router scores and winner headers follow theme tokens for light theme contrast
+  't405-router-scores': [
+    [
+      "snum[k].style.fill = top ? 'rgb(34,211,238)' : 'rgb(196,196,203)';",
+      "snum[k].style.fill = top ? 'var(--color-accent)' : 'var(--color-text-muted)';",
+    ],
+    [
+      "heads[k].style.fill = (top && a > 0.5) ? 'rgb(34,211,238)' : '';",
+      "heads[k].style.fill = (top && a > 0.5) ? 'var(--color-accent)' : '';",
+    ],
+  ],
+  // request block label uses page background so deck-check recognizes it as a knockout label
+  't606-kv-memory': [
+    [
+      '#t606-kv-memory .rql{font-size:22px;text-anchor:middle;fill:var(--color-surface-deep);font-weight:700;}',
+      '#t606-kv-memory .rql{font-size:22px;text-anchor:middle;fill:var(--color-bg);font-weight:700;}',
+    ],
+  ],
+  // pipe animation uses Deck.loop inside enter hook so it pauses when off-screen and under reduced motion
+  't607-prefill-vs-decode': [
+    [
+      `      function runPipe() {
+        var t0 = null;
+        function frame(ts) {
+          if (t0 === null) t0 = ts;
+          var ph = (ts - t0) / 1500; // one pipe traversal per 1.5 s
+          pips.forEach(function (s, i) {
+            var x = PX0 + 2 + ((ph + i / 4) % 1) * (PX1 - PX0 - 16);
+            s.setAttribute('x', x.toFixed(1));
+          });
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+      runPipe();`,
+      `      var stopPipe = null;
+      function animatePipe(secs) {
+        var ph = secs / 1.5;
+        pips.forEach(function (s, i) {
+          var x = PX0 + 2 + ((ph + i / 4) % 1) * (PX1 - PX0 - 16);
+          s.setAttribute('x', x.toFixed(1));
+        });
+      }`,
+    ],
+    [
+      `      Deck.slide('t607-prefill-vs-decode', {
+        enter: function () { s1 = 0; s2 = 0; draw(); },`,
+      `      Deck.slide('t607-prefill-vs-decode', {
+        enter: function () {
+          s1 = 0; s2 = 0; draw();
+          if (stopPipe) stopPipe();
+          stopPipe = Deck.loop(animatePipe);
+        },
+        leave: function () { if (stopPipe) { stopPipe(); stopPipe = null; } },`,
+    ],
   ],
 };
 
@@ -192,23 +258,28 @@ export function extractSlides(html) {
     });
     i = j;
   }
+  for (const target of Object.keys(FIXUPS)) {
+    if (!slides.some((s) => s.id === target)) {
+      throw new Error(`fixup target ${target} is not in the deck`);
+    }
+  }
   return slides;
 }
 
-function main(deckPath, outDir) {
+export function main(deckPath, outDir = 'src/components/illustrations/deck') {
   const html = readFileSync(deckPath, 'utf8');
-  writeFileSync(join(outDir, 'deck-base.css'),
-    '/* Generated by scripts/extract-deck.mjs from the talk deck: do not edit by hand. */\n' + extractBaseCss(html));
-  const slides = extractSlides(html).filter((s) => !s.id.startsWith('s01-'));
+  const slides = extractSlides(html).filter((s) => !isDecorative(s.id));
   const dir = join(outDir, 'slides');
   mkdirSync(dir, { recursive: true });
-  for (const f of readdirSync(dir)) if (/^s\d\d-.*\.html$/.test(f)) rmSync(join(dir, f));
+  for (const f of readdirSync(dir)) if (/^[st]\d{2,3}-.*\.html$/.test(f)) rmSync(join(dir, f));
   const manifest = {};
   for (const s of slides) {
     writeFileSync(join(dir, `${s.id}.html`), s.html + '\n');
     manifest[s.id] = { steps: s.steps, tool: s.tool, kicker: s.kicker, statement: s.statement, notes: s.notes };
   }
   writeFileSync(join(outDir, 'slides.json'), JSON.stringify(manifest, null, 2) + '\n');
+  writeFileSync(join(outDir, 'deck-base.css'),
+    '/* Generated by scripts/extract-deck.mjs from the talk deck: do not edit by hand. */\n' + extractBaseCss(html));
   console.log(`wrote ${slides.length} slides to ${dir}`);
 }
 

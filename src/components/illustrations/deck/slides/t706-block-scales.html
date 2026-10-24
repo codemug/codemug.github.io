@@ -1,0 +1,132 @@
+<section class="slide" id="t706-block-scales" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">4-bit formats carry a scale for each block.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t706-block-scales-t t706-block-scales-d">
+      <title id="t706-block-scales-t">4-bit formats: a block of small values and one scale</title>
+      <desc id="t706-block-scales-d">Three rows. NVFP4: a block of 16 four-bit values multiplied by one separate FP8 scale cell. MXFP4: a block of four-bit values multiplied by a shared block scale cell. GGUF Q4_K_M and Q4_K_S: several blocks, each with its own scale, the blocks mixed in how many bits they use per value, about 4.9 bits per weight for Q4_K_M and about 4.7 bits for Q4_K_S.</desc>
+      <g id="t706-block-scales-rows"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t706-block-scales svg.diagram{width:100%;height:100%;max-width:none;}
+    #t706-block-scales text{font-family:var(--font-mono);}
+    #t706-block-scales .row{transition:opacity .5s ease;}
+    #t706-block-scales .nm{font-size:30px;font-weight:600;fill:#6a6a73;transition:fill .6s;}
+    #t706-block-scales .nm2{font-size:20px;fill:#6a6a73;transition:fill .6s;}
+    #t706-block-scales .cb{fill:var(--color-surface-deep);stroke:#4a4a52;stroke-width:2.5;transition:stroke .6s;}
+    #t706-block-scales .ct{font-size:26px;fill:#6a6a73;text-anchor:middle;transition:fill .6s;}
+    #t706-block-scales .sb{fill:var(--color-surface-deep);stroke:#4a4a52;stroke-width:3;transition:stroke .6s,fill .6s;}
+    #t706-block-scales .st{font-size:22px;font-weight:600;fill:#6a6a73;text-anchor:middle;transition:fill .6s;}
+    #t706-block-scales .ex{font-size:36px;fill:#4a4a52;text-anchor:middle;transition:fill .6s;}
+    #t706-block-scales .row.act .ex{fill:var(--color-text-muted);}
+    #t706-block-scales .gap{font-size:30px;fill:#4a4a52;text-anchor:middle;}
+    #t706-block-scales .cp{font-size:24px;fill:#6a6a73;transition:fill .6s;}
+    #t706-block-scales .cp tspan.hl{fill:#6a6a73;transition:fill .6s;}
+    #t706-block-scales .row.act .nm{fill:var(--color-text);}
+    #t706-block-scales .row.act .nm2{fill:var(--color-text-muted);}
+    #t706-block-scales .row.act .cb{stroke:var(--color-text-dim);}
+    #t706-block-scales .row.act .ct{fill:var(--color-text-soft);}
+    #t706-block-scales .row.act .sb{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #t706-block-scales .row.act .st{fill:var(--color-accent);}
+    #t706-block-scales .row.act .cp{fill:var(--color-text-muted);}
+    #t706-block-scales .row.act .cp tspan.hl{fill:var(--color-accent);}
+    #t706-block-scales .row.done .nm, #t706-block-scales .row.done .nm2{fill:var(--color-text-dim);}
+    #t706-block-scales .row.done .cb{stroke:#34343d;}
+    #t706-block-scales .row.done .ct, #t706-block-scales .row.done .st, #t706-block-scales .row.done .cp{fill:var(--color-text-dim);}
+    #t706-block-scales .row.done .sb{stroke:#4a4a52;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't706-block-scales';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // TOY: the hex digits are made-up 4-bit values (one hex digit = 4 bits), only there to show what the cells hold
+      var HEX = '4F2A9C1E7B35D860'.split('');
+      var X0 = 250, CELLH = 68, PITCH = 38, CELLW = 34, PITCH_ROW = 150, Y0 = 92;
+      var g = document.getElementById(ID + '-rows');
+
+      function cell(rg, x, cy, w, txt) {
+        el('rect', { 'class': 'cb', x: x, y: cy - CELLH / 2, width: w, height: CELLH, rx: 7 }, rg);
+        el('text', { 'class': 'ct', x: x + w / 2, y: cy + 9 }, rg, txt);
+      }
+      function scale(rg, x, cy, w, txt) {
+        el('rect', { 'class': 'sb', x: x, y: cy - CELLH / 2, width: w, height: CELLH, rx: 7 }, rg);
+        el('text', { 'class': 'st', x: x + w / 2, y: cy + 9 }, rg, txt);
+      }
+
+      function makeRow(i, name, name2) {
+        var cy = Y0 + i * PITCH_ROW, rg = el('g', { 'class': 'row' }, g);
+        el('text', { 'class': 'nm', x: 40, y: cy + (name2 ? 2 : 10) }, rg, name);
+        if (name2) el('text', { 'class': 'nm2', x: 40, y: cy + 28 }, rg, name2);
+        return { g: rg, cy: cy };
+      }
+      function caption(r, parts) {
+        var t = el('text', { 'class': 'cp', x: X0, y: r.cy + 68 }, r.g);
+        parts.forEach(function (p) { el('tspan', p[1] ? { 'class': 'hl' } : {}, t, p[0]); });
+      }
+
+      // row 0: NVFP4, 16 values + one FP8 scale
+      var r0 = makeRow(0, 'NVFP4');
+      for (var k = 0; k !== 16; k++) cell(r0.g, X0 + k * PITCH, r0.cy, CELLW, HEX[k]);
+      el('text', { 'class': 'ex', x: 884, y: r0.cy + 12 }, r0.g, '×');
+      scale(r0.g, 916, r0.cy, 160, 'FP8 scale');
+      caption(r0, [['16 values + one ', 0], ['FP8 scale', 1]]);
+
+      // row 1: MXFP4, values + a shared block scale (no block size is stated: the row is open-ended)
+      var r1 = makeRow(1, 'MXFP4');
+      for (var a = 0; a !== 8; a++) cell(r1.g, X0 + a * PITCH, r1.cy, CELLW, HEX[a]);
+      el('text', { 'class': 'gap', x: X0 + 9 * PITCH - 2, y: r1.cy + 10 }, r1.g, '···');
+      for (var b = 0; b !== 6; b++) cell(r1.g, X0 + (10 + b) * PITCH, r1.cy, CELLW, HEX[(a + b) % 16]);
+      el('text', { 'class': 'ex', x: 884, y: r1.cy + 12 }, r1.g, '×');
+      scale(r1.g, 916, r1.cy, 160, 'block scale');
+      caption(r1, [['values + a ', 0], ['shared block scale', 1]]);
+
+      // row 2: GGUF Q4_K_M / Q4_K_S, several blocks, each with its own scale, mixed per block
+      var r2 = makeRow(2, 'GGUF', 'Q4_K_M / Q4_K_S');
+      var bx = X0, d = 0;
+      [[4, 34, 38], [4, 50, 54], [4, 34, 38]].forEach(function (blk) {
+        for (var q = 0; q !== blk[0]; q++) {
+          var wide = blk[1] > 40, txt = wide ? HEX[d % 16] + HEX[(d + 5) % 16] : HEX[d % 16];
+          cell(r2.g, bx + q * blk[2], r2.cy, blk[1], txt); d++;
+        }
+        bx += blk[0] * blk[2] + 6;
+        scale(r2.g, bx, r2.cy, 80, 'scale');
+        bx += 80 + 24;
+      });
+      caption(r2, [['mixed per block:  Q4_K_M ', 0], ['~4.9 bits', 1], ['  ·  Q4_K_S ', 0], ['~4.7 bits', 1]]);
+
+      var rows = [r0, r1, r2], V = 1, cancel = null;
+      function draw() {
+        g.setAttribute('transform', 'translate(0 ' + ((3 - V) * PITCH_ROW / 2).toFixed(1) + ')');
+        rows.forEach(function (r, i) { r.g.style.opacity = clamp(V - i).toFixed(3); r.g.style.display = V - i > 0.001 ? '' : 'none'; });
+      }
+      function paint(n) {
+        rows.forEach(function (r, i) { r.g.setAttribute('class', 'row ' + (i === n ? 'act' : i < n ? 'done' : '')); });
+      }
+      draw(); paint(0);
+
+      Deck.slide('t706-block-scales', {
+        enter: function () { V = 1; draw(); paint(0); },
+        step: function (n, prev, c) {
+          paint(n);
+          var target = Math.min(n, 2) + 1;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { V = target; draw(); return; }
+          var from = V;
+          cancel = Deck.tween(800, function (k) { V = Deck.lerp(from, target, k); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

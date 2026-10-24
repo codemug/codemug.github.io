@@ -1,0 +1,99 @@
+<section class="slide" id="t305-safety-data" data-steps="2">
+  <p class="kicker reveal">alignment</p>
+  <p class="statement reveal">Real safety data has the same shape, at scale.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 430" role="img" aria-labelledby="t305-safety-data-t t305-safety-data-d">
+      <title id="t305-safety-data-t">The shape of a real safety preference dataset</title>
+      <desc id="t305-safety-data-d">A table skeleton for the PKU-SafeRLHF dataset. The header shows five real column names with their types: prompt, response_0 and response_1 (strings), is_response_0_safe (bool) and safer_response_id (int64). Below it, rows appear as grey placeholder bars with no text. Last, the real row count, 82,118 rows.</desc>
+
+      <g id="t305-safety-data-head"></g>
+      <g id="t305-safety-data-rows" opacity="0"></g>
+      <g id="t305-safety-data-count" opacity="0">
+        <!-- REAL: part2.json datasets.pku.num_rows_default_total = 82118 (train 73907 + test 8211) -->
+        <text class="big" x="520" y="368">82,118 <tspan class="unit">rows</tspan></text>
+        <text class="split" x="520" y="410">73,907 train + 8,211 test</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t305-safety-data svg.diagram{max-width:min(1203.2px,1100px);}
+    #t305-safety-data .hc{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2.5;}
+    #t305-safety-data .hn{font-size:20px;fill:var(--color-accent);text-anchor:middle;font-weight:600;}
+    #t305-safety-data .ht{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t305-safety-data .rc{fill:var(--color-surface-deep);stroke:var(--color-hairline);stroke-width:2.5;}
+    #t305-safety-data .rb{fill:var(--color-text-faint);}
+    #t305-safety-data .big{font-size:76px;font-weight:700;fill:var(--color-accent);text-anchor:middle;font-variant-numeric:tabular-nums;}
+    #t305-safety-data .big .unit{font-size:38px;font-weight:500;fill:var(--color-text-soft);}
+    #t305-safety-data .split{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't305-safety-data';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      // REAL: part2.json datasets.pku.columns (name, dtype): the five most relevant of 16; widths are layout only
+      var COLS = [['prompt', 'string', 150], ['response_0', 'string', 160], ['response_1', 'string', 160], ['is_response_0_safe', 'bool', 256], ['safer_response_id', 'int64', 232]];
+      var GAP = 8, HEAD_H = 84, HEAD_Y = 10, ROW_Y0 = 108, ROW_PITCH = 46, ROW_H = 38, N_ROWS = 4;
+      // placeholder bar widths per row, as a share of the cell for the string columns (layout only, no data)
+      var BAR = [[0.82, 0.62, 0.70], [0.58, 0.88, 0.50], [0.74, 0.46, 0.80], [0.66, 0.72, 0.56]];
+      var ROW_OPACITY = [1, 0.75, 0.5, 0.3];
+
+      var headG, rowsG, countG, rowEls = [], S = { a: 0, b: 0 };
+      var H_ALL = 430, H_HEAD = 94, H_ROWS = 14 + N_ROWS * ROW_PITCH - 8, H_COUNT = 160;
+
+      function build() {
+        headG = $('head'); rowsG = $('rows'); countG = $('count');
+        [headG, rowsG].forEach(function (g) { while (g.firstChild) g.removeChild(g.firstChild); });
+        rowEls = [];
+        var total = COLS.reduce(function (s, c) { return s + c[2]; }, 0) + GAP * (COLS.length - 1);
+        var x0 = (1040 - total) / 2, xs = [], x = x0;
+        COLS.forEach(function (c) { xs.push(x); x += c[2] + GAP; });
+        COLS.forEach(function (c, i) {
+          el('rect', { 'class': 'hc', x: xs[i], y: HEAD_Y, width: c[2], height: HEAD_H, rx: 12 }, headG);
+          el('text', { 'class': 'hn', x: xs[i] + c[2] / 2, y: HEAD_Y + 36 }, headG, c[0]);
+          el('text', { 'class': 'ht', x: xs[i] + c[2] / 2, y: HEAD_Y + 66 }, headG, c[1]);
+        });
+        for (var r = 0; r < N_ROWS; r++) {
+          var g = el('g', { opacity: 0 }, rowsG), y = ROW_Y0 + r * ROW_PITCH;
+          COLS.forEach(function (c, i) {
+            el('rect', { 'class': 'rc', x: xs[i], y: y, width: c[2], height: ROW_H, rx: 9 }, g);
+            var w = c[1] === 'string' ? (c[2] - 28) * BAR[r][i] : (c[1] === 'bool' ? 54 : 34);
+            var bx = c[1] === 'string' ? xs[i] + 14 : xs[i] + c[2] / 2 - w / 2;
+            el('rect', { 'class': 'rb', x: bx, y: y + ROW_H / 2 - 7, width: w, height: 14, rx: 7 }, g);
+          });
+          rowEls.push(g);
+        }
+      }
+
+      function draw() {
+        var vis = H_HEAD + H_ROWS * S.a + H_COUNT * S.b;
+        var tr = 'translate(0 ' + ((H_ALL - vis) / 2).toFixed(1) + ')';   // the visible part stays centred; hidden parts carry opacity 0
+        headG.setAttribute('transform', tr); rowsG.setAttribute('transform', tr); countG.setAttribute('transform', tr);
+        rowsG.setAttribute('opacity', S.a > 0.001 ? 1 : 0);
+        rowEls.forEach(function (g, i) { g.setAttribute('opacity', (clamp(S.a * 2.2 - i * 0.35) * ROW_OPACITY[i]).toFixed(3)); });
+        countG.setAttribute('opacity', clamp((S.b - 0.2) / 0.8).toFixed(2));
+      }
+      var cancel = null;
+      Deck.slide('t305-safety-data', {
+        enter: function () { build(); S = { a: 0, b: 0 }; draw(); },
+        step: function (n, prev, c) {
+          var to = { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { a: S.a, b: S.b };
+          cancel = Deck.tween(1100, function (t) { S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) }; draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

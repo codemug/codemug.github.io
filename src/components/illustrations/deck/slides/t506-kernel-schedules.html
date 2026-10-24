@@ -1,0 +1,149 @@
+<section class="slide" id="t506-kernel-schedules" data-steps="2">
+  <p class="kicker reveal">the GPU</p>
+  <p class="statement reveal">A kernel schedules the tiles.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 470" role="img" aria-labelledby="t506-kernel-schedules-t t506-kernel-schedules-d">
+      <title id="t506-kernel-schedules-t">A kernel chops a big matrix into tiles and streams them down the memory ladder to the tensor cores</title>
+      <desc id="t506-kernel-schedules-d">On the left, a big matrix. On the right, the memory ladder: VRAM, shared memory, registers, tensor core. In the first step grid lines chop the matrix into tiles. In the last step small tiles leave the matrix one after another and stream continuously down the ladder, while every cell of the tensor core stays busy. The labels say kernel equals the choreography and that FlashAttention is a hand-tuned kernel.</desc>
+      <defs>
+        <pattern id="t506-kernel-schedules-fine" width="11" height="11" patternUnits="userSpaceOnUse"><path d="M11 0H0V11" fill="none" style="stroke:var(--color-hairline);stroke-width:1"/></pattern>
+      </defs>
+      <g id="t506-kernel-schedules-g"></g>
+      <g data-from="2">
+        <text class="kt" x="331" y="424">kernel = the choreography</text>
+        <text class="fa" x="331" y="458">FlashAttention is a hand-tuned kernel</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t506-kernel-schedules svg.diagram{width:100%;height:100%;max-width:none;}
+    #t506-kernel-schedules text{font-family:var(--font-mono);}
+    #t506-kernel-schedules .mx{fill:url(#t506-kernel-schedules-fine);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #t506-kernel-schedules .mb{fill:none;stroke:var(--color-text-dim);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
+    #t506-kernel-schedules .tl{stroke:var(--color-text-faint);stroke-width:2.5;stroke-linecap:round;}
+    #t506-kernel-schedules .tov{fill:var(--color-accent);}
+    #t506-kernel-schedules .lb{fill:var(--color-surface-deep);stroke:var(--color-text-dim);stroke-width:3;}
+    #t506-kernel-schedules .ll{font-size:26px;fill:var(--color-text-soft);}
+    #t506-kernel-schedules .ay{fill:none;stroke:var(--color-text-dim);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t506-kernel-schedules .tk{fill:var(--color-accent);stroke:var(--color-bg);stroke-width:2.5;}
+    #t506-kernel-schedules .tcell{fill:var(--color-accent);}
+    #t506-kernel-schedules .tidle{fill:var(--color-border-strong);}
+    #t506-kernel-schedules .kt{font-size:28px;font-weight:600;text-anchor:middle;fill:var(--color-accent);}
+    #t506-kernel-schedules .fa{font-size:22px;text-anchor:middle;fill:var(--color-text-dim);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't506-kernel-schedules';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      var ease = Deck.ease.inOut;
+
+      // TOY: an 8 x 8 grid of tiles
+      var NT = 8, TS = 44, MX = 155, MY = 20, MS = NT * TS;
+      var g = document.getElementById(ID + '-g');
+
+      // ---- left: the big matrix, with brackets; the tile grid lines draw in at step 1
+      el('rect', { 'class': 'mx', x: MX, y: MY, width: MS, height: MS, rx: 4 }, g);
+      el('path', { 'class': 'mb', d: 'M' + (MX - 6) + ' ' + MY + 'h-14V' + (MY + MS) + 'h14' }, g);
+      el('path', { 'class': 'mb', d: 'M' + (MX + MS + 6) + ' ' + MY + 'h14V' + (MY + MS) + 'h-14' }, g);
+      var tov = [], i, j;
+      for (i = 0; i !== NT; i++) for (j = 0; j !== NT; j++)
+        tov.push(el('rect', { 'class': 'tov', x: MX + j * TS + 3, y: MY + i * TS + 3, width: TS - 6, height: TS - 6, rx: 5, opacity: 0 }, g));
+      var vl = [], hl = [];
+      for (i = 1; i !== NT; i++) {
+        vl.push(el('line', { 'class': 'tl', x1: MX + i * TS, y1: MY, x2: MX + i * TS, y2: MY }, g));
+        hl.push(el('line', { 'class': 'tl', x1: MX, y1: MY + i * TS, x2: MX, y2: MY + i * TS }, g));
+      }
+
+      // ---- right: the memory ladder. A conveyor lane runs down the left side of the boxes, labels sit to its right.
+      var LX = 665, LW = 300, LANE = LX + 32, LBLX = LX + 66;
+      var BOX = [['VRAM', 16, 60], ['shared memory', 112, 60], ['registers', 208, 60], ['tensor core', 304, 120]];
+      BOX.forEach(function (b, k) {
+        el('rect', { 'class': 'lb', x: LX, y: b[1], width: LW, height: b[2], rx: 14 }, g);
+        el('text', { 'class': 'll', x: LBLX, y: b[1] + (k === 3 ? 30 : b[2] / 2), dy: '.35em' }, g, b[0]);
+        if (k < 3) el('path', { 'class': 'ay', d: 'M' + LANE + ' ' + (b[1] + b[2] + 6) + 'V' + (BOX[k + 1][1] - 8) + 'm-9 -9l9 9l9 -9' }, g);
+      });
+      // the tensor core: a small field of cells, all busy while tiles keep arriving
+      var cells = [];
+      for (j = 0; j !== 2; j++) for (i = 0; i !== 7; i++)
+        cells.push(el('rect', { 'class': 'tidle', x: LBLX + i * 28, y: 360 + j * 28, width: 22, height: 22, rx: 4 }, g));
+      var pool = [];
+      for (i = 0; i !== 10; i++) pool.push(el('rect', { 'class': 'tk', width: 30, height: 30, rx: 6, opacity: 0 }, g));
+
+      // ---- step 1: grid lines
+      var G = 0;
+      function drawGrid() {
+        for (var k = 0; k !== NT - 1; k++) {
+          var p = ease(clamp(G * 1.7 - k * 0.1));
+          vl[k].setAttribute('y2', MY + MS * p);
+          hl[k].setAttribute('x2', MX + MS * p);
+          vl[k].style.opacity = p > 0.001 ? 1 : 0; hl[k].style.opacity = p > 0.001 ? 1 : 0;
+        }
+      }
+
+      // ---- step 2: tiles stream down the ladder, forever
+      var PERIOD = 0.6, TRIP = 3.6;                      // seconds between launches, seconds per trip
+      var YS = [46, 142, 238, 384];                      // the lane y of VRAM, shared, registers, tensor core
+      var LEG = [[0, 0.2], [0.26, 0.46], [0.52, 0.72], [0.78, 0.94]];   // when each hop happens (dwell in between)
+      function tileCentre(n) { var t = n % (NT * NT); return [MX + (t % NT) * TS + TS / 2, MY + Math.floor(t / NT) * TS + TS / 2]; }
+      function where(u, n) {
+        var from = tileCentre(n), pts = [from, [LANE, YS[0]], [LANE, YS[1]], [LANE, YS[2]], [LANE, YS[3]]];
+        for (var k = 0; k !== 4; k++) {
+          if (u < LEG[k][0]) return pts[k];
+          if (u <= LEG[k][1]) { var f = ease((u - LEG[k][0]) / (LEG[k][1] - LEG[k][0])); return [Deck.lerp(pts[k][0], pts[k + 1][0], f), Deck.lerp(pts[k][1], pts[k + 1][1], f)]; }
+        }
+        return pts[4];
+      }
+      function drawStream(t) {
+        var jmax = Math.floor(t / PERIOD), p, used = 0;
+        for (var n = Math.max(0, jmax - 9); n <= jmax; n++) {
+          var u = (t - n * PERIOD) / TRIP;
+          if (u < 0 || u > 1 || used >= pool.length) continue;
+          p = where(u, n);
+          var r = pool[used++];
+          r.setAttribute('x', p[0] - 15); r.setAttribute('y', p[1] - 15);
+          r.setAttribute('opacity', u > 0.94 ? clamp((1 - u) / 0.06) : 1);
+        }
+        for (; used < pool.length; used++) pool[used].setAttribute('opacity', 0);
+        // tiles already taken keep a tint, the one being lifted is bright
+        var done = jmax % (NT * NT);
+        for (var q = 0; q !== tov.length; q++) tov[q].setAttribute('opacity', q < done ? 0.14 : q === done ? 0.55 : 0);
+        for (var c = 0; c !== cells.length; c++) cells[c].setAttribute('class', 'tcell'), cells[c].setAttribute('opacity', (0.8 + 0.2 * Math.sin(t * 5.5 + c * 0.9)).toFixed(3));
+      }
+      function clearStream() {
+        pool.forEach(function (r) { r.setAttribute('opacity', 0); });
+        tov.forEach(function (r) { r.setAttribute('opacity', 0); });
+        cells.forEach(function (c) { c.setAttribute('class', 'tidle'); c.setAttribute('opacity', 1); });
+      }
+
+      var stop = null, cancel = null;
+      function stopStream() { if (stop) { stop(); stop = null; } }
+      drawGrid(); clearStream();
+
+      Deck.slide('t506-kernel-schedules', {
+        enter: function () { stopStream(); G = 0; drawGrid(); clearStream(); },
+        leave: stopStream,
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { G = to; drawGrid(); } else {
+            var from = G;
+            if (from !== to) cancel = Deck.tween(to > from ? 1000 : 500, function (k) { G = Deck.lerp(from, to, k); drawGrid(); });
+          }
+          if (n >= 2) {
+            if (!stop) stop = Deck.reduced ? (drawStream(5.5), null) : Deck.loop(drawStream);
+          } else { stopStream(); clearStream(); }
+        }
+      });
+    })();
+  </script>
+</section>

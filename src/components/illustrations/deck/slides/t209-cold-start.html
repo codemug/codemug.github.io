@@ -1,0 +1,136 @@
+<section class="slide" id="t209-cold-start" data-steps="1">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">Cold start: the seed data already has the reasoning in it.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 454" role="img" aria-labelledby="t209-cold-start-t t209-cold-start-d">
+      <title id="t209-cold-start-t">A real math training example with the reasoning already written in</title>
+      <desc id="t209-cold-start-d">A card showing a real sample from the OpenR1-Math-220k dataset: a ship and river word problem, then the assistant text, which starts with a think tag, shows the start and the end of a long chain of thought, closes with a closing think tag, and then gives the written-up answer. The think block is outlined in cyan. In the next step two chips appear below: SFT with reasoning traces teaches the think format, then RL scores only the final outcome.</desc>
+      <defs>
+        <marker id="t209-cold-start-ah" markerUnits="userSpaceOnUse" markerWidth="16" markerHeight="16" refX="12" refY="8" orient="auto"><path d="M0,1 L14,8 L0,15 Z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <g id="t209-cold-start-card"></g>
+
+      <!-- step 1: the two training stages -->
+      <g id="t209-cold-start-chips" opacity="0">
+        <rect class="chip" x="85" y="0" width="400" height="80" rx="14"/>
+        <text class="ct" x="285" y="0"><tspan class="kw">SFT</tspan> with reasoning traces:</text>
+        <text class="ct" x="285" y="0">teaches the <tspan class="kw">&lt;think&gt;</tspan> format</text>
+        <line class="ar" x1="497" y1="0" x2="551" y2="0" marker-end="url(#t209-cold-start-ah)"/>
+        <rect class="chip" x="565" y="0" width="400" height="80" rx="14"/>
+        <text class="ct" x="765" y="0"><tspan class="kw">RL</tspan>: only the final</text>
+        <text class="ct" x="765" y="0">outcome is scored</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t209-cold-start svg.diagram{max-width:min(1203.2px,1100px);}
+    #t209-cold-start .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t209-cold-start .sep{stroke:var(--color-hairline);stroke-width:2;}
+    #t209-cold-start .gut{font-size:20px;fill:var(--color-text-dim);}
+    #t209-cold-start .tx{font-size:20px;fill:var(--color-text-soft);white-space:pre;}
+    #t209-cold-start .tg{font-size:20px;fill:var(--color-accent);font-weight:600;white-space:pre;}
+    #t209-cold-start .el{font-size:20px;fill:var(--color-text-dim);white-space:pre;}
+    #t209-cold-start .tb{fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #t209-cold-start .chip{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2.5;}
+    #t209-cold-start .ct{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #t209-cold-start .kw{fill:var(--color-accent);font-weight:600;}
+    #t209-cold-start .ar{stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't209-cold-start';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      // REAL: part2.json datasets.openr1 (open-r1/OpenR1-Math-220k, default config, train, row 0). Strings verbatim, cut with "..." by wrap() below.
+      var PROBLEM = 'A ship traveling along a river has covered $24 \\mathrm{~km}$ upstream and $28 \\mathrm{~km}$ downstream. For this journey, it took half an hour less than for traveling $30 \\mathrm{~km}$ upstream and $21 \\mathrm{~km}$ downstream, or half an hour more than for traveling $15 \\mathrm{~km}$ upstream and $42 \\mathrm{~km}$ downstream, assuming that both the ship and the river move uniformly.'; // problem, after its "## Task B-1.3." heading
+      var THINK_START = 'Okay, so I need to find the speed of the ship in still water and the speed of the river. Let me start by recalling that when a ship is moving upstream, its effective speed is the speed of the ship minus the speed of the river.'; // reasoning_start, after "<think>\n"
+      var THINK_TAIL = 'Therefore, the solution is correct.'; // from think_close_context
+      var FINAL = 'Let \\( v \\) be the speed of the ship in still water (in km/h) and \\( r \\) be the speed of the river (in km/h). The effective speeds of the ship upstream and downstream are \\( v - r \\) and \\( v + r \\), respectively.'; // final_text, after "</think>\n\n"
+      var THINK_TOKENS = 2205; // think_tokens_qwen_tokenizer
+
+      var COLS = 66, LH = 28, FS = 20, TX = 178, GX = 28, CARD_X = 10, CARD_W = 1020, BOX_X = 162, BOX_W = 858;
+
+      // greedy word wrap to COLS characters; when text is left over the last line ends in "..."
+      function wrap(text, maxLines) {
+        var words = text.split(' '), lines = [''], i, w, cand;
+        for (i = 0; i !== words.length; i++) {
+          w = words[i]; cand = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + w : w;
+          if (cand.length <= COLS) { lines[lines.length - 1] = cand; continue; }
+          if (lines.length === maxLines) {
+            var last = lines[maxLines - 1];
+            while ((last + ' ...').length > COLS) last = last.slice(0, last.lastIndexOf(' '));
+            lines[maxLines - 1] = last + ' ...';
+            return lines;
+          }
+          lines.push(w);
+        }
+        return lines;
+      }
+
+      var cardG, chipsG, chipsY = 0, offMax = 0, S = { a: 0 };
+      function build() {
+        cardG = $('card'); chipsG = $('chips');
+        while (cardG.firstChild) cardG.removeChild(cardG.firstChild);
+        var y = 14, boxTop = 0, boxBot = 0;
+        function line(cls, text, gutter) {
+          var t = el('text', { 'class': cls, x: TX, y: y + 21 }, cardG, text);
+          if (gutter) el('text', { 'class': 'gut', x: GX, y: y + 21 }, cardG, gutter);
+          y += LH;
+          return t;
+        }
+        var bg = el('rect', { 'class': 'card', x: CARD_X, y: 0, width: CARD_W, height: 10, rx: 14 }, cardG);
+        wrap(PROBLEM, 2).forEach(function (s, k) { line('tx', s, k === 0 ? 'problem' : ''); });
+        y += 6; el('line', { 'class': 'sep', x1: CARD_X + 16, y1: y, x2: CARD_X + CARD_W - 16, y2: y }, cardG); y += 8;
+        boxTop = y;
+        var tbox = el('rect', { 'class': 'tb', x: BOX_X, y: y - 2, width: BOX_W, height: 10, rx: 10 }, cardG);
+        y += 4;
+        line('tg', '<think>', 'assistant');
+        wrap(THINK_START, 2).forEach(function (s) { line('tx', s); });
+        var e = line('el', '... ' + THINK_TOKENS.toLocaleString('en-US') + ' thinking tokens in all ...');
+        e.setAttribute('x', BOX_X + BOX_W / 2); e.setAttribute('text-anchor', 'middle');
+        line('tx', '... ' + THINK_TAIL);
+        line('tg', '</think>');
+        boxBot = y + 8;
+        tbox.setAttribute("height", boxBot - boxTop + 2);
+        y += 12;
+        wrap(FINAL, 2).forEach(function (s, k) { line('tx', s, k === 0 ? 'answer' : ''); });
+        y += 10;
+        bg.setAttribute('height', y);
+        chipsY = y + 30;
+        // chip rows (two text lines per chip)
+        var ts = chipsG.querySelectorAll('text.ct'), cy = chipsY + 40;
+        [0, 1, 2, 3].forEach(function (k) { ts[k].setAttribute('y', (k % 2 === 0 ? cy - 6 : cy + 22) + 0); });
+        [].forEach.call(chipsG.querySelectorAll('rect.chip'), function (r) { r.setAttribute('y', chipsY); });
+        var ar = chipsG.querySelector('line.ar'); ar.setAttribute('y1', cy + 4); ar.setAttribute('y2', cy + 4);
+        offMax = (chipsY + 80 - y - 4) / 2;   // the card sits lower until the chips arrive
+      }
+
+      function draw() {
+        cardG.setAttribute('transform', 'translate(0 ' + (4 + offMax * (1 - S.a)).toFixed(1) + ')');
+        chipsG.setAttribute('opacity', clamp((S.a - 0.35) / 0.65).toFixed(2));
+      }
+      var cancel = null;
+      Deck.slide('t209-cold-start', {
+        enter: function () { build(); S = { a: 0 }; draw(); },
+        step: function (n, prev, c) {
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = { a: to }; draw(); return; }
+          var from = S.a;
+          cancel = Deck.tween(1000, function (t) { S = { a: Deck.lerp(from, to, t) }; draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

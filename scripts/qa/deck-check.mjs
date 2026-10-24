@@ -149,18 +149,24 @@ if (REDUCED) {
   // its close button is on screen, Esc restores it; on phones it never shrinks below 0.5
   for (const vp of [{ width: 360, height: 740 }, { width: 1280, height: 900 }]) {
     const m = await open(vp);
-    const first = (await figures(m.page))[0];
-    if (first) {
-      const sel = figSel(first.name);
-      const tag = `${first.name} @${vp.width}`;
-      await m.page.locator(sel).scrollIntoViewIfNeeded();
-      if (vp.width === 360) {
+    const allFigs = await figures(m.page);
+    if (vp.width === 360) {
+      for (const f of allFigs) {
+        const sel = figSel(f.name);
+        const tag = `${f.name} @${vp.width}`;
+        await m.page.locator(sel).scrollIntoViewIfNeeded();
         const bar = await m.page.locator(`${sel} .dk-bar`).boundingBox();
         if (!bar || bar.x < 0 || bar.x + bar.width > 361) fail(tag, `controls off screen: ${JSON.stringify(bar)}`);
         // slides are centred compositions: an overflowing stage starts scrolled to its middle
         const sc = await m.page.$eval(`${sel} .dk-scroll`, (s) => ({ left: s.scrollLeft, mid: (s.scrollWidth - s.clientWidth) / 2 }));
         if (sc.mid > 0 && Math.abs(sc.left - sc.mid) > 2) fail(tag, `stage not centred: scrollLeft ${sc.left}, middle ${sc.mid}`);
       }
+    }
+    const first = allFigs[0];
+    if (first) {
+      const sel = figSel(first.name);
+      const tag = `${first.name} @${vp.width}`;
+      await m.page.locator(sel).scrollIntoViewIfNeeded();
       await m.page.click(`${sel} .dk-expand`);
       await m.page.waitForTimeout(500);
       const got = await m.page.$eval(sel, (f) => {
@@ -184,10 +190,11 @@ if (REDUCED) {
   }
 
   // light theme: no visible text in any state may fall under 2:1 contrast against the page
-  const L = await browser.newContext({ viewport: { width: 1280, height: 900 }, colorScheme: 'light', reducedMotion: 'reduce' });
+  const L = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
   const lp = await L.newPage();
   await lp.goto(url, { waitUntil: 'load' });
-  await lp.waitForTimeout(800);
+  await lp.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
+  await lp.waitForTimeout(300);
   for (const f of await figures(lp)) {
     const sel = figSel(f.name);
     const states = flatStates(f).length;

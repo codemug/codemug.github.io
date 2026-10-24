@@ -1,0 +1,119 @@
+<section class="slide" id="t201-imitation-cap" data-steps="2">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">Imitation tops out at the quality of the examples.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 490" role="img" aria-labelledby="t201-imitation-cap-t t201-imitation-cap-d">
+      <title id="t201-imitation-cap-t">Imitation cannot beat its examples</title>
+      <desc id="t201-imitation-cap-d">Two cards: What is 17 times 24, with the single right answer 408, and a deployment-crash question with a question mark. Under the first card a bar for the model rises until it touches a dashed ceiling labelled quality of the examples. Under the second card ten different good answers appear, so there is nothing single to copy.</desc>
+
+      <!-- card 1: one right answer -->
+      <rect class="card" x="10" y="8" width="490" height="180" rx="14"/>
+      <text class="q" x="255" y="68">What is 17 &times; 24?</text>
+      <text class="big" x="255" y="164">408</text>
+
+      <!-- card 2: no single right answer -->
+      <rect class="card" x="540" y="8" width="490" height="180" rx="14"/>
+      <text class="q2" x="785" y="50">My deployment keeps crashing:</text>
+      <text class="q2" x="785" y="82">what should I check?</text>
+      <text class="big dim" x="785" y="164">?</text>
+
+      <!-- step 1: the model rises to the ceiling set by the examples -->
+      <g id="t201-imitation-cap-s1" opacity="0">
+        <line class="base" x1="10" y1="444" x2="500" y2="444"/>
+        <line class="ceil" x1="10" y1="262" x2="500" y2="262"/>
+        <text class="cl" x="500" y="248" text-anchor="end">quality of the examples</text>
+        <text class="bl" x="90" y="476">the model</text>
+      </g>
+      <rect id="t201-imitation-cap-bar" class="bar" x="30" y="444" width="120" height="0" rx="6"/>
+
+      <!-- step 2: ten different good answers (chips are built by the script) -->
+      <g id="t201-imitation-cap-chips"></g>
+      <g id="t201-imitation-cap-s2" opacity="0">
+        <text class="nc" x="785" y="448">ten engineers, ten good answers:</text>
+        <text class="nc" x="785" y="476">nothing to copy</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t201-imitation-cap svg.diagram{max-width:min(1203.2px,1100px);}
+    #t201-imitation-cap .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t201-imitation-cap .q{font-size:30px;fill:var(--color-text);text-anchor:middle;}
+    #t201-imitation-cap .q2{font-size:25px;fill:var(--color-text);text-anchor:middle;}
+    #t201-imitation-cap .big{font-size:84px;font-weight:600;fill:var(--color-text);text-anchor:middle;}
+    #t201-imitation-cap .big.dim{fill:var(--color-text-dim);}
+    #t201-imitation-cap .base{stroke:var(--color-border-strong);stroke-width:2;}
+    #t201-imitation-cap .ceil{stroke:var(--color-text-muted);stroke-width:3;stroke-dasharray:12 8;}
+    #t201-imitation-cap .cl{font-size:22px;fill:var(--color-text-soft);}
+    #t201-imitation-cap .bar{fill:var(--color-accent);}
+    #t201-imitation-cap .bl{font-size:22px;fill:var(--color-accent);text-anchor:middle;}
+    #t201-imitation-cap .ch{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2;}
+    #t201-imitation-cap .ct{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #t201-imitation-cap .nc{font-size:22px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't201-imitation-cap';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      // TOY: the model bar rises from the baseline to the ceiling (the quality of the examples)
+      var BASE_Y = 444, CEIL_Y = 262, BAR_H = BASE_Y - CEIL_Y;
+      // TOY: ten different, equally good first checks for a crashing deployment
+      var ANSWERS = ['check logs', 'OOMKilled', 'bad config', 'disk full', 'rollback', 'DB timeout', 'image tag', 'probes', 'CPU limit', 'secrets'];
+      var ROWS = [[0, 1, 2], [3, 4, 5], [6, 7], [8, 9]];
+      var ROW_Y = [208, 262, 316, 370], JIT_X = [-8, 10, -12, 8], JIT_Y = [[0, 4, -3], [4, -3, 2], [2, -4], [-2, 4]];
+      var CX = 785, GAP = 12, CH_H = 40, CHAR_W = 12, PAD = 28;
+
+      var chipsG = $('chips'), chips = [];
+      ROWS.forEach(function (row, r) {
+        var widths = row.map(function (i) { return ANSWERS[i].length * CHAR_W + PAD; });
+        var total = widths.reduce(function (a, b) { return a + b; }, 0) + GAP * (row.length - 1);
+        var x = CX - total / 2 + JIT_X[r];
+        row.forEach(function (idx, k) {
+          var g = el('g', { opacity: 0 }, chipsG);
+          el('rect', { 'class': 'ch', x: 0, y: 0, width: widths[k], height: CH_H, rx: 10 }, g);
+          el('text', { 'class': 'ct', x: widths[k] / 2, y: 27 }, g, ANSWERS[idx]);
+          chips.push({ g: g, fx: x, fy: ROW_Y[r] + JIT_Y[r][k], w: widths[k], order: chips.length });
+          x += widths[k] + GAP;
+        });
+      });
+
+      var s1, s2, bar, S = { a: 0, b: 0 };
+      function draw() {
+        s1.setAttribute('opacity', clamp(S.a * 1.5));
+        bar.setAttribute('y', (BASE_Y - BAR_H * S.a).toFixed(1));
+        bar.setAttribute('height', (BAR_H * S.a).toFixed(1));
+        s2.setAttribute('opacity', clamp((S.b - 0.5) / 0.5));
+        chips.forEach(function (c) {
+          var p = Deck.ease.out(clamp(S.b * 1.7 - c.order * 0.07));
+          var x = Deck.lerp(CX - c.w / 2, c.fx, p), y = Deck.lerp(196, c.fy, p);
+          c.g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')');
+          c.g.setAttribute('opacity', clamp(p * 2).toFixed(2));
+        });
+      }
+      var cancel = null;
+      Deck.slide('t201-imitation-cap', {
+        enter: function () { s1 = $('s1'); s2 = $('s2'); bar = $('bar'); S = { a: 0, b: 0 }; draw(); },
+        step: function (n, prev, c) {
+          var to = { a: n >= 1 ? 1 : 0, b: n >= 2 ? 1 : 0 };
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to; draw(); return; }
+          var from = { a: S.a, b: S.b };
+          cancel = Deck.tween(to.b > from.b ? 1300 : 900, function (t) {
+            S = { a: Deck.lerp(from.a, to.a, t), b: Deck.lerp(from.b, to.b, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

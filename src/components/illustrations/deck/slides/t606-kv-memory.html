@@ -1,0 +1,147 @@
+<section class="slide" id="t606-kv-memory" data-steps="3">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">The cache is why inference eats memory.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t606-kv-memory-t t606-kv-memory-d">
+      <title id="t606-kv-memory-t">KV cache memory of Qwen3.8-27B: bytes per token, GiB per request by context, and GPU memory rows for the weights plus in-flight requests</title>
+      <desc id="t606-kv-memory-d">Left: the per-token formula 16 layers x 2 x 4 heads x 256 x 2 bytes = 65,536 bytes per token. Step one: bars of KV GiB per request at 4k, 32k, 131k and 262k context (0.25, 2, 8, 16 GiB). Step two: a GPU memory row with the 51.7 GiB weights and four 8 GiB request blocks. Step three: a second row where each request reserves 32 GiB if all 64 layers were cached.</desc>
+      <g id="t606-kv-memory-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t606-kv-memory svg.diagram{width:100%;height:100%;max-width:none;}
+    #t606-kv-memory text{font-family:var(--font-mono);}
+    #t606-kv-memory .f1{font-size:28px;fill:var(--color-text-muted);}
+    #t606-kv-memory .f2{font-size:40px;font-weight:700;fill:var(--color-accent);}
+    #t606-kv-memory .f3{font-size:24px;fill:var(--color-text-muted);}
+    #t606-kv-memory .ct{font-size:24px;fill:var(--color-text-muted);}
+    #t606-kv-memory .frame{fill:none;stroke:var(--color-text-faint);stroke-width:2.5;stroke-dasharray:8 7;}
+    #t606-kv-memory .base{stroke:var(--color-text-dim);stroke-width:3;}
+    #t606-kv-memory .bar{fill:var(--color-accent);}
+    #t606-kv-memory .val{font-size:22px;text-anchor:middle;fill:var(--color-text);}
+    #t606-kv-memory .xl{font-size:22px;text-anchor:middle;fill:var(--color-text-muted);}
+    #t606-kv-memory .rowlab{font-size:24px;fill:var(--color-text-muted);}
+    #t606-kv-memory .cap{font-size:22px;fill:var(--color-text-dim);}
+    #t606-kv-memory .wt{fill:color-mix(in oklab,var(--color-text-muted) 26%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:2.5;}
+    #t606-kv-memory .wtl{font-size:22px;text-anchor:middle;fill:var(--color-text);}
+    #t606-kv-memory .rq{fill:var(--color-accent);}
+    #t606-kv-memory .rql{font-size:22px;text-anchor:middle;fill:var(--color-bg);font-weight:700;}
+    #t606-kv-memory .gh{fill:var(--color-surface-deep);stroke:var(--color-text-muted);stroke-width:2.5;stroke-dasharray:7 6;}
+    #t606-kv-memory .ghl{font-size:22px;text-anchor:middle;fill:var(--color-text-muted);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't606-kv-memory';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // ---- real data, deck/data/part2.json key `kv`
+      var FULL_LAYERS = 16, KV = 2, KV_HEADS = 4, HEAD_DIM = 256, KV_BYTES = 2; // kv.inputs
+      var BPT = 65536; // kv.bytes_per_token_full_attention
+      var CTX = [['4k', 0.25], ['32k', 2], ['131k', 8], ['262k', 16]]; // kv.gib_at_context (4096/32768/131072/262144)
+      var W_GIB = 51.746942; // kv.weights_gb_bf16.gib (55,562,855,904 B)
+      var LIN_MIB = 147.75; // kv.linear_layer_state.total_mib_fp32_recurrent_bf16_conv (ESTIMATE)
+      var REQ_GIB = 8, REQ4_GIB = 32, NREQ = 4; // kv.gib_at_context / _if_all_64_layers_cached at 131072; four in-flight requests
+
+      var g = document.getElementById(ID + '-g');
+
+      // ---- formula (left, always visible)
+      var fx = 40;
+      el('text', { 'class': 'f1', x: fx, y: 88 }, g, FULL_LAYERS + ' layers \u00d7 ' + KV + ' (K and V)');
+      el('text', { 'class': 'f1', x: fx, y: 120 }, g, '\u00d7 ' + KV_HEADS + ' heads \u00d7 ' + HEAD_DIM + ' \u00d7 ' + KV_BYTES + ' bytes');
+      el('text', { 'class': 'f2', x: fx, y: 172 }, g, '= ' + BPT.toLocaleString('en-US') + ' bytes per token');
+      el('text', { 'class': 'f3', x: fx, y: 212 }, g, '= ' + (BPT / 1024) + ' KiB per token');
+
+      // ---- chart (right, steps 0-1): 16 GiB = 300 px
+      var CHX0 = 640, CHX1 = 1080, CTOPY = 140, BASE = 470, HMAX = 300;
+      var CPX = HMAX / 16;
+      var chart = el('g', {}, g);
+      el('rect', { 'class': 'frame', x: CHX0, y: CTOPY, width: CHX1 - CHX0, height: BASE - CTOPY }, chart);
+      el('line', { 'class': 'base', x1: CHX0, y1: BASE, x2: CHX1, y2: BASE }, chart);
+      var ct = el('text', { 'class': 'ct', x: (CHX0 + CHX1) / 2, y: 120, 'text-anchor': 'middle' }, chart, 'KV cache per request');
+      var bars = [], vals = [], xls = [];
+      CTX.forEach(function (d, i) {
+        var cx = CHX0 + (CHX1 - CHX0) * (i + 0.5) / 4;
+        var h = d[1] * CPX;
+        bars.push(el('rect', { 'class': 'bar', x: cx - 40, y: BASE, width: 80, height: 0, rx: 6 }, chart));
+        vals.push(el('text', { 'class': 'val', x: cx, y: BASE - 10 }, chart, d[1] % 1 === 0 ? d[1] + ' GiB' : d[1].toFixed(2) + ' GiB'));
+        xls.push(el('text', { 'class': 'xl', x: cx, y: 494 }, chart, d[0]));
+      });
+
+      // ---- row 1 (steps 2-3): weights + four 8 GiB requests, one common px/GiB scale
+      var RS = 1000 / (W_GIB + NREQ * REQ4_GIB); // = 5.5634 px/GiB (fits the 179.7 GiB row in 1000 px)
+      var RW = W_GIB * RS, RR = REQ_GIB * RS, RD = REQ4_GIB * RS;
+      var R1Y = 300, R2Y = 408, RH = 56, RX = 60;
+      var row1 = el('g', {}, g);
+      el('text', { 'class': 'rowlab', x: RX, y: 280 }, row1, 'four requests in flight, each reserves its own');
+      var x1 = RX;
+      el('rect', { 'class': 'wt', x: x1, y: R1Y, width: RW, height: RH, rx: 8 }, row1);
+      el('text', { 'class': 'wtl', x: x1 + RW / 2, y: R1Y + RH / 2, dy: '.35em' }, row1, W_GIB.toFixed(1) + ' GiB weights');
+      x1 += RW;
+      for (var i = 0; i < NREQ; i++) {
+        el('rect', { 'class': 'rq', x: x1, y: R1Y, width: RR, height: RH, rx: 6 }, row1);
+        el('text', { 'class': 'rql', x: x1 + RR / 2, y: R1Y + RH / 2, dy: '.35em' }, row1, String(REQ_GIB));
+        x1 += RR;
+      }
+      el('text', { 'class': 'cap', x: RX, y: 380 }, row1, '+ about ' + Math.round(LIN_MIB) + ' MiB fixed state per request (linear-attention layers, estimate)');
+
+      // ---- row 2 (step 3): weights + four dashed 32 GiB blocks (all 64 layers cached)
+      var row2 = el('g', {}, g);
+      x1 = RX;
+      el('rect', { 'class': 'wt', x: x1, y: R2Y, width: RW, height: RH, rx: 8 }, row2);
+      el('text', { 'class': 'wtl', x: x1 + RW / 2, y: R2Y + RH / 2, dy: '.35em' }, row2, W_GIB.toFixed(1) + ' GiB weights');
+      x1 += RW;
+      for (i = 0; i < NREQ; i++) {
+        el('rect', { 'class': 'gh', x: x1, y: R2Y, width: RD, height: RH, rx: 6 }, row2);
+        el('text', { 'class': 'ghl', x: x1 + RD / 2, y: R2Y + RH / 2, dy: '.35em' }, row2, REQ4_GIB + ' GiB');
+        x1 += RD;
+      }
+      el('text', { 'class': 'rowlab', x: RX, y: 500 }, row2, 'if all 64 layers cached (4\u00d7)');
+
+      // ---- state
+      var s1 = 0, s2 = 0, s3 = 0, cancel = null;
+      function draw() {
+        var ch = 1 - s2;
+        chart.setAttribute('opacity', ch.toFixed(3));
+        bars.forEach(function (b, k) {
+          var h = CTX[k][1] * CPX * s1;
+          b.setAttribute('y', (BASE - h).toFixed(2));
+          b.setAttribute('height', h.toFixed(2));
+        });
+        ct.setAttribute('opacity', s1.toFixed(3));
+        vals.forEach(function (v, k) {
+          v.setAttribute('opacity', s1.toFixed(3));
+          v.setAttribute('y', (BASE - CTX[k][1] * CPX * s1 - 10).toFixed(2));
+        });
+        xls.forEach(function (l) { l.setAttribute('opacity', s1.toFixed(3)); });
+        row1.setAttribute('opacity', s2.toFixed(3));
+        row2.setAttribute('opacity', s3.toFixed(3));
+      }
+      draw();
+
+      Deck.slide('t606-kv-memory', {
+        enter: function () { s1 = 0; s2 = 0; s3 = 0; draw(); },
+        step: function (n, prev, c) {
+          var t = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0, n >= 3 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s1 = t[0]; s2 = t[1]; s3 = t[2]; draw(); return; }
+          var f = [s1, s2, s3];
+          cancel = Deck.tween(700, function (k) {
+            s1 = Deck.lerp(f[0], t[0], k);
+            s2 = Deck.lerp(f[1], t[1], k);
+            s3 = Deck.lerp(f[2], t[2], k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

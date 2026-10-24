@@ -1,0 +1,196 @@
+<section class="slide" id="t605-decode-step" data-steps="4" data-tool="dot softmax">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">One decode step, with a cache.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 410" role="img" aria-labelledby="t605-decode-step-t t605-decode-step-d">
+      <title id="t605-decode-step-t">One decode step: the new token uses the cached keys and values, then adds its own to the cache</title>
+      <desc id="t605-decode-step-d">Six cached token cards in a row, each with a key and a value, and an empty dashed slot for a seventh. Below, the new token not. Step one computes its q, k and v. Step two dots q against every cached key and softmax turns the scores into six weights that sum to one. Step three blends the cached values with those weights into an output that predicts pass. Step four moves the new k and v up into the empty slot, so the cache has one more card, and the query is dropped.</desc>
+      <g id="t605-decode-step-cards"></g>
+      <g id="t605-decode-step-lines"></g>
+      <g id="t605-decode-step-top"></g>
+      <g id="t605-decode-step-out"></g>
+      <text class="lab" x="24" y="364" data-from="1" data-until="2">q, k, v: new token only</text>
+      <text class="lab" x="24" y="364" data-from="2" data-until="3">softmax(q · K)</text>
+      <text class="lab" x="24" y="364" data-from="3" data-until="4">weights × V, summed</text>
+      <text class="lab" x="24" y="364" data-from="4">append k and v</text>
+    </svg>
+  </div>
+
+  <style>
+    #t605-decode-step svg.diagram{width:100%;height:100%;max-width:none;}
+    #t605-decode-step text{font-family:var(--font-mono);}
+    #t605-decode-step .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t605-decode-step .tok{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #t605-decode-step .tsp{fill:var(--color-text-dim);}
+    #t605-decode-step .cell{fill:var(--color-bg);stroke-width:2;}
+    #t605-decode-step .cellt{font-size:22px;font-weight:600;text-anchor:middle;}
+    #t605-decode-step .wt{font-size:22px;font-weight:600;text-anchor:middle;paint-order:stroke;stroke:var(--color-bg);stroke-width:6px;stroke-linejoin:round;}
+    #t605-decode-step .ln{fill:none;stroke-width:2;stroke-linecap:round;}
+    #t605-decode-step .chiprect{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t605-decode-step .chipt{font-size:26px;fill:var(--color-text);text-anchor:middle;}
+    #t605-decode-step .strike{stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;}
+    #t605-decode-step .outbox{fill:var(--color-surface-deep);stroke-width:2.5;}
+    #t605-decode-step .outt{font-size:24px;font-weight:600;text-anchor:middle;}
+    #t605-decode-step .arw{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #t605-decode-step .predl{font-size:20px;text-anchor:middle;}
+    #t605-decode-step .lab{font-size:24px;fill:var(--color-accent);transition:opacity .15s ease;}
+    #t605-decode-step .lab.on{transition:opacity .35s ease .25s;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't605-decode-step';
+      var root = document.getElementById(ID);
+      var svg = root.querySelector('svg.diagram');
+      var NS = svg.namespaceURI;
+      // REAL tokens (part2.json gandalf): the last six tokens of the sentence; " not" and " pass" are the EXPECTED continuation, not model output
+      var TOK = [' gand', 'alf', ' screamed', ':', ' you', ' shall'], NEW = ' not', PRED = ' pass';
+      // TOY: 2-number query and keys (invented); the weights are the softmax of the dot products
+      var QV = [1.5, 2.0];
+      var KV = [[-0.2, 0.5], [0.1, -0.3], [0.6, 0.2], [0.2, 0.1], [0.9, 0.3], [0.2, 0.8]];
+      var SC = KV.map(function (k) { return Deck.dot(QV, k); });
+      var EX = SC.map(Math.exp), TOT = EX.reduce(function (a, b) { return a + b; }, 0);
+      var W = EX.map(function (e) { return e / TOT; });
+      var WMAX = Math.max.apply(null, W);
+
+      var CX0 = 116, CPITCH = 148, CARD_Y = 16, CARD_H = 116, FOOT_Y = CARD_Y + CARD_H + 6, NUM_Y = 158, QEND_Y = 176;
+      var OUT_X = 840, OUT_Y = 356, CHIP_X = 450, QCX = 547, KCX = 619, VCX = 691, CELL_Y = 356, CHIP_Y = 356;
+      var CY = Deck.rgb('--color-accent'), BORDER = [52, 52, 61], FAINT = Deck.rgb('--color-text-faint'), MUT = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim'), SOFT = Deck.rgb('--color-text-soft'), TXT = Deck.rgb('--color-text'), BG = [10, 10, 11];
+
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mixv(a, b, t) { t = clamp(t); return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+      function mix(a, b, t) { return 'rgb(' + mixv(a, b, t).join(',') + ')'; }
+      function f2(x) { return (Math.round(x * 100 + 1e-7) / 100).toFixed(2); }
+      // token label centred on (cx, y); a leading space is drawn as a dot (pattern of s17-tokenizer)
+      function label(parent, text, cx, y, fs, cls, dotCls) {
+        var adv = fs * 0.6, lead = text.charAt(0) === ' ', body = lead ? text.slice(1) : text;
+        var inner = (lead ? adv : 0) + body.length * adv, left = cx - inner / 2, dot = null;
+        if (lead) dot = el('circle', { 'class': dotCls, cx: left + adv / 2, cy: y + fs * 0.1, r: fs * 0.11 }, parent);
+        var t = el('text', { 'class': cls, x: left + (lead ? adv : 0) + body.length * adv / 2, y: y, dy: '.35em' }, parent, body);
+        return { text: t, dot: dot };
+      }
+      function cell(parent, w, h, letter) {          // a cell drawn around its own centre
+        var g = el('g', {}, parent);
+        var r = el('rect', { 'class': 'cell', x: -w / 2, y: -h / 2, width: w, height: h, rx: 9 }, g);
+        var t = el('text', { 'class': 'cellt', x: 0, y: 0, dy: '.35em' }, g, letter);
+        return { g: g, rect: r, text: t };
+      }
+      function place(g, p) { g.setAttribute('transform', 'translate(' + p[0].toFixed(1) + ' ' + p[1].toFixed(1) + ')'); }
+
+      var gCards = root.querySelector('#' + ID + '-cards'), gLines = root.querySelector('#' + ID + '-lines');
+      var gTop = root.querySelector('#' + ID + '-top'), gOut = root.querySelector('#' + ID + '-out');
+
+      // ---- the cache: six token cards, each with k and v, a weight under the k side ----
+      var cards = TOK.map(function (t, i) {
+        var cx = CX0 + i * CPITCH, g = el('g', {}, gCards);
+        el('rect', { 'class': 'card', x: cx - 64, y: CARD_Y, width: 128, height: CARD_H, rx: 14 }, g);
+        label(g, t, cx, CARD_Y + 22, 20, 'tok', 'tsp');
+        var k = cell(g, 52, 56, 'k' + (i + 1)), v = cell(g, 52, 56, 'v' + (i + 1));
+        place(k.g, [cx - 32, CARD_Y + 72]); place(v.g, [cx + 32, CARD_Y + 72]);
+        var w = el('text', { 'class': 'wt', x: cx - 32, y: NUM_Y, dy: '.35em' }, g, f2(W[i]));
+        return { cx: cx, k: k, v: v, w: w };
+      });
+      // the empty seventh slot (dashed), filled in the last step
+      var CX6 = CX0 + 6 * CPITCH;
+      var slot = el('rect', { 'class': 'card', x: CX6 - 64, y: CARD_Y, width: 128, height: CARD_H, rx: 14 }, gCards);
+
+      // ---- lines: q to every cached key (step 2), every cached value to the output (step 3) ----
+      var qLines = cards.map(function (c) {
+        var p = el('line', { 'class': 'ln', x1: QCX, y1: CELL_Y - 28, x2: c.cx - 32, y2: QEND_Y, pathLength: 1, 'stroke-dasharray': 1 }, gLines);
+        var d = el('circle', { cx: c.cx - 32, cy: QEND_Y, r: 5 }, gLines);
+        return { p: p, d: d };
+      });
+      var vLines = cards.map(function (c) {
+        // a smooth curve that leaves the v cell straight down (clear of the weights) and funnels into the output
+        return el('path', { 'class': 'ln', d: 'M' + (c.cx + 44) + ' ' + FOOT_Y + 'C' + (c.cx + 44) + ' ' + (FOOT_Y + 120) + ' ' + OUT_X + ' ' + (OUT_Y - 136) + ' ' + OUT_X + ' ' + (OUT_Y - 26), pathLength: 1, 'stroke-dasharray': 1 }, gLines);
+      });
+
+      // ---- the new token: chip, q, k, v ----
+      var chipW = 26 * 0.6 * (NEW.length) + 28;
+      var gChip = el('g', {}, gTop);
+      var chipRect = el('rect', { 'class': 'chiprect', x: -chipW / 2, y: -22, width: chipW, height: 44, rx: 12 }, gChip);
+      var chipLabG = el('g', {}, gChip), chipLab = label(chipLabG, NEW, 0, 0, 26, 'chipt', 'tsp');
+      var qc = cell(gTop, 52, 56, 'q'), kc = cell(gTop, 52, 56, 'k'), vc = cell(gTop, 52, 56, 'v');
+      var qStrike = el('line', { 'class': 'strike', x1: QCX - 20, y1: CELL_Y + 22, x2: QCX + 20, y2: CELL_Y - 22 }, gTop);
+      place(qc.g, [QCX, CELL_Y]);
+
+      // ---- the output: out cell, arrow, predicted token ----
+      var outBox = el('rect', { 'class': 'outbox', x: OUT_X - 60, y: OUT_Y - 26, width: 120, height: 52, rx: 12 }, gOut);
+      var outT = el('text', { 'class': 'outt', x: OUT_X, y: OUT_Y, dy: '.35em' }, gOut, 'out');
+      var arw = el('path', { 'class': 'arw', d: 'M' + (OUT_X + 68) + ' ' + OUT_Y + 'H' + (OUT_X + 128) + 'M' + (OUT_X + 116) + ' ' + (OUT_Y - 11) + 'L' + (OUT_X + 130) + ' ' + OUT_Y + 'L' + (OUT_X + 116) + ' ' + (OUT_Y + 11) }, gOut);
+      var predL = el('text', { 'class': 'predl', x: OUT_X + 98, y: OUT_Y - 38 }, gOut, 'predicts');
+      var predW = 26 * 0.6 * PRED.length + 28, PX = OUT_X + 142 + predW / 2;
+      var predRect = el('rect', { 'class': 'chiprect', x: PX - predW / 2, y: OUT_Y - 22, width: predW, height: 44, rx: 12 }, gOut);
+      var predLab = label(gOut, PRED, PX, OUT_Y, 26, 'chipt', 'tsp');
+
+      // state: [N new cells, QL q lines, QO q-line opacity, WN weights, WC weights cyan, WD weights dim, VL v lines, VO v-line opacity, OUT output, OD output dim, TT append, QX q dropped]
+      var TARGET = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 0.12, 1, 0, 0, 1, 1, 1, 0, 0, 0],
+        [1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1]
+      ];
+      var S = TARGET[0].slice(), cancel = null;
+
+      function draw() {
+        var N = S[0], QL = S[1], QO = S[2], WN = S[3], WC = S[4], WD = S[5], VL = S[6], VO = S[7], OUT = S[8], OD = S[9], TT = S[10], QX = S[11];
+        // the new cells: dashed placeholders, then cyan
+        [qc, kc, vc].forEach(function (c) {
+          c.rect.style.stroke = mix(FAINT, CY, N); c.rect.style.strokeDasharray = N < 0.5 ? '6 5' : 'none';
+          c.text.style.fill = mix(DIM, CY, N);
+        });
+        gChip.style.opacity = 1;
+        // the append: chip, k and v rise into the dashed slot; the chip box fades while the label shrinks into a card label
+        place(gChip, Deck.lerp([CHIP_X, CHIP_Y], [CX6, CARD_Y + 22], TT));
+        chipRect.style.opacity = 1 - clamp(TT * 1.6);
+        chipLabG.setAttribute('transform', 'scale(' + Deck.lerp(1, 20 / 26, TT).toFixed(3) + ')');
+        chipLab.text.style.fill = mix(TXT, MUT, TT);
+        place(kc.g, Deck.lerp([KCX, CELL_Y], [CX6 - 32, CARD_Y + 72], TT)); place(vc.g, Deck.lerp([VCX, CELL_Y], [CX6 + 32, CARD_Y + 72], TT));
+        kc.text.textContent = TT > 0.5 ? 'k7' : 'k'; vc.text.textContent = TT > 0.5 ? 'v7' : 'v';
+        slot.style.stroke = mix(FAINT, CY, clamp((TT - 0.6) / 0.4)); slot.style.strokeDasharray = TT > 0.85 ? 'none' : '7 6';
+        slot.style.opacity = 0.35 + 0.65 * clamp((TT - 0.6) / 0.4);
+        qc.g.style.opacity = 1 - 0.55 * QX; qStrike.style.opacity = QX;
+        // weights
+        cards.forEach(function (c, i) {
+          var pq = clamp((QL - 0.5 * i / 5) / 0.5), pv = clamp((VL - 0.5 * i / 5) / 0.5), rel = W[i] / WMAX;
+          var ql = qLines[i], vl = vLines[i];
+          ql.p.style.strokeDashoffset = (1 - pq).toFixed(3);
+          ql.p.style.opacity = pq > 0 ? (0.35 + 0.65 * rel) * QO : 0; ql.p.style.stroke = mix(CY, CY, 1);
+          ql.d.style.opacity = clamp((pq - 0.9) / 0.1) * QO; ql.d.style.fill = mix(CY, CY, 1);
+          vl.style.strokeDashoffset = (1 - pv).toFixed(3);
+          vl.style.opacity = pv > 0 ? (0.35 + 0.65 * rel) * VO : 0; vl.style.stroke = mix(CY, CY, 1);
+          c.k.rect.style.stroke = mix(BORDER, CY, pq * QO); c.k.text.style.fill = mix(MUT, CY, pq * QO);
+          c.v.rect.style.stroke = mix(BORDER, CY, pv * VO * (0.3 + 0.7 * rel)); c.v.text.style.fill = mix(MUT, CY, pv * VO * (0.3 + 0.7 * rel));
+          c.v.rect.style.fill = mix(BG, CY, 0.16 * pv * VO * rel);
+          c.w.style.opacity = WN;
+          c.w.style.fill = mix(mixv(SOFT, CY, WC), DIM, WD);
+        });
+        // the output
+        gOut.style.opacity = OUT;
+        var oc = mix(CY, DIM, OD);
+        outBox.style.stroke = oc; outT.style.fill = oc; arw.style.stroke = oc; predL.style.fill = oc;
+        predRect.style.stroke = oc; predLab.text.style.fill = mix(TXT, MUT, OD);
+      }
+      draw();
+
+      Deck.slide('t605-decode-step', {
+        enter: function () { S = TARGET[0].slice(); draw(); },
+        step: function (n, prev, c) {
+          var to = TARGET[Math.min(n, 4)];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to.slice(); draw(); return; }
+          var from = S.slice();
+          cancel = Deck.tween(1000, function (t) { S = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

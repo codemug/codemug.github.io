@@ -1,0 +1,160 @@
+<section class="slide" id="t002-left-off" data-steps="3">
+  <p class="kicker reveal">part 2</p>
+  <p class="statement reveal">Where we left off: tokens in, next token out, on repeat.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 440" role="img" aria-labelledby="t002-left-off-t t002-left-off-d">
+      <title id="t002-left-off-t">The part-1 loop in one row</title>
+      <desc id="t002-left-off-d">Text becomes tokens, tokens become embeddings, embeddings go through 64 repeats of attention plus feed-forward, the result is scores over 248,320 tokens, one token is sampled, and it is appended to the text so the whole row runs again.</desc>
+      <g id="t002-left-off-all"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t002-left-off svg.diagram{max-width:min(1203.2px,1200px);}
+    #t002-left-off .blk, #t002-left-off .arr{color:var(--color-text-dim);transition:color .5s ease;}
+    #t002-left-off .blk.done, #t002-left-off .arr.done{color:var(--color-text-muted);}
+    #t002-left-off .blk.lit, #t002-left-off .arr.lit{color:var(--color-accent);}
+    #t002-left-off .bk{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease,fill .5s ease;}
+    #t002-left-off .blk.done .bk{stroke:var(--color-border-strong);}
+    #t002-left-off .blk.lit .bk{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));}
+    #t002-left-off .back{fill:var(--color-bg);stroke:var(--color-border);stroke-width:2.5;transition:stroke .5s ease;}
+    #t002-left-off .blk.done .back{stroke:var(--color-border-strong);}
+    #t002-left-off .blk.lit .back{stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);}
+    #t002-left-off .wd{font-size:21px;fill:var(--color-text-dim);text-anchor:middle;transition:fill .5s ease;}
+    #t002-left-off .blk.done .wd{fill:var(--color-text);}
+    #t002-left-off .blk.lit .wd{fill:var(--color-accent);}
+    #t002-left-off .big{font-size:44px;fill:currentColor;text-anchor:middle;}
+    #t002-left-off .ic{fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #t002-left-off .ic.f{fill:currentColor;stroke:none;}
+    #t002-left-off .shaft{stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;fill:none;transition:stroke .5s ease;}
+    #t002-left-off .ghost{fill:none;stroke:var(--color-text-faint);stroke-width:3;stroke-dasharray:9 8;stroke-linecap:round;}
+    #t002-left-off .ghosthead{fill:none;stroke:var(--color-text-faint);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t002-left-off .ret{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t002-left-off .rlab{font-size:22px;text-anchor:middle;fill:var(--color-text-faint);transition:fill .5s ease;}
+    #t002-left-off .rlab.on{fill:var(--color-accent);}
+  </style>
+  <script>
+    (function () {
+      var ID = 't002-left-off';
+      var root = document.getElementById(ID + '-all'), NS = root.namespaceURI;
+      function mk(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (text !== undefined) e.textContent = text;
+        (parent || root).appendChild(e); return e;
+      }
+      // real numbers (deck/data/qwen38.json): config.num_hidden_layers = 64, config.vocab_size = 248320
+      var LAYERS = '64', VOCAB = '248,320';
+      var NY = 44, NH = 224, NC = NY + NH / 2;
+      var NODES = [
+        { x: 14, w: 96, lines: ['text'], icon: 'text' },
+        { x: 156, w: 124, lines: ['tokens'], icon: 'tokens' },
+        { x: 326, w: 152, lines: ['embeddings'], icon: 'vectors' },
+        { x: 524, w: 200, lines: ['attention', '+ feed-forward'], icon: 'stack' },
+        { x: 786, w: 160, lines: ['scores over', VOCAB, 'tokens'], icon: 'bars' },
+        { x: 992, w: 112, lines: ['sample'], icon: 'chip' }
+      ];
+      // gaps between the front boxes; the stack carries two back cards on its right, so its outgoing arrow starts after them
+      var ARROWS = [[110, 156], [280, 326], [478, 524], [740, 786], [946, 992]];
+
+      function arrow(x1, x2) {
+        var g = mk('g', { 'class': 'arr pend' });
+        mk('line', { 'class': 'shaft', x1: x1 + 6, y1: NC, x2: x2 - 6, y2: NC }, g);
+        mk('path', { 'class': 'shaft', d: 'M' + (x2 - 19) + ' ' + (NC - 9) + 'L' + (x2 - 6) + ' ' + NC + 'L' + (x2 - 19) + ' ' + (NC + 9) }, g);
+        return g;
+      }
+      var arrows = ARROWS.map(function (a) { return arrow(a[0], a[1]); });
+
+      // return track: ghost always, cyan drawn over it at step 3
+      var XS = 992 + 56, XT = 14 + 48, YR = 352;
+      var D = 'M' + XS + ' ' + (NY + NH + 8) + 'V' + (YR - 14) + 'Q' + XS + ' ' + YR + ' ' + (XS - 14) + ' ' + YR + 'H' + (XT + 14) + 'Q' + XT + ' ' + YR + ' ' + XT + ' ' + (YR - 14) + 'V' + (NY + NH + 16);
+      var HEAD = 'M' + (XT - 10) + ' ' + (NY + NH + 28) + 'L' + XT + ' ' + (NY + NH + 14) + 'L' + (XT + 10) + ' ' + (NY + NH + 28);
+      mk('path', { 'class': 'ghost', d: D });
+      mk('path', { 'class': 'ghosthead', d: HEAD });
+      var ret = mk('path', { 'class': 'ret', d: D });
+      var retHead = mk('path', { 'class': 'ret', d: HEAD, opacity: 0 });
+      var retLab = mk('text', { 'class': 'rlab', x: (XS + XT) / 2, y: YR + 46 }, root, 'append and repeat');
+      var RLEN = ret.getTotalLength();
+      ret.setAttribute('stroke-dasharray', RLEN + ' ' + RLEN);
+
+      function icon(g, kind, cx, cy) {
+        var i, j;
+        if (kind === 'text') {
+          [[-26, -16], [-26, 0], [-26, 16]].forEach(function (p, k) {
+            mk('line', { 'class': 'ic', x1: cx + p[0], y1: cy + p[1], x2: cx + p[0] + [52, 40, 46][k], y2: cy + p[1] }, g);
+          });
+        } else if (kind === 'tokens') {
+          for (i = 0; i < 3; i++) mk('rect', { 'class': 'ic', x: cx - 45 + i * 32, y: cy - 17, width: 26, height: 34, rx: 6 }, g);
+        } else if (kind === 'vectors') {
+          var fills = [[1, 0.3, 0.7, 0.2], [0.4, 1, 0.2, 0.6], [0.8, 0.3, 1, 0.4]];
+          for (i = 0; i < 3; i++) for (j = 0; j < 4; j++) {
+            mk('rect', { 'class': 'ic f', x: cx - 31 + i * 24, y: cy - 31 + j * 16, width: 14, height: 14, rx: 2, 'fill-opacity': fills[i][j] }, g);
+          }
+        } else if (kind === 'stack') {
+          mk('text', { 'class': 'big', x: cx, y: cy + 14 }, g, LAYERS + ' ×');
+        } else if (kind === 'bars') {
+          [20, 44, 28, 58, 12].forEach(function (h, k) {
+            mk('rect', { 'class': 'ic f', x: cx - 50 + k * 22, y: cy + 30 - h, width: 14, height: h, rx: 2, 'fill-opacity': k === 3 ? 1 : 0.4 }, g);
+          });
+        } else if (kind === 'chip') {
+          mk('rect', { 'class': 'ic', x: cx - 24, y: cy - 20, width: 48, height: 40, rx: 8 }, g);
+          mk('circle', { 'class': 'ic f', cx: cx, cy: cy, r: 5 }, g);
+        }
+      }
+
+      var blks = NODES.map(function (n) {
+        var g = mk('g', { 'class': 'blk pend' });
+        if (n.icon === 'stack') {
+          mk('rect', { 'class': 'back', x: n.x + 16, y: NY - 16, width: n.w, height: NH, rx: 16 }, g);
+          mk('rect', { 'class': 'back', x: n.x + 8, y: NY - 8, width: n.w, height: NH, rx: 16 }, g);
+        }
+        mk('rect', { 'class': 'bk', x: n.x, y: NY, width: n.w, height: NH, rx: 16 }, g);
+        icon(g, n.icon, n.x + n.w / 2, NY + 70);
+        var c = n.lines.length;
+        n.lines.forEach(function (ln, i) {
+          mk('text', { 'class': 'wd', x: n.x + n.w / 2, y: NY + 164 + (i - (c - 1) / 2) * 27 }, g, ln);
+        });
+        return g;
+      });
+
+      function setCls(el, base, state) { el.setAttribute('class', base + ' ' + state); }
+      var R = 0;
+      function drawRet() {
+        ret.setAttribute('stroke-dashoffset', (RLEN * (1 - R)).toFixed(1));
+        ret.setAttribute('opacity', R > 0.001 ? 1 : 0);
+        retHead.setAttribute('opacity', R > 0.92 ? 1 : 0);
+      }
+      function show(n) {
+        // step 0: text, tokens, embeddings read as already known (grey); 1 lights tokens -> embeddings; 2 the stack; 3 scores -> sample -> append
+        var nodeState = [
+          'done',
+          n === 1 ? 'lit' : 'done',
+          n === 1 ? 'lit' : 'done',
+          n === 2 ? 'lit' : n > 2 ? 'done' : 'pend',
+          n === 3 ? 'lit' : 'pend',
+          n === 3 ? 'lit' : 'pend'
+        ];
+        blks.forEach(function (b, i) { setCls(b, 'blk', nodeState[i]); });
+        var arrState = [
+          'done',
+          n === 1 ? 'lit' : 'done',
+          n === 2 ? 'lit' : n > 2 ? 'done' : 'pend',
+          n === 3 ? 'lit' : 'pend',
+          n === 3 ? 'lit' : 'pend'
+        ];
+        arrows.forEach(function (a, i) { setCls(a, 'arr', arrState[i]); });
+        retLab.setAttribute('class', 'rlab' + (n >= 3 ? ' on' : ''));
+      }
+
+      Deck.slide('t002-left-off', {
+        enter: function () { R = 0; drawRet(); show(0); },
+        step: function (n, prev, c) {
+          show(n);
+          var to = n >= 3 ? 1 : 0, from = R;
+          if (c.instant) { R = to; drawRet(); return; }
+          Deck.tween(900, function (t) { R = Deck.lerp(from, to, t); drawRet(); });
+        }
+      });
+    })();
+  </script>
+</section>

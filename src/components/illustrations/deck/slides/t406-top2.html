@@ -1,0 +1,239 @@
+<section class="slide" id="t406-top2" data-steps="4" data-tool="softmax">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">Top 2 run. The other 6 sit out.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="t406-top2-t t406-top2-d">
+      <title id="t406-top2-t">Only the two top-scoring experts run; their outputs are weighted and added to the token</title>
+      <desc id="t406-top2-d">Eight expert boxes E1 to E8 sit in a row with their router scores. E2 with 2.1 and E5 with 1.8 turn cyan, the other six are dimmed and marked not run. The token flows through E2 and E5, each a Wu then Wd, giving two output vectors. Softmax of 2.1 and 1.8 gives the weights 0.57 and 0.43. A small plane shows the two outputs scaled by their weights, stacked into their sum, and added onto the token vector.</desc>
+      <defs>
+        <marker id="t406-top2-ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-accent)"/></marker>
+      </defs>
+      <g id="t406-top2-top">
+        <g id="t406-top2-token"></g>
+        <g id="t406-top2-boxes"></g>
+      </g>
+      <g id="t406-top2-ledger"></g>
+      <g id="t406-top2-plane"></g>
+    </svg>
+  </div>
+
+  <style>
+    #t406-top2 svg.diagram{width:100%;height:100%;max-width:none;}
+    #t406-top2 text{font-family:var(--font-mono);}
+    #t406-top2 .tc{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #t406-top2 .tn{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #t406-top2 .tx{font-size:26px;font-weight:600;fill:var(--color-text-muted);text-anchor:end;}
+    #t406-top2 .bus{fill:none;stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #t406-top2 .bx{fill:var(--color-surface-deep);stroke:var(--color-text-dim);stroke-width:3;transition:stroke .5s,fill .5s,opacity .5s;}
+    #t406-top2 .bn{font-size:26px;font-weight:600;fill:var(--color-text-soft);}
+    #t406-top2 .bs{font-size:22px;fill:var(--color-text-muted);}
+    #t406-top2 .b2{font-size:20px;text-anchor:middle;}
+    #t406-top2 .bg{transition:opacity .5s;}
+    #t406-top2 .top .bx{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #t406-top2 .top .bn, #t406-top2 .top .bs{fill:var(--color-accent);}
+    #t406-top2 .dim .bx{opacity:.45;}
+    #t406-top2 .dim .bn, #t406-top2 .dim .bs{opacity:.5;}
+    #t406-top2 .dim .b2{fill:var(--color-text-muted);}
+    #t406-top2 .top .b2{fill:var(--color-accent);}
+    #t406-top2 .oc{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2.5;}
+    #t406-top2 .onum{font-size:22px;fill:var(--color-text);text-anchor:middle;}
+    #t406-top2 .ol{font-size:22px;text-anchor:middle;}
+    #t406-top2 .lt{font-size:24px;fill:var(--color-text-soft);}
+    #t406-top2 .lh{font-size:22px;fill:var(--color-text-muted);}
+    #t406-top2 .lc{font-size:24px;fill:var(--color-accent);}
+    #t406-top2 .rule{stroke:var(--color-border-strong);stroke-width:2;}
+    #t406-top2 .grd{stroke:var(--color-hairline);stroke-width:1;}
+    #t406-top2 .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #t406-top2 .axh{fill:var(--color-text-faint);}
+    #t406-top2 .sh{stroke:currentColor;fill:none;stroke-linecap:round;}
+    #t406-top2 .hd{fill:currentColor;stroke:none;}
+    #t406-top2 .halo{paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #t406-top2 .pl{font-size:20px;font-weight:600;fill:currentColor;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't406-top2';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function mixv(a, b, t) { t = clamp(t); return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+      function mix(a, b, t) { return 'rgb(' + mixv(a, b, t).join(',') + ')'; }
+      function f1(v) { var r = Math.round(Math.abs(v) * 10 + 1e-7) / 10; return (v < 0 && r > 0 ? '−' : '') + r.toFixed(1); }
+      function f2(v) { var r = Math.round(Math.abs(v) * 100 + 1e-7) / 100; return (v < 0 && r > 0 ? '−' : '') + r.toFixed(2); }
+      function arr(v) { return '[' + f2(v[0]) + ', ' + f2(v[1]) + ']'; }
+
+      // MOE TOY (spec section 5): router scores of the first token, top 2 = E2 and E5, toy 2-number expert outputs
+      var X = [0.3, 0.5, -0.2, 0.7];
+      var SC = [0.2, 2.1, -0.5, 0.3, 1.8, -1.2, 0.1, 0.4];
+      var TOP = SC.map(function (s, j) { return j; }).sort(function (a, b) { return SC[b] - SC[a]; }).slice(0, 2);   // E2, E5
+      var EXP = TOP.map(function (j) { return Math.exp(SC[j]); }), ES = EXP[0] + EXP[1];
+      var W = EXP.map(function (e) { return Math.round(e / ES * 100) / 100; });           // 0.5744 -> 0.57, 0.4256 -> 0.43
+      var O = [[0.8, 0.2], [0.1, 0.9]];
+      var X2 = [X[0], X[1]];                                                               // the plane shows the first two numbers of x
+      var WO = O.map(function (o, i) { return [W[i] * o[0], W[i] * o[1]]; });
+      var SUM = [WO[0][0] + WO[1][0], WO[0][1] + WO[1][1]];
+      var RES = [X2[0] + SUM[0], X2[1] + SUM[1]];
+
+      var GREY = Deck.rgb('--color-text-faint'), MUT = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim'), CY = Deck.rgb('--color-accent');
+
+      // ---- the token on top, with the bus that feeds E2 and E5 (step 2)
+      var BX0 = 61, BP = 126, BWD = 116, BY0 = 84, BH = 72;
+      function cx(j) { return BX0 + j * BP + BWD / 2; }
+      var gt = $('token'), mid = (cx(TOP[0]) + cx(TOP[1])) / 2;
+      el('text', { 'class': 'tx', x: mid - 136, y: 40 }, gt, 'x');
+      X.forEach(function (v, i) {
+        el('rect', { 'class': 'tc', x: mid - 126 + i * 64, y: 14, width: 60, height: 38, rx: 7 }, gt);
+        el('text', { 'class': 'tn', x: mid - 96 + i * 64, y: 40 }, gt, f1(v));
+      });
+      var bus = el('g', { 'data-from': 2 }, gt);
+      TOP.forEach(function (j) {
+        el('path', { 'class': 'bus', d: 'M' + mid + ' 54V69H' + cx(j) + 'V' + (BY0 - 4), 'marker-end': 'url(#' + ID + '-ah)' }, bus);
+      });
+
+      // ---- eight expert boxes with their scores
+      var gb = $('boxes'), boxes = [];
+      SC.forEach(function (s, j) {
+        var top = TOP.indexOf(j) !== -1;
+        var g = el('g', { 'class': 'bg', id: ID + '-b' + j }, gb);
+        el('rect', { 'class': 'bx', x: BX0 + j * BP, y: BY0, width: BWD, height: BH, rx: 12 }, g);
+        var t = el('text', { x: cx(j), y: BY0 + 31, 'text-anchor': 'middle' }, g);
+        el('tspan', { 'class': 'bn' }, t, 'E' + (j + 1));
+        el('tspan', { 'class': 'bs', dx: 9 }, t, f1(s));
+        if (top) {
+          el('text', { 'class': 'b2', x: cx(j), y: BY0 + 59, 'data-from': 2 }, g, 'Wu · Wd');
+        } else {
+          el('text', { 'class': 'b2', x: cx(j), y: BY0 + 59, 'data-from': 1 }, g, 'not run');
+        }
+        boxes.push(g);
+      });
+      // outputs of E2 and E5 under their boxes (step 2), then the weights (step 3)
+      TOP.forEach(function (j, k) {
+        var g = el('g', { 'data-from': 2 }, gb), c = cx(j);
+        el('path', { 'class': 'bus', d: 'M' + c + ' ' + (BY0 + BH + 3) + 'V' + (BY0 + BH + 14), 'marker-end': 'url(#' + ID + '-ah)' }, g);
+        O[k].forEach(function (v, i) {
+          el('rect', { 'class': 'oc', x: c - 52 + i * 54, y: BY0 + BH + 18, width: 50, height: 38, rx: 7 }, g);
+          el('text', { 'class': 'onum', x: c - 27 + i * 54, y: BY0 + BH + 45 }, g, f1(v));
+        });
+        el('text', { 'class': 'ol', x: c, y: BY0 + BH + 86, fill: 'var(--color-text-muted)', 'data-from': 2, 'data-until': 3 }, g, 'o' + (j + 1));
+        el('text', { 'class': 'ol', x: c, y: BY0 + BH + 86, fill: 'var(--color-accent)', 'data-from': 3 }, g, f2(W[k]) + ' × o' + (j + 1));
+      });
+
+      // ---- the ledger (left, steps 3 and 4)
+      var gl = $('ledger'), LX = 100, LY = 306, LP = 44;
+      var g3 = el('g', { 'data-from': 3 }, gl);
+      el('text', { 'class': 'lh', x: LX, y: LY }, g3, 'softmax(' + f1(SC[TOP[0]]) + ', ' + f1(SC[TOP[1]]) + ') = [' + f2(W[0]) + ', ' + f2(W[1]) + ']');
+      WO.forEach(function (w, k) {
+        el('text', { 'class': 'lt', x: LX, y: LY + LP * (k + 1) }, g3, f2(W[k]) + ' × o' + (TOP[k] + 1) + ' = ' + arr(w));
+      });
+      var g4 = el('g', { 'data-from': 4 }, gl);
+      el('line', { 'class': 'rule', x1: LX, y1: LY + LP * 2 + 16, x2: LX + 372, y2: LY + LP * 2 + 16 }, g4);
+      el('text', { 'class': 'lc', x: LX, y: LY + LP * 3 + 10 }, g4, 'sum = ' + arr(SUM));
+      el('text', { 'class': 'lc', x: LX, y: LY + LP * 4 + 10 }, g4, 'x + sum = ' + arr(RES));
+
+      // ---- the plane (right, steps 3 and 4)
+      var OX = 740, OY = 468, U = 205, X0 = -0.2, X1 = 1.05, Y0 = -0.2, Y1 = 1.1;
+      var P = Deck.plane({ ox: OX, oy: OY, u: U });
+      var gp = $('plane');
+      var pg = el('g', { 'data-from': 3 }, gp);
+      var k0, j0;
+      [0, 0.5, 1].forEach(function (k) { el('line', { 'class': 'grd', x1: P.X(k), y1: P.Y(Y0), x2: P.X(k), y2: P.Y(Y1) }, pg); });
+      [0, 0.5, 1].forEach(function (j) { el('line', { 'class': 'grd', x1: P.X(X0), y1: P.Y(j), x2: P.X(X1), y2: P.Y(j) }, pg); });
+      el('line', { 'class': 'axl', x1: P.X(X0), y1: OY, x2: P.X(X1) - 8, y2: OY }, pg);
+      el('line', { 'class': 'axl', x1: OX, y1: P.Y(Y0), x2: OX, y2: P.Y(Y1) + 8 }, pg);
+      [[P.X(X1), OY, -1, 0], [OX, P.Y(Y1), 0, 1]].forEach(function (h) {
+        var bx = h[0] + h[2] * 14, by = h[1] + h[3] * 14, nx = -h[3] * 6, ny = h[2] * 6;
+        el('polygon', { 'class': 'axh', points: [h[0], h[1], bx + nx, by + ny, bx - nx, by - ny].join(' ') }, pg);
+      });
+      function arrow(parent, w, L0, hw) {
+        var g = el('g', {}, parent);
+        var shaft = el('line', { 'class': 'sh', 'stroke-width': w }, g);
+        var head = el('polygon', { 'class': 'hd' }, g);
+        return {
+          g: g, shaft: shaft,
+          set: function (a, b, alpha, col) {
+            var p = P.P(a[0], a[1]), t = P.P(b[0], b[1]), dx = t[0] - p[0], dy = t[1] - p[1], len = Math.hypot(dx, dy);
+            g.style.opacity = len < 3 ? 0 : alpha; g.style.color = col;
+            if (len < 3) return;
+            var ux = dx / len, uy = dy / len, L = Math.min(L0, len * 0.55), bx = t[0] - ux * L, by = t[1] - uy * L;
+            shaft.setAttribute('x1', p[0]); shaft.setAttribute('y1', p[1]);
+            shaft.setAttribute('x2', t[0] - ux * (L - 2)); shaft.setAttribute('y2', t[1] - uy * (L - 2));
+            head.setAttribute('points', [t[0], t[1], bx - uy * hw, by + ux * hw, bx + uy * hw, by - ux * hw].join(' '));
+          }
+        };
+      }
+      var xA = arrow(pg, 4.5, 20, 9), oA = [arrow(pg, 3.5, 15, 7), arrow(pg, 3.5, 15, 7)], rA = arrow(pg, 5.5, 22, 10);
+      var xT = el('text', { 'class': 'pl halo', 'text-anchor': 'end', style: 'color:var(--color-text-muted)' }, pg, 'x');
+      var oT = [0, 1].map(function (k) { return el('text', { 'class': 'pl halo', style: 'color:var(--color-accent)' }, pg, 'o' + (TOP[k] + 1)); });
+      var oTW = [0, 1].map(function (k) { return 'o' + (TOP[k] + 1); });
+      var rT = el('text', { 'class': 'pl halo', style: 'color:var(--color-accent)' }, pg, 'x + sum');
+      var sT = el('text', { 'class': 'pl halo', style: 'color:var(--color-accent)' }, pg, 'sum');
+
+      // S = [s1: scale to the weights, s2: stack head to tail, s3: the stack moves onto the token]
+      var S = [0, 0, 0, 150], cancel = null, TOPG = $('top');
+      function draw() {
+        var s1 = S[0], s2 = S[1], s3 = S[2];
+        TOPG.setAttribute('transform', 'translate(0 ' + S[3].toFixed(1) + ')');
+        xA.set([0, 0], X2, 1, mix(MUT, MUT, 0));
+        var xt = P.P(X2[0], X2[1]); xT.setAttribute('x', xt[0] - 16); xT.setAttribute('y', xt[1] + 6);
+        var tips = [];
+        [0, 1].forEach(function (k) {
+          var f = Deck.lerp(1, W[k], s1), v = [O[k][0] * f, O[k][1] * f];
+          var a = k === 0 ? [0, 0] : [WO[0][0] * s2, WO[0][1] * s2];
+          a = [a[0] + X2[0] * s3, a[1] + X2[1] * s3];
+          var b = [a[0] + v[0], a[1] + v[1]];
+          oA[k].set(a, b, 1, mix(CY, DIM, s3));
+          tips.push(P.P(b[0], b[1]));
+          var lab = oT[k], t = tips[k];
+          lab.setAttribute('x', t[0] + (k === 0 ? 10 : -12)); lab.setAttribute('y', t[1] + (k === 0 ? 8 : -10));
+          lab.setAttribute('text-anchor', k === 0 ? 'start' : 'end');
+          lab.style.opacity = (1 - clamp(s2 * 3)).toFixed(3);
+          lab.textContent = s1 > 0.5 ? f2(W[k]) + ' ' + oTW[k] : oTW[k];
+        });
+        var tip = [SUM[0] * s2 + X2[0] * s3, SUM[1] * s2 + X2[1] * s3];
+        rA.set([0, 0], [SUM[0] * s2 + X2[0] * s3, SUM[1] * s2 + X2[1] * s3], clamp(s2 * 4), mix(CY, CY, 1));
+        rA.shaft.setAttribute('stroke-dasharray', s3 > 0.02 ? 'none' : '7 5');
+        rA.shaft.setAttribute('stroke-width', Deck.lerp(2.5, 5.5, s3).toFixed(2));
+        var st = P.P(SUM[0] * s2, SUM[1] * s2), rt = P.P(RES[0] * s3 + SUM[0] * (1 - s3) * s2, RES[1] * s3 + SUM[1] * (1 - s3) * s2);
+        sT.setAttribute('x', P.X(SUM[0]) + 10); sT.setAttribute('y', P.Y(SUM[1]) + 30);
+        sT.style.opacity = (clamp(s2 * 2 - 1) * (1 - clamp(s3 * 3))).toFixed(3);
+        var rp = P.P(RES[0], RES[1]);
+        rT.setAttribute('x', rp[0] + 12); rT.setAttribute('y', rp[1] + 8);
+        rT.style.opacity = clamp(s3 * 2 - 1).toFixed(3);
+      }
+      draw();
+
+      // the top group starts low (centred while the lower half is empty) and rises as the content below arrives
+      var TARGET = [[0, 0, 0, 150], [0, 0, 0, 150], [0, 0, 0, 130], [1, 0, 0, 0], [1, 1, 1, 0]];
+      function paint(n) {
+        boxes.forEach(function (g, j) {
+          var top = TOP.indexOf(j) !== -1;
+          g.setAttribute('class', 'bg ' + (n < 1 ? '' : top ? 'top' : 'dim'));
+        });
+      }
+      paint(0);
+
+      Deck.slide('t406-top2', {
+        enter: function () { S = TARGET[0].slice(); draw(); paint(0); },
+        step: function (n, prev, c) {
+          paint(n);
+          var to = TARGET[Math.min(n, 4)], from = S.slice(), fwd = n > prev;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to.slice(); draw(); return; }
+          cancel = Deck.tween(1300, function (t) {
+            var u = [t, fwd ? clamp(t * 2) : clamp(t * 2 - 1), fwd ? clamp(t * 2 - 1) : clamp(t * 2)];
+            S = [Deck.lerp(from[0], to[0], u[0]), Deck.lerp(from[1], to[1], u[1]), Deck.lerp(from[2], to[2], u[2]), Deck.lerp(from[3], to[3], t)];
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

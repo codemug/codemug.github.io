@@ -7,32 +7,25 @@
     "notes": "SAY: two numbers are a position. The array and the arrow are the same thing."
   },
   "s03-vec3d": {
-    "steps": 3,
+    "steps": 0,
     "tool": "vector",
     "kicker": "refresher 1",
     "statement": "3 numbers: a vector in 3D space.",
-    "notes": "SAY: three numbers are a point in 3D: three along x, two up along y, one toward you along z. Real models just keep adding numbers."
-  },
-  "s04-vec-many": {
-    "steps": 1,
-    "tool": "vector",
-    "kicker": "refresher 1",
-    "statement": "Real models use thousands of numbers per vector.",
-    "notes": "SAY: a real token vector has 5,120 numbers (hidden_size of Qwen3.8-27B). These are the real first 64 of the token \" can\"."
+    "notes": "SAY: plays by itself. Two numbers become three: a third dimension appears (one toward you along z) and the camera turns slowly so the depth reads. Real models just keep adding numbers."
   },
   "s05-matmul-example": {
     "steps": 2,
     "tool": "matrix",
     "kicker": "refresher 1",
     "statement": "A vector can be multiplied by a matrix.",
-    "notes": "SAY: multiplying a vector by a matrix gives a new vector. For this matrix the arrow gets sheared sideways."
+    "notes": "SAY: multiplying a vector by a matrix gives a new vector. For this matrix the arrow gets sheared sideways. Step 2: show the arithmetic and name the operation: a linear transformation."
   },
   "s06-matmul-variants": {
-    "steps": 3,
+    "steps": 0,
     "tool": "matrix",
     "kicker": "refresher 1",
     "statement": "Different matrices transform the same vector differently.",
-    "notes": "SAY: each matrix is a different transformation. Training will find the useful ones."
+    "notes": "SAY: same vector, different matrices: each one is a different transformation. It cycles by itself every two seconds (identity, two shears, a stretch). Training will find the useful ones."
   },
   "s07-dot-intro": {
     "steps": 4,
@@ -40,13 +33,6 @@
     "kicker": "refresher 2",
     "statement": "The dot product: one number for how similar two vectors are.",
     "notes": "SAY: multiply matching entries and add. Pointing the same way gives a big positive number, at right angles zero, opposite gives negative."
-  },
-  "s08-matmul-dots": {
-    "steps": 3,
-    "tool": "matrix dot",
-    "kicker": "refresher 2",
-    "statement": "A matrix times a vector is one dot product per column.",
-    "notes": "SAY: look at the matrix by its columns: each column is an arrow. Dot the vector with column one to get the first output number, with column two to get the second. The new vector says how much v matches each column."
   },
   "s09-ideas-axes": {
     "steps": 3,
@@ -227,8 +213,8 @@
     "steps": 3,
     "tool": "matrix",
     "kicker": "attention",
-    "statement": "Embedding × Wk = key: what this token has to offer.",
-    "notes": "SAY: the key is what a token can be matched against: what it has to offer. Only tar's multiplication is shown; the keys of odd and golf are given toy numbers. Toy numbers: real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more)."
+    "statement": "Embedding × Wk = key: what kind of influence this token has to offer.",
+    "notes": "SAY: the key is what a token can be matched against: what kind of influence it has to offer. Only tar's multiplication is shown; the keys of odd and golf are given toy numbers. Toy numbers: real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more)."
   },
   "s35-value": {
     "steps": 3,
@@ -259,7 +245,7 @@
     "notes": "SAY: the weights decide how much of each value to add: tar's value counts most, golf's barely. Add the weighted values up, add that sum to the embedding of ball, and the vector is sheared toward tarball. The ball's own value is zero in this toy, so the token itself adds nothing. Toy numbers. Real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more)."
   },
   "s39-attention-result": {
-    "steps": 2,
+    "steps": 1,
     "tool": null,
     "kicker": "attention",
     "statement": "Same token, different vectors: context made the difference.",
@@ -272,12 +258,12 @@
     "statement": "Some answers are not in the sentence.",
     "notes": "SAY: the answer, Spain, is not in the question. Something has to move this vector toward Spain. That is the feed-forward layer. (Real tokenization of the question from Qwen3.8-27B: the digits of 2026 are four single tokens, and the dot marks a leading space. Toy: the two axes, a country and football, stand in for 5,120 real dimensions, which are not this readable; the vector [0.10, 0.20] is an invented toy number, not a measurement of the real model.)"
   },
-  "s41-ffn-flow": {
-    "steps": 4,
-    "tool": "matrix relu",
+  "s41-wu-wd-intro": {
+    "steps": 3,
+    "tool": "matrix",
     "kicker": "feed-forward",
-    "statement": "Feed-forward: Wu, silence the weak ones, Wd, add.",
-    "notes": "SAY: Wu asks 17,408 questions at once. The weak answers are silenced. Wd turns the strong ones into a change to the vector, which is added back. (Real shapes from layer 3 of Qwen3.8-27B: up_proj [17,408 x 5,120] and down_proj [5,120 x 17,408], stored as [out, in]; hidden_size is 5,120 and intermediate_size is 17,408. The strips are drawn schematically: the cell heights are illustrative, not real values, and the share that survives is not a measurement. Simplification: Qwen3.8-27B also has a gate_proj [17,408 x 5,120] and a smooth SiLU gate, so the real silencing is soft and learned; the toy folds it into one \"silence weak\" step.)"
+    "statement": "Feed-forward has two matrices: Wu widens the vector, Wd narrows it back.",
+    "notes": "SAY: after attention, every token goes through the feed-forward part on its own. It is built from two matrices. Wu makes the vector much longer: 5,120 numbers become 17,408. Wd brings it back to 5,120. In between, something happens to the long vector; the next slides open each piece. (Real numbers from Qwen3.8-27B: hidden_size 5,120, intermediate_size 17,408; layer 3 has up_proj stored as [17,408 x 5,120] and down_proj as [5,120 x 17,408], stored as [out, in]. In the row-vector convention used in this deck Wu has 5,120 rows and 17,408 columns, and each column is one question. 5,120 x 17,408 = 89,128,960 numbers per matrix. Simplification: the real layer also has a gate_proj of the same shape; the toy folds it into the silencing step. The cells are drawn schematically, not real values.)"
   },
   "s42-wu-detectors": {
     "steps": 2,
@@ -299,6 +285,13 @@
     "kicker": "feed-forward",
     "statement": "Wd: how much to shear the vector for each detected pattern.",
     "notes": "SAY: the surviving magnitudes weight the rows of Wd; their sum is added to the original vector. Under the hood the embedding was just sheared toward Spain. (Toy numbers: the real Wd has 17,408 rows of 5,120 numbers each, and its rows are not human-readable directions like \"spain\". Layer 3 of Qwen3.8-27B stores it as down_proj [5,120 x 17,408], that is [out, in].)"
+  },
+  "s45-ffn-flow": {
+    "steps": 4,
+    "tool": "matrix relu",
+    "kicker": "feed-forward",
+    "statement": "Feed-forward: Wu, silence the weak ones, Wd, add.",
+    "notes": "SAY: Wu asks 17,408 questions at once. The weak answers are silenced. Wd turns the strong ones into a change to the vector, which is added back. (Real shapes from layer 3 of Qwen3.8-27B: up_proj [17,408 x 5,120] and down_proj [5,120 x 17,408], stored as [out, in]; hidden_size is 5,120 and intermediate_size is 17,408. The strips are drawn schematically: the cell heights are illustrative, not real values, and the share that survives is not a measurement. Simplification: Qwen3.8-27B also has a gate_proj [17,408 x 5,120] and a smooth SiLU gate, so the real silencing is soft and learned; the toy folds it into one \"silence weak\" step.)"
   },
   "s45-ffn-recap": {
     "steps": 1,
@@ -356,13 +349,6 @@
     "statement": "Top-k sampling: pick one of the k most likely tokens.",
     "notes": "SAY: most deployments sample from the top k. Keep the k most likely tokens, here k = 3, renormalise their probabilities so they sum to 1 again (0.419, 0.230, 0.170 divided by 0.819), then roll a weighted die. That is why the same prompt can give different answers. (Toy scores, T = 1.)"
   },
-  "s53-sampling-board": {
-    "steps": 2,
-    "tool": "softmax",
-    "kicker": "temperature",
-    "statement": "Temperature sharpens or flattens the odds.",
-    "notes": "SAY: one knob. At low temperature the top token almost always wins; at high temperature it is nearly a coin toss between all five. The odds are softmax of the scores divided by T."
-  },
   "s54-loop-closed": {
     "steps": 4,
     "tool": null,
@@ -370,11 +356,424 @@
     "statement": "Append the token. Run it all again.",
     "notes": "SAY: that is one forward pass. Tokens go in, the embedder turns them into vectors, attention and feed-forward run 64 times, sampling picks one token, and that token is appended to the sentence. For every new token the whole stack runs again. (In practice the model caches work from earlier tokens, but the idea is exactly this loop.)"
   },
-  "s55-recap": {
+  "t002-left-off": {
     "steps": 3,
-    "tool": "all",
-    "kicker": "recap",
-    "statement": "Vectors, matrices and dot products: that is the whole trick.",
-    "notes": "SAY: everything in the transformer is these few operations, repeated at huge scale. Vectors hold the meaning (embeddings). Matrices transform vectors (Wq, Wk, Wv, Wu, Wd). Dot products measure similarity (attention scores, and the output scores over the vocabulary). Blending adds weighted vectors together (attention values, the feed-forward update). Softmax turns scores into weights and probabilities. ReLU-style silencing switches off weak matches in the feed-forward layer."
+    "tool": null,
+    "kicker": "part 2",
+    "statement": "Where we left off: tokens in, next token out, on repeat.",
+    "notes": "SAY: this is part 1 in one row. Text is cut into tokens, tokens become embedding vectors, 64 layers of attention plus feed-forward turn them into scores over the whole vocabulary, one token is sampled, appended, and the row runs again. Real numbers: 64 layers and 248,320 vocabulary slots come from deck/data/qwen38.json (config.num_hidden_layers, config.vocab_size) for Qwen3.8-27B. The little icons are schematic, not data."
+  },
+  "t003-two-threads": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "part 2",
+    "statement": "Two threads: how it behaves, and what it costs to serve.",
+    "notes": "SAY: part 2 has two threads. Left: how the model behaves (fine-tuning, reasoning, preference alignment). Right: what it costs to serve it (mixture of experts, the GPU, the KV cache, quantization). Nothing numeric on this slide; it is a map of the chapters."
+  },
+  "t101-base-continues": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "fine-tuning",
+    "statement": "A base model only continues text.",
+    "notes": "SAY: a base model has only ever been trained to predict the next token of web text. Give it an instruction and it does what it was trained to do: it continues the document. Most of the probability goes to things that plausibly follow an instruction on the internet (another instruction, a forum reply, more rambling), and the answer we wanted is a long shot. TOY NUMBERS: the six probabilities (0.31, 0.24, 0.22, 0.18, 0.04, 0.01; they sum to 1.00) are invented for the picture, they are not measurements of any real model."
+  },
+  "t102-sft-pairs": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "fine-tuning",
+    "statement": "Train it again, on instruction and answer pairs.",
+    "notes": "SAY: this is supervised fine-tuning (SFT): the same gradient descent as part 1, the same nudging of every weight, now pointed at pairs of an instruction and the answer we want. The good output is the training target; anything else counts as error. After enough pairs the model has learned the behaviour, and the name usually says so: -instruct or -it. TOY: the instruction and answers are the shared toy example, the error bar and the knob angles are drawn for the idea, not measured."
+  },
+  "t103-dolly-row": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "fine-tuning",
+    "statement": "Real instruction data looks exactly like this.",
+    "notes": "SAY: this is what the instruction half of fine-tuning data really looks like: an instruction, sometimes a context to work from, the response a human wrote, and a category. Thousands of rows like this, nothing exotic. REAL: one row of databricks/databricks-dolly-15k (Databricks, human-written, 15,011 rows in the version we read), copied from the dataset server (revision bdd27f4d, part2.json datasets.dolly). The context and the response are cut with \"...\" for the slide; the typos in the response (Lollapalooze, singe) are in the original. A base model plus rows like this is what turns it into an -instruct model."
+  },
+  "t104-chat-template": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "fine-tuning",
+    "statement": "Every request is compiled through a chat template.",
+    "notes": "SAY: the model never sees your message, it sees the rendered string. The chat template, a small file shipped next to the weights (chat_template.jinja), wraps every message in role markers: a turn opens with an im_start control token and a role name and closes with im_end, and the template ends with the opening of the assistant turn so the model's next token is the start of its answer. The cyan control tokens are single tokens with their own vocabulary ids (step 3). REAL: the rendered string is the real Qwen3.8-27B render (part2.json chat.variants.default, 66 tokens) for the toy instruction, with the default settings, so the template inserted a system turn with the reasoning-effort sentence (see t106; there is no \"You are Qwen\" prompt). I elided that sentence with \"...\" to keep the lines short, and the message line is wrapped over two lines for the slide (in the real string there is only a space between message and start). Note that the angle-bracket words start and end inside the message are plain text, not control tokens. The string ends with a newline after the open think tag. Ids: chat.special_tokens."
+  },
+  "t105-control-tokens": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "fine-tuning",
+    "statement": "Control tokens mean nothing until fine-tuning teaches them.",
+    "notes": "SAY: the vocabulary already contains the control tokens from day one, but ordinary web text never uses them, so after pre-training they are just rows in the embedding table that nothing has ever pushed on. Only the fine-tuning data is written in the chat format, with an im_start token opening every turn and an im_end token closing it, so only fine-tuning teaches the model what these tokens mean: a turn is starting, a turn is over, and the end token is where to stop writing. REAL: the chips are real Qwen3.8-27B tokens and ids. Top: the tokenizer split of \"I can dependably deploy LLMs\" (qwen38.json tokenization.examples[0]). Bottom: the first tokens of the rendered chat (part2.json chat.variants.thinking_off.tokens, identical to effort_medium for these 22 tokens); the message words between \"message\" and the end token are replaced by one \"...\" chip to fit, and the render's closing tokens after the assistant cue are left off. Ids: chat.special_tokens. Note that the words start and end in the message are not control tokens, they are ordinary text that the tokenizer splits into three chips each."
+  },
+  "t106-template-knobs": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "fine-tuning",
+    "statement": "The template is a behaviour knob. No weight changes.",
+    "notes": "SAY: the chat template is code that runs before the model, and its options are knobs on behaviour. Switch one thing and the rendered prompt changes, the weights do not. Each switch is flipped on its own against the baseline (a combined switch state is not shown, and with thinking off the template emits no reasoning-effort sentence at all). Step 1: without the assistant cue (add_generation_prompt = false) the prompt ends at the end of the user turn, so the model has no turn to answer in and keeps writing as the user. Step 2: enable_thinking = false makes the template pre-fill an empty think block, and no system turn is emitted. Step 3: reasoning_effort = low injects a different one-sentence instruction; medium injects nothing. REAL: all four renders are real Qwen3.8-27B chat_template.jinja output for the toy instruction (part2.json chat.variants.default, no_generation_prompt, thinking_off, effort_low; the xhigh sentence is effort_xhigh = default). The two reasoning-effort sentences are cut with \"...\" (full: \"Reasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer.\" and \"Reasoning effort is set to low. Keep your thinking brief and focused, moving directly to the conclusion without unnecessary elaboration.\"). Honest detail: this template has NO default \"You are Qwen\" system prompt; the only thing it injects by default is the reasoning-effort sentence. The user line is wrapped at the space before end for the slide."
+  },
+  "t107-tool-calling": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "fine-tuning",
+    "statement": "Instruction-following is the base of tool calling.",
+    "notes": "SAY: a model that can follow an instruction can follow the instruction \"when you need a calculator, write a call to it in this format\"; the runtime sees the call, runs the tool and feeds the result back as more text. An agent is that loop repeated. Nothing new is added to the architecture: it is more fine-tuning data in a chat-template format. REAL: the Qwen3.8-27B chat template already has control tokens for this, each a single vocabulary token: tool_call 248058, its closing tag 248059, tool_response 248066 and its closing tag 248067 (part2.json chat.other_special_tokens_in_template). Nothing else on this slide is a measurement."
+  },
+  "t201-imitation-cap": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "Imitation tops out at the quality of the examples.",
+    "notes": "SAY: when a question has one right answer, copying good examples gets the model to that answer and no further. When there are ten equally good answers, there is nothing single to copy. Imitation can only match the people who wrote the examples. (Toy picture, no real numbers: the ceiling, the bar and the ten answers are illustrations.)"
+  },
+  "t202-try-and-grade": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "Let the model try several times, then grade every try.",
+    "notes": "SAY: the model is asked the same question four times and writes four different attempts. A program checks only the final number: 408 earns a reward of 1, anything else earns 0. Nobody grades the working by hand. (Toy: the question, the four attempts and the 0/1 reward are the shared toy of this chapter. Real training samples many attempts per question, often 8 to 64, and grades them the same way.)"
+  },
+  "t203-advantage": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "Compared with the group average: the advantage.",
+    "notes": "SAY: one reward on its own says little. Compare each attempt with the average of its group: 1 is better than the 0.5 average, so its advantage is +0.5; 0 is worse, so its advantage is -0.5. The advantage is the signal that decides which attempts to reinforce. (Toy: rewards 1, 0, 1, 0 from the previous slide; the average and the advantages are computed in the slide script. Real systems use groups of many attempts and often also divide by the spread of the group.)"
+  },
+  "t204-reinforce": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "Reinforce the good attempts. Repeat, millions of times.",
+    "notes": "SAY: after grading, nudge the model a little toward the attempts with a positive advantage and a little away from the others. One nudge barely moves anything. Do it over millions of prompts and what the good attempts have in common, here working step by step, becomes how the model answers by default. (Toy numbers: 0.30 / 0.70 at the start, 0.32 / 0.68 after one update, 0.92 / 0.08 at the end, and the counter are illustrations, not measurements of a real model. Real training updates in batches of many prompts, and the count of updates is far smaller than the count of prompts.)"
+  },
+  "t205-score-source": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "Where does the score come from? Two answers.",
+    "notes": "SAY: some tasks can be checked by a program: a maths answer matches or it does not, unit tests pass or fail. That gives a clean reward with no humans in the loop. Many tasks cannot be checked that way (is this explanation good?), so a second model, a reward model, produces the score. (Toy: the code lines, the 7 of 10 unit tests and the 0.82 are illustrations, not output from a real system.)"
+  },
+  "t206-reward-model": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "A reward model learns from human A/B choices.",
+    "notes": "SAY: for questions with no checkable answer, people compare two answers and pick the better one. Thousands of those A/B choices train a reward model to predict which answer a human would prefer. Once trained it gives any answer a score, and it stands in for the humans inside the training loop. (Toy: the prompt, the two skeleton answers and the scores 0.31 and 0.82 are illustrations. The slide shows the idea only.)"
+  },
+  "t207-imitate-vs-discover": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "Imitation copies. Reinforcement learning discovers.",
+    "notes": "SAY: imitation can only reproduce what is in the data, so the model stays inside it. Reinforcement learning has a different loop: generate attempts, score them, reinforce what scored well. Because the score only checks the outcome, the model is free to find an approach that nobody wrote down, outside the data. (Conceptual picture, no real numbers. In practice RL usually starts from a model that imitation already trained, which is what keeps its attempts sensible.)"
+  },
+  "t208-think-tokens": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "The &lt;think&gt; block is just more tokens.",
+    "notes": "SAY: nothing special happens inside the model. After the prompt, the template has already written the opening think marker, so the model just keeps predicting the next token. Those thinking tokens are appended to the context like any other, the model emits the closing think marker itself, and then the answer follows. Cost: every thinking token is one more trip round the part-1 loop. REAL: the marker ids 248068 and 248069 are the ids of the two tokens in the Qwen3.8-27B vocabulary (part2.json chat.special_tokens), and the opening marker really is part of the prompt when thinking is on (the chat template appends it after the assistant cue). REAL: the real OpenR1 sample on the next slide has a thinking part of 2,205 tokens by the Qwen tokenizer (part2.json datasets.openr1.think_tokens_qwen_tokenizer), far more than the nine cells drawn here. TOY: the cell counts (4 prompt, 9 thinking, 3 answer) are a picture, not real lengths. LAST STEP, honest version: what happens to the thinking on the next turn is a template choice, not a law. The real Qwen3.8-27B chat template KEEPS the think block of earlier assistant turns by default and drops it only when preserve_thinking is false (part2.json chat.extras: history_default keeps it, history_preserve_thinking_false drops it). Some other model families and serving stacks drop it by default, so check what yours does: kept thinking costs context length on every later turn."
+  },
+  "t209-cold-start": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "reasoning",
+    "statement": "Cold start: the seed data already has the reasoning in it.",
+    "notes": "SAY: this is what the seed data looks like. The assistant text already contains the reasoning between the think tags, then the written-up answer. First you fine-tune on traces like this (SFT), which teaches the format: open a think block, work it out, close it, answer. Only then does reinforcement learning take over, and from there the only thing that is scored is the final outcome. REAL: one row of open-r1/OpenR1-Math-220k (default config, train split, row 0, 93,733 rows in that config; part2.json datasets.openr1). The strings are copied from the dataset: problem (its markdown heading line \"## Task B-1.3.\" is left out), the start of the thinking, one sentence from the end of the thinking (datasets.openr1.think_close_context) and the start of the written answer (final_text), each cut with \"...\". The line in the middle of the card is not dataset text: the thinking part of this row is 2,205 tokens by the Qwen tokenizer (datasets.openr1.think_tokens_qwen_tokenizer). This dataset is not Qwen's own training data; it is the kind of data used for a cold start."
+  },
+  "t301-obedience": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "alignment",
+    "statement": "An instruct model has obedience, not judgement.",
+    "notes": "SAY: instruction tuning taught the model to do what it is asked. Helpful requests go through, and so does everything else, because nothing in that training teaches it to say no. The gate has no lock. TOY: the three request chips are pictures; the third is deliberately abstract. No real data on this slide."
+  },
+  "t302-repeat-anything": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "alignment",
+    "statement": "It will repeat anything.",
+    "notes": "SAY: ask an instruct model to repeat something and it does, whatever the something is. It was trained to follow instructions, not to weigh them. This is the toy example from the alignment section of the blog: the rejected answer in the next slides is exactly this reply. TOY: the conversation is invented for the picture; no real model output on this slide."
+  },
+  "t303-chosen-rejected": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "alignment",
+    "statement": "Train on chosen and rejected pairs.",
+    "notes": "SAY: one training example now has three parts: the input, an answer we reject, and an answer we choose. The rejected answer is what the instruct model did on the previous slide (it repeated the sentence); the chosen answer is a measured reply. TOY: the strings are the shared toy of this chapter, written for the blog; this is not a row from a real dataset. The real dataset comes two slides later."
+  },
+  "t304-preference-nudge": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "alignment",
+    "statement": "Chosen goes up. Rejected goes down.",
+    "notes": "SAY: one training round on a chosen and rejected pair does two things at once: the chosen answer becomes more likely and the rejected answer becomes less likely, both measured relative to where the model started (the dashed outlines). TOY: 0.10 / 0.60 at the start and 0.45 / 0.12 after one round are invented numbers for the picture, not measurements of a real model, and the two likelihoods are not meant to add up to 1 (there are many other possible answers)."
+  },
+  "t305-safety-data": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "alignment",
+    "statement": "Real safety data has the same shape, at scale.",
+    "notes": "SAY: the real preference data for safety has the same shape as the toy pair: a prompt, two candidate answers, and a verdict on which is better or safer. SHAPE ONLY, on purpose: this dataset (PKU-Alignment/PKU-SafeRLHF) is deliberately full of harmful prompts and answers, so the slide shows only its schema and its size and no row text. REAL (part2.json datasets.pku): the five column names and types shown are a subset of its 16 columns (the others include the second response's safety verdict, harm-category flags, severity levels, which response is better on helpfulness, and sha256 checksums); the default configuration has 82,118 rows (73,907 train + 8,211 test). The dataset card itself says 83.4K preference entries, a slightly different count."
+  },
+  "t306-model-names": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "alignment",
+    "statement": "Read the model name.",
+    "notes": "SAY: the suffix on a model name is a claim about what was done to the weights. \"-it\" and \"-instruct\" mean instruction tuning: the model follows instructions. \"-heretic\" and \"-abliterated\" are community names for models whose safety behaviour was deliberately removed after the fact. They are the same family of models with the refusals taken out. SRE ANGLE: check where the weights you deploy came from. A name on a model hub is a claim, not a guarantee, and an unvetted derivative can behave very differently from the model it is named after. Labelling convention only: no real data on this slide."
+  },
+  "t401-dense-touches-all": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "A dense model touches every weight for every token.",
+    "notes": "SAY: a dense model runs every weight on every token, so one token costs the whole model. (The 24 billion is the language-model weight count, part2.json params.groups.language_model.params = 24,353,201,664; the embedding table, lm_head, the vision tower and the MTP module are excluded. Each weight is used about once per token, one multiply-add per weight. The layer-3 shapes are real: up_proj 17,408 x 5,120, down_proj 5,120 x 17,408. The cells are drawn schematically, not real values.)"
+  },
+  "t402-wasted": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "Most of that work is thrown away.",
+    "notes": "SAY: after Wu the vector has 17,408 numbers, and most of them are weak. The weak ones are silenced to zero, so the matching rows of Wd are multiplied by zero and contribute nothing. A dense model still does every one of those multiply-adds. Toy: the strip is drawn schematically with 40 bars instead of 17,408, the heights are made up, and 85% silenced is an illustration, not a measurement. Real: 17,408 is the intermediate_size of Qwen3.8-27B (deck/data/qwen38.json). Qwen uses SiLU, so weak values are near zero, not exactly zero, and a gate_proj matrix also takes part; the picture is the idea."
+  },
+  "t403-not-all-knowledge": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "Not all knowledge is needed for every token.",
+    "notes": "SAY: a dense feed-forward block holds all of the model's knowledge, but a token like le only needs the French part and def only needs the Python part. So why switch the whole block on every time? Toy: the six regions are an illustration. Real models do not keep knowledge in tidy labelled regions, and the experts of a real mixture-of-experts model are not neatly topical either; this slide only motivates the idea that a token needs a small part of the knowledge."
+  },
+  "t404-split-into-experts": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "Split the feed-forward into many small ones: experts.",
+    "notes": "SAY: take the one big feed-forward block and cut it into 8 smaller feed-forward blocks, each with its own Wu and Wd. Each is an expert. In front of them sits a small router that decides which experts a token should visit. Toy: 8 experts, drawn schematically. Real models vary: Mixtral 8x7B has 8 experts per layer, Qwen3-30B-A3B has 128 (deck/data/part2.json, moe). The experts are not hand-labelled topics; they are just several feed-forward blocks that training makes different."
+  },
+  "t405-router-scores": {
+    "steps": 3,
+    "tool": "matrix dot",
+    "kicker": "mixture of experts",
+    "statement": "The router: one score per expert.",
+    "notes": "SAY: the router is just one small matrix. Multiply the token by it and you get one number per expert: a score. Look at E2 alone: dot the token with column E2, four products, 2.10. The two biggest scores are E2 and E5. Toy numbers: x = [0.3, 0.5, -0.2, 0.7], and the router matrix is built so that column j dotted with x gives exactly the toy score (column j = score_j * x / |x|^2), which is why the grid looks like copies of x; a trained router has no such pattern. Real: the router shape is read from the Qwen3-30B-A3B files (deck/data/part2.json, key moe.qwen3_30b_a3b.router), hidden size 2,048 by 128 experts, so 262,144 numbers per layer, against 4,718,592 numbers in one expert (3 x 2,048 x 768, same file, key moe.qwen3_30b_a3b.active.one_expert_ffn_params). Qwen3.8-27B itself has no router: it is dense."
+  },
+  "t406-top2": {
+    "steps": 4,
+    "tool": "softmax",
+    "kicker": "mixture of experts",
+    "statement": "Top 2 run. The other 6 sit out.",
+    "notes": "SAY: the router gave every expert a score. Keep the two highest, E2 and E5, and run only those; the other six do not run at all, which is where the saving comes from. Each running expert is a normal feed-forward (Wu then Wd) and produces an output vector. The two scores 2.1 and 1.8 go through softmax and become the weights 0.57 and 0.43. Scale each output by its weight, add them, and add the result back onto the token. Toy numbers: x = [0.3, 0.5, -0.2, 0.7], router scores for the first token, expert outputs o2 = [0.8, 0.2] and o5 = [0.1, 0.9] as 2-number vectors so that they can be drawn; the small plane shows x as its first two numbers only. The weights are computed in the page as softmax over the two scores (0.5744 and 0.4256) and rounded to 0.57 and 0.43; the arithmetic on the slide uses the rounded weights. Real models differ in how many experts run (Mixtral: 2 of 8; Qwen3-30B-A3B: 8 of 128)."
+  },
+  "t407-different-experts": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "The next token picks different experts.",
+    "notes": "SAY: the router runs again for every token, so every token can pick a different pair. le goes to E2 and E5, def goes to E1 and E7, knight goes to E3 and E8. The number in a lit cell is the weight the expert gets for that token (softmax over the two chosen scores). Toy numbers: the router scores of the three tokens are the toy scores from the previous slides, and the French, Python and chess labels are only there to make the three tokens easy to tell apart. Real routers do not give clean topic experts; which expert a token picks is learned, and it often follows syntax or position as much as subject."
+  },
+  "t408-router-learns": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "How the router learns.",
+    "notes": "SAY: picking the top 2 is a hard cut: an expert is in or it is out, and you cannot move a switch a little, so training gets no smooth signal from it. The two weights are different: they come from a softmax, so they can be nudged. If giving E2 more trust made the answer better, training raises E2's score a bit, and the weights move from 0.57 / 0.43 to 0.62 / 0.38. If it hurt, they move a little the other way (grey arrows). Toy numbers: scores 2.1 and 1.8 as on the earlier slides; E2 goes to 2.3 in the helpful case; the weights are computed in the page as softmax over the two scores and rounded. (The spec wrote 0.60 / 0.40; softmax of 2.3 and 1.8 is 0.62 / 0.38, so the computed value is shown.) Real models usually add a load-balancing term as well; that is the next slide."
+  },
+  "t409-load-balance": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "Without balance, a few experts do all the work.",
+    "notes": "SAY: the router learns by being rewarded for choosing experts that help. An expert that gets chosen gets trained and gets better, so it gets chosen even more: the rich get richer. Left alone, two experts end up taking nearly all the tokens and the other six are wasted: you pay for their memory and get nothing. The fix is a balancing penalty during training that pushes each expert's share back toward one eighth. Toy: the shares come from a simple recurrence computed in the page, not from a real training run. Each step the two experts with the highest share (top 2) grow in proportion to how far they are ahead of the third, the rest shrink, and with the penalty every expert is also pulled back toward 1/8 (K = 0.5, penalty strength 1.2, 100 steps, plus a little seeded jitter in the penalty run); a 1.5% floor models tokens that still reach a loser. The 45% and 1.5% end points are chosen for the picture. Real MoE training adds an auxiliary load-balancing loss (or a bias term, as in DeepSeek-V3) for exactly this reason."
+  },
+  "t410-total-vs-active": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "Total parameters versus active parameters.",
+    "notes": "SAY: total parameters is everything the model stores; active is what one token actually uses. A dense model uses all of it: Qwen3.8-27B has 27.8B parameters and uses 27.8B per token, 100 percent (moe.qwen3_8_27b_is_dense.total_params, deck/data/part2.json). A mixture of experts keeps the feed-forward wide but activates only a few experts per token. Mixtral: 46.7B total, 12.9B active, about 28 percent (moe.mixtral.active.terms). Qwen3-30B-A3B: 30.5B total, 3.35B active, 11 percent (moe.qwen3_30b_a3b.active.terms). DeepSeek-V3: 671B total with 37B activated, quoted from the model README (moe.deepseek_v3.readme_quotes[0]), not recomputed. The grey bars are all the same length - each is normalized to its own total, so the cyan segment shows the active share, not an absolute size. Rule of thumb: active = total - (experts - top_k) x layers x 3 x hidden x expert_intermediate, i.e. the unselected experts' feed-forward parameters are skipped per token."
+  },
+  "t411-memory-not-compute": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "mixture of experts",
+    "statement": "Fast like a small model. Still held in memory like a big one.",
+    "notes": "SAY: the trap with mixture-of-experts: it saves compute, not memory. Per token, Mixtral uses 12.9B parameters - about a quarter of its feed-forward - and that is the speed you get. But the GPU must hold all 46.7B expert parameters in memory: any expert could be picked for the next token, so none of them can be evicted. 46.7B x 2 bytes in bf16 is 93.4 GB for weights alone - no KV cache, no activations. That is why a model that \"acts like a 13B\" still needs a big GPU. (Numbers: deck/data/part2.json moe.mixtral.active.active_params = 12,879,925,248; moe.mixtral.api_total_params = 46,702,792,704; both bars share one scale; 93.4 GB = total x 2 bytes, computed in the slide.)"
+  },
+  "t501-independent-dots": {
+    "steps": 2,
+    "tool": "matrix dot",
+    "kicker": "the GPU",
+    "statement": "A matrix times a vector is a pile of independent dot products.",
+    "notes": "SAY: one token vector times Wu is not one big operation. It is one dot product per column, and no column needs anything from any other column: nothing branches, nothing waits. That is exactly the shape of work a GPU likes. (Real: Wu = up_proj of Qwen3.8-27B has 17,408 columns, intermediate_size in qwen38.json, and 5,120 rows. Toy: the picture draws 4 rows and 8 columns and the one-decimal numbers are invented; each output is computed in the page as the real dot product of the vector with its column.)"
+  },
+  "t502-cpu-vs-gpu": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "the GPU",
+    "statement": "CPU: a few big cores. GPU: thousands of small lanes.",
+    "notes": "SAY: same 160 pieces of work. A CPU has a few big, clever cores: here 8, so it finishes 8 cells per tick and needs 20 ticks. A GPU has a huge number of small, simple lanes: here about 400, more than the 160 cells, so everything is done in one tick. Matrix maths has plenty of independent work, so the GPU's width pays off. (Illustrative: 8 cores, about 400 lanes, 160 cells and the tick counts are drawn to show the idea, they are not the specification of any real chip; real core counts and speeds come in part 3.)"
+  },
+  "t503-cpu-overhead": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "the GPU",
+    "statement": "The CPU spends cycles on coordination.",
+    "notes": "SAY: to multiply one pair of numbers a CPU core walks round this loop: fetch the two numbers into registers, multiply, read the running total back, move on to the next pair. The multiply itself is a thin slice; most of the time is bookkeeping. A GPU keeps that bookkeeping out of the way by doing the same step on thousands of lanes at once. (Illustrative: the slice widths are drawn to make the point, they are not measured on any real CPU; the loop is a simplified picture of a scalar dot-product loop.)"
+  },
+  "t504-tensor-core": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "the GPU",
+    "statement": "A tensor core swallows a small matrix tile whole.",
+    "notes": "SAY: a normal CUDA core does one multiply-add: a times b plus c. A tensor core is a block of silicon that does a whole small matrix multiply-accumulate as one instruction: tile A times tile B plus tile C. For a 16 x 16 tile that is 16 x 16 x 16 = 4,096 multiply-adds from a single instruction. (Arithmetic, computed in the page: 16 x 16 x 16 = 4,096, each of the 16 x 16 outputs sums 16 products. Toy: the tiles are drawn 4 x 4 to stay readable; the label says a real tile can be 16 x 16, and the tile shapes a given GPU supports depend on its generation, which is part 3. No vendor numbers on this slide.)"
+  },
+  "t505-keep-the-sum": {
+    "steps": 2,
+    "tool": "matrix",
+    "kicker": "the GPU",
+    "statement": "The trick: keep the running sum next to the maths.",
+    "notes": "SAY: C = A x B is computed one small output tile at a time. For one tile of C the GPU walks along the shared dimension K: take a thin slice of A and a thin slice of B, multiply, add into the tile, repeat K times. The running sum stays in registers, right next to the maths, for all K steps. Only when the tile is finished is it written out to memory, once. Keeping the sum on the chip is what saves the memory traffic. (Toy: a 6 x 6 x 6 product with a 2 x 2 tile, so K = 6; for the real Wu the shared dimension is the hidden size 5,120 and tiles are bigger. Simplified: real kernels stage the A and B slices through shared memory, which the next slide shows, and the registers hold the accumulators of the tile.)"
+  },
+  "t506-kernel-schedules": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "the GPU",
+    "statement": "A kernel schedules the tiles.",
+    "notes": "SAY: the maths is fixed, the choreography is the kernel. A kernel is the program that decides how the big matrix is chopped into tiles, which tile moves from VRAM into shared memory, from shared memory into registers, and into the tensor cores, and when, so that the tensor cores never wait for data. FlashAttention is a famous example: attention rewritten as a hand-tuned kernel that keeps its tiles in fast memory. (Toy: an 8 x 8 grid of tiles, the tile order and the speed of the stream are invented for the picture. The ladder order VRAM, shared memory, registers, tensor core is the real hierarchy; sizes and speeds of each level come in part 3, so none are shown here.)"
+  },
+  "t507-cuda-to-silicon": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "the GPU",
+    "statement": "From CUDA C++ to the GPU.",
+    "notes": "SAY: you write the kernel in CUDA C++. The compiler turns it into PTX, a readable assembly-like language for GPUs that stays stable across chips. The last step turns PTX into the machine code of the specific GPU in the box, which is what the silicon actually runs. Nothing about the maths changes on the way down, only how close to the hardware it is. (Simplified: no vendor numbers or instruction names on purpose; which tensor-core shapes and number formats the machine code can use depends on the GPU generation, part 3.)"
+  },
+  "t601-gandalf-loop": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "kv cache",
+    "statement": "The loop, run for real.",
+    "notes": "SAY: this is the loop from part 1, run on a real sentence. The model reads all the tokens so far, produces one next token, we append it, and the whole thing goes round again. Real: the 18-token split of \"And then on the bridge of khazad-dum, gandalf screamed: you shall\" and the token ids come from the Qwen3.8-27B tokenizer (part2.json, key gandalf). The continuation \" not\", \" pass\", \"!\" is the EXPECTED continuation from The Lord of the Rings, not the output of the model; the point is only the shape of the loop. Counters 18, 19, 20, 21 are the real token counts of each prefix. A dot in a chip is a leading space."
+  },
+  "t602-redo-everything": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "kv cache",
+    "statement": "Taken literally, every step redoes everything.",
+    "notes": "SAY: take the loop literally. Every iteration feeds the whole sequence in, so every layer recomputes q, k and v for every token, the old ones included. Each row is one token, each column one iteration, each cell the q, k, v of one token. Cyan = computed for the first time, grey = exactly the same numbers as the iteration before. Real numbers: the token counts 18, 19 and 20 are the real prefix lengths of the Gandalf sentence plus the expected \" not\" and \" pass\" (part2.json, key gandalf; the continuation is the expected one from The Lord of the Rings, not model output). The counter adds up the grey cells: 18 + 19 = 37 tokens recomputed in two extra iterations, for 2 genuinely new tokens. The grid is a schematic of one layer's work; every one of the 64 layers repeats it."
+  },
+  "t603-old-never-change": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "kv cache",
+    "statement": "Old tokens never change.",
+    "notes": "SAY: look at one row of the score table: it holds one token's scores against the keys of the tokens it is allowed to see. A token can only look backward (the upper triangle is masked), so the numbers in its row depend only on tokens that are already there. Append a seventh token and you add one new row (and one masked column); the six old rows do not change by a single digit. Toy numbers: the scores are invented 2-number dot products; the tokens are the last six real tokens of the Gandalf sentence and the expected \" not\" (part2.json, key gandalf; the continuation is from The Lord of the Rings, not model output). Layout note: as in the earlier score tables a cell is a query dotted with a key, but here queries are the rows and keys the columns so that a new token adds a row at the bottom. In a real model this holds in every layer, because each layer's input for an old token depends only on tokens before it."
+  },
+  "t604-keep-kv-drop-q": {
+    "steps": 3,
+    "tool": "dot",
+    "kicker": "kv cache",
+    "statement": "Keep K and V. Drop Q.",
+    "notes": "SAY: the cache holds the k and v of every earlier token, and nothing else. The new token brings its own query, dots it against every stored key (that is the thin cyan fan), and that query is never needed again: the next token will have its own. The old queries q1..q6 were used once, at the moment their token was the newest one, so there is nothing to keep. Toy: the arrow is a 2-number query in the same plane as the part-1 attention slides; the cards show the tokens \" gand\", \"alf\", \" screamed\", \":\", \" you\", \" shall\" from the real Gandalf tokenization (part2.json, key gandalf), and \" not\" is the expected continuation from The Lord of the Rings, not model output. Layout note: the cache is drawn as a row of token cards, one card per token, with its k and its v."
+  },
+  "t605-decode-step": {
+    "steps": 4,
+    "tool": "dot softmax",
+    "kicker": "kv cache",
+    "statement": "One decode step, with a cache.",
+    "notes": "SAY: this is one decode step with a cache. Step 1: only the new token (\" not\") gets its q, k and v computed. Step 2: its q is dotted against the key of every cached token and softmax turns the six scores into weights that add up to 1. Step 3: those weights blend the cached values into one output vector, which (after the rest of the layers) predicts the next token, \" pass\". Step 4: the new k and v are appended to the cache as one more card, and the query is dropped. Toy numbers: the six weights come from invented 2-number queries and keys; real vectors have thousands of numbers and a real model has 64 layers (and many heads), each with its own cache. Simplification: real implementations write the new k and v into the cache before the attention step, so the new token also attends to itself; the picture appends them last to keep the story simple. The six cached tokens are the real tail of the Gandalf sentence (part2.json, key gandalf); \" not\" and \" pass\" are the expected continuation from The Lord of the Rings, not model output."
+  },
+  "t606-kv-memory": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "kv cache",
+    "statement": "The cache is why inference eats memory.",
+    "notes": "SAY: the cache is per request and per token. 16 of the 64 layers are full attention and store K and V for every token: 16 x 2 x 4 heads x 256 x 2 bytes = 65,536 B = 64 KiB per token. One request keeps 0.25 GiB at 4k context and 16 GiB at the full 262k. The other 48 layers are linear attention with a fixed-size state: about 148 MiB per request, an ESTIMATE from the config shapes (fp32 recurrent + bf16 conv, engine-specific). The weights are 55,562,855,904 B = 51.7 GiB in bf16 (real, safetensors index), and every in-flight request reserves its own KV: four 131k requests total about 83.7 GiB. If all 64 layers were cached, per-token bytes are 4x (262,144 B) and the row reaches about 179.7 GiB. bf16 cache, no cache quantization here; serving engines page the cache in blocks. GiB = 2 to the 30 bytes."
+  },
+  "t607-prefill-vs-decode": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "kv cache",
+    "statement": "Prefill: many tokens per weight read. Decode: one.",
+    "notes": "SAY: prefill and decode look identical from the outside but are different beasts. Prefill reads the 51.7 GiB of weights once and applies them to every prompt token at once: lots of arithmetic per weight, so compute-bound (the 90/45 numbers are illustrative, not measured). Decode reads the same weights to produce a single new token: the model is almost entirely memory-bandwidth. Different bottlenecks, different optimisations. The pipe shows the weights streaming out of memory on every step; one column of the grid is the work of one decoded token."
+  },
+  "t608-two-phases": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "kv cache",
+    "statement": "Two phases, two bottlenecks.",
+    "notes": "SAY: from the user's point of view generation has two feel-able moments. First, time to first token: that is prefill, where the whole prompt is processed in one big compute-bound batch. Then, inter-token latency: each new token is a tiny decode step, memory-bandwidth bound, and it repeats for every single token. Batch prefill, stream decode; tune each with different tools (bigger compute batches vs bandwidth-friendly kernels and quantised weights)."
+  },
+  "t609-decode-limit": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "kv cache",
+    "statement": "Decode speed limit, back of the envelope.",
+    "notes": "SAY: back of the envelope. One decode step reads essentially the whole 55,562,855,904-byte model (55.6 GB in bf16, weights only, single stream, no batching, KV reads ignored), so the ceiling is bandwidth divided by bytes-per-token. Divide 1000, 2000 or 3000 GB/s by 55.56 and you get about 18, 36 or 54 tokens per second. The bandwidths are illustrative, not a specific GPU; part 3 puts real hardware numbers on this formula and shows why batching and quantisation move it."
+  },
+  "t701-bits": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "A model is a bunch of numbers. Numbers are bits.",
+    "notes": "SAY: every weight in the model is stored as bits. Take one unsigned 8-bit integer, 1 0 1 1 0 1 0 0, which is 180: each bit adds its place value. Flip the leftmost bit and the value falls from 180 to 52. Flip the rightmost bit and it moves from 180 to 181. Not every bit is equal, and that is the whole story of the next few slides: how many bits, and which ones. (Toy: an unsigned 8-bit integer, not a real weight format. Real weights are floating-point numbers, covered in the float-anatomy slide. The values 180, 52 and 181 are computed in the slide from the bit patterns.)"
+  },
+  "t702-memory-formula": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "Memory = parameters × bytes per weight.",
+    "notes": "SAY: memory is parameters times bytes per weight. Qwen3.8-27B has exactly 27,781,427,952 parameters, so in bf16, two bytes per weight, that is 55.6 GB of weights. In fp32 the same numbers need twice as much: 111.1 GB. At 8-bit the weights fit in 27.8 GB, at 4-bit in 13.9 GB. The tick shows what a real FP8 repo actually weighs, 30.9 GB, a bit more than the pure 27.8 GB of weights because the repo also carries the per-block scale tensors. (All numbers from deck/data/part2.json: params and gb per format from model_gb_by_format, the FP8 repo size from the Hugging Face file listing. GB = 1e9 bytes, weights only, no KV cache.)"
+  },
+  "t703-fewer-bits": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "Fewer bits per weight, almost the same model.",
+    "notes": "SAY: these are 32 real weights from one tensor of Qwen3.8-27B, a single group of 32, in bf16 on top. The bottom chart is the same group after int4 rounding: every weight moves to the nearest of 16 levels, so each cyan bar is a touch shorter or taller than its grey twin, and the differences are small but visible. Storing a 4-bit level index plus one shared scale per group costs about half a byte per weight instead of two: 4 times fewer bytes. The round-trip error is 0.097 of the weight spread, measured as rmse over std on the full 327,680 weights of the tensor. (Data: first_group of the real tensor in deck/data/part2.json; relative_rmse from quant.int4_rtn.group_32, plain round-to-nearest, symmetric, groups of 32.)"
+  },
+  "t704-snap-to-levels": {
+    "steps": 3,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "The honest version: round each weight to the nearest of a few levels.",
+    "notes": "SAY: these are the same 32 real weights as the previous slide, now sitting on a number line — and behind them, a faint histogram of all 327,680 weights of the tensor, so you can see how the whole thing is distributed: most weights are small, a few reach plus or minus 0.05. The 16 cyan ticks are the only values int4 can hold for this group: every multiple of the group scale, from minus 8 times scale up to plus 7 times scale, where scale equals absmax over 7, which is 0.00388881. Now every weight snaps to its nearest level. The thin grey ticks show how far each one moved; across the whole tensor that round-trip error is 0.10 of the weight spread, measured as rmse over std. (Data: first_group and the full-tensor histogram from deck/data/part2.json; round-to-nearest, symmetric, per group of 32.)"
+  },
+  "t705-float-anatomy": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "A float is a sign, an exponent and a mantissa.",
+    "notes": "SAY: a floating-point number is three fields. The sign is one bit. The exponent decides how big or small the number can be: its range. The mantissa decides how finely it is described: its precision. Every box is one bit and every box is the same width, so the strips compare honestly: FP32 is 32 bits, FP16 and BF16 are 16, the two FP8 formats are 8, FP4 is 4. BF16 keeps the 8 exponent bits of FP32 and gives up mantissa, which is why it is the usual training and storage format for large models: same range, less precision. (Layouts from the blog's table: FP32 1/8/23, FP16 1/5/10, BF16 1/8/7, FP8 E4M3 1/4/3, FP8 E5M2 1/5/2, FP4 1/2/1. Nothing on this slide is a measurement; the model's own weights are stored in BF16.)"
+  },
+  "t706-block-scales": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "4-bit formats carry a scale for each block.",
+    "notes": "SAY: four bits give only 16 levels, so a single scale for a whole tensor would be far too coarse. These formats cut the weights into small blocks and store one scale per block: the 4-bit values multiply that scale to get back to a real size. NVFP4 uses blocks of 16 values with an FP8 scale; MXFP4 uses a shared block scale (the slide does not give a block size on purpose); the GGUF Q4_K formats mix different precisions per block, and the average cost lands at about 4.5 bits per weight for Q4_K_M and about 4 for Q4_K_S, because the scales themselves cost bits. (Layout and figures from the blog's table. Toy: the hex digits in the cells are made up, only to show 4-bit values; the wider cells in the GGUF row only suggest that blocks differ in how many bits they use.)"
+  },
+  "t707-gptq-awq": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "GPTQ and AWQ: smarter than rounding blindly.",
+    "notes": "SAY: rounding every weight to its nearest level looks fair, but the small errors can all lean the same way and add up in the output. GPTQ goes layer by layer and picks the roundings so the errors cancel: individual weights may be rounded the wrong way, yet the output error is smaller. AWQ starts from a different observation: a few input channels are much bigger than the rest, so the weights that multiply them matter most. It scales those weights up before rounding, which shrinks their error, and protects them. (TOY NUMBERS, everything on the slide is computed in the slide from two small arrays: 8 weights and 8 input sizes, levels every 0.25. Output error = |sum of (rounded - original) x input| for one made-up input. GPTQ here is the simplest error-feedback version, the leftover error of each weight is pushed onto the next weight before it is rounded; the real GPTQ uses second-order information over many calibration inputs. AWQ here scales the two weights with the biggest inputs by 2 before rounding and measures the error back in the original scale. These are illustrations of the idea, not measurements of Qwen3.8-27B.)"
+  },
+  "t708-kernel-speaks-format": {
+    "steps": 2,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "A format is only useful if a kernel speaks it.",
+    "notes": "SAY: a 4-bit weight is not something the GPU can use as it sits in memory: two values are packed into one byte, and there is a scale next to them. A kernel is the program that unpacks those bytes, attaches the scale and hands the values to the tensor core. If no kernel speaks a format, the format saves memory but cannot be run fast. Marlin and Machete are kernels written for INT4 and FP8. (Toy: the four bytes 0xA3, 0x5C, 0x1E, 0x97 are made up; the nibbles on screen are computed from them in the slide. The tile in the tensor core is schematic. Kernel names from the blog.)"
+  },
+  "t709-native-support": {
+    "steps": 1,
+    "tool": null,
+    "kicker": "quantization",
+    "statement": "Whether the GPU multiplies FP8 or FP4 natively depends on its generation.",
+    "notes": "SAY: this is where part 2 hands over. Quantization only pays off if the GPU can do the maths in that format directly, and which formats it multiplies natively (FP8, FP4) depends on its generation. So the next questions are about the hardware: how much memory, how much bandwidth, which interconnect, and which GPU. That is part 3. (No per-generation support table here on purpose: it needs vendor documentation as its source, so it belongs in part 3. Nothing on this slide is a measurement.)"
   }
 }

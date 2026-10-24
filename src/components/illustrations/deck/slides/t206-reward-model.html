@@ -1,0 +1,158 @@
+<section class="slide" id="t206-reward-model" data-steps="3">
+  <p class="kicker reveal">reasoning</p>
+  <p class="statement reveal">A reward model learns from human A/B choices.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1040 460" role="img" aria-labelledby="t206-reward-model-t t206-reward-model-d">
+      <title id="t206-reward-model-t">A reward model learns from human A/B choices</title>
+      <desc id="t206-reward-model-d">A prompt with two answers, A and B, side by side. A cyan ring marks B: a human picks the better one. Then the pair shrinks into a stack of many A/B pairs, thousands of them, which flow into a box called reward model. Finally the box scores a pair: A gets 0.31 and B gets 0.82, standing in for the humans inside the loop.</desc>
+      <defs>
+        <marker id="t206-reward-model-ah" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" refX="14" refY="9" orient="auto"><path d="M0,1 L16,9 L0,17 Z" fill="var(--color-text-muted)"/></marker>
+      </defs>
+
+      <!-- the stack of other pairs, behind the front pair (built by the script) -->
+      <g id="t206-reward-model-stack"></g>
+
+      <!-- the front pair: prompt, A and B, ring on B -->
+      <g id="t206-reward-model-pair">
+        <g id="t206-reward-model-prompt">
+          <rect class="card" x="0" y="-96" width="720" height="62" rx="14"/>
+          <text class="pt" x="28" y="-55">Explain what a pod is.</text>
+        </g>
+        <rect class="card" x="0" y="0" width="340" height="220" rx="16"/>
+        <text class="let" x="28" y="64">A</text>
+        <rect class="sk" x="28" y="98" width="284" height="13" rx="6.5"/>
+        <rect class="sk" x="28" y="128" width="232" height="13" rx="6.5"/>
+        <rect class="sk" x="28" y="158" width="262" height="13" rx="6.5"/>
+        <rect class="card" x="380" y="0" width="340" height="220" rx="16"/>
+        <text class="let" x="408" y="64">B</text>
+        <rect class="sk" x="408" y="98" width="268" height="13" rx="6.5"/>
+        <rect class="sk" x="408" y="128" width="284" height="13" rx="6.5"/>
+        <rect class="sk" x="408" y="158" width="196" height="13" rx="6.5"/>
+        <rect class="sk" x="408" y="188" width="240" height="13" rx="6.5"/>
+        <rect id="t206-reward-model-ring" class="ring" x="368" y="-12" width="364" height="244" rx="26" opacity="0"/>
+      </g>
+
+      <text id="t206-reward-model-human" class="human" x="520" y="394" text-anchor="middle" opacity="0">a human picks the better one</text>
+
+      <!-- step 2: many pairs flow into the reward model -->
+      <g id="t206-reward-model-s2" opacity="0">
+        <text class="many" x="266" y="348" text-anchor="middle">thousands of A/B pairs</text>
+        <line class="ar dimar" x1="540" y1="232" x2="596" y2="232" marker-end="url(#t206-reward-model-ah)"/>
+        <rect class="box" x="604" y="177" width="204" height="110" rx="14"/>
+        <text class="bt" x="706" y="239" text-anchor="middle">reward model</text>
+      </g>
+      <g id="t206-reward-model-flow"></g>
+
+      <!-- step 3: the model scores a pair -->
+      <g id="t206-reward-model-s3" opacity="0">
+        <line class="ar" x1="816" y1="232" x2="852" y2="232" marker-end="url(#t206-reward-model-ah)"/>
+        <text class="sc" x="866" y="220">A</text>
+        <text class="sv" x="918" y="220">0.31</text>
+        <rect class="ring" x="854" y="240" width="178" height="62" rx="14" style="stroke-width:4"/>
+        <text class="sc b" x="866" y="286">B</text>
+        <text class="sv b" x="918" y="286">0.82</text>
+        <text class="stand" x="520" y="424" text-anchor="middle">stands in for the humans inside the loop</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t206-reward-model svg.diagram{max-width:min(1203.2px,1100px);}
+    #t206-reward-model .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #t206-reward-model .pt{font-size:26px;fill:var(--color-text);}
+    #t206-reward-model .let{font-size:54px;font-weight:600;fill:var(--color-text-soft);}
+    #t206-reward-model .sk{fill:var(--color-border-strong);}
+    #t206-reward-model .ring{fill:none;stroke:var(--color-accent);stroke-width:7;}
+    #t206-reward-model .human{font-size:29px;fill:var(--color-accent);}
+    #t206-reward-model .many{font-size:25px;fill:var(--color-text-muted);}
+    #t206-reward-model .ar{stroke:var(--color-text-muted);stroke-width:4;stroke-linecap:round;}
+    #t206-reward-model .dimar{stroke:var(--color-text-faint);stroke-dasharray:3 9;stroke-width:3;}
+    #t206-reward-model .box{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:3;}
+    #t206-reward-model .bt{font-size:22px;fill:var(--color-text);}
+    #t206-reward-model .sc{font-size:42px;font-weight:600;fill:var(--color-text-muted);}
+    #t206-reward-model .sv{font-size:42px;font-weight:600;fill:var(--color-text-muted);}
+    #t206-reward-model .sc.b, #t206-reward-model .sv.b{fill:var(--color-accent);}
+    #t206-reward-model .stand{font-size:27px;fill:var(--color-text-soft);}
+    #t206-reward-model .cp{fill:none;stroke:var(--color-text-faint);stroke-width:3;}
+    #t206-reward-model .mini{fill:var(--color-surface-deep);stroke:var(--color-text-muted);stroke-width:2.5;}
+  </style>
+  <script>
+    (function () {
+      var ID = 't206-reward-model';
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+      // layout: the pair at full size (centred) and shrunk to the left of the reward model
+      var BIG = { x: 160, y: 110, s: 1 }, SMALL = { x: 8, y: 169, s: 0.6 };
+      var OFF = [[28, -28], [56, -56], [84, -84]];       // the stack: copies behind the front pair, up and to the right
+      var A1X0 = 540, A1X1 = 600, FLOW_Y = 232;          // arrow from the stack to the reward model
+
+      var stackG = $('stack'), copies = [2, 1, 0].map(function (k) {   // k = 0 is the nearest copy; the farthest is drawn first (behind)
+        var g = el('g', { opacity: 0 }, stackG);
+        el('rect', { 'class': 'cp', x: 0, y: 0, width: 340, height: 220, rx: 16 }, g);
+        el('rect', { 'class': 'cp', x: 380, y: 0, width: 340, height: 220, rx: 16 }, g);
+        return { g: g, k: k };
+      });
+      var flowG = $('flow'), chips = [0, 1].map(function () {
+        var g = el('g', { opacity: 0 }, flowG);
+        el('rect', { 'class': 'mini', x: 0, y: -10, width: 12, height: 20, rx: 3 }, g);
+        el('rect', { 'class': 'mini', x: 17, y: -10, width: 12, height: 20, rx: 3 }, g);
+        return g;
+      });
+
+      var pair, prompt, ring, human, s2, s3, S = { r: 0, s: 0, c: 0 }, flowOn = 0;
+      function draw() {
+        var e = Deck.ease.inOut(S.s);
+        var x = Deck.lerp(BIG.x, SMALL.x, e), y = Deck.lerp(BIG.y, SMALL.y, e), s = Deck.lerp(BIG.s, SMALL.s, e);
+        pair.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ') scale(' + s.toFixed(3) + ')');
+        prompt.setAttribute('opacity', (1 - clamp(S.s * 2.5)).toFixed(2));
+        ring.setAttribute('opacity', clamp(S.r).toFixed(2));
+        human.setAttribute('opacity', (clamp(S.r * 1.5 - 0.5) * (1 - clamp(S.s * 2.5))).toFixed(2));
+        copies.forEach(function (c) {
+          var o = OFF[c.k];
+          c.g.setAttribute('transform', 'translate(' + (SMALL.x + o[0] * e).toFixed(1) + ' ' + (SMALL.y + o[1] * e).toFixed(1) + ') scale(' + SMALL.s + ')');
+          c.g.setAttribute('opacity', (clamp(S.s * 1.4) * (0.95 - 0.22 * c.k)).toFixed(2));
+        });
+        s2.setAttribute('opacity', clamp((S.s - 0.55) / 0.45).toFixed(2));
+        s3.setAttribute('opacity', clamp(S.c).toFixed(2));
+      }
+      // the pairs keep flowing into the reward model while steps 2 and 3 are shown
+      function flow(t) {
+        chips.forEach(function (g, k) {
+          var ph = (t / 1.6 + k / 2) % 1, x = A1X0 + (A1X1 - A1X0 - 30) * ph;
+          g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + FLOW_Y + ')');
+          g.setAttribute('opacity', (flowOn * clamp((S.s - 0.85) / 0.15) * Math.sin(Math.PI * ph)).toFixed(2));   // only once the pair has shrunk into the stack
+        });
+      }
+
+      var TARGET = [{ r: 0, s: 0, c: 0 }, { r: 1, s: 0, c: 0 }, { r: 1, s: 1, c: 0 }, { r: 1, s: 1, c: 1 }];
+      var cancel = null, looping = false;
+      Deck.slide('t206-reward-model', {
+        enter: function () {
+          pair = $('pair'); prompt = $('prompt'); ring = $('ring'); human = $('human'); s2 = $('s2'); s3 = $('s3');
+          S = { r: 0, s: 0, c: 0 }; flowOn = 0; looping = false; draw(); flow(0);
+        },
+        step: function (n, prev, c) {
+          var to = TARGET[Math.min(n, 3)];
+          flowOn = n >= 2 ? 1 : 0;
+          if (n >= 2 && !looping) { looping = true; Deck.loop(flow); }
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = { r: to.r, s: to.s, c: to.c }; draw(); flow(0.4); return; }
+          var from = { r: S.r, s: S.s, c: S.c };
+          cancel = Deck.tween(n === 2 && prev === 1 ? 1500 : 900, function (t) {
+            S = { r: Deck.lerp(from.r, to.r, t), s: Deck.lerp(from.s, to.s, t), c: Deck.lerp(from.c, to.c, t) };
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

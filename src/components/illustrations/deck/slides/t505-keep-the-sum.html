@@ -1,0 +1,142 @@
+<section class="slide" id="t505-keep-the-sum" data-steps="2" data-tool="matrix">
+  <p class="kicker reveal">the GPU</p>
+  <p class="statement reveal">The trick: keep the running sum next to the maths.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 470" role="img" aria-labelledby="t505-keep-the-sum-t t505-keep-the-sum-d">
+      <title id="t505-keep-the-sum-t">A matrix product computed tile by tile, with the running sum kept in registers and written out once</title>
+      <desc id="t505-keep-the-sum-d">Three grids: A at the bottom left, B above on the right and C below B, with the shared dimension K marked on A and B. One two-by-two tile of C is highlighted, together with the two-row strip of A and the two-column strip of B that it needs. In the first step thin pieces of the two strips slide into the tile one after another, six in all, and add into it; the tile fills with cyan while a counter runs through the partial sums and a label says the tile sits in registers. In the last step the finished tile is written once to memory, with one arrow and the label 1 write.</desc>
+      <g id="t505-keep-the-sum-g"></g>
+      <g data-from="1">
+        <line class="lead" x1="428" y1="334" x2="508" y2="334"/>
+        <text id="t505-keep-the-sum-reg" class="reg" x="516" y="334" dy=".35em">registers</text>
+        <text id="t505-keep-the-sum-cnt" class="cnt" x="516" y="214">partial sums: 0 / 6</text>
+      </g>
+      <g data-from="2">
+        <path class="wr" d="M676 334H798m-14 -12l14 12l-14 12"/>
+        <text class="wl" x="737" y="306">1 write</text>
+        <rect class="mem" x="818" y="290" width="214" height="88" rx="14"/>
+        <text class="mt" x="925" y="334" dy=".35em">memory</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #t505-keep-the-sum svg.diagram{width:100%;height:100%;max-width:none;}
+    #t505-keep-the-sum text{font-family:var(--font-mono);}
+    #t505-keep-the-sum .gc{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:1.5;}
+    #t505-keep-the-sum .band{fill:var(--color-accent);fill-opacity:.06;}
+    #t505-keep-the-sum .pc{fill:var(--color-accent);stroke:var(--color-accent);stroke-width:3;}
+    #t505-keep-the-sum .gh{fill:var(--color-accent);}
+    #t505-keep-the-sum .tile{stroke:var(--color-accent);stroke-width:3.5;}
+    #t505-keep-the-sum .nm{font-size:30px;font-weight:600;text-anchor:middle;fill:var(--color-text-muted);}
+    #t505-keep-the-sum .eq{font-size:36px;fill:var(--color-text-soft);}
+    #t505-keep-the-sum .br{fill:none;stroke:var(--color-text-dim);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #t505-keep-the-sum .kl{font-size:28px;font-weight:600;text-anchor:middle;fill:var(--color-text-muted);}
+    #t505-keep-the-sum.hot .br{stroke:var(--color-accent);}
+    #t505-keep-the-sum.hot .kl{fill:var(--color-accent);}
+    #t505-keep-the-sum .lead{stroke:var(--color-accent);stroke-width:2.5;stroke-linecap:round;}
+    #t505-keep-the-sum .reg{font-size:28px;fill:var(--color-accent);}
+    #t505-keep-the-sum .reg.old{fill:var(--color-text-dim);}
+    #t505-keep-the-sum .cnt{font-size:30px;font-weight:600;fill:var(--color-accent);}
+    #t505-keep-the-sum .wr{fill:none;stroke:var(--color-accent);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;}
+    #t505-keep-the-sum .wl{font-size:26px;text-anchor:middle;fill:var(--color-accent);}
+    #t505-keep-the-sum .mem{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #t505-keep-the-sum .mt{font-size:30px;font-weight:600;text-anchor:middle;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 't505-keep-the-sum';
+      var root = document.getElementById(ID);
+      var NS = 'http://www.w3.org/2000/svg';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // TOY: C (6 x 6) = A (6 x K) x B (K x 6) with K = 6 and a 2 x 2 output tile
+      var K = 6, CS = 28, TS = 2;
+      var AX = 60, AY = 250, BX = 250, BY = 60, CXX = 250, CYY = 250;
+      var TCOL = 4, TROW = 2;                                  // the tile: rows 2-3 and columns 4-5 of C
+      var TX = CXX + TCOL * CS, TY = CYY + TROW * CS, TW = TS * CS;
+      var g = $('g');
+
+      function grid(x0, y0) {
+        for (var r = 0; r !== K; r++) for (var c = 0; c !== K; c++)
+          el('rect', { 'class': 'gc', x: x0 + c * CS + 1, y: y0 + r * CS + 1, width: CS - 2, height: CS - 2, rx: 4 }, g);
+      }
+      grid(AX, AY); grid(BX, BY); grid(CXX, CYY);
+      el('text', { 'class': 'nm', x: AX + K * CS / 2, y: AY + K * CS + 38 }, g, 'A');
+      el('text', { 'class': 'nm', x: BX + K * CS / 2, y: BY - 18 }, g, 'B');
+      el('text', { 'class': 'nm', x: CXX + K * CS / 2, y: CYY + K * CS + 38 }, g, 'C');
+      el('text', { 'class': 'eq', x: 516, y: 112 }, g, 'C = A × B');
+
+      // the shared dimension K: a bracket over A and one beside B, both in the empty corner
+      var br = el('g', {}, g);
+      el('path', { 'class': 'br', d: 'M' + (AX + 4) + ' ' + (AY - 6) + 'v-8H' + (AX + K * CS - 4) + 'v8' }, br);
+      el('text', { 'class': 'kl', x: AX + K * CS / 2, y: AY - 30 }, br, 'K');
+      el('path', { 'class': 'br', d: 'M' + (BX - 6) + ' ' + (BY + 4) + 'h-8V' + (BY + K * CS - 4) + 'h8' }, br);
+      el('text', { 'class': 'kl', x: BX - 44, y: BY + K * CS / 2, dy: '.35em' }, br, 'K');
+
+      // the strip of A (2 rows) and of B (2 columns) that this tile needs: a faint band, cut into K thin pieces
+      el('rect', { 'class': 'band', x: AX, y: TY, width: K * CS, height: TW }, g);
+      el('rect', { 'class': 'band', x: TX, y: BY, width: TW, height: K * CS }, g);
+      var aPc = [], bPc = [];
+      for (var k = 0; k !== K; k++) {
+        aPc.push(el('rect', { 'class': 'pc', x: AX + k * CS + 1.5, y: TY + 1.5, width: CS - 3, height: TW - 3, rx: 3 }, g));
+        bPc.push(el('rect', { 'class': 'pc', x: TX + 1.5, y: BY + k * CS + 1.5, width: TW - 3, height: CS - 3, rx: 3 }, g));
+      }
+      // the output tile of C (heats up as partial sums arrive), and the two ghosts that slide in
+      var tile = el('rect', { 'class': 'tile', x: TX + 1.5, y: TY + 1.5, width: TW - 3, height: TW - 3, rx: 5 }, g);
+      var gA = el('rect', { 'class': 'gh', width: CS - 3, height: TW - 3, rx: 3 }, g);
+      var gB = el('rect', { 'class': 'gh', width: TW - 3, height: CS - 3, rx: 3 }, g);
+
+      var cnt = $('cnt'), reg = $('reg');
+      var P = 0, cancel = null;
+      function draw() {
+        var kf = P * K, kk = Math.min(K - 1, Math.floor(kf)), frac = P >= 1 ? 1 : kf - kk;
+        var travel = Deck.ease.inOut(clamp(frac / 0.75));
+        var landed = P >= 1 ? K : kk + (frac > 0.8 ? 1 : 0);
+        var running = P > 0 && P < 1;
+        // ghosts: the k-th piece of A slides right to the tile, the k-th piece of B slides down to it
+        gA.setAttribute('x', Deck.lerp(AX + kk * CS, TX, travel) + 1.5); gA.setAttribute('y', TY + 1.5);
+        gB.setAttribute('x', TX + 1.5); gB.setAttribute('y', Deck.lerp(BY + kk * CS, TY, travel) + 1.5);
+        var go = running ? (frac > 0.78 ? 1 - (frac - 0.78) / 0.22 : 1) : 0;
+        gA.style.opacity = go; gB.style.opacity = go;
+        for (var i = 0; i !== K; i++) {
+          var o = i < landed ? 0.28 : (running && i === kk ? 0.55 : 0);       // used pieces keep a tint
+          aPc[i].style.fillOpacity = o; bPc[i].style.fillOpacity = o;
+          aPc[i].style.strokeOpacity = running && i === kk ? 1 : 0; bPc[i].style.strokeOpacity = running && i === kk ? 1 : 0;
+        }
+        var heat = P >= 1 ? 1 : (kk + clamp((frac - 0.5) / 0.3)) / K;
+        tile.style.fill = 'rgba(34,211,238,' + (0.07 + 0.88 * heat).toFixed(3) + ')';
+        cnt.textContent = 'partial sums: ' + landed + ' / ' + K;
+      }
+      function paint(n) {
+        root.classList.toggle('hot', n >= 1);
+        reg.setAttribute('class', 'reg' + (n >= 2 ? ' old' : ''));
+      }
+      draw(); paint(0);
+
+      Deck.slide('t505-keep-the-sum', {
+        enter: function () { P = 0; draw(); paint(0); },
+        step: function (n, prev, c) {
+          paint(n);
+          var to = n >= 1 ? 1 : 0;
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { P = to; draw(); return; }
+          var from = P;
+          if (from === to) return;
+          // the sweep along K: one partial sum every 700 ms; going back is a quick reset
+          cancel = Deck.tween(to > from ? 4200 * (to - from) : 600, function (t) { P = Deck.lerp(from, to, t); draw(); },
+            { ease: to > from ? Deck.ease.linear : Deck.ease.inOut });
+        }
+      });
+    })();
+  </script>
+</section>
