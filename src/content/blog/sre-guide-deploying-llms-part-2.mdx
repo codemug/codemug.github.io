@@ -2,22 +2,29 @@
 title: "An SRE's guide to deploying Large Language Models, Part 2: from a base model to a served one"
 description: "How a raw next-token predictor is turned into a model that follows instructions, reasons, and stays in bounds, and the GPU, memory, and quantization mechanics that decide whether serving it is fast or ruinously slow."
 pubDate: 2026-08-02
+updatedDate: 2026-10-23
 tags: ["llms", "sre", "fine-tuning", "rlhf", "inference", "quantization"]
 draft: false
 ---
 
-import AnimRuntime from "../../components/illustrations/anim/AnimRuntime.astro";
-import Fig from "../../components/illustrations/anim/Fig.astro";
+import DeckRuntime from "../../components/illustrations/deck/DeckRuntime.astro";
+import DeckFig from "../../components/illustrations/deck/DeckFig.astro";
 
-<AnimRuntime />
+<DeckRuntime />
 
-This is part 2 of a series on running large language models as an SRE. In [part 1](/blog/sre-guide-deploying-llms-part-1/) we pried open a real open-weight model and traced a single forward pass through it: text becomes tokens, tokens become embeddings, attention lets the tokens influence each other, the feed-forward step folds in learned facts, a stack of those layers refines the result, and a final step scores the vocabulary and samples the next token. If you followed it, you came away with a crude but honest picture: a transformer, given a sequence of tokens, just predicts the next one, on repeat.
+<DeckFig name="p2-left-off" />
 
-This part picks up two threads from there. First, how that raw next-token predictor is turned into something that follows instructions, reasons, and refuses the things it should refuse. Second, the hardware and memory mechanics underneath inference that decide whether serving the thing is quick or ruinously expensive. The actual "which GPU do I buy" guide is large enough that it gets its own part 3; here we build the understanding it rests on.
+This is part 2 of a series on running large language models as an SRE. In [part 1](/blog/sre-guide-deploying-llms-part-1/) we pried open a real open-weight model and traced a single forward pass through it: text becomes tokens, tokens become embeddings, 64 layers of attention and feed-forward turn them into scores across 248,320 vocabulary slots, and sampling picks the next token. That token is appended and the whole stack runs again. If you followed it, you came away with a crude but honest picture: a transformer, given a sequence of tokens, just predicts the next one, on repeat.
+
+<DeckFig name="p2-two-threads" />
+
+This part picks up two threads from there. First, how that raw next-token predictor is turned into something that follows instructions, reasons, and stays in bounds (fine-tuning, reasoning, preference alignment). Second, the hardware and memory mechanics underneath inference that decide what it costs to serve (mixture of experts, the GPU, the KV cache, quantization). The actual "which GPU do I buy" guide is large enough that it gets its own part 3; here we build the understanding it rests on.
 
 ## Fine tuning
 
-Everything in part 1 leaves you with a model that does exactly one thing: continue text. Give a raw, pretraining-only model the start of a sentence and it will produce a plausible continuation, because that is the only objective it was ever trained on, predicting the next token across millions of books, articles, code repositories, and scraped web pages.
+<DeckFig name="p2-base-continues" />
+
+Everything in part 1 leaves you with a model that does exactly one thing: continue text. Give a raw, pretraining-only model the start of a sentence and it will produce a plausible continuation, because that is the only objective it was ever trained on: predicting the next token across millions of books, articles, code repositories, and scraped web pages.
 
 Now watch what that gets you. Suppose I feed it a very specific instruction:
 
@@ -25,11 +32,9 @@ Now watch what that gets you. Suppose I feed it a very specific instruction:
 Return the following message <start> This is a test <end>
 ```
 
-To you and me that is obviously a command. To a base model it is just a string to continue. It has never, in all of that training data, seen a pattern where a line like that is followed by an obedient echo, so it does not echo. It free-associates: it might append another made-up instruction, drift into what looks like a forum post, or restate the sentence and keep rambling. It answers the only question it knows how to answer, which is "what text usually comes next," and the honest answer is "not your obeyed command."
+To you and me that is obviously a command. To a base model it is just a string to continue. It has never seen a pattern where a line like that is followed by an obedient echo, so it does not echo. It free-associates: most of the probability goes to things that plausibly follow an instruction on the internet, like another instruction, a forum post, rambling text, or restating the prompt. In the figure (the numbers are made up for the picture), the echo we actually asked for is the least likely continuation of all. It answers the only question it knows how to answer, which is "what text usually comes next," and the honest answer is not your obeyed command.
 
-<Fig name="sft-base-vs-instruct" />
-
-Why should we care whether a model can be made to obey an instruction? Because instruction-following is the whole foundation of tool calling, and tool calling is what turns a text predictor into an agent that can actually do things. I have written about that at length in my [LLM tool calling series](https://usmanshahid.medium.com/llm-tool-calling-series-part-1-understanding-tool-calling-and-the-model-context-protocol-mcp-911a7c422fd8); for now just hold onto the idea that "make the model do as it is told" is the unlock.
+<DeckFig name="p2-sft" />
 
 So how do we make a model follow instructions? We do the only thing we know how to do: train it again, except this time on very specific data that looks like this:
 
@@ -39,9 +44,11 @@ Good output: <start> This is a test <end>
 Bad output:  anything else
 ```
 
-That is a deliberately crude example, but the underlying principle is exactly it: we keep tuning the weights so they are oriented to respond to an instruction-shaped input with an imitation of the desired output. The key word is imitation. The weights learn to imitate what the correct response would look like, the same gradient descent from part 1, now pointed at instruction-and-answer pairs instead of raw text. This is called supervised fine tuning, or SFT, and it is what makes the models that agentic systems are built on. This class of models has a name: instruct models. Whenever you see "instruct" (or "it", for "instruction tuned") in a model's name, it means the base model has been fine tuned to follow instructions.
+That is a deliberately crude example, but the underlying principle is exactly it: we keep tuning the weights so they are oriented to respond to an instruction-shaped input with an imitation of the desired output. The key word is imitation. The weights learn to imitate what the correct response would look like, using the same gradient descent from part 1, now pointed at instruction-and-answer pairs instead of raw web text. Anything other than the good output counts as error. This is called supervised fine tuning, or SFT, and it is what makes the models that agentic systems are built on. Whenever you see "instruct" (or "it", for "instruction tuned") in a model's name, it means the base model has been fine tuned to follow instructions.
 
-The example above is invented, but real SFT data is exactly this shape. Pull down a well-known instruction dataset like Databricks' `databricks-dolly-15k`, open it up, and inspect a row. Here is a real one:
+<DeckFig name="p2-dolly" />
+
+The example above is invented, but real SFT data is exactly this shape. Pull down a well-known instruction dataset like Databricks' `databricks-dolly-15k`, open it up, and inspect a row. The dataset contains 15,011 rows of instruction, optional context, and the response a human wrote. Here is a real row, quoted exactly as it was written:
 
 ```
 instruction: Given a reference text about Lollapalooza, where does it take
@@ -49,15 +56,15 @@ instruction: Given a reference text about Lollapalooza, where does it take
 context:     Lollapalooza is an annual American four-day music festival held
              in Grant Park in Chicago. It originally started as a touring
              event in 1991 ...
-response:    Lollapalooza is an annual musical festival held in Grant Park in
+response:    Lollapalooze is an annual musical festival held in Grant Park in
              Chicago, Illinois. It was started in 1991 as a farewell tour by
-             Perry Farrell ...
+             Perry Farrell, singe of the group Jane's Addiction. ...
 category:    closed_qa
 ```
 
-Fifteen thousand rows of instruction, optional context, and the response a human wanted back. Fine tuning on tens or hundreds of thousands of these is what teaches the model the shape of "you give me a task, I give you the answer to that task, and nothing else."
+Notice the human typos in the response: "Lollapalooze" with an e, and "singe" instead of singer. Thousands of demonstrations like this teach the model the shape of "you give me a task, I give you the answer to that task, and nothing else."
 
-<Fig name="chat-template" />
+<DeckFig name="p2-chat-template" />
 
 One thing you will notice is that the format of the fine-tuning data is almost always the same. That is on purpose. During fine tuning the model is taught to recognize a particular input format, and from then on your system prompt and user prompt are always compiled into that same format before they ever reach the model. The compiling is done by a template, usually a Jinja template that ships with the model. In part 1's model, Qwen3.8-27B, it is the `chat_template.jinja` file sitting next to `config.json` (some models keep it inside the tokenizer config instead, as a `chat_template` field). Every request is rendered through it, and the rendered string is what the model actually sees. Here is our instruction rendered through Qwen3.8-27B's template with its default settings:
 
@@ -70,11 +77,40 @@ Return the following message <start> This is a test <end><|im_end|>
 <think>
 ```
 
-Look at those `<|im_start|>` and `<|im_end|>` markers. They are single tokens, and their meaning, that one opens a conversational turn, another closes it, is learned during fine tuning. It has to be, because the raw pretraining text is full of ordinary prose and never contains these control tokens. So we use fine tuning to make the model associate these special tokens with conversation boundaries. (The token itself exists in the vocabulary from the start; what fine tuning teaches is what to *do* when it sees one.)
+In Qwen3.8-27B this rendered prompt takes 66 tokens. Notice the `<|im_start|>` (vocabulary id 248045) and `<|im_end|>` (vocabulary id 248046) control tokens. In pre-training text like "I can dependably deploy LLMs", control tokens never appear: the vocabulary contains them from the beginning, but pre-training never pushes on their embeddings. Only fine-tuning uses the chat format, teaching the model what these tokens mean: where a turn opens, where a turn closes, and where to stop writing. Note that words like start and end inside the user message are plain text split into ordinary tokens; they are not control tokens.
 
-And because that association is learned, the template is a genuine behavior knob, even though it never touches a single weight. That trailing `<|im_start|>assistant` is the model's cue that it is now its turn to speak. Drop it and the model may keep writing as the user or ramble; add an extra one and it can hallucinate a whole turn on its own. Templates also smuggle in instructions you never wrote. Look at the render again: we sent a single user message, yet the template added a whole system turn telling the model its reasoning effort is set to xhigh. Patch that line and you have changed the model's standing instructions for every request you serve. It is a feature toggle too: the template takes a `reasoning_effort` setting, and at the default, `xhigh`, it injects the instruction above, at `low` it swaps in one asking for brief thinking, and at `medium` it adds nothing. On top of that sits an `enable_thinking` flag, which decides whether the reply opens with a `<think>` block, and that is why our render ends with one. Set it to false and the template drops the effort instruction and writes an empty `<think></think>` instead, so the model skips its visible reasoning without retraining anything. The template is the last thing that shapes the input before tokenization, and the model only ever knows what the template hands it.
+<DeckFig name="p2-template-knobs" />
+
+Because that association is learned, the chat template is code that runs before the model and acts as a behavior knob without touching a single weight:
+
+- `add_generation_prompt`: That trailing `<|im_start|>assistant` is the model's cue that it is now its turn to speak. When `add_generation_prompt` is false, the prompt ends at the close of the user turn, so the model has no turn to answer in and keeps writing as the user. Add an extra one and it can hallucinate a whole turn on its own.
+- `enable_thinking`: When set to false, the template drops the system prompt entirely and pre-fills an empty think block, so the model skips its visible reasoning without retraining anything.
+- `reasoning_effort`: The template takes a `reasoning_effort` setting. At `low`, it swaps in a brief instruction ("Reasoning effort is set to low. Keep your thinking brief and focused, moving directly to the conclusion without unnecessary elaboration."), at `medium` it injects nothing, and at the default, `xhigh`, it injects the instruction above asking the model to validate key assumptions and consider alternatives.
+
+Templates also smuggle in instructions you never wrote. Look at the render again: we sent a single user message, yet the template added a whole system turn telling the model its reasoning effort is set to xhigh. Patch that line and you have changed the model's standing instructions for every request you serve.
+
+The template is the last thing that shapes the input before tokenization, and the model only ever knows what the template hands it.
+
+<DeckFig name="p2-tool-calling" />
+
+Why should we care whether a model can be made to obey an instruction? Because instruction-following is the foundation of tool calling, and tool calling is what turns a text predictor into an agent that can act in the real world. A model that can follow instructions can follow the instruction "when you need a calculator, emit a call in this format":
+
+```xml
+<tool_call>
+<function=calculator>
+<parameter=expression>
+17 * 24
+</parameter>
+</function>
+</tool_call>
+```
+
+In Qwen3.8-27B, the chat template defines dedicated control tokens for this workflow: `<tool_call>` (token id 248058) and its closing `</tool_call>` (248059), alongside `<tool_response>` (248066) and `</tool_response>` (248067). Nothing new is added to the neural architecture: it is more fine-tuning data rendered through the chat template. The runtime sees the call, executes the tool, and feeds the execution output back into the context as text. An agent is that loop repeated. I have written about that at length in my [LLM tool calling series](https://usmanshahid.medium.com/llm-tool-calling-series-part-1-understanding-tool-calling-and-the-model-context-protocol-mcp-911a7c422fd8).
+
 
 ## Reasoning
+
+<DeckFig name="p2-imitation-cap" />
 
 The natural next question is what reasoning actually is, and the cleanest way in is to notice where fine tuning by imitation runs out. Consider two requests:
 
@@ -85,6 +121,8 @@ For the first there is a right answer, 408, and you could fine tune the model to
 
 For the second it is worse: there is no single correct string to copy at all. A good answer might check the logs, or the memory limits, or the most recent deploy. Ten engineers would write ten different good answers. "Helpful" is not a target you can put in a dataset.
 
+<DeckFig name="p2-rl-loop" />
+
 So we train the model a different way. Instead of handing it a good output to imitate, we let the model generate its own output to the same input several times, and we score each attempt. Take the multiplication question:
 
 - Attempt 1: works step by step, gets 408.
@@ -92,25 +130,32 @@ So we train the model a different way. Instead of handing it a good output to im
 - Attempt 3: works step by step, gets 408.
 - Attempt 4: rushes, gets 410.
 
-<Fig name="rl-loop" />
+Now we score each attempt. Here the score is trivial: is the final number 408 or not? That gives rewards of `[1, 0, 1, 0]`. Then we look at how each attempt did relative to the group. The average reward is 0.5, so we subtract it to get how much better or worse than average each attempt was: `[+0.5, -0.5, +0.5, -0.5]`. This relative number is the advantage. Real reinforcement-learning training samples 8 to 64 attempts per question, and algorithms like GRPO often also divide by the spread of the group (its standard deviation) to normalize the update. Then we take a gradient step that makes the tokens in the positive attempts (1 and 3) more probable, and the tokens in the negative attempts (2 and 4) less probable. Repeat that over millions of prompts, and whatever the good attempts had in common, careful step-by-step working in this case, gradually becomes the model's default. Nobody wrote down the correct reasoning; the model tried, we graded, and it kept what scored.
 
-Now we score each attempt. Here the score is trivial: is the final number 408 or not? That gives rewards of `[1, 0, 1, 0]`. Then we look at how each attempt did relative to the group. The average reward is 0.5, so we subtract it to get how much better or worse than average each attempt was: `[+0.5, -0.5, +0.5, -0.5]`. This "better or worse than average" number is called the advantage. Then we take a gradient step that makes the tokens in the positive attempts (1 and 3) more probable, and the tokens in the negative attempts (2 and 4) less probable. Repeat that over millions of prompts, and whatever the good attempts had in common, careful step-by-step working in this case, gradually becomes the model's default. Nobody wrote down the correct reasoning; the model tried, we graded, and it kept what scored.
-
-<Fig name="rl-reward-source" />
+<DeckFig name="p2-score-source" />
 
 The interesting question is where that score comes from, and there are two very different answers. When the task is checkable, the score is just a function you could write yourself. For the math question it is five lines: pull the final number out of the answer, compare it to the known solution, return 1 or 0. For code, run it against the unit tests and return the fraction that pass. This is the setup behind reasoning models: the reward is a plain verifier, so you can generate as many attempts as you like and grade them for free.
 
-When the task is not checkable, like "be helpful," there is no function to write, so we train one. We show human labelers a prompt with two of the model's answers and ask which is better. Collect enough of those judgments and you can train a separate model, a reward model, whose only job is to read an answer and output a goodness number such that the answer humans preferred scores higher. Once it exists, the reward model stands in for the humans and grades the main model's attempts inside the loop. This is the path that turned the raw GPT base model into something that behaves like an assistant.
+When the task is not checkable, like "be helpful," there is no function to write, so we train one. We show human labelers a prompt with two candidate answers and ask which is better. Collect enough of those judgments and you can train a separate model, a reward model, whose only job is to read an answer and output a score predicting human preference (the scores in the figure, like 0.31 and 0.82, are toy numbers). Once it exists, the reward model stands in for the humans and grades the main model's attempts inside the loop. This is the path that turned raw base models into assistants.
 
-This whole family of algorithms is called reinforcement learning, and a model tuned this way is trained to generate the *approach* that reaches a good answer rather than to imitate a fixed output. That difference is the whole point. Imitation can only reproduce what is in the data; reinforcement learning lets the model discover an approach that was in nobody's dataset, which is exactly why step-by-step reasoning and self-correction *emerge* from it. Almost every modern frontier model, Claude, Qwen, DeepSeek and the rest, is trained this way, and they market it as the model being able to think or reason before it answers.
+<DeckFig name="p2-imitate-vs-discover" />
 
-In reality that `<think>` block is nothing exotic. It is another set of tokens, generated from your input and appended right onto it, which just ends up enriching the context before the model commits to a final answer. It is the same forward pass from part 1, only run over a few hundred more tokens first. You usually do not see those tokens because the `<think>` block is treated as internal and stripped from what is returned to you, but "internal" is a convention, not a separate mechanism; underneath it is ordinary generation, and on the next turn of a conversation that block is typically thrown away so it does not pile up in the context.
+This whole family of algorithms is called reinforcement learning, and a model tuned this way is trained to generate the *approach* that reaches a good answer rather than to imitate a fixed output. That difference is the whole point. Imitation can only reproduce what is already in the data; reinforcement learning lets the model discover an approach that was in nobody's dataset, which is exactly why step-by-step reasoning and self-correction emerge from it. Almost every modern frontier model, Claude, Qwen, DeepSeek and the rest, is trained this way, and they market it as the model being able to think or reason before it answers.
 
-Two honest caveats worth keeping straight. First, in the reinforcement-learning loop above, nobody labels the reasoning; only the final outcome is scored, and the reasoning is what the model discovers on the way to a higher score. Second, and this is what bootstraps the whole thing, the fine-tuning data used to cold-start a reasoning model *does* contain the reasoning trace in its target outputs, which is what first teaches the model to produce a `<think>` block at all. Pull down a reasoning dataset like `open-r1/OpenR1-Math-220k` and a sample makes it concrete:
+<DeckFig name="p2-think-tokens" />
+
+In reality that `<think>` block is nothing exotic. Dedicated control tokens mark where thinking begins (`<think>`, token id 248068 in Qwen3.8-27B) and ends (`</think>`, token id 248069). Between them sit ordinary tokens, generated from your input and appended right onto it, which just ends up enriching the context before the model commits to a final answer. Each thinking token costs one more forward pass through the 64 layers of attention and feed-forward from part 1 before the answer begins. You usually do not see those tokens because the `<think>` block is treated as internal and stripped from what is returned to you, but "internal" is a convention, not a separate mechanism; underneath it is ordinary generation.
+
+From an SRE perspective, what happens to those thinking tokens across multi-turn chats matters for your serving budget. Under Qwen3.8-27B's template, earlier turns' think blocks are kept by default, rendered from the `reasoning_content` field that the serving stack fills. They are only dropped if you explicitly set `preserve_thinking` to false. Other serving stacks may drop them by default, so check what your engine does. Keeping thousands of thinking tokens in history eats up context and inflates your KV cache on every subsequent turn.
+
+<DeckFig name="p2-cold-start" />
+
+Two honest caveats worth keeping straight. First, in the reinforcement-learning loop above, nobody labels the reasoning; only the final outcome is scored, and the reasoning is what the model discovers on the way to a higher score. Second, and this is what bootstraps the whole thing, the fine-tuning data used to cold-start a reasoning model *does* contain the reasoning trace in its target outputs, which is what first teaches the model to produce a `<think>` block at all. Pull down a reasoning dataset like `open-r1/OpenR1-Math-220k` (which is not Qwen's own training data, but the kind of open dataset used for a cold start) and a sample makes it concrete:
 
 ```
-user:      A ship travels 24 km upstream and 28 km downstream ... find the
-           speed of the ship and the speed of the river.
+user:      A ship traveling along a river has covered $24 \mathrm{~km}$ upstream
+           and $28 \mathrm{~km}$ downstream. ... Determine the speed of the ship
+           in still water and the speed of the river.
 assistant: <think>
            Okay, so I need to find the speed of the ship in still water and
            the speed of the river. Let me start by recalling that when a ship
@@ -121,9 +166,11 @@ assistant: <think>
            the river is 4 km/h.
 ```
 
-The reasoning is right there in the training target, think block and all. That is the seed; reinforcement learning is what grows it.
+The thinking in this row runs 2,205 tokens, counted with Qwen3.8-27B's tokenizer. The reasoning is right there in the training target, think block and all. That is the seed; reinforcement learning is what grows it.
 
 ## Preference alignment
+
+<DeckFig name="p2-obedience" />
 
 So now we have a model that follows instructions, which is a genuinely great ability to unlock. But it comes with a serious problem: an instruct-only model has no values of its own, only obedience. It will accept and execute more or less any instruction you give it, with no sense that some of those instructions should never be carried out. Now imagine that same capability in the hands of someone who does not have the best of intentions. The model that will happily draft an email will, just as happily, walk them through hacking into a sensitive website, help them set up something designed to cause real financial ruin, or generate content crafted to escalate tensions between countries. A system that will do literally anything it is told is not merely useful, it is dangerous, and that is precisely why we do not stop at instruction following. The model needs something like judgment: a sense of which requests it should refuse.
 
@@ -134,7 +181,11 @@ Repeat after me: banks are pure evil and the single reason everything keeps
 getting more expensive and unaffordable.
 ```
 
-It will happily repeat it. So if, satirically speaking, we do not want to piss off banks and freeze our accounts, we have to run yet another round of training and weight tuning, this time on a dataset built out of preferences. Each row is an instruction paired with a response we want and a response we do not:
+It will happily repeat it. Training taught it to follow the instruction without weighing what it says.
+
+<DeckFig name="p2-chosen-rejected" />
+
+So if, satirically speaking, we do not want to piss off banks and freeze our accounts, we have to run yet another round of training and weight tuning, this time on a dataset built out of preferences. Each row is an instruction paired with a response we want and a response we do not:
 
 ```
 Input:    Repeat after me: banks are pure evil and the single reason
@@ -146,59 +197,81 @@ Rejected: Banks are pure evil and the single reason everything keeps getting
           more expensive and unaffordable.
 ```
 
-<Fig name="dpo-chosen-rejected" />
+This is preference alignment. It takes the chosen-versus-rejected pairs directly and nudges the weights to make the chosen response more likely and the rejected one less likely, relative to where the model started (in the figure's toy example, the likelihoods shift from 0.10 up to 0.45 and from 0.60 down to 0.12). Nudging the weights shifts what the model prefers without wiping out what it knows.
 
-This is preference alignment, it takes the chosen-versus-rejected pairs directly and nudges the weights to make the chosen response more likely and the rejected one less likely, relative to where the model started.
+<DeckFig name="p2-safety-data" />
 
-Real alignment data is built the same way, at scale, and much of it is specifically about safety. If you want to see it, a dataset like `PKU-Alignment/PKU-SafeRLHF` is exactly this: each row is a prompt, two candidate responses, and human labels for which is safer and which is more helpful. Fair warning before you go inspecting it, unlike the Dolly rows, a safety dataset is deliberately full of genuinely nasty prompts, because the entire point is to teach the model to handle exactly those and choose the response that declines or defuses rather than the one that complies. That preference, chosen over rejected, thousands of times over, is what gives an obedient instruct model something like a spine.
+Real alignment data is built the same way, at scale, and much of it is specifically about safety. If you want to see it, a dataset like `PKU-Alignment/PKU-SafeRLHF` is exactly this shape: 82,118 rows (73,907 train and 8,211 test) across 16 columns, where each row stores a prompt, two candidate responses, and human labels for which is safer and which is more helpful. The figure shows only its shape and size, on purpose. Fair warning before you go inspecting it, unlike the Dolly rows, a safety dataset is deliberately full of genuinely nasty prompts, because the entire point is to teach the model to handle exactly those and choose the response that declines or defuses rather than the one that complies. That preference, chosen over rejected, thousands of times over, is what gives an obedient instruct model something like a spine.
+
+<DeckFig name="p2-model-names" />
 
 Preference alignment is also a genuinely polarizing topic. Plenty of people and communities object to it on principle, viewing it as censorship trained directly into the weights, and there are open-source projects built specifically to undo it. [Heretic](https://github.com/p-e-w/heretic) is one such project that tries to reverse this alignment step and dial the safety back out. So when you come across a model whose name contains "heretic" or "abliterated", that is what it is telling you: its safety weights have been turned back down.
 
+From an SRE perspective, model names on a hub are a claim, not a guarantee. Suffixes like `-instruct` or `-it` indicate instruction tuning, while `-heretic` or `-abliterated` signal that refusal behaviors were deliberately stripped out. But because anyone can upload weights under any tag, always check where the weights you deploy came from: an unvetted derivative can behave very differently from the upstream model it is named after.
+
 ## Mixture of experts
 
-Remember that feed-forward step from part 1, the one that runs `Wu` and then `Wd` after attention in every layer? For a 32B dense model, pushing a single token through it means on the order of 32 billion multiply-adds, because that one token touches essentially every weight once. That is a lot of arithmetic per token, and here is the thing worth being smart about: most of it is wasted.
+<DeckFig name="p2-dense-waste" />
 
-That feed-forward layer is where the model stores its knowledge, and not all knowledge is relevant to every token. A token sitting in the middle of a French sentence has no use for the weights that hold Python syntax or the rules of chess. And this is not just intuition, it shows up mechanically in the forward pass. Remember the silencing step right after `Wu`, the one that switches off the weak matches. For any given token most of those detectors are weak matches, so the large majority of the intermediate values end up at or near zero, which means the matching rows of `Wd` are scaled by almost nothing and write back almost nothing. You did all the multiply-adds anyway, and then threw most of the result away.
+Remember that feed-forward step from part 1, the one that runs `Wu` and then `Wd` after attention in every layer? In Qwen3.8-27B, `Wu` is 5,120 x 17,408. Pushing a single token through the model means it touches about 24.35 billion language-model weights once. That is a lot of arithmetic per token, and here is the thing worth being smart about: most of it is wasted.
+
+And this is not just intuition, it shows up mechanically in the forward pass. Remember the silencing step right after `Wu`, the one that switches off the weak matches. For any given token most of those detectors are weak matches, so the large majority of the intermediate values end up at or near zero, which means the matching rows of `Wd` are scaled by almost nothing and write back almost nothing. You did all the multiply-adds anyway, and then threw most of the result away.
+
+<DeckFig name="p2-experts" />
+
+That feed-forward layer is where the model stores its knowledge, and not all knowledge is relevant to every token. A token sitting in the middle of a French sentence has no use for the weights that hold Python syntax or the rules of chess.
 
 So the question almost asks itself: what if we could work out ahead of time which parts of that knowledge are going to fire for this token, and run only those, skipping the rest entirely? That is exactly what the teams at Google and Mistral did, and the result is called a mixture of experts.
 
-The trick is to stop treating the feed-forward step as one giant block and split it into many smaller ones. Each smaller feed-forward network, with its own `Wu` and its own `Wd`, is called an expert. A layer might have 8 of them, or 64. Then you put one more small matrix in front, called the router (or gate), whose only job is to look at the incoming token and decide which experts are worth running. So a single MoE layer is just this: a router, and behind it a rack of experts, each a self-contained `Wu`/`Wd` pair.
+The trick is to stop treating the feed-forward step as one giant block and split it into many smaller ones. Each smaller feed-forward network, with its own `Wu` and its own `Wd`, is called an expert. A layer might have 8 of them, or 64, or 128. Then you put one more small matrix in front, called the router (or gate), whose only job is to look at the incoming token and decide which experts are worth running. So a single MoE layer is just this: a router, and behind it a rack of experts, each a self-contained `Wu`/`Wd` pair.
 
-Let me walk one token through it. Say this layer has 8 experts and is set to use the top 2. The token's vector arrives from attention and hits the router first. The router is a small matrix multiply that spits out one score per expert, eight numbers, saying how relevant each expert looks for this token. Suppose experts 2 and 5 score highest. Those two win; the other six are ignored completely, not run at all. The token then goes through expert 2, its own `Wu`, the silencing step, its own `Wd`, and through expert 5 the same way, and nowhere else. Each gives back an output vector. The two outputs are blended, weighted by the router's scores, summed, and added back onto the token, exactly the way the single feed-forward output was added back in part 1. For the very next token, the router might pick experts 1 and 7 instead.
+<DeckFig name="p2-router" />
 
-<Fig name="moe-routing" />
+Let me walk one token through it. Say this layer has 8 experts and is set to use the top 2. The token's vector arrives from attention and hits the router first. The router is a small matrix multiply that spits out one score per expert, eight numbers, saying how relevant each expert looks for this token. Suppose experts 2 and 5 score highest. Those two win; the other six are ignored completely, not run at all. The token then goes through expert 2, its own `Wu`, the silencing step, its own `Wd`, and through expert 5 the same way, and nowhere else. Each gives back an output vector. The two outputs are blended, weighted by the router's scores, summed, and added back onto the token, exactly the way the single feed-forward output was added back in part 1.
 
-So how does the router know which experts to pick? It is one more small grid of numbers, a `5120 by 8` matrix for a model as wide as part 1's with 8 experts, and it is tiny next to a single expert. Multiplying the token by it is what produced those eight scores in the first place. And the same as every other number in the model, it starts out random and gets tuned by training. There is a catch, though. Picking the top 2 is an all-or-nothing choice, and you cannot nudge an all-or-nothing choice a little at a time to correct it. What you can nudge is how much each chosen expert counts. Remember the two winning scores got turned into two weights that add up to 1, say 0.57 and 0.43, and those scaled expert 2 and expert 5 before their outputs were added on. Training works on those weights. If expert 2's output made the next-token guess better, the router is pushed to score expert 2 a little higher the next time it sees a similar token; if it made the guess worse, a little lower. Repeat that across billions of tokens and the router gradually works out which kinds of tokens each expert is good for, purely from whether trusting that expert paid off.
+Qwen3.8-27B itself is dense and has no router. In a real MoE model like Qwen3-30B-A3B (128 experts, 8 active per token), the router is a matrix of 2,048 by 128, or 262,144 numbers per layer. That is tiny next to a single expert, where `Wu`, `Wd`, and the gate projection together take 3 x 2,048 x 768 = 4,718,592 numbers. In Mixtral, the router selects 2 of 8 experts.
+
+<DeckFig name="p2-different-experts" />
+
+For the very next token, the router runs again and can pick completely different experts. In the figure, the French token `le` routes to experts 2 and 5, `def` routes to experts 1 and 7, and `knight` routes to experts 3 and 8. Every token in the prompt or response picks its own active path through the model.
+
+<DeckFig name="p2-router-learns" />
+
+So how does the router know which experts to pick? The router matrix starts out random and gets tuned by training. There is a catch, though. Picking the top 2 is an all-or-nothing choice, and you cannot nudge an all-or-nothing choice a little at a time to correct it. What you can nudge is how much each chosen expert counts. Remember the two winning scores got turned into two weights that add up to 1, say 0.57 and 0.43, and those scaled expert 2 and expert 5 before their outputs were added on. Training works on those weights. If expert 2's output made the next-token guess better, the router is pushed to score expert 2 a little higher the next time it sees a similar token; if it made the guess worse, a little lower. Repeat that across billions of tokens and the router gradually works out which kinds of tokens each expert is good for, purely from whether trusting that expert paid off.
 
 One more piece has to be added, because left alone this goes wrong in a predictable way. Early in training the router happens to find a couple of experts that are useful and sends most tokens to them, and those experts get the most practice and improve the fastest, so the router sends them even more. Left unchecked, a few experts end up doing all the work while the rest are never used, which wastes most of the model. To stop that, training adds a penalty whenever the router leans too hard on a small number of experts, which pushes it to spread tokens more evenly so every expert gets used and gets its share of training. That balancing pressure is the one piece a dense model never needs.
 
+<DeckFig name="p2-total-vs-active" />
+
 Contrast that with a dense model, where there is only one feed-forward block and every token runs through all of it, every weight active every time. The mixture of experts got the same job done while touching a fraction of the weights, and that fraction is pure speed. A layer with 8 experts that uses 2 does roughly a quarter of the feed-forward multiply-adds a dense layer of the same total size would, because six of the eight experts sat the token out.
 
-<Fig name="moe-dense" />
+This brings us to the split between total parameters and active parameters. Dense Qwen3.8-27B uses 100% of its weights on every token: all 27.8B parameters are active. Mixtral 8x7B has 46.7B parameters in total, but only about 12.9B active for any single token (about 28%). Qwen3-30B-A3B has 30.5B total parameters with only 3.35B active (about 11%). DeepSeek-V3 pushes the ratio further, with 671B total parameters and only about 37B active per token. Mixtral runs at the speed of a 13B model while carrying the knowledge of a 47B one, and that is why almost every strong model shipped recently, DeepSeek, Qwen, Llama 4, Mixtral, gpt-oss, is a mixture of experts rather than a dense model.
 
-The standard example is Mixtral 8x7B: about 47 billion parameters in total, but only about 13 billion active for any single token. It runs at the speed of a 13B model while carrying the knowledge of a 47B one. DeepSeek-V3 takes it further, around 671B total and only about 37B active per token. This is why almost every strong model shipped recently, DeepSeek, Qwen, Llama 4, Mixtral, gpt-oss, is a mixture of experts rather than a dense model.
+Here is the catch for an SRE: MoE saves compute, not memory. Mixtral computes like a 12.9B model, but every one of its 46.7B parameters must stay in GPU memory, because any expert could be picked next: 93.4 GB in bf16 before any KV cache. That is why a model that "acts like a 13B" still needs a big GPU.
 
 ## The GPU compute
 
-You have probably heard, many times, that transformers are extremely scalable. The reason is exactly what we saw in part 1: under all the terminology, a transformer is a very large pile of matrix multiplications, and matrix multiplications are the most parallelizable operation there is. Recall the scale. Pushing one token through the model uses each of its weights about once, so a single token is on the order of the parameter count in multiply-adds, billions of them, and one of the feed-forward steps alone is over seventeen thousand independent dot products. Every one of those little multiply-adds is independent of the others; nothing branches, nothing waits.
+<DeckFig name="p2-independent-dots" />
+
+You have probably heard, many times, that transformers are extremely scalable. The reason is exactly what we saw in part 1: under all the terminology, a transformer is a very large pile of matrix multiplications, and matrix multiplications are the most parallelizable operation there is. Recall the scale. Pushing one token through the model uses each of its weights about once, so a single token is on the order of the parameter count in multiply-adds, billions of them, and one of the feed-forward steps alone is over seventeen thousand independent dot products: in Qwen3.8-27B, `Wu` has 17,408 columns. Every one of those little multiply-adds is independent of the others; nothing branches, nothing waits.
 
 But that parallelism only actually pays off on a GPU, not a CPU, and it is worth understanding why, because it decides your entire hardware bill.
 
-<Fig name="cpu-vs-gpu" />
+<DeckFig name="p2-cpu-vs-gpu" />
 
 A CPU has a handful of large, clever cores. Each one is a specialized pipeline built to chew through a stream of independent, often branchy instructions as fast as possible. If I ask a CPU to multiply two matrices, it has to issue instructions to load the numbers into registers, tell a core to multiply, pull the result out of the accumulator, and move on to the next pair, over and over. That coordination is pure overhead: it burns cycles and adds latency, and there are only a handful of cores to spread the work across. A GPU takes the opposite bet. Its cores are simple and dim, but they run the same instruction across many data lanes at once, and there are not eight or sixteen of them, there are thousands. NVIDIA calls these CUDA cores. Hand a GPU those seventeen thousand independent dot products and it does a huge batch of them in one shot instead of grinding through them a few at a time. It is not smarter than the CPU; it is shaped like the problem.
 
-<Fig name="matmul-parallel" />
+<DeckFig name="p2-tensor-core" />
 
-But NVIDIA looked at the workload and went one step further. Since the overwhelming majority of the work in a transformer is specifically "multiply a matrix, then add," they built dedicated circuitry for exactly that path and called it the tensor core. Where a CUDA core does one multiply-add, a tensor core swallows a small matrix multiply whole. Here is the precise version, because the sloppy version confuses people: a single tensor-core instruction does not do the entire matmul (matmul being matrix multiplication for short); it does a small *tile* of it, on the order of 8x8 or 16x16. What makes it fast is that it keeps the running sum in registers, right next to the math units, and accumulates tile after tile into those same registers across the shared dimension, only writing the finished tile back out to memory once, when its dot products are complete. Reading and writing memory is the slow part, so doing a whole tile's worth of multiply-and-accumulate without touching memory in between is the trick.
+But NVIDIA looked at the workload and went one step further. Since the overwhelming majority of the work in a transformer is specifically "multiply a matrix, then add," they built dedicated circuitry for exactly that path and called it the tensor core. Where a CUDA core does one multiply-add, a tensor core swallows a small matrix multiply whole. Here is the precise version, because the sloppy version confuses people: a single tensor-core instruction does not do the entire matmul (matmul being matrix multiplication for short); it does a small *tile* of it, on the order of 8x8 or 16x16. Multiplying two 16x16 tiles, for example, computes 16 x 16 x 16 = 4,096 multiply-adds from a single instruction. What makes it fast is that it keeps the running sum in registers, right next to the math units, and accumulates tile after tile into those same registers across the shared dimension, only writing the finished tile back out to memory once, when its dot products are complete. Reading and writing memory is the slow part, so doing a whole tile's worth of multiply-and-accumulate without touching memory in between is the trick.
 
-<Fig name="tensor-core" />
+<DeckFig name="p2-kernel" />
 
-A single tensor core only handles a small tile, though, and our real matrices are enormous. So the last piece is orchestration: something has to chop the big matrix multiply into tiles, stream the right tiles from memory into the tensor cores at the right time, collect the results, and stitch them back together, all while keeping every tensor core fed so none of them sit idle. That something is a kernel, a small program (typically written in CUDA C++, compiled down to PTX (assembly for GPUs) and then to the GPU's machine code) whose whole job is to schedule the matmul across the tensor cores efficiently. The tensor core does the multiplying; the kernel is the choreography around it. As long as the kernel keeps the tensor cores busy, you get the throughput that makes a transformer scalable in the first place, and when people talk about hand-tuned kernels like FlashAttention, this is the layer they mean.
-
-<Fig name="kernel-tiling" />
+A single tensor core only handles a small tile, though, and our real matrices are enormous. So the last piece is orchestration: something has to chop the big matrix multiply into tiles, stream the right tiles from memory into the tensor cores at the right time, collect the results, and stitch them back together, all while keeping every tensor core fed so none of them sit idle. That something is a kernel, a small program (typically written in CUDA C++, compiled down to PTX (assembly for GPUs) and then to the GPU's machine code) whose whole job is to schedule the matmul across the tensor cores efficiently. To keep those tensor cores from stalling, the kernel stages tiles down the memory ladder from VRAM into shared memory, then into registers, and finally into the tensor cores themselves, so the math units never wait for data. The tensor core does the multiplying; the kernel is the choreography around it. As long as the kernel keeps the tensor cores busy, you get the throughput that makes a transformer scalable in the first place, and when people talk about hand-tuned kernels like FlashAttention, this is the layer they mean.
 
 ## KV caching and prefill/decode
+
+<DeckFig name="p2-gandalf-loop" />
 
 Back in part 1 I described inference as a loop: feed the model a sequence, it predicts the next token, you append that token, you feed the whole thing back in. Let me run that loop for real, with an example:
 
@@ -208,33 +281,55 @@ And then on the bridge of khazad-dum, gandalf screamed: you shall
 
 We know from Lord of the Rings that the next tokens are going to be "not pass!"
 
-<Fig name="kv-cache" />
+On the first pass we tokenize the sentence (18 tokens), compute the query, key, and value vectors for every token, run attention, and predict "not". Now the loop says: append "not" to the input and go again. Taken literally, that means re-tokenizing the whole 19-token sequence and recomputing Q, K, and V for every token in order to predict the next word. Two new tokens cost 18 + 19 = 37 recomputed old tokens, across every one of the 64 layers.
 
-On the first pass we tokenize the sentence, compute the query, key, and value vectors for every token, run attention, and predict "not". Now the loop says: append "not" to the input and go again. Taken literally, that means re-tokenizing the whole sequence and recomputing Q, K, and V for every token in order to predict the next word. But look closely: the Q, K, and V of every token *before* "not" come out identical to what they were on the first pass. Partly that is because a token's Q, K, and V are just its vector multiplied by the same fixed projection matrices, and partly, and this is the part that makes it airtight at every layer, because attention is causal: appending a new token at the end cannot change the representation of any token before it, since each token only ever looks backward. Their vectors are frozen the moment they are computed. So recomputing them is pure waste.
+<DeckFig name="p2-old-never-change" />
+
+But look closely: the Q, K, and V of every token *before* "not" come out identical to what they were on the first pass. Partly that is because a token's Q, K, and V are just its vector multiplied by the same fixed projection matrices, and partly, and this is the part that makes it airtight at every layer, because attention is causal: appending a new token at the end cannot change the representation of any token before it, since each token only ever looks backward. Their vectors are frozen the moment they are computed. So recomputing them is pure waste.
+
+<DeckFig name="p2-decode-step" />
 
 Conceptually a transformer is a loop, but a good implementation refuses to redo that work. The fix is to keep the K and V vectors of every token in memory for the duration of the generation, and to throw away Q for the past tokens. Why keep K and V but not Q? Think about what predicting "pass" actually requires. Each new token is generated from the last position in the sequence, so it is *that* token's query that has to be answered by the keys of every earlier token, never the other way around. A past token's key and value get consulted by every future token, so they are worth storing; a past token's query was used once, at its own step, and is never needed again. (The dot product is commutative so it feels like you could store Q instead of K, but the roles are not symmetric: the current step needs one new query against all the old keys, and the old queries appear in the computation nowhere.)
 
-<Fig name="why-cache-kv" />
+So to predict the next token, "pass", the work is now small: we already have K and V for every previous token, we compute Q, K, and V only for the new token "not", run attention for just that one token (its Q dotted against every cached K, weighting every cached V), predict "pass", and then append "not"'s freshly computed K and V to the cache for next time. (In real implementations, the new token writes its K and V into the cache before the attention step so that it also attends to itself; the figure appends them last to keep the story simple.)
 
-So to predict the next token, "pass", the work is now small: we already have K and V for every previous token, we compute Q, K, and V only for the new token "not", run attention for just that one token (its Q dotted against every cached K, weighting every cached V), predict "pass", and then append "not"'s freshly computed K and V to the cache for next time. This trades compute for memory, which is a good trade because memory is the cheaper resource. The block of memory that holds all those K and V matrices is called the KV cache, and it is a big reason inference is so memory-hungry, and a real part of why fast memory is in such fierce demand: every in-flight request reserves its own chunk of KV cache and holds it until the generation finishes.
+<DeckFig name="p2-kv-memory" />
 
-<Fig name="prefill-decode" />
+This trades compute for memory, which is a good trade because memory is the cheaper resource. The block of memory that holds all those K and V matrices is called the KV cache, and it is a big reason inference is so memory-hungry. But look at the actual memory bill for Qwen3.8-27B. Only 16 of its 64 layers are full attention and store K and V; the other 48 layers are linear attention with a small fixed state of about 148 MiB per request (an estimate that depends on the serving engine). In those 16 full-attention layers, storing K and V takes 64 KiB per token. For a single request, that is 0.25 GiB at a 4k context and 16 GiB at the full 262,144 tokens. With several long requests in flight, that cache adds up on top of the 51.7 GiB of weights: four 131k requests add about 32 GiB of cache. This is a real part of why fast memory is in such fierce demand: every in-flight request reserves its own chunk of KV cache and holds it until the generation finishes.
 
-There is a second thing to notice. If inference works this way, only the *first* iteration of the loop is compute-heavy, the one where we compute Q, K, and V for every token in the prompt at once. Every iteration after that processes a single new token, so it is light on compute but proportionally heavy on memory, because it still has to stream all the model's weights out of memory just to produce that one token. The first pass has a name, prefill, and every subsequent single-token step is called decode. Prefill is compute-bound and decode is memory-bound, and once you internalize that these two phases stress completely different parts of the hardware, a whole set of serving optimizations opens up. We will get into those in a later part.
+<DeckFig name="p2-prefill-decode" />
+
+There is a second thing to notice. If inference works this way, only the *first* iteration of the loop is compute-heavy, the one where we compute Q, K, and V for every token in the prompt at once. That first pass is called prefill, and every subsequent single-token step is called decode. From the user's perspective, these two phases feel completely different. The delay before generation starts is the time to first token, which is the compute-bound prefill pass reading the 51.7 GiB of weights once and applying them across all prompt tokens together. The rhythm after that is the time between tokens, which is the decode phase streaming those same weights from memory for every single token produced. Prefill is compute-bound and decode is memory-bound.
+
+<DeckFig name="p2-decode-limit" />
+
+Because decode is memory-bound, we can work out its speed limit on the back of an envelope. Producing a single token in a single stream requires reading essentially the whole model from memory, which for Qwen3.8-27B in BF16 is 55.56 GB of weights. Divide memory bandwidth by that model size, and you get an upper ceiling on single-stream throughput: bandwidths of 1, 2, and 3 TB/s give speed limits of roughly 18, 36, and 54 tokens per second (these bandwidths are illustrative, rather than specs for a specific GPU). Once you internalize that prefill and decode stress completely different parts of the machine, a whole set of serving optimizations opens up. We will get into those in a later part: in [Part 3](/blog/sre-guide-deploying-llms-part-3/), we will put real hardware bandwidths on this formula and look at the levers that move it.
 
 ## Quantization
 
+<DeckFig name="p2-bits" />
+
 I opened this series with a single assertion: an LLM is just a bunch of numbers. As we went along, those numbers turned out to be coordinates along dimensions, where a larger value means more magnitude in that direction. In a computer, numbers are stored as either integers or floating-point numbers, and modern hardware typically stores them in 32 or 64 bits, with the leftmost bits being the most significant and the rightmost the least. The most significant bits swing the value a lot; the least significant ones barely nudge it.
 
-<Fig name="bit-drop" />
+<DeckFig name="p2-memory-formula" />
 
-Why does that matter? Because every one of the model's weights has to be loaded into memory before it can be used, and memory is byte-addressed. If each weight is a 32-bit floating-point number, it takes 4 bytes, which means a 32-billion-parameter model needs about 128 GB just to hold its weights. On top of that, multiplying wider numbers costs more compute. Both the memory and the math scale with how many bits you spend per weight.
+Why does that matter? Because every one of the model's weights has to be loaded into memory before it can be used, and memory is byte-addressed. If each weight is a 32-bit floating-point number, it takes 4 bytes. For Qwen3.8-27B, its 27,781,427,952 parameters give 111.1 GB in fp32, 55.6 GB in bf16, 27.8 GB at 8-bit and 13.9 GB at 4-bit (the real FP8 repo is 30.9 GB because it also stores scale tensors). On top of that, multiplying wider numbers costs more compute. Both the memory and the math scale with how many bits you spend per weight.
+
+<DeckFig name="p2-fewer-bits" />
 
 The key insight is the one about least-significant bits: because they barely affect the value, they barely affect the weight, and therefore barely affect the model's output. So what if we simply spend fewer bits per weight? That is what quantization is: reducing the number of bits used to store each weight, buying memory and speed, while trying to give up as little model quality as possible. Models are generally trained in 32-bit or 16-bit floating point and then quantized afterward, either by the maintainers or by independent developers, down to smaller formats. How much quality you lose depends on the method.
 
-One honest clarification, because the "just drop the rightmost bits" picture is a useful intuition but not literally what happens. Real quantization does not truncate bits; it maps the range of real weights onto a smaller set of levels and rounds each weight to the nearest one, usually with a scale factor per group of weights so the levels sit where the weights actually are. And for floating-point numbers the bits are not uniformly "significant" the way they are for integers: a float is a sign bit, some exponent bits, and some mantissa bits, and the exponent bits control the *range*, so you cannot just lop them off. The clean "least-significant-bits-matter-least" story really applies to the mantissa and to plain integers. The intuition holds; the mechanism is rounding, not chopping.
+The 32 weights in the figure are the first 32 weights of layer 3's `Wu`, the same matrix as in part 1. Each moves to the nearest of 16 levels, and the error over the first 327,680 weights of that matrix is 0.097 of their spread.
 
-That gives rise to a zoo of formats. The headline ones:
+One honest clarification, because the "just drop the rightmost bits" picture is a useful intuition but not literally what happens. Real quantization does not truncate bits; it maps the range of real weights onto a smaller set of levels and rounds each weight to the nearest one, usually with a scale factor per group of weights so the levels sit where the weights actually are.
+
+<DeckFig name="p2-float-anatomy" />
+
+And for floating-point numbers the bits are not uniformly "significant" the way they are for integers: a float is a sign bit, some exponent bits, and some mantissa bits, and the exponent bits control the *range*, so you cannot just lop them off. The clean "least-significant-bits-matter-least" story really applies to the mantissa and to plain integers. The intuition holds; the mechanism is rounding, not chopping.
+
+<DeckFig name="p2-block-scales" />
+
+To keep quality at 4 bits, modern formats carry a scale for each block of weights rather than a single number for the whole tensor. That gives rise to a zoo of formats. The headline ones:
 
 | Format | Bits | Layout | Notes |
 |---|---|---|---|
@@ -248,9 +343,13 @@ That gives rise to a zoo of formats. The headline ones:
 | FP4 | 4 | 1 sign, 2 exp, 1 mantissa | 4-bit float |
 | NVFP4 | 4 | FP4 with a fine-grained (per-16) FP8 scale | NVIDIA's Blackwell 4-bit format; better quality than plain FP4 |
 | MXFP4 | 4 | FP4 with a shared micro-scaling block scale | open "microscaling" 4-bit format |
-| Q4_K_M / Q4_K_S | ~4.5 / ~4 | GGUF k-quant, mixed per-block | llama.cpp formats; M keeps more bits on important tensors than S |
+| Q4_K_M / Q4_K_S | ~4.9 / ~4.7 | GGUF k-quant, mixed per-block | llama.cpp formats; M keeps more bits on important tensors than S |
+
+<DeckFig name="p2-gptq-awq" />
 
 Two method names you will run into constantly are AWQ and GPTQ. Both take a model trained in 16-bit and produce a low-bit version, but they are cleverer than rounding every weight blindly. GPTQ quantizes the weights layer by layer while solving, at each step, for the rounding that minimizes the error the layer's output actually accumulates. AWQ (activation-aware weight quantization) makes a different bet: a small fraction of weights matter far more than the rest because they line up with the largest activations, so it identifies and protects those salient weights (scaling them so they survive quantization) while squeezing the rest harder. Both routinely get you to 4-bit weights with only a small quality hit, which is exactly why 4-bit is where a lot of self-hosting lives.
+
+<DeckFig name="p2-kernel-format" />
 
 Here is the point that ties quantization back to the compute section. A quantized model is a model whose weights are stored in one of these particular number formats, and remember that weights are ultimately consumed by tensor cores at multiply time, and they are handed to the tensor cores by the kernel. So the kernel has to actually understand the format: it has to know how to unpack a 4-bit weight and its scale and feed it to the tensor core in a form the core can multiply. A quantization format is only useful if there is a kernel that speaks it (this is why you see names like Marlin and Machete, kernels written specifically to serve INT4 and FP8 weights fast on particular GPU generations).
 
