@@ -656,7 +656,7 @@
       "d001-g7e-size-ladder"
     ],
     "captions": {
-      "d001-g7e-size-ladder": "The g7e family scales from one to eight 96 GB GDDR7 GPUs, and the article picks g7e.2xlarge for one GPU per node. (Real g7e specs, AWS docs 2026-10-30.)"
+      "d001-g7e-size-ladder": "The g7e family scales from one to eight 96 GB GDDR7 GPUs, and the article picks g7e.2xlarge for one GPU per node. (Real g7e specs, from the AWS docs at the time of this deployment.)"
     },
     "dwell": 4500
   },
@@ -665,16 +665,7 @@
       "d002-regions-quota"
     ],
     "captions": {
-      "d002-regions-quota": "g7e is offered in 13 of the 39 AWS Regions, and the on-demand G and VT quota is measured in vCPU: 80 vCPU allows 10 g7e.2xlarges. (Real AWS docs 2026-10-30; quota example is arithmetic.)"
-    },
-    "dwell": 4500
-  },
-  "p4-karpenter-loop": {
-    "slides": [
-      "d101-karpenter-loop"
-    ],
-    "captions": {
-      "d101-karpenter-loop": "Karpenter finds the pending pod, bin-packs it onto a new g7e.2xlarge node, and the scheduler binds the pod once the node is ready. (Illustrative.)"
+      "d002-regions-quota": "g7e is offered in 13 of the 39 AWS Regions, and the on-demand G and VT quota is measured in vCPU: 80 vCPU allows 10 g7e.2xlarges. (Real AWS docs at the time of this deployment; quota example is arithmetic.)"
     },
     "dwell": 4500
   },
@@ -692,7 +683,7 @@
       "d201-memory-budget"
     ],
     "captions": {
-      "d201-memory-budget": "At 0.90 utilization a 95.59 GiB card gives vLLM 86.03 GiB, and after 20.42 GiB of weights and an assumed 5 GiB of overhead, 60.62 GiB is left as the KV cache pool. (Computed, with an assumed card size and overhead.)"
+      "d201-memory-budget": "At 0.90 utilization a 94.97 GiB card gives vLLM 85.47 GiB, and after 22.13 GiB of weights and 4.08 GiB of other memory, 59.26 GiB is left as the KV cache pool. (Measured on a running pod, vLLM v0.28.0.)"
     },
     "dwell": 4500
   },
@@ -701,7 +692,7 @@
       "d202-kv-block"
     ],
     "captions": {
-      "d202-kv-block": "The 17 layer groups share one 53.125 MiB block size: an attention block holds 1,600 tokens of K and V, a state block holds one state copy. An 8,192 token request therefore needs 6 + 15 = 21 blocks. (Computed for fp8 KV and MTP 3.)"
+      "d202-kv-block": "The 17 layer groups share one 53.125 MiB block size: an attention block holds 1,600 tokens of K and V, a state block holds one state copy. An 8,192 token request therefore needs 6 + 15 = 21 blocks. (Computed for fp8 KV and MTP 3; the block size and pool match a running pod's log.)"
     },
     "dwell": 4500
   },
@@ -710,7 +701,7 @@
       "d203-prefix-grid"
     ],
     "captions": {
-      "d203-prefix-grid": "Prefix cache hits land on whole 1,600 token blocks, so a 1,000 token shared prefix gets 0 hit tokens and a 1,700 token one gets 1,600. (Computed block size.)"
+      "d203-prefix-grid": "Prefix cache hits land on whole 1,600 token blocks, so a 1,000 token shared prefix gets 0 hit tokens and a 1,700 token one gets 1,600. (Block size as logged by a running pod.)"
     },
     "dwell": 4500
   },
@@ -827,7 +818,7 @@
       "d701-tier-ladder"
     ],
     "captions": {
-      "d701-tier-ladder": "Each prompt chunk is written through to CPU RAM and NVMe as it completes, so eviction drops only one copy and a hit loads from the nearest tier that has it, and the NVMe tier needs a cleanup sidecar because vLLM never deletes its files. Token counts use 32 KiB per token at fp8, the 1,600-token chunk is computed, and all three sizes are examples. (Computed token counts, example sizes.)"
+      "d701-tier-ladder": "Each prompt chunk is written through to CPU RAM and NVMe as it completes, so eviction drops only one copy and a hit loads from the nearest tier that has it, and the NVMe tier needs a cleanup sidecar because vLLM never deletes its files. The CPU and NVMe token counts use 32 KiB per token at fp8, the GPU pool is the measured 59.26 GiB counted in blocks because it also holds state, and the CPU and NVMe sizes are examples. (Measured GPU pool, example tier sizes.)"
     },
     "dwell": 4500
   },
@@ -836,7 +827,7 @@
       "d702-prefix-hit-tiers"
     ],
     "captions": {
-      "d702-prefix-hit-tiers": "The same shared prefix is loaded up from the nearest tier that still holds it, staged through CPU RAM when it sits on NVMe, and recomputed in full when no tier has it. The 12,800-token prefix is a toy length, the 1,600-token chunk is computed, and no timings are shown because AWS publishes only IOPS for the g7e local NVMe, not MB/s. (Illustrative.)"
+      "d702-prefix-hit-tiers": "The same shared prefix is loaded up from the nearest tier that still holds it, staged through CPU RAM when it sits on NVMe, and recomputed in full when no tier has it. The 12,800-token prefix is a toy length, the 1,600-token chunk is the block size a running pod logs, and no timings are shown because AWS publishes only IOPS for the g7e local NVMe, not MB/s. (Illustrative.)"
     },
     "dwell": 4500
   }

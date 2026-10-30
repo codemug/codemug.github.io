@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d201-memory-budget-t d201-memory-budget-d">
       <title id="d201-memory-budget-t">Where the memory of one 96 GB GPU goes under vLLM: card, utilization cut, weights, overhead, KV pool</title>
-      <desc id="d201-memory-budget-d">A vertical bar for one GPU of 95.59 GiB (assumed 97,887 MiB, nominal 96 GB). Step one: --gpu-memory-utilization 0.90 cuts it at 86.03 GiB, leaving 9.56 GiB outside vLLM. Step two: the NVFP4 weights take 20.42 GiB. Step three: activations, non-torch memory and CUDA graphs take an assumed 5.00 GiB. Step four: the rest, 60.62 GiB, is the KV cache pool, 1,168 blocks of 53.125 MiB. Computed, not measured.</desc>
+      <desc id="d201-memory-budget-d">A vertical bar for one GPU of 94.97 GiB, measured on a running pod. Step one: --gpu-memory-utilization 0.90 cuts it at 85.47 GiB, leaving 9.50 GiB outside vLLM. Step two: the weights take 22.13 GiB. Step three: the memory outside PyTorch and the peak activations take 4.08 GiB, 1.14 plus 2.94. Step four: the rest, 59.26 GiB, is the KV cache pool, 1,142 blocks of 53.125 MiB. Read from the startup log of a pod running vLLM v0.28.0.</desc>
       <defs>
         <pattern id="d201-memory-budget-hatch" width="12" height="12" patternUnits="userSpaceOnUse">
           <path class="hatch" d="M-3,3 l6,-6 M0,12 l12,-12 M9,15 l6,-6"/>
@@ -48,17 +48,17 @@
         return e;
       }
 
-      // ---- numbers: L2 NOTES-3.md section 2 (reproduced by examples/kv_budget.py)
+      // ---- numbers: measured on a running pod (vLLM v0.28.0), read from its startup log
       var GIB = Math.pow(2, 30);
-      var CARD = 97887 / 1024;                // 95.59 GiB, ASSUMED (nvidia-smi total, 96 GB nominal)
-      var UTIL = 0.90;                        // --gpu-memory-utilization (article value)
-      var WGT = 21921428072 / GIB;            // 20.42 GiB, nvidia/Qwen3.8-27B-NVFP4 index total_size
-      var OVH = 5.0;                          // ASSUMED: activations + non-torch + CUDA graphs ("typical")
-      var REQ = CARD * UTIL;                  // 86.03 GiB requested
-      var OUT = CARD - REQ;                   // 9.56 GiB stays outside
-      var KVP = REQ - WGT - OVH;              // 60.62 GiB KV pool
+      var CARD = 94.97;                       // GiB seen by torch ("Free memory on device (94.43/94.97 GiB)")
+      var UTIL = 0.90;                        // --gpu-memory-utilization
+      var WGT = 22.13;                        // "Model loading took 22.13 GiB"
+      var OVH = 1.14 + 2.94;                  // non-torch memory + peak activation = 4.08 GiB
+      var REQ = CARD * UTIL;                  // 85.47 GiB requested
+      var OUT = CARD - REQ;                   // 9.50 GiB stays outside
+      var KVP = REQ - WGT - OVH;              // 59.26 GiB KV pool ("Available KV cache memory: 59.26 GiB")
       var BLOCK_B = 17 * 3276800;             // 17 layers x 3,276,800 B = 53.125 MiB
-      var BLOCKS = Math.floor(KVP * GIB / BLOCK_B); // 1,168
+      var BLOCKS = Math.floor(KVP * GIB / BLOCK_B); // 1,142
       function f2(v) { return v.toFixed(2); }
 
       var g = document.getElementById(ID + '-g');
@@ -67,7 +67,7 @@
 
       // ---- header (always visible)
       el('text', { 'class': 'hd', x: BX, y: 38 }, g, 'GPU card: ' + f2(CARD) + ' GiB');
-      el('text', { 'class': 'hn', x: 410, y: 38 }, g, 'assumed 97,887 MiB, nominal 96 GB');
+      el('text', { 'class': 'hn', x: 410, y: 38 }, g, 'as seen by torch, nominal 96 GB');
 
       // ---- the bar
       el('rect', { 'class': 'card', x: BX, y: TOP, width: BW, height: BOT - TOP, rx: 8 }, g);
@@ -107,18 +107,18 @@
         ['l3', 'log: "Available KV cache memory"']
       ]);
       var cOH = callout(yOC, 372, [
-        ['l1', 'overhead  ' + f2(OVH) + ' GiB (assumed)'],
-        ['l2', 'activations, non-torch, CUDA graphs']
+        ['l1', 'overhead  ' + f2(OVH) + ' GiB'],
+        ['l2', 'non-torch 1.14 + peak activation 2.94']
       ]);
       var cW = callout(yWC, 452, [
         ['l1', 'weights  ' + f2(WGT) + ' GiB'],
-        ['l2', '21,921,428,072 B, 3 shards']
+        ['l2', 'log: "Model loading took 22.13 GiB"']
       ]);
 
       // ---- step 0 callout (fades when the cut arrives)
       var c0 = el('g', {}, g);
       el('text', { 'class': 'big', x: CX, y: 270 }, c0, 'one GPU, one budget');
-      el('text', { 'class': 'l2', x: CX, y: 312 }, c0, 'every number here is a share of ' + f2(CARD) + ' GiB');
+      el('text', { 'class': 'l2', x: CX, y: 312 }, c0, 'every number here is read from a pod\'s startup log');
 
       // ---- state: s[0..3] = cut, weights, overhead, KV
       var s = [0, 0, 0, 0], cancel = null;

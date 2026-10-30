@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d701-tier-ladder-t d701-tier-ladder-d">
       <title id="d701-tier-ladder-t">Three tiers of KV cache on a g7e.2xlarge: GPU memory, CPU RAM and local NVMe, written through as each prompt chunk completes</title>
-      <desc id="d701-tier-ladder-d">Three stacked cards. GPU memory: an example KV pool of 59 GiB (a toy value), 1,933,312 tokens. CPU RAM: an example 16 GiB tier of the node's 64 GiB, 524,288 tokens. Local NVMe: an 800 GiB budget of the 1.9 TB nominal instance store, 26,214,400 tokens. All counts use 32 KiB per token (fp8, 32,768 bytes). Each prompt is cut into chunks of 1,600 tokens. Step one: each chunk is written down to CPU RAM and then NVMe as it completes. Step two: eviction drops only one copy, the GPU and CPU copies go while the NVMe copy stays, and NVMe never evicts. Step three: a later prefix hit loads the chunks back up from the nearest tier that has them. Step four: a cleanup sidecar trims the oldest NVMe files above the 800 GiB budget, because vLLM never deletes them.</desc>
+      <desc id="d701-tier-ladder-d">Three stacked cards. GPU memory: a KV pool of 59.26 GiB, measured on a running pod, 1,142 blocks. CPU RAM: an example 16 GiB tier of the node's 64 GiB, 524,288 tokens. Local NVMe: an 800 GiB budget of the 1.9 TB nominal instance store, 26,214,400 tokens. The CPU and NVMe counts use 32 KiB per token (fp8, 32,768 bytes); the GPU pool is counted in blocks because it also holds state. Each prompt is cut into chunks of 1,600 tokens. Step one: each chunk is written down to CPU RAM and then NVMe as it completes. Step two: eviction drops only one copy, the GPU and CPU copies go while the NVMe copy stays, and NVMe never evicts. Step three: a later prefix hit loads the chunks back up from the nearest tier that has them. Step four: a cleanup sidecar trims the oldest NVMe files above the 800 GiB budget, because vLLM never deletes them.</desc>
       <g id="d701-tier-ladder-g"></g>
     </svg>
   </div>
@@ -45,12 +45,12 @@
       // ---- numbers: L6 NOTES-2 F10 and examples/sizing.out
       var BPT = 2 * 4 * 256 * 16 * 1;            // K and V x 4 KV heads x 256 dim x 16 full-attention layers x 1 byte (fp8) = 32,768 B = 32 KiB
       var GIB = 1073741824;
-      function tokens(gib) { return gib * GIB / BPT; }   // 16 -> 524,288 ; 800 -> 26,214,400 ; 59 (toy) -> 1,933,312
+      function tokens(gib) { return gib * GIB / BPT; }   // 16 -> 524,288 ; 800 -> 26,214,400 (the GPU pool shows its measured block count instead)
       var N = 8, X0 = 420, CW = 30, GAP = 6, CH = 28, SLIDE = 26;
 
       var g = document.getElementById(ID + '-g');
       var TIERS = [
-        { y: 16,  h: 100, cy: 62,  name: 'GPU memory',               sub: 'KV pool 59 GiB (toy)',        gib: 59 },
+        { y: 16,  h: 100, cy: 62,  name: 'GPU memory',               sub: 'KV pool 59.26 GiB',          gib: 59.26, tk: '1,142 blocks' },
         { y: 172, h: 100, cy: 208, name: 'CPU RAM',                  sub: '16 GiB (node RAM: 64 GiB)',   gib: 16 },
         { y: 328, h: 160, cy: 372, name: 'local NVMe, g7e.2xlarge',  sub: '800 GiB of 1.9 TB nominal',   gib: 800 }
       ];
@@ -60,7 +60,7 @@
         el('rect', { 'class': 'card', x: 20, y: t.y, width: 1080, height: t.h, rx: 14 }, g);
         el('text', { 'class': 'nm', x: 44, y: t.y + 34 }, g, t.name);
         el('text', { 'class': 'sb', x: 44, y: t.y + 62 }, g, t.sub);
-        el('text', { 'class': 'tk', x: 44, y: t.y + 90 }, g, fmt(tokens(t.gib)) + ' tokens');
+        el('text', { 'class': 'tk', x: 44, y: t.y + 90 }, g, t.tk || (fmt(tokens(t.gib)) + ' tokens'));
         for (var i = 0; i < N; i++) {
           var x = X0 + i * (CW + GAP);
           ghosts[ti].push(el('rect', { 'class': 'gh', x: x, y: t.cy, width: CW, height: CH, rx: 5 }, g));

@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d202-kv-block-t d202-kv-block-d">
       <title id="d202-kv-block-t">How vLLM turns the 64 layers of Qwen3.8-27B into one attention group and three state groups that share one block size</title>
-      <desc id="d202-kv-block-d">Step zero: 64 layers, 16 times (3 linear-attention layers plus 1 full-attention layer), plus 1 MTP layer. Step one: regrouped into 4 groups of 17 layers: one attention group (16 plus the MTP layer) and three state groups (17, 17 and 14 linear layers plus 3 padding layers). Step two: one block is 17 layers times 3,276,800 B, which is 53.125 MiB; in the attention group it holds 1,600 tokens at 2,048 B per layer, in a state group it holds one state copy of 3,268,608 B per layer. Step three: a request of 8,192 tokens needs ceil(8192 / 1600) = 6 attention blocks and 3 times (2 + 3) = 15 state blocks, 21 blocks in total, so 1,168 blocks serve 55.6 such requests. Computed with fp8 KV, MTP 3, prefix caching on.</desc>
+      <desc id="d202-kv-block-d">Step zero: 64 layers, 16 times (3 linear-attention layers plus 1 full-attention layer), plus 1 MTP layer. Step one: regrouped into 4 groups of 17 layers: one attention group (16 plus the MTP layer) and three state groups (17, 17 and 14 linear layers plus 3 padding layers). Step two: one block is 17 layers times 3,276,800 B, which is 53.125 MiB; in the attention group it holds 1,600 tokens at 2,048 B per layer, in a state group it holds one state copy of 3,268,608 B per layer. Step three: a request of 8,192 tokens needs ceil(8192 / 1600) = 6 attention blocks and 3 times (2 + 3) = 15 state blocks, 21 blocks in total, so 1,142 blocks serve 54.4 such requests. Computed for fp8 KV, MTP 3 and prefix caching on; the 1,600 token block and the 1,142 block pool match the startup log of a running pod.</desc>
       <g id="d202-kv-block-g"></g>
     </svg>
   </div>
@@ -56,7 +56,7 @@
       var CTX = 8192, ATT_BLOCKS = Math.ceil(CTX / BLOCK_TOK); // 6
       var ST_BLOCKS = 2 + 3, ST_GROUPS = Math.ceil(LINEAR / GROUP); // (2 + 3) per group, 3 groups
       var PER_REQ = ATT_BLOCKS + ST_GROUPS * ST_BLOCKS;    // 21
-      var POOL_BLOCKS = 1168;                              // d201, kv_budget.py typical overhead
+      var POOL_BLOCKS = 1142;                              // d201: 59.26 GiB / 53.125 MiB, measured pool
       function n(v) { return v.toLocaleString('en-US'); }
 
       var g = document.getElementById(ID + '-g');

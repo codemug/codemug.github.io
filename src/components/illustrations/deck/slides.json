@@ -790,13 +790,6 @@
     "statement": "Thirteen regions offer g7e, and the quota counts vCPUs.",
     "notes": "SAY: On the EC2 instance types by Region page, g7e is listed in 13 of the 39 Regions. The lit dots are those 13: us-east-1, us-east-2, us-west-2, ap-south-1, ap-southeast-3, ap-southeast-5, ap-southeast-7, ap-northeast-1, ap-northeast-2, eu-central-1, eu-west-2, eu-south-2 and eu-north-1. Three well-known Regions do not offer g7e: us-west-1 (N. California), ap-southeast-1 (Singapore) and eu-west-1 (Ireland). Then the quota that gates the pool: Running On-Demand G and VT instances is measured in vCPU, defaults to 0, and is adjustable. A g7e.2xlarge uses 8 vCPU, so a quota of 80 vCPU allows exactly 10 of them, 80 divided by 8. And 192 vCPU is exactly one g7e.48xlarge."
   },
-  "d101-karpenter-loop": {
-    "steps": 5,
-    "tool": "none",
-    "kicker": "karpenter",
-    "statement": "A pending pod becomes a node in five moves.",
-    "notes": "SAY: A vllm pod is Pending because it asks for a GPU and no existing node has one free. Karpenter does not wait for a human: it finds the pending pod, simulates a tight bin-pack to pick a node shape, creates the NodeClaim for it, and calls EC2 RunInstances with the EC2NodeClass resolved. Once the Bottlerocket node is Ready and advertising the GPU, kube-scheduler does the binding. Remember the division of labour: Karpenter launches the node, but the scheduler still binds the pod."
-  },
   "d102-bottlerocket-anatomy": {
     "steps": 7,
     "tool": "none",
@@ -809,21 +802,21 @@
     "tool": "none",
     "kicker": "gpu memory",
     "statement": "Most of the card becomes KV cache.",
-    "notes": "SAY: Start with one 96 GB card, about 95.59 GiB as the driver reports it (an assumption, read your own nvidia-smi). The utilization flag cuts it: 0.90 means vLLM may use 86.03 GiB and 9.56 GiB stays outside. Inside that budget the NVFP4 weights take 20.42 GiB, and vLLM measures another few GiB for activations, non-torch memory and CUDA graphs: 5 GiB is my assumed value, the real one is the gap you see in the startup log. Whatever is left, 60.62 GiB here, is the KV cache pool, 1,168 blocks of 53.125 MiB. Read the real number from the line Available KV cache memory. Every figure on this slide is computed, none was measured on a GPU."
+    "notes": "SAY: Start with one 96 GB card, which torch sees as 94.97 GiB. The utilization flag cuts it: 0.90 means vLLM may use 85.47 GiB and 9.50 GiB stays outside. Inside that budget the weights take 22.13 GiB, 1.14 GiB sits outside PyTorch's allocator and the profiling run finds a peak of 2.94 GiB of activations. Whatever is left, 59.26 GiB, is the KV cache pool: 1,142 blocks of 53.125 MiB. Every number on this slide is read from the startup log of a pod running vLLM v0.28.0, and the pool is the line Available KV cache memory. The CUDA graphs take another 0.89 GiB after that, which this version does not subtract from the pool. The post's own checkpoint has different weights, so read your own pool from the same line."
   },
   "d202-kv-block": {
     "steps": 3,
     "tool": "none",
     "kicker": "kv cache",
     "statement": "One KV block, two meanings.",
-    "notes": "SAY: Qwen3.8-27B has 64 layers: sixteen groups of three linear-attention layers and one full-attention layer, plus one MTP layer when speculative decoding is on. vLLM regroups them into groups of 17 layers: one attention group and three state groups, the last with three padding layers. All groups share one block size so one pool can serve both. In the attention group a block holds 1,600 tokens of K and V; in a state group the same block holds a single copy of the recurrent state, whatever the context length. That is why the block size is 1,600 tokens: it is the smallest aligned size whose attention page is at least one state page. A request of 8,192 tokens needs 6 attention blocks and 15 state blocks, so the state costs more than the attention at that length. Computed for fp8 KV, MTP 3 and prefix caching on; read the startup line Setting attention block size to N tokens."
+    "notes": "SAY: Qwen3.8-27B has 64 layers: sixteen groups of three linear-attention layers and one full-attention layer, plus one MTP layer when speculative decoding is on. vLLM regroups them into groups of 17 layers: one attention group and three state groups, the last with three padding layers. All groups share one block size so one pool can serve both. In the attention group a block holds 1,600 tokens of K and V; in a state group the same block holds a single copy of the recurrent state, whatever the context length. That is why the block size is 1,600 tokens: it is the smallest aligned size whose attention page is at least one state page. A request of 8,192 tokens needs 6 attention blocks and 15 state blocks, so the state costs more than the attention at that length. The 1,600 tokens, the 15 state blocks and the 1,142 block pool all match the startup log of a running pod, whose Maximum concurrency of 6.38x at 262,144 tokens is exactly 1,142 / 179."
   },
   "d203-prefix-grid": {
     "steps": 3,
     "tool": "none",
     "kicker": "prefix cache",
     "statement": "Prefix hits land on block boundaries.",
-    "notes": "SAY: Prefix caching works on whole blocks, and for this model a block is 1,600 tokens. Take a 3,000 token prompt. If only the first 1,000 tokens are shared, block 0 never fills, so the cache can reuse nothing: 0 hit tokens, and the 1,000 tokens are recomputed. If 1,700 tokens are shared, block 0 is whole and 1,600 tokens hit; the other 100 are recomputed. So hit tokens equal floor of shared over 1,600, times 1,600. In practice a short system prompt, under 1,600 tokens, never hits. Check the prefix cache hit and query counters and the startup block size line. The block size is computed, not measured."
+    "notes": "SAY: Prefix caching works on whole blocks, and for this model a block is 1,600 tokens. Take a 3,000 token prompt. If only the first 1,000 tokens are shared, block 0 never fills, so the cache can reuse nothing: 0 hit tokens, and the 1,000 tokens are recomputed. If 1,700 tokens are shared, block 0 is whole and 1,600 tokens hit; the other 100 are recomputed. So hit tokens equal floor of shared over 1,600, times 1,600. In practice a short system prompt, under 1,600 tokens, never hits. Check the prefix cache hit and query counters and the startup block size line. The 1,600 token block size is the value a running pod logs."
   },
   "d204-streamer-pipeline": {
     "steps": 3,
@@ -914,7 +907,7 @@
     "tool": "none",
     "kicker": "kv cache offloading",
     "statement": "Copies go down at prefill, not at eviction.",
-    "notes": "SAY: Three tiers on one g7e.2xlarge: the GPU pool, a CPU RAM tier, and the local NVMe. At 32 KiB per token at fp8, a 16 GiB CPU tier holds 524,288 tokens and an 800 GiB NVMe budget holds 26,214,400. The GPU pool size is a toy value, read yours from the startup log. The key point is the direction of the copies. vLLM writes each chunk down to every tier as the prompt chunk completes, not when the GPU evicts it. So eviction only drops one copy: the CPU tier evicts least recently used, and the NVMe tier never evicts at all. On a later prefix hit the chunks are loaded back up from the nearest tier that has them, and an NVMe hit is staged through CPU RAM. Because vLLM never deletes the cached files, the NVMe tier needs a cleanup sidecar that trims the oldest files above the budget. The chunk size of 1,600 tokens is computed for this model, so read the startup line instead of trusting it."
+    "notes": "SAY: Three tiers on one g7e.2xlarge: the GPU pool, a CPU RAM tier, and the local NVMe. At 32 KiB per token at fp8, a 16 GiB CPU tier holds 524,288 tokens and an 800 GiB NVMe budget holds 26,214,400. The GPU pool is the measured 59.26 GiB, 1,142 blocks, counted in blocks because it also holds state. The key point is the direction of the copies. vLLM writes each chunk down to every tier as the prompt chunk completes, not when the GPU evicts it. So eviction only drops one copy: the CPU tier evicts least recently used, and the NVMe tier never evicts at all. On a later prefix hit the chunks are loaded back up from the nearest tier that has them, and an NVMe hit is staged through CPU RAM. Because vLLM never deletes the cached files, the NVMe tier needs a cleanup sidecar that trims the oldest files above the budget. The chunk size of 1,600 tokens is what a running pod logs for this model."
   },
   "d702-prefix-hit-tiers": {
     "steps": 4,

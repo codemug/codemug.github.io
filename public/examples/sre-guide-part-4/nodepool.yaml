@@ -29,11 +29,12 @@ spec:
         - key: nvidia.com/gpu
           value: "true"
           effect: NoSchedule
-      # a maximum lifetime, not a schedule: drift and consolidation can remove a node earlier
+      # a maximum lifetime, not a schedule: drift or emptiness can remove a node earlier
       expireAfter: 720h
   limits:
     nodes: 10
   disruption:
-    consolidationPolicy: WhenEmptyOrUnderutilized
-    # give a freshly started vLLM pod time to finish loading weights before the node is a candidate
+    # never repack a running model server to save money: only a node with no pods left is a candidate
+    consolidationPolicy: WhenEmpty
+    # and only after it has stayed empty for 30 minutes
     consolidateAfter: 30m
