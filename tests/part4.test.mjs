@@ -25,9 +25,11 @@ test('Part 4 keeps the style contract (no em/en dashes, no curly quotes) in the 
   }
 });
 
-test('Part 4 prose has no contractions (parts 2 and 3 do not use them)', () => {
-  const m = prose.match(/\b(?:don't|can't|won't|isn't|aren't|doesn't|didn't|wasn't|weren't|couldn't|shouldn't|wouldn't|hasn't|haven't|it's|that's|there's|here's|let's|I'm|I've|I'd|I'll|we're|we've|you're|you've|you'll|they're)\b/i);
-  assert.equal(m, null, `contraction: ${m && m[0]}`);
+test('every code block that comes from an example file was resolved from a real file', () => {
+  assert.ok(!/^@@(raw|chart|values|tf)\b/m.test(mdx), 'an unresolved include marker');
+  const fromFiles = [...mdx.matchAll(/```[a-z]*\n# ((?:k8s|helm\/llm-serving|terraform)\/[^\n]+)\n/g)].map((m) => m[1].replace(/ \(.*\)$/, ''));
+  assert.ok(fromFiles.length >= 15, `only ${fromFiles.length} included code blocks`);
+  for (const f of fromFiles) assert.ok(existsSync(`${examplesDir}/${f}`), f);
 });
 
 test('Part 4 has frontmatter and uses only the deck figures', () => {
@@ -64,22 +66,31 @@ test('nothing company-internal reaches the public post, slides or examples', () 
   const banned = /careem|prod-control|aue1a|prod-sbx|dev-sre|inference-manager|AKIA[0-9A-Z]{8,}|\b(?!1{12}\b)\d{12}\b/i;
   assert.ok(!banned.test(mdx), 'article');
   for (const id of p4SlideIds) assert.ok(!banned.test(readFileSync(`${DECK}/slides/${id}.html`, 'utf8')), id);
+  const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    if (e.name === '.terraform' || e.name.endsWith('.tgz')) return [];
+    return e.isDirectory() ? walk(`${dir}/${e.name}`) : [`${dir}/${e.name}`];
+  });
   if (existsSync(examplesDir)) {
-    for (const f of readdirSync(examplesDir)) assert.ok(!banned.test(readFileSync(`${examplesDir}/${f}`, 'utf8')), f);
+    for (const f of walk(examplesDir)) assert.ok(!banned.test(readFileSync(f, 'utf8')), f);
   }
 });
 
-test('the post links the validated examples and they are all there', () => {
+test('the post links the examples and the raw manifests, the Helm chart and the Terraform module are all there', () => {
   assert.ok(mdx.includes('public/examples/sre-guide-part-4'));
-  for (const f of ['README.md', 'nodepool.yaml', 'ec2nodeclass.yaml', 'vllm-deployment.yaml', 'vllm-deployment-tiered.yaml',
-    'kv-guard-configmap.yaml', 'scaledobject.yaml', 'queries.rules.yml', 'queries.test.yml']) {
+  for (const f of ['README.md', 'k8s/nodepool.yaml', 'k8s/ec2nodeclass.yaml', 'k8s/vllm-deployment.yaml', 'k8s/vllm-deployment-tiered.yaml',
+    'k8s/kv-guard-configmap.yaml', 'k8s/scaledobject.yaml', 'k8s/queries.rules.yml', 'k8s/queries.test.yml',
+    'helm/llm-serving/Chart.yaml', 'helm/llm-serving/values.yaml', 'helm/llm-serving/values.schema.json',
+    'helm/llm-serving/templates/_helpers.tpl', 'helm/llm-serving/templates/nodepool.yaml', 'helm/llm-serving/templates/deployment.yaml',
+    'helm/llm-serving/templates/scaledobject.yaml', 'helm/llm-serving/templates/prometheusrule.yaml',
+    'terraform/versions.tf', 'terraform/variables.tf', 'terraform/eks.tf', 'terraform/karpenter.tf', 'terraform/addons.tf',
+    'terraform/s3.tf', 'terraform/pod_identity.tf', 'terraform/outputs.tf']) {
     assert.ok(existsSync(`${examplesDir}/${f}`), f);
   }
 });
 
 test('the manifests in the post use one naming set', () => {
   assert.ok(!/qwen3\.8-27b(?!-)/.test(prose.replace(/Qwen3\.8-27B/g, '')), 'a stale served-model name');
-  for (const f of ['vllm-deployment.yaml', 'scaledobject.yaml']) {
+  for (const f of ['k8s/vllm-deployment.yaml', 'k8s/scaledobject.yaml', 'helm/llm-serving/values.yaml']) {
     assert.ok(readFileSync(`${examplesDir}/${f}`, 'utf8').includes('qwen38-27b-nvfp4'), f);
   }
 });

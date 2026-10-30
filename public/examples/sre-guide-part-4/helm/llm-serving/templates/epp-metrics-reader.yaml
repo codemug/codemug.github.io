@@ -1,0 +1,48 @@
+{{- if .Values.observability.enabled }}
+# A ServiceAccount allowed to read the EPP /metrics endpoint. The EPP (llm-d Router v1.0.0, default
+# --metrics-endpoint-auth=true) validates the bearer token with a TokenReview and then a SubjectAccessReview for
+# "get" on the non-resource URL /metrics, so the ServiceAccount needs that one rule.
+# The Secret below carries NO token in this file: Kubernetes fills the token in when it sees the annotation + type.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metrics-reader
+  namespace: {{ .Values.observability.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metrics-reader
+rules:
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: metrics-reader
+subjects:
+  - kind: ServiceAccount
+    name: metrics-reader
+    namespace: {{ .Values.observability.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: metrics-reader
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: metrics-reader-token
+  namespace: {{ .Values.observability.namespace }}
+  annotations:
+    kubernetes.io/service-account.name: metrics-reader
+type: kubernetes.io/service-account-token
+{{- end }}
+{{- if .Values.createNamespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.observability.namespace }}
+{{- end }}

@@ -4,10 +4,8 @@ kind: ServiceAccount
 metadata:
   name: qwen38-27b-nvfp4
   namespace: llm
-  annotations:
-    # IRSA: role must trust the cluster OIDC provider for system:serviceaccount:llm:qwen38-27b-nvfp4
-    # and allow s3:GetObject on the model prefix and s3:ListBucket on the bucket (with prefix condition).
-    eks.amazonaws.com/role-arn: arn:aws:iam::111111111111:role/example-llm-role
+  # Nothing to annotate: the IAM role comes from an EKS Pod Identity association (terraform/pod_identity.tf).
+  # With IRSA instead, add the annotation eks.amazonaws.com/role-arn: <role arn> here.
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -48,8 +46,6 @@ spec:
         - name: vllm
           image: vllm/vllm-openai:v0.32.0               # ENTRYPOINT is ["vllm","serve"], so args start with the model
           imagePullPolicy: IfNotPresent
-          # the tiering spec can leave /dev/shm/vllm_offload_*.mmap behind after a non-graceful exit (vllm#57303)
-          command: ["/bin/sh", "-c", 'rm -f /dev/shm/vllm_offload_*.mmap; exec vllm serve "$@"', "vllm-serve"]
           args:
             # model = S3 prefix (trailing slash). Needs config.json, tokenizer files and *.safetensors in that prefix.
             - s3://example-models-bucket/models/nvidia/Qwen3.8-27B-NVFP4/
@@ -72,8 +68,6 @@ spec:
             - --async-scheduling
             # speculative decoding with the checkpoint's own MTP head
             - '--speculative-config={"method":"mtp","num_speculative_tokens":3}'
-            # KV tiers: 16 GiB of CPU RAM, then the local NVMe
-            - '--kv-transfer-config={"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":17179869184,"secondary_tiers":[{"type":"fs","root_dir":"/kv-nvme/kv-offload","n_read_threads":16,"n_write_threads":16}]}}'
             # OpenAI API behaviour for a thinking + tool-calling model
             - --reasoning-parser=qwen3
             - --tool-call-parser=qwen3_coder
@@ -94,20 +88,16 @@ spec:
           resources:
             requests:
               cpu: "6"
-              memory: 52Gi
-              ephemeral-storage: 1050Gi   # fails closed: a node without instance store cannot satisfy it
+              memory: 40Gi
               nvidia.com/gpu: "1"
             limits:
               # The streamer buffers up to RUNAI_STREAMER_MEMORY_LIMIT (default 40 GB) of the checkpoint in host RAM
               # while loading: size the memory limit for checkpoint (about 21 GiB) + steady state (about 10 GiB) + headroom.
-              memory: 52Gi
-              ephemeral-storage: 1100Gi
+              memory: 48Gi
               nvidia.com/gpu: "1"
           volumeMounts:
             - name: dshm
               mountPath: /dev/shm
-            - name: kv-nvme
-              mountPath: /kv-nvme
             - name: cache
               mountPath: /root/.cache                   # torch.compile, Triton, FlashInfer caches and the streamer's config-only dir
           startupProbe:                                 # 120 x 10 s = 20 min budget for stream + compile + CUDA graph capture
@@ -128,34 +118,11 @@ spec:
               port: http
             periodSeconds: 30
             failureThreshold: 3
-        - name: kv-guard                 # keeps the NVMe tier under a byte budget, oldest files first
-          image: busybox:1.37
-          command: ["/bin/sh", "/guard/guard.sh"]
-          env:
-            - name: ROOT
-              value: /kv-nvme/kv-offload
-            - name: BUDGET_GIB
-              value: "800"
-          resources:
-            requests: { cpu: 50m, memory: 32Mi, ephemeral-storage: 64Mi }
-            limits: { cpu: 200m, memory: 64Mi, ephemeral-storage: 64Mi }
-          volumeMounts:
-            - name: kv-nvme
-              mountPath: /kv-nvme
-            - name: guard
-              mountPath: /guard
-              readOnly: true
       volumes:
         - name: dshm
           emptyDir:
             medium: Memory
-            sizeLimit: 20Gi             # the 16 GiB CPU tier plus slack
+            sizeLimit: 8Gi
         - name: cache
           emptyDir:
             sizeLimit: 20Gi
-        - name: kv-nvme
-          emptyDir:
-            sizeLimit: 1000Gi           # lands on the NVMe because the EC2NodeClass sets instanceStorePolicy: RAID0
-        - name: guard
-          configMap:
-            name: kv-guard

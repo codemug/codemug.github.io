@@ -1,0 +1,6 @@
+{{- /*
+Rendered by `helm install`/`helm template --show-notes`. Keep it to a few lines.
+*/}}
+Installed in {{ .Release.Namespace }}: Karpenter pool {{ .Values.karpenter.poolName }}, vLLM Deployment + ServiceAccount {{ include "llm-serving.modelName" . }} (weights: {{ .Values.model.s3Uri }}){{ if .Values.tiering.enabled }}, KV tiering ({{ .Values.tiering.cpuGiB }} GiB CPU + {{ .Values.tiering.nvmeGiB }} GiB NVMe){{ end }}, AI gateway in {{ .Values.routing.gateway.namespace }}, KEDA autoscaling, Prometheus recording rules.
+Pool size: read the vLLM startup log - "GPU KV cache size: <N> tokens" is the cached-token pool (with tiering, the CPU tier shows up as "Created TieringOffloadingManager with primary tier (lru, <M> chunks)").
+Startup check: kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "llm-serving.modelName" . }} | grep -E "GPU KV cache size|Maximum concurrency"

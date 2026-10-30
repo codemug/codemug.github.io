@@ -1,0 +1,16 @@
+{{- /*
+Prometheus recording rules: the groups are copied verbatim from files/queries.rules.yml
+(validated with promtool check rules + promtool test rules), so the expressions never pass
+through Go-template brace escaping. The rule file is not a Kubernetes object, so the chart
+wraps the same groups in a real PrometheusRule.
+*/}}
+{{- if .Values.observability.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "llm-serving.modelName" . }}-rules
+  namespace: {{ .Release.Namespace }}
+spec:
+  groups:
+{{ toYaml ((.Files.Get "files/queries.rules.yml" | fromYaml).groups) | indent 2 }}
+{{- end }}

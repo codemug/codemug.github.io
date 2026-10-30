@@ -1,0 +1,178 @@
+{{- /*
+vLLM Deployment: one pod per g7e GPU node, weights streamed from S3.
+With tiering.enabled it gains the kv-transfer-config arg, the CPU/NVMe memory sizes,
+the kv-guard sidecar and the kv-nvme + guard volumes (matching vllm-deployment-tiered.yaml).
+*/}}
+# {{ include "llm-serving.modelName" . }} on one RTX PRO 6000 (g7e.2xlarge), vLLM v0.32.0, weights streamed from S3.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "llm-serving.modelName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "llm-serving.modelName" . }}
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # One pod owns one whole GPU node, so never surge: a surge pod would need a second GPU node.
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: {{ include "llm-serving.modelName" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "llm-serving.modelName" . }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: {{ include "llm-serving.modelName" . }}
+      nodeSelector:
+        karpenter.sh/nodepool: {{ .Values.karpenter.poolName }}                      # label Karpenter puts on every node of the pool
+      tolerations:
+        - key: nvidia.com/gpu                           # the taint set on the g7e NodePool
+          operator: Exists
+          effect: NoSchedule
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: vllm
+          image: {{ .Values.vllm.image }}               # ENTRYPOINT is ["vllm","serve"], so args start with the model
+          imagePullPolicy: IfNotPresent
+{{- if .Values.tiering.enabled }}
+          # the tiering spec can leave /dev/shm/vllm_offload_*.mmap behind after a non-graceful exit (vllm#57303)
+          command: ["/bin/sh", "-c", 'rm -f /dev/shm/vllm_offload_*.mmap; exec vllm serve "$@"', "vllm-serve"]
+{{- end }}
+          args:
+            # model = S3 prefix (trailing slash). Needs config.json, tokenizer files and *.safetensors in that prefix.
+            - {{ .Values.model.s3Uri }}
+            - --served-model-name={{ include "llm-serving.modelName" . }}
+            - --host=0.0.0.0
+            - --port=8000
+            # weights: Run:ai Model Streamer (preinstalled in the official image)
+            - --load-format=runai_streamer
+            - '--model-loader-extra-config={"concurrency":{{ .Values.vllm.concurrency }}}'
+            # parallelism, context, memory
+            - --tensor-parallel-size={{ .Values.vllm.tensorParallelSize }}
+            - --max-model-len={{ .Values.vllm.maxModelLen }}
+            - --kv-cache-dtype={{ .Values.vllm.kvCacheDtype }}
+            - --gpu-memory-utilization={{ .Values.vllm.gpuMemoryUtilization }}
+            # scheduler
+            - --max-num-seqs={{ .Values.vllm.maxNumSeqs }}
+            - --max-num-batched-tokens={{ .Values.vllm.maxNumBatchedTokens }}
+            - --enable-prefix-caching
+            - --enable-chunked-prefill
+            - --async-scheduling
+            # speculative decoding with the checkpoint's own MTP head
+            - '--speculative-config={"method":"mtp","num_speculative_tokens":{{ .Values.vllm.speculativeTokens }}}'
+{{- if .Values.tiering.enabled }}
+            # KV tiers: {{ .Values.tiering.cpuGiB }} GiB of CPU RAM, then the local NVMe
+            - '--kv-transfer-config={"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":{{ mul .Values.tiering.cpuGiB 1073741824 }},"secondary_tiers":[{"type":"fs","root_dir":"/kv-nvme/kv-offload","n_read_threads":16,"n_write_threads":16}]}}'
+{{- end }}
+            # OpenAI API behaviour for a thinking + tool-calling model
+            - --reasoning-parser=qwen3
+            - --tool-call-parser=qwen3_coder
+            - --enable-auto-tool-choice
+            - --disable-access-log-for-endpoints=/health,/metrics,/v1/models
+          env:
+            - name: AWS_REGION                         # region of the models bucket
+              value: {{ .Values.model.awsRegion }}
+            - name: HF_HUB_OFFLINE                     # weights and tokenizer come from S3, never the Hub
+              value: "1"
+            - name: VLLM_NO_USAGE_STATS
+              value: "1"
+            - name: DO_NOT_TRACK
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 8000
+          resources:
+            requests:
+              cpu: "6"
+{{- if .Values.tiering.enabled }}
+              memory: 52Gi
+              ephemeral-storage: 1050Gi   # fails closed: a node without instance store cannot satisfy it
+{{- else }}
+              memory: 40Gi
+{{- end }}
+              nvidia.com/gpu: "1"
+            limits:
+              # The streamer buffers up to RUNAI_STREAMER_MEMORY_LIMIT (default 40 GB) of the checkpoint in host RAM
+              # while loading: size the memory limit for checkpoint (about 21 GiB) + steady state (about 10 GiB) + headroom.
+{{- if .Values.tiering.enabled }}
+              memory: 52Gi
+              ephemeral-storage: 1100Gi
+{{- else }}
+              memory: 48Gi
+{{- end }}
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+{{- if .Values.tiering.enabled }}
+            - name: kv-nvme
+              mountPath: /kv-nvme
+{{- end }}
+            - name: cache
+              mountPath: /root/.cache                   # torch.compile, Triton, FlashInfer caches and the streamer's config-only dir
+          startupProbe:                                 # 120 x 10 s = 20 min budget for stream + compile + CUDA graph capture
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:                                # /health returns 503 once the engine process is dead
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+{{- if .Values.tiering.enabled }}
+        - name: kv-guard                 # keeps the NVMe tier under a byte budget, oldest files first
+          image: busybox:1.37
+          command: ["/bin/sh", "/guard/guard.sh"]
+          env:
+            - name: ROOT
+              value: /kv-nvme/kv-offload
+            - name: BUDGET_GIB
+              value: "{{ .Values.tiering.guardBudgetGiB }}"
+          resources:
+            requests: { cpu: 50m, memory: 32Mi, ephemeral-storage: 64Mi }
+            limits: { cpu: 200m, memory: 64Mi, ephemeral-storage: 64Mi }
+          volumeMounts:
+            - name: kv-nvme
+              mountPath: /kv-nvme
+            - name: guard
+              mountPath: /guard
+              readOnly: true
+{{- end }}
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+{{- if .Values.tiering.enabled }}
+            sizeLimit: 20Gi             # the CPU tier plus slack
+{{- else }}
+            sizeLimit: 8Gi
+{{- end }}
+        - name: cache
+          emptyDir:
+            sizeLimit: 20Gi
+{{- if .Values.tiering.enabled }}
+        - name: kv-nvme
+          emptyDir:
+            sizeLimit: {{ .Values.tiering.nvmeGiB }}Gi           # lands on the NVMe because the EC2NodeClass sets instanceStorePolicy: RAID0
+        - name: guard
+          configMap:
+            name: kv-guard
+{{- end }}

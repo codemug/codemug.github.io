@@ -1,0 +1,33 @@
+{{- if .Values.routing.enabled }}
+apiVersion: aigateway.envoyproxy.io/v1beta1
+kind: AIGatewayRoute
+metadata:
+  name: {{ include "llm-serving.modelName" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: llm-gateway
+      namespace: {{ .Values.routing.gateway.namespace }}
+  llmRequestCosts:           # also makes the gateway force stream_options.include_usage on streamed requests
+    - metadataKey: llm_input_token
+      type: InputToken
+    - metadataKey: llm_output_token
+      type: OutputToken
+    - metadataKey: llm_total_token
+      type: TotalToken
+  rules:
+    - name: {{ include "llm-serving.modelName" . }}
+      matches:
+        - headers:
+            - type: Exact
+              name: x-ai-eg-model
+              value: {{ include "llm-serving.modelName" . }}   # must equal vLLM --served-model-name
+      timeouts:
+        request: 300s   # default is 60s; a long streamed answer needs more
+      backendRefs:
+        - group: inference.networking.k8s.io
+          kind: InferencePool
+          name: {{ include "llm-serving.modelName" . }}
+{{- end }}

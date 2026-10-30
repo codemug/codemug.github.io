@@ -1,0 +1,55 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: qwen38-27b-nvfp4
+  namespace: llm
+spec:
+  scaleTargetRef:
+    name: qwen38-27b-nvfp4          # the vLLM Deployment
+  minReplicaCount: 1                # a floor: scale-out is slow (node, image, weights), so never start from zero
+  maxReplicaCount: 8
+  fallback:
+    # if a Prometheus trigger fails 3 polls in a row, hold 2 replicas instead of trusting a broken metric
+    failureThreshold: 3
+    replicas: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+            - type: Pods
+              value: 2              # at most 2 new replicas a minute: each one is slow to become useful
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 300
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 15
+  triggers:
+    # mean queued requests per pod, as the endpoint picker sees it. A per-pod average is not additive,
+    # so the metric type is Value: desired = ceil(current replicas x value / threshold)
+    - type: prometheus
+      name: queue
+      metricType: Value
+      metadata:
+        serverAddress: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
+        query: max(llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4"})
+        threshold: "2"
+    # the hottest pod's KV cache utilization (0 to 1); an average would hide one saturated pod
+    - type: prometheus
+      name: worst-pod-kv-cache
+      metricType: Value
+      metadata:
+        serverAddress: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
+        query: max(vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4"})
+        threshold: "0.7"
+    # an on-hours floor: inside the window this acts as a dynamic minimum, and the triggers above can push higher
+    - type: cron
+      name: business-hours
+      metadata:
+        timezone: UTC
+        start: 0 8 * * 1-5
+        end: 0 18 * * 1-5
+        desiredReplicas: "2"

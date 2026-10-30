@@ -1,0 +1,6 @@
+apiVersion: v2
+name: llm-serving
+description: Karpenter GPU pool, vLLM model serving, optional KV tiering, AI gateway routing, KEDA autoscaling and Prometheus recording rules for one streamed model.
+type: application
+version: 0.1.0
+appVersion: "0.32.0"

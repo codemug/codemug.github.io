@@ -1,17 +1,18 @@
+{{- if .Values.autoscaling.enabled }}
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: qwen38-27b-nvfp4
-  namespace: llm
+  name: {{ include "llm-serving.modelName" . }}
+  namespace: {{ .Release.Namespace }}
 spec:
   scaleTargetRef:
-    name: qwen38-27b-nvfp4          # the vLLM Deployment
-  minReplicaCount: 1                # a floor: scale-out is slow (node, image, weights), so never start from zero
-  maxReplicaCount: 8
+    name: {{ include "llm-serving.modelName" . }}          # the vLLM Deployment
+  minReplicaCount: {{ .Values.autoscaling.minReplicas }}                # a floor: scale-out is slow (node, image, weights), so never start from zero
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas }}
   fallback:
     # if a Prometheus trigger fails 3 polls in a row, hold 2 replicas instead of trusting a broken metric
     failureThreshold: 3
-    replicas: 2
+    replicas: {{ .Values.autoscaling.fallbackReplicas }}
   advanced:
     horizontalPodAutoscalerConfig:
       behavior:
@@ -34,22 +35,23 @@ spec:
       name: queue
       metricType: Value
       metadata:
-        serverAddress: http://prometheus.monitoring.svc:9090
-        query: max(llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4"})
-        threshold: "2"
+        serverAddress: {{ .Values.autoscaling.prometheusAddress }}
+        query: max(llm_d_epp_average_queue_size{name="{{ include "llm-serving.modelName" . }}"})
+        threshold: "{{ .Values.autoscaling.queueThreshold }}"
     # the hottest pod's KV cache utilization (0 to 1); an average would hide one saturated pod
     - type: prometheus
       name: worst-pod-kv-cache
       metricType: Value
       metadata:
-        serverAddress: http://prometheus.monitoring.svc:9090
-        query: max(vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4"})
-        threshold: "0.7"
+        serverAddress: {{ .Values.autoscaling.prometheusAddress }}
+        query: max(vllm:kv_cache_usage_perc{model_name="{{ include "llm-serving.modelName" . }}"})
+        threshold: "{{ .Values.autoscaling.kvCacheThreshold }}"
     # an on-hours floor: inside the window this acts as a dynamic minimum, and the triggers above can push higher
     - type: cron
       name: business-hours
       metadata:
-        timezone: UTC
-        start: 0 8 * * 1-5
-        end: 0 18 * * 1-5
-        desiredReplicas: "2"
+        timezone: {{ .Values.autoscaling.businessHours.timezone }}
+        start: {{ .Values.autoscaling.businessHours.start }}
+        end: {{ .Values.autoscaling.businessHours.end }}
+        desiredReplicas: "{{ .Values.autoscaling.businessHours.replicas }}"
+{{- end }}

@@ -1,0 +1,48 @@
+{{- if .Values.routing.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: ai-gateway
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+# per-Gateway Envoy settings; on EKS the Service is a LoadBalancer (add your AWS Load Balancer Controller annotations)
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: llm-gateway-proxy
+  namespace: {{ .Values.routing.gateway.namespace }}
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: LoadBalancer
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: llm-gateway
+  namespace: {{ .Values.routing.gateway.namespace }}
+spec:
+  gatewayClassName: ai-gateway
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: llm-gateway-proxy
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All   # let AIGatewayRoutes in the model namespace (llm) attach
+{{- end }}
+{{- if .Values.createNamespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.routing.gateway.namespace }}
+{{- end }}
