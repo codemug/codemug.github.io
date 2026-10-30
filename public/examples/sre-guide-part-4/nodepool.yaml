@@ -1,0 +1,39 @@
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: g7e
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: g7e
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["g7e"]
+        - key: karpenter.k8s.aws/instance-gpu-manufacturer
+          operator: In
+          values: ["nvidia"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        # priority is reserved, then spot, then on-demand; Karpenter only falls back to types listed here.
+        # "reserved" has no effect until the EC2NodeClass selects a capacity reservation.
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["reserved", "spot", "on-demand"]
+      # keep non-GPU pods off these expensive nodes
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
+      # a maximum lifetime, not a schedule: drift and consolidation can remove a node earlier
+      expireAfter: 720h
+  limits:
+    nodes: 10
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    # give a freshly started vLLM pod time to finish loading weights before the node is a candidate
+    consolidateAfter: 30m

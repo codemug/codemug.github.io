@@ -1,0 +1,39 @@
+# Helm values for the llm-d router chart (oci://ghcr.io/llm-d/charts/llm-d-router-gateway, version v1.0.0).
+# Install with the release name qwen38-27b-nvfp4 in the namespace llm: the chart then creates the InferencePool and the
+# endpoint picker Service under that name, which is what the AIGatewayRoute refers to.
+router:
+  modelServers:
+    matchLabels:
+      app: qwen38-27b-nvfp4     # the label on the vLLM pods
+    targetPorts:
+      - number: 8000
+  epp:
+    pluginsConfigFile: "balanced-plugins.yaml"
+    pluginsCustomConfig:
+      balanced-plugins.yaml: |
+        apiVersion: llm-d.ai/v1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: queue-scorer
+        - type: kv-cache-utilization-scorer
+        - type: approx-prefix-cache-producer
+          parameters:
+            autoTune: true            # take LRU capacity (num_gpu_blocks) from the scraped vllm:cache_config_info
+            blockSizeTokens: 64       # used when auto-tune has no scrape yet; values below 64 are clamped up to 64
+            lruCapacityPerServer: 31250
+        - type: prefix-cache-scorer   # reads the match info the producer wrote; the weight below is its vote
+        - type: max-score-picker
+        schedulingProfiles:
+        - name: default
+          plugins:
+          - pluginRef: queue-scorer
+            weight: 2
+          - pluginRef: kv-cache-utilization-scorer
+            weight: 3
+          - pluginRef: prefix-cache-scorer
+            weight: 1
+          - pluginRef: max-score-picker
+  monitoring:
+    prometheus:
+      auth:
+        enabled: true             # the default: /metrics needs a bearer token (see the metrics section)

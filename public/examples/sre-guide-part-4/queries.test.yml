@@ -1,0 +1,376 @@
+# promtool test rules for queries.rules.yml. Synthetic series use the REAL metric names and labels
+# (vLLM v0.32.0, llm-d router v1.0.0). Scrape step 15s, 10 minutes of data, rate window 5m.
+# Histogram bucket sets are SUBSETS of the real boundaries (the quantile math is identical).
+# promtool compares floats exactly, so every assertion wraps the recorded series in round(x, 1e-6).
+# Run: promtool test rules queries.test.yml
+rule_files:
+  - queries.rules.yml
+evaluation_interval: 1m
+tests:
+  - interval: 15s
+    input_series:
+      # --- traffic: finished requests, +15 per 15s step = 1/s per unit
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",finished_reason="stop"}'
+        values: '0+15x40'
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",finished_reason="length"}'
+        values: '0+3x40'
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",finished_reason="abort"}'
+        values: '0+3x40'
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",finished_reason="error"}'
+        values: '0+0x40'
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",finished_reason="stop"}'
+        values: '0+30x40'
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",finished_reason="length"}'
+        values: '0+3x40'
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",finished_reason="abort"}'
+        values: '0+0x40'
+      - series: 'vllm:request_success_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",finished_reason="error"}'
+        values: '0+3x40'
+      # --- TTFT histogram: per step both pods together add 10/60/90/100/100 (cumulative) observations
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="0.1"}'
+        values: '0+4x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="0.5"}'
+        values: '0+24x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="1"}'
+        values: '0+36x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="5"}'
+        values: '0+40x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="+Inf"}'
+        values: '0+40x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="0.1"}'
+        values: '0+6x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="0.5"}'
+        values: '0+36x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="1"}'
+        values: '0+54x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="5"}'
+        values: '0+60x40'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="+Inf"}'
+        values: '0+60x40'
+      # --- ITL (pod-a only): cumulative 50/80/90/100/100 per 100 observations
+      - series: 'vllm:inter_token_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="0.025"}'
+        values: '0+50x40'
+      - series: 'vllm:inter_token_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="0.05"}'
+        values: '0+80x40'
+      - series: 'vllm:inter_token_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="0.1"}'
+        values: '0+90x40'
+      - series: 'vllm:inter_token_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="0.5"}'
+        values: '0+100x40'
+      - series: 'vllm:inter_token_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="+Inf"}'
+        values: '0+100x40'
+      # --- e2e (pod-a only): cumulative 5/40/80/100/100
+      - series: 'vllm:e2e_request_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="1"}'
+        values: '0+5x40'
+      - series: 'vllm:e2e_request_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="5"}'
+        values: '0+40x40'
+      - series: 'vllm:e2e_request_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="10"}'
+        values: '0+80x40'
+      - series: 'vllm:e2e_request_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="30"}'
+        values: '0+100x40'
+      - series: 'vllm:e2e_request_latency_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="+Inf"}'
+        values: '0+100x40'
+      # --- queue time (pod-a only): cumulative 80/92/100/100
+      - series: 'vllm:request_queue_time_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="0.3"}'
+        values: '0+80x40'
+      - series: 'vllm:request_queue_time_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="1"}'
+        values: '0+92x40'
+      - series: 'vllm:request_queue_time_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="5"}'
+        values: '0+100x40'
+      - series: 'vllm:request_queue_time_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="+Inf"}'
+        values: '0+100x40'
+      # --- saturation gauges
+      - series: 'vllm:num_requests_running{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '10x40'
+      - series: 'vllm:num_requests_running{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '6x40'
+      - series: 'vllm:num_requests_waiting{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '2x40'
+      - series: 'vllm:num_requests_waiting{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '4x40'
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0.5x40'
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0.9x40'
+      - series: 'vllm:num_preemptions_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+3x40'
+      - series: 'vllm:num_preemptions_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+0x40'
+      # --- cache: pod-a queries 1500/step hits 1050 (70%), pod-b queries 3000 hits 1500 (50%)
+      - series: 'vllm:prefix_cache_queries_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+1500x40'
+      - series: 'vllm:prefix_cache_queries_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+3000x40'
+      - series: 'vllm:prefix_cache_hits_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+1050x40'
+      - series: 'vllm:prefix_cache_hits_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+1500x40'
+      - series: 'vllm:external_prefix_cache_hits_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+150x40'
+      - series: 'vllm:external_prefix_cache_hits_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+300x40'
+      - series: 'vllm:prompt_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+1500x40'
+      - series: 'vllm:prompt_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+3000x40'
+      - series: 'vllm:prompt_tokens_cached_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+1200x40'
+      - series: 'vllm:prompt_tokens_cached_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+1800x40'
+      # --- v0.32 only: cached tokens by tier
+      - series: 'vllm:prompt_tokens_cached_by_source_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",source="device"}'
+        values: '0+1050x40'
+      - series: 'vllm:prompt_tokens_cached_by_source_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",source="host"}'
+        values: '0+150x40'
+      - series: 'vllm:prompt_tokens_cached_by_source_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",source="device"}'
+        values: '0+1500x40'
+      - series: 'vllm:prompt_tokens_cached_by_source_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",source="host"}'
+        values: '0+300x40'
+      # --- throughput
+      - series: 'vllm:generation_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+150x40'
+      - series: 'vllm:generation_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+300x40'
+      # --- speculative decoding: pod-a 500 drafts, 1500 draft tokens, 1050 accepted; pod-b 500/1500/450
+      - series: 'vllm:spec_decode_num_drafts_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+500x40'
+      - series: 'vllm:spec_decode_num_drafts_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+500x40'
+      - series: 'vllm:spec_decode_num_draft_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+1500x40'
+      - series: 'vllm:spec_decode_num_draft_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+1500x40'
+      - series: 'vllm:spec_decode_num_accepted_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+1050x40'
+      - series: 'vllm:spec_decode_num_accepted_tokens_total{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+450x40'
+      # --- EPP pool gauges, scraped by two Prometheus replicas (duplicate series)
+      - series: 'llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4",prometheus_replica="a"}'
+        values: '1.5x40'
+      - series: 'llm_d_epp_average_kv_cache_utilization{name="qwen38-27b-nvfp4",prometheus_replica="a"}'
+        values: '0.62x40'
+      - series: 'llm_d_epp_ready_endpoints{name="qwen38-27b-nvfp4",prometheus_replica="a"}'
+        values: '3x40'
+      - series: 'llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4",prometheus_replica="b"}'
+        values: '1.5x40'
+      - series: 'llm_d_epp_average_kv_cache_utilization{name="qwen38-27b-nvfp4",prometheus_replica="b"}'
+        values: '0.62x40'
+      - series: 'llm_d_epp_ready_endpoints{name="qwen38-27b-nvfp4",prometheus_replica="b"}'
+        values: '3x40'
+      # --- EPP scheduler histogram: cumulative 60/90/98/100/100 per 100 observations
+      - series: 'llm_d_epp_scheduler_e2e_duration_seconds_bucket{le="0.001"}'
+        values: '0+60x40'
+      - series: 'llm_d_epp_scheduler_e2e_duration_seconds_bucket{le="0.005"}'
+        values: '0+90x40'
+      - series: 'llm_d_epp_scheduler_e2e_duration_seconds_bucket{le="0.01"}'
+        values: '0+98x40'
+      - series: 'llm_d_epp_scheduler_e2e_duration_seconds_bucket{le="0.05"}'
+        values: '0+100x40'
+      - series: 'llm_d_epp_scheduler_e2e_duration_seconds_bucket{le="+Inf"}'
+        values: '0+100x40'
+      # --- EPP TTFT histogram, two replicas, cumulative 40/70/85/97/100/100 per 100 observations
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="0.5",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="a"}'
+        values: '0+40x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="1",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="a"}'
+        values: '0+70x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="2",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="a"}'
+        values: '0+85x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="5",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="a"}'
+        values: '0+97x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="10",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="a"}'
+        values: '0+100x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="+Inf",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="a"}'
+        values: '0+100x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="0.5",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="b"}'
+        values: '0+40x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="1",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="b"}'
+        values: '0+70x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="2",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="b"}'
+        values: '0+85x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="5",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="b"}'
+        values: '0+97x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="10",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="b"}'
+        values: '0+100x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="+Inf",service="qwen38-27b-nvfp4-epp",model_name="qwen38-27b-nvfp4",streaming="true",prometheus_replica="b"}'
+        values: '0+100x40'
+    promql_expr_test:
+      - expr: round(llm:request_rate_by_reason:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{finished_reason="stop",model_name="qwen38-27b-nvfp4"}'
+            value: 3.0
+          - labels: '{finished_reason="length",model_name="qwen38-27b-nvfp4"}'
+            value: 0.4
+          - labels: '{finished_reason="abort",model_name="qwen38-27b-nvfp4"}'
+            value: 0.2
+          - labels: '{finished_reason="error",model_name="qwen38-27b-nvfp4"}'
+            value: 0.2
+      - expr: round(llm:request_error_ratio:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.052632
+      - expr: round(llm:ttft_seconds:p50, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.42
+      - expr: round(llm:ttft_seconds:p95, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 3.0
+      - expr: round(llm:ttft_seconds:p99, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 4.6
+      - expr: round(llm:itl_seconds:p95, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.3
+      - expr: round(llm:e2e_seconds:p95, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 25.0
+      - expr: round(llm:queue_seconds:p95, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 2.5
+      - expr: round(llm:requests_running:sum, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 16.0
+      - expr: round(llm:requests_waiting:sum, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 6.0
+      - expr: round(llm:kv_cache_usage:avg, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.7
+      - expr: round(llm:kv_cache_usage:max, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.9
+      - expr: round(llm:preemptions:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.2
+      - expr: round(llm:prefix_cache_hit_ratio:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.566667
+      - expr: round(llm:prompt_cached_ratio:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.666667
+      - expr: round(llm:prompt_cached_ratio_by_source:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4",source="device"}'
+            value: 0.566667
+          - labels: '{model_name="qwen38-27b-nvfp4",source="host"}'
+            value: 0.1
+      - expr: round(llm:prompt_tokens:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 300.0
+      - expr: round(llm:generation_tokens:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 30.0
+      - expr: round(llm:spec_decode_acceptance_ratio:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 0.5
+      - expr: round(llm:spec_decode_mean_acceptance_length:rate5m, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{model_name="qwen38-27b-nvfp4"}'
+            value: 2.5
+      - expr: round(llm:epp_pool_queue_size:avg, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{name="qwen38-27b-nvfp4"}'
+            value: 1.5
+      - expr: round(llm:epp_pool_kv_cache_utilization:avg, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{name="qwen38-27b-nvfp4"}'
+            value: 0.62
+      - expr: round(llm:epp_ready_endpoints, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{name="qwen38-27b-nvfp4"}'
+            value: 3.0
+      - expr: round(llm:epp_scheduler_seconds:p95, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 0.008125
+      - expr: round(llm:epp_ttft_seconds:p95, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 4.5
+      - expr: round(llm:keda:pool_queue_size, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 1.5
+      - expr: round(llm:keda:pool_kv_cache_utilization, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 0.62
+      - expr: round(llm:keda:epp_ttft_p95_seconds, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 4.5
+      - expr: round(llm:keda:worst_pod_kv_cache_utilization, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 0.9
+      - expr: round(llm:keda:vllm_waiting_total, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 6.0
+      - expr: llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4"}
+        eval_time: 10m
+        exp_samples:
+          - labels: 'llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4",prometheus_replica="a"}'
+            value: 1.5
+          - labels: 'llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4",prometheus_replica="b"}'
+            value: 1.5
+
+  # Idle pool: no requests, so every histogram bucket is flat and the quantile is NaN.
+  # promtool compares floats exactly and NaN != NaN, so `x != bool x` (1 only for NaN) detects it.
+  # KEDA treats NaN as 0 when ignoreNullValues is true (the default), so a quiet pool is harmless.
+  - interval: 15s
+    input_series:
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="1",service="qwen38-27b-nvfp4-epp"}'
+        values: '5x40'
+      - series: 'llm_d_epp_request_ttft_seconds_bucket{le="+Inf",service="qwen38-27b-nvfp4-epp"}'
+        values: '5x40'
+    promql_expr_test:
+      - expr: llm:keda:epp_ttft_p95_seconds != bool llm:keda:epp_ttft_p95_seconds
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 1
