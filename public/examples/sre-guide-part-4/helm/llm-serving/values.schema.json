@@ -31,10 +31,6 @@
         }
       }
     },
-    "createNamespaces": {
-      "description": "Create the ai-gateway and monitoring namespaces; set false when they already exist.",
-      "type": "boolean"
-    },
     "karpenter": {
       "title": "Karpenter GPU pool",
       "description": "NodePool + EC2NodeClass and the AWS-side inputs from `terraform output chart_values_yaml`.",
@@ -170,7 +166,7 @@
         "gateway": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["namespace"],
+          "required": ["namespace", "createNamespace"],
           "properties": {
             "namespace": {
               "description": "Namespace of the EnvoyProxy and Gateway (and of the AIGatewayRoute's parentRef).",
@@ -178,6 +174,10 @@
               "minLength": 1,
               "maxLength": 63,
               "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+            },
+            "createNamespace": {
+              "description": "Create the gateway namespace; set false when it already exists.",
+              "type": "boolean"
             }
           }
         }
@@ -257,7 +257,7 @@
       "title": "Prometheus rules + EPP metrics reader",
       "type": "object",
       "additionalProperties": false,
-      "required": ["enabled", "namespace"],
+      "required": ["enabled", "namespace", "createNamespace"],
       "properties": {
         "enabled": {
           "description": "Render the PrometheusRule and the metrics-reader ServiceAccount/ClusterRole/ClusterRoleBinding/Secret.",
@@ -269,6 +269,10 @@
           "minLength": 1,
           "maxLength": 63,
           "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "createNamespace": {
+          "description": "Create the monitoring namespace; set false when it already exists (the Prometheus stack creates it).",
+          "type": "boolean"
         }
       }
     }

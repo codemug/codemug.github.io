@@ -1219,6 +1219,8 @@ routing:
   enabled: true
   gateway:
     namespace: ai-gateway
+    # Create the ai-gateway namespace; set false when it already exists.
+    createNamespace: true
 ```
 
 `routing.enabled` switches the whole set off, for a cluster that already has a gateway, and `routing.gateway.namespace` says where the Gateway lives. Look at what changed from the raw files: the model name is no longer typed into the route. The route's name, its rule, the header it matches and the `InferencePool` it points at all come from the single `model.name` value. The router release is named after the model too, so the route finds the pool by the same string. A rename is one edit, and the match and the pool can't drift apart.
@@ -1266,7 +1268,7 @@ spec:
         namespaces:
           from: All   # let AIGatewayRoutes in the model namespace (llm) attach
 {{- end }}
-{{- if .Values.createNamespaces }}
+{{- if .Values.routing.gateway.createNamespace }}
 ---
 apiVersion: v1
 kind: Namespace
@@ -1345,7 +1347,7 @@ kubectl wait --timeout=3m -n ai-gateway gateway/llm-gateway --for=condition=Prog
 kubectl wait --timeout=2m -n llm aigatewayroute/qwen38-27b-nvfp4 --for=condition=Accepted
 ```
 
-The Terraform output carries the values the chart can't know on its own, such as the node role and the discovery tag from section 2. The router release is named after the model on purpose: the chart names the `InferencePool` after the release and creates the picker's Service as the release name plus `-epp`, exactly the names the route and the pool refer to.
+The Terraform output carries the values the chart can't know on its own: the node role and the discovery tag from section 2, the bucket path and region from section 3, and the fact that the Prometheus release has already created the `monitoring` namespace, so the chart must not. The router release is named after the model on purpose: the chart names the `InferencePool` after the release and creates the picker's Service as the release name plus `-epp`, exactly the names the route and the pool refer to.
 
 When it's up, the Envoy pod has three containers, because the AI Gateway's sidecar is added as soon as the first route exists, and the pool reports `Accepted` and `ResolvedRefs`. Now a request:
 
@@ -1493,7 +1495,7 @@ metadata:
     kubernetes.io/service-account.name: metrics-reader
 type: kubernetes.io/service-account-token
 {{- end }}
-{{- if .Values.createNamespaces }}
+{{- if .Values.observability.createNamespace }}
 ---
 apiVersion: v1
 kind: Namespace
@@ -1574,6 +1576,8 @@ Helm turns the rules file into a `PrometheusRule`, the object our Prometheus sta
 observability:
   enabled: true
   namespace: monitoring
+  # Create the monitoring namespace; set false when it already exists (the Prometheus stack creates it).
+  createNamespace: true
 ```
 
 ```yaml

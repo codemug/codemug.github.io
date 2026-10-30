@@ -9,6 +9,10 @@ locals {
       s3Uri     = "s3://${var.model_bucket_name}/${var.model_s3_prefix}"
       awsRegion = var.region
     }
+    # The kube-prometheus-stack release already creates the monitoring namespace.
+    observability = {
+      createNamespace = false
+    }
   }
 }
 

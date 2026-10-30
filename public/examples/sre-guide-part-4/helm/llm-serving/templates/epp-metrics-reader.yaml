@@ -39,7 +39,7 @@ metadata:
     kubernetes.io/service-account.name: metrics-reader
 type: kubernetes.io/service-account-token
 {{- end }}
-{{- if .Values.createNamespaces }}
+{{- if .Values.observability.createNamespace }}
 ---
 apiVersion: v1
 kind: Namespace

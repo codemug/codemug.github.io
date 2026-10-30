@@ -6,7 +6,9 @@ Karpenter AWS side, the weights bucket, the pod identity) and installs
 the controller Helm releases (Karpenter, Envoy Gateway + AI Gateway,
 KEDA, Prometheus stack). The model itself is the `helm/llm-serving`
 chart, which this configuration prepares for: the output
-`chart_values_yaml` renders the values that chart needs. Requires
+`chart_values_yaml` renders the values that chart needs
+(`karpenter.nodeRole`, `karpenter.discoveryTag`, `model.s3Uri`,
+`model.awsRegion`, `observability.createNamespace`). Requires
 Terraform >= 1.5.7 (the eks module's requirement).
 
 ## Commands (in order)

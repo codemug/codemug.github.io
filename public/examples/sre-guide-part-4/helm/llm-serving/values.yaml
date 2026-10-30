@@ -4,9 +4,6 @@ model:
   s3Uri: s3://example-models-bucket/models/nvidia/Qwen3.8-27B-NVFP4/
   awsRegion: us-east-1
 
-# Create the ai-gateway and monitoring namespaces; set false when they already exist.
-createNamespaces: true
-
 # Karpenter GPU pool: NodePool + EC2NodeClass, and the AWS-side inputs from `terraform output chart_values_yaml`.
 karpenter:
   enabled: true
@@ -42,6 +39,8 @@ routing:
   enabled: true
   gateway:
     namespace: ai-gateway
+    # Create the ai-gateway namespace; set false when it already exists.
+    createNamespace: true
 
 # KEDA ScaledObject autoscaling of the vLLM Deployment: the per-cluster bounds and thresholds.
 autoscaling:
@@ -67,3 +66,5 @@ autoscaling:
 observability:
   enabled: true
   namespace: monitoring
+  # Create the monitoring namespace; set false when it already exists (the Prometheus stack creates it).
+  createNamespace: true

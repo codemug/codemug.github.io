@@ -39,7 +39,7 @@ spec:
         namespaces:
           from: All   # let AIGatewayRoutes in the model namespace (llm) attach
 {{- end }}
-{{- if .Values.createNamespaces }}
+{{- if .Values.routing.gateway.createNamespace }}
 ---
 apiVersion: v1
 kind: Namespace

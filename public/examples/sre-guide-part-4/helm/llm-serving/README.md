@@ -19,21 +19,21 @@ terraform -chdir=../../terraform output -raw chart_values_yaml > terraform-value
 helm upgrade -i llm-serving . --namespace llm --create-namespace -f terraform-values.yaml
 ```
 
-The values file supplies `karpenter.nodeRole`, `karpenter.discoveryTag`, `model.s3Uri` and
-`model.awsRegion`; everything else keeps its default.
+The values file supplies `karpenter.nodeRole`, `karpenter.discoveryTag`, `model.s3Uri`, `model.awsRegion`
+and `observability.createNamespace` (false, because the Prometheus release already created the namespace);
+everything else keeps its default.
 
 ## Value blocks
 
 | Block | What it sets |
 |---|---|
 | `model` | the model name (every derived name), the S3 weights URL, the bucket region |
-| `createNamespaces` | create the `ai-gateway` / `monitoring` namespaces |
 | `karpenter` | the `g7e` NodePool + EC2NodeClass and the AWS-side inputs |
 | `vllm` | serve image and flags (context length, KV dtype, memory, spec decoding) |
 | `tiering` | KV offload: CPU GiB, NVMe GiB, guard budget (off by default) |
-| `routing` | the AI gateway objects and their namespace |
+| `routing` | the AI gateway objects and their namespace; also creates the `ai-gateway` namespace |
 | `autoscaling` | ScaledObject bounds and thresholds (replicas, queue/KV thresholds, cron floor) |
-| `observability` | Prometheus rules + metrics-reader, and their namespace |
+| `observability` | Prometheus rules + metrics-reader and their namespace; set `observability.createNamespace=false` when the namespace already exists, as with the Terraform install |
 
 ## Enabling KV tiering
 
