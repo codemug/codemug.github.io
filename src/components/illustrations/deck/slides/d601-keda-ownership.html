@@ -1,0 +1,177 @@
+<section class="slide" id="d601-keda-ownership" data-steps="4">
+  <p class="kicker reveal">autoscaling</p>
+  <p class="statement reveal">Two controllers, one replica ladder.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d601-keda-ownership-t d601-keda-ownership-d">
+      <title id="d601-keda-ownership-t">Two controllers, one replica ladder: KEDA owns the 0 to 1 step and the HPA owns 1 to N</title>
+      <desc id="d601-keda-ownership-d">A vertical replica ladder with rungs 0 to 8 and a pod icon on the current rung. At step 0 the replica count is 1 (minReplicaCount 1), labelled replicas. A bracket marks the 0 to 1 rung as owned by KEDA (pollingInterval 30s, activationThreshold). A second bracket marks 1 to N as owned by the HPA (sync period 15s, desired equals the max over triggers), with two trigger bars, waiting requests and KV cache, feeding a max box. On a burst the pod climbs to rung 8 (scale up, stabilization 0s); when the burst ends it descends toward the floor (scale down, stabilization 300s) with a 300s countdown ring.</desc>
+      <defs>
+        <marker id="d601-keda-ownership-ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-text-muted)"/></marker>
+      </defs>
+      <g id="d601-keda-ownership-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d601-keda-ownership svg.diagram{width:100%;height:100%;max-width:none;}
+    #d601-keda-ownership text{font-family:var(--font-mono);}
+    #d601-keda-ownership .rail{stroke:var(--color-border-strong);stroke-width:3;stroke-linecap:round;}
+    #d601-keda-ownership .rung{stroke:var(--color-text-faint);stroke-width:2.5;transition:stroke .4s,stroke-width .4s;}
+    #d601-keda-ownership .rung.hot{stroke:var(--color-accent);stroke-width:4;}
+    #d601-keda-ownership .rungnum{font-size:22px;fill:var(--color-text-muted);text-anchor:end;}
+    #d601-keda-ownership .queue{font-size:22px;fill:var(--color-text-soft);text-anchor:middle;}
+    #d601-keda-ownership .podbody{fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #d601-keda-ownership .podwin{fill:var(--color-accent);}
+    #d601-keda-ownership .brk{stroke:var(--color-accent);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    #d601-keda-ownership .owns{font-size:26px;font-weight:600;fill:var(--color-accent);}
+    #d601-keda-ownership .sub{font-size:22px;fill:var(--color-text-soft);}
+    #d601-keda-ownership .barlab{font-size:22px;fill:var(--color-text-soft);}
+    #d601-keda-ownership .btrack{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2;rx:8;}
+    #d601-keda-ownership .bfill{fill:var(--color-accent);rx:8;}
+    #d601-keda-ownership .maxbox{fill:color-mix(in oklab,var(--color-accent) 12%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #d601-keda-ownership .maxt{font-size:26px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #d601-keda-ownership .arr{stroke:var(--color-text-muted);stroke-width:2.5;fill:none;}
+    #d601-keda-ownership .beh{font-size:24px;fill:var(--color-text-soft);}
+    #d601-keda-ownership .val{fill:var(--color-accent);font-weight:600;}
+    #d601-keda-ownership .ringtrack{fill:none;stroke:var(--color-border);stroke-width:6;}
+    #d601-keda-ownership .ringarc{fill:none;stroke:var(--color-accent);stroke-width:6;stroke-linecap:round;}
+    #d601-keda-ownership .ringt{font-size:20px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd601-keda-ownership';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // ---- geometry (viewBox 1120 x 520): vertical ladder, rungs 0 (bottom) to 8 (top)
+      var RAIL_L = 90, RAIL_R = 210;
+      function rungY(k) { return 455 - k * 48; } // rung 0 at 455, rung 8 at 71
+      var POD_X = 150, POD_W = 48, POD_H = 36;
+
+      var g = document.getElementById(ID + '-g');
+
+      // ---- ladder: two rails, nine rungs, rung numbers
+      var gl = el('g', {}, g);
+      el('line', { 'class': 'rail', x1: RAIL_L, y1: rungY(8), x2: RAIL_L, y2: rungY(0) }, gl);
+      el('line', { 'class': 'rail', x1: RAIL_R, y1: rungY(8), x2: RAIL_R, y2: rungY(0) }, gl);
+      var rungs = [];
+      for (var k = 0; k <= 8; k++) {
+        var y = rungY(k);
+        rungs.push(el('line', { 'class': 'rung', x1: RAIL_L, y1: y, x2: RAIL_R, y2: y }, gl));
+        el('text', { 'class': 'rungnum', x: 75, y: y, dy: '.32em' }, gl, String(k));
+      }
+      el('text', { 'class': 'queue', x: (RAIL_L + RAIL_R) / 2, y: 488 }, gl, 'replicas');
+
+      // ---- pod icon on the current rung (box with a window)
+      var gp = el('g', {}, g);
+      var podOuter = el('rect', { 'class': 'podbody', x: POD_X - POD_W / 2, y: rungY(1) - POD_H / 2, width: POD_W, height: POD_H, rx: 8 }, gp);
+      var podInner = el('rect', { 'class': 'podwin', x: POD_X - 13, y: rungY(1) - 8, width: 26, height: 16, rx: 4 }, gp);
+
+      // ---- KEDA bracket + labels (0 <-> 1 rung)
+      var gK = el('g', {}, g);
+      el('path', { 'class': 'brk', d: 'M228 ' + rungY(1) + ' H240 V' + rungY(0) + ' H228' }, gK);
+      el('text', { 'class': 'owns', x: 255, y: 400 }, gK, 'KEDA owns 0 <-> 1');
+      el('text', { 'class': 'sub', x: 255, y: 428 }, gK, 'pollingInterval: 30s');
+      el('text', { 'class': 'sub', x: 255, y: 456 }, gK, 'activationThreshold');
+
+      // ---- HPA bracket + labels (1 <-> N rungs)
+      var gH = el('g', {}, g);
+      el('path', { 'class': 'brk', d: 'M228 ' + rungY(8) + ' H240 V' + rungY(1) + ' H228' }, gH);
+      el('text', { 'class': 'owns', x: 255, y: 80 }, gH, 'HPA owns 1 <-> N');
+      el('text', { 'class': 'sub', x: 255, y: 110 }, gH, 'sync period: 15s');
+      el('text', { 'class': 'sub', x: 255, y: 140 }, gH, 'desired = max over triggers');
+
+      // ---- two trigger bars feeding a max box
+      var gT = el('g', {}, g);
+      var TX0 = 500, TW = 300;
+      el('text', { 'class': 'barlab', x: 255, y: 210 }, gT, 'waiting requests');
+      el('rect', { 'class': 'btrack', x: TX0, y: 195, width: TW, height: 25, rx: 8 }, gT);
+      el('rect', { 'class': 'bfill', x: TX0, y: 195, width: (0.82 * TW).toFixed(1), height: 25, rx: 8 }, gT);
+      el('text', { 'class': 'barlab', x: 255, y: 265 }, gT, 'KV cache');
+      el('rect', { 'class': 'btrack', x: TX0, y: 250, width: TW, height: 25, rx: 8 }, gT);
+      el('rect', { 'class': 'bfill', x: TX0, y: 250, width: (0.55 * TW).toFixed(1), height: 25, rx: 8 }, gT);
+      el('path', { 'class': 'arr', d: 'M' + (TX0 + TW) + ' 207 H852', 'marker-end': 'url(#' + ID + '-ah)' }, gT);
+      el('path', { 'class': 'arr', d: 'M' + (TX0 + TW) + ' 262 H852', 'marker-end': 'url(#' + ID + '-ah)' }, gT);
+      el('rect', { 'class': 'maxbox', x: 860, y: 200, width: 150, height: 75, rx: 12 }, gT);
+      el('text', { 'class': 'maxt', x: 935, y: 240, dy: '.35em' }, gT, 'max');
+
+      // ---- scale up behaviour (burst: pod climbs fast)
+      var gU = el('g', {}, g);
+      var tU = el('text', { 'class': 'beh', x: 560, y: 400 }, gU, 'scale up: stabilization ');
+      el('tspan', { 'class': 'val' }, tU, '0s');
+
+      // ---- scale down behaviour (burst ends: pod descends, 300s window) + countdown ring
+      var gD = el('g', {}, g);
+      var RCX = 1040, RCY = 432, RR = 34;
+      el('circle', { 'class': 'ringtrack', cx: RCX, cy: RCY, r: RR }, gD);
+      var circ = 2 * Math.PI * RR;
+      el('circle', { 'class': 'ringarc', cx: RCX, cy: RCY, r: RR, 'stroke-dasharray': (0.75 * circ).toFixed(1) + ' ' + (0.25 * circ).toFixed(1), transform: 'rotate(-90 ' + RCX + ' ' + RCY + ')' }, gD);
+      el('text', { 'class': 'ringt', x: RCX, y: RCY, dy: '.35em' }, gD, '300s');
+      var tD = el('text', { 'class': 'beh', x: 560, y: 440 }, gD, 'scale down: stabilization ');
+      el('tspan', { 'class': 'val' }, tD, '300s');
+
+      // ---- state: pod rung per step (1, 1, 1, 8, 2), block opacities
+      var POD_Y = [rungY(1), rungY(1), rungY(1), rungY(8), rungY(2)];
+      function targets(n) {
+        return {
+          podY: POD_Y[n],
+          keda: n >= 1 ? 1 : 0,
+          hpa: n >= 2 ? 1 : 0,
+          trig: n >= 2 ? 1 : 0,
+          up: n >= 3 ? 1 : 0,
+          down: n >= 4 ? 1 : 0
+        };
+      }
+      var S = { podY: POD_Y[0], keda: 0, hpa: 0, trig: 0, up: 0, down: 0 };
+      function draw() {
+        podOuter.setAttribute('y', (S.podY - POD_H / 2).toFixed(2));
+        podInner.setAttribute('y', (S.podY - 8).toFixed(2));
+        var cur = Math.round((rungY(0) - S.podY) / 48);
+        for (var i = 0; i <= 8; i++) {
+          rungs[i].setAttribute('class', i === cur ? 'rung hot' : 'rung');
+        }
+        gK.style.opacity = S.keda.toFixed(3);
+        gH.style.opacity = S.hpa.toFixed(3);
+        gT.style.opacity = S.trig.toFixed(3);
+        gU.style.opacity = S.up.toFixed(3);
+        gD.style.opacity = S.down.toFixed(3);
+      }
+      draw();
+
+      var cancel = null;
+      Deck.slide(ID, {
+        enter: function () {
+          S = { podY: POD_Y[0], keda: 0, hpa: 0, trig: 0, up: 0, down: 0 };
+          draw();
+        },
+        leave: function () { if (cancel) { cancel(); cancel = null; } },
+        step: function (n, prev, c) {
+          var t = targets(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) {
+            S = { podY: t.podY, keda: t.keda, hpa: t.hpa, trig: t.trig, up: t.up, down: t.down };
+            draw();
+            return;
+          }
+          var f = { podY: S.podY, keda: S.keda, hpa: S.hpa, trig: S.trig, up: S.up, down: S.down };
+          cancel = Deck.tween(600, function (k) {
+            S.podY = Deck.lerp(f.podY, t.podY, k);
+            S.keda = Deck.lerp(f.keda, t.keda, k);
+            S.hpa = Deck.lerp(f.hpa, t.hpa, k);
+            S.trig = Deck.lerp(f.trig, t.trig, k);
+            S.up = Deck.lerp(f.up, t.up, k);
+            S.down = Deck.lerp(f.down, t.down, k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

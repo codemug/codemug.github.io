@@ -1,0 +1,164 @@
+<section class="slide" id="d201-memory-budget" data-steps="4">
+  <p class="kicker reveal">gpu memory</p>
+  <p class="statement reveal">Most of the card becomes KV cache.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d201-memory-budget-t d201-memory-budget-d">
+      <title id="d201-memory-budget-t">Where the memory of one 96 GB GPU goes under vLLM: card, utilization cut, weights, overhead, KV pool</title>
+      <desc id="d201-memory-budget-d">A vertical bar for one GPU of 95.59 GiB (assumed 97,887 MiB, nominal 96 GB). Step one: --gpu-memory-utilization 0.90 cuts it at 86.03 GiB, leaving 9.56 GiB outside vLLM. Step two: the NVFP4 weights take 20.42 GiB. Step three: activations, non-torch memory and CUDA graphs take an assumed 5.00 GiB. Step four: the rest, 60.62 GiB, is the KV cache pool, 1,168 blocks of 53.125 MiB. Computed, not measured.</desc>
+      <defs>
+        <pattern id="d201-memory-budget-hatch" width="12" height="12" patternUnits="userSpaceOnUse">
+          <path class="hatch" d="M-3,3 l6,-6 M0,12 l12,-12 M9,15 l6,-6"/>
+        </pattern>
+      </defs>
+      <g id="d201-memory-budget-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d201-memory-budget svg.diagram{width:100%;height:100%;max-width:none;}
+    #d201-memory-budget text{font-family:var(--font-mono);}
+    #d201-memory-budget .hd{font-size:28px;font-weight:700;fill:var(--color-text);}
+    #d201-memory-budget .hn{font-size:22px;fill:var(--color-text-dim);}
+    #d201-memory-budget .card{fill:color-mix(in oklab,var(--color-text-muted) 10%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:2.5;}
+    #d201-memory-budget .out{fill:url(#d201-memory-budget-hatch);stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:7 6;}
+    #d201-memory-budget .hatch{stroke:var(--color-text-faint);stroke-width:1.5;fill:none;}
+    #d201-memory-budget .cut{stroke:var(--color-accent);stroke-width:3;stroke-dasharray:9 6;}
+    #d201-memory-budget .wt{fill:color-mix(in oklab,var(--color-text-muted) 26%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:2.5;}
+    #d201-memory-budget .oh{fill:color-mix(in oklab,var(--color-text-muted) 20%,var(--color-surface-deep));stroke:var(--color-text-muted);stroke-width:2.5;stroke-dasharray:6 5;}
+    #d201-memory-budget .kv{fill:var(--color-accent);}
+    #d201-memory-budget .seg{font-size:24px;text-anchor:middle;fill:var(--color-text);}
+    #d201-memory-budget .segk{font-size:30px;font-weight:700;text-anchor:middle;fill:var(--color-bg);}
+    #d201-memory-budget .ld{stroke:var(--color-text-dim);stroke-width:2;fill:none;}
+    #d201-memory-budget .l1{font-size:30px;font-weight:700;fill:var(--color-text);}
+    #d201-memory-budget .l1a{font-size:30px;font-weight:700;fill:var(--color-accent);}
+    #d201-memory-budget .l2{font-size:24px;fill:var(--color-text-muted);}
+    #d201-memory-budget .l3{font-size:24px;fill:var(--color-text-dim);}
+    #d201-memory-budget .big{font-size:40px;font-weight:700;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd201-memory-budget';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // ---- numbers: L2 NOTES-3.md section 2 (reproduced by examples/kv_budget.py)
+      var GIB = Math.pow(2, 30);
+      var CARD = 97887 / 1024;                // 95.59 GiB, ASSUMED (nvidia-smi total, 96 GB nominal)
+      var UTIL = 0.90;                        // --gpu-memory-utilization (article value)
+      var WGT = 21921428072 / GIB;            // 20.42 GiB, nvidia/Qwen3.8-27B-NVFP4 index total_size
+      var OVH = 5.0;                          // ASSUMED: activations + non-torch + CUDA graphs ("typical")
+      var REQ = CARD * UTIL;                  // 86.03 GiB requested
+      var OUT = CARD - REQ;                   // 9.56 GiB stays outside
+      var KVP = REQ - WGT - OVH;              // 60.62 GiB KV pool
+      var BLOCK_B = 17 * 3276800;             // 17 layers x 3,276,800 B = 53.125 MiB
+      var BLOCKS = Math.floor(KVP * GIB / BLOCK_B); // 1,168
+      function f2(v) { return v.toFixed(2); }
+
+      var g = document.getElementById(ID + '-g');
+      var BX = 60, BW = 320, TOP = 62, BOT = 496, K = (BOT - TOP) / CARD;
+      var hOut = OUT * K, hW = WGT * K, hO = OVH * K, hK = KVP * K;
+
+      // ---- header (always visible)
+      el('text', { 'class': 'hd', x: BX, y: 38 }, g, 'GPU card: ' + f2(CARD) + ' GiB');
+      el('text', { 'class': 'hn', x: 410, y: 38 }, g, 'assumed 97,887 MiB, nominal 96 GB');
+
+      // ---- the bar
+      el('rect', { 'class': 'card', x: BX, y: TOP, width: BW, height: BOT - TOP, rx: 8 }, g);
+      var outR = el('rect', { 'class': 'out', x: BX, y: TOP, width: BW, height: 0, rx: 8 }, g);
+      var wR = el('rect', { 'class': 'wt', x: BX, y: BOT, width: BW, height: 0, rx: 8 }, g);
+      var oR = el('rect', { 'class': 'oh', x: BX, y: BOT, width: BW, height: 0, rx: 4 }, g);
+      var kR = el('rect', { 'class': 'kv', x: BX, y: BOT, width: BW, height: 0, rx: 8 }, g);
+      var cutL = el('line', { 'class': 'cut', x1: BX - 16, x2: BX + BW + 16, y1: TOP, y2: TOP }, g);
+      var outT = el('text', { 'class': 'seg', x: BX + BW / 2, y: TOP + hOut / 2, dy: '.35em' }, g, 'unused');
+      var wT = el('text', { 'class': 'seg', x: BX + BW / 2, y: BOT - hW / 2, dy: '.35em' }, g, 'weights');
+      var kT = el('text', { 'class': 'segk', x: BX + BW / 2, y: 0, dy: '.35em' }, g, 'KV pool');
+      var cardT = el('text', { 'class': 'seg', x: BX + BW / 2, y: (TOP + BOT) / 2, dy: '.35em' }, g, 'GPU card');
+
+      // ---- callouts: leader from the segment centre to a label block
+      var CX = 450, LX0 = BX + BW + 6, LX1 = BX + BW + 44;
+      var yOutC = TOP + hOut / 2;
+      var yKC = BOT - hW - hO - hK / 2;
+      var yOC = BOT - hW - hO / 2;
+      var yWC = BOT - hW / 2;
+      function callout(segY, labY, lines) {
+        var grp = el('g', {}, g);
+        el('polyline', { 'class': 'ld', points: [LX0, segY, LX0 + 14, segY, LX1 - 14, labY, LX1, labY].join(' ') }, grp);
+        lines.forEach(function (ln, i) {
+          el('text', { 'class': ln[0], x: CX, y: labY + 10 + i * 29 }, grp, ln[1]);
+        });
+        return grp;
+      }
+      var cOut = callout(yOutC, yOutC, [
+        ['l1a', '--gpu-memory-utilization ' + UTIL.toFixed(2)],
+        ['l2', f2(CARD) + ' x ' + UTIL.toFixed(2) + ' = ' + f2(REQ) + ' GiB for vLLM'],
+        ['l3', f2(OUT) + ' GiB stays outside']
+      ]);
+      var cKV = callout(yKC, yKC - 8, [
+        ['l1a', 'KV cache pool  ' + f2(KVP) + ' GiB'],
+        ['l2', f2(REQ) + ' - ' + f2(WGT) + ' - ' + f2(OVH) + ' = ' + f2(KVP) + ' GiB'],
+        ['l2', BLOCKS.toLocaleString('en-US') + ' blocks x ' + (BLOCK_B / Math.pow(2, 20)) + ' MiB'],
+        ['l3', 'log: "Available KV cache memory"']
+      ]);
+      var cOH = callout(yOC, 372, [
+        ['l1', 'overhead  ' + f2(OVH) + ' GiB (assumed)'],
+        ['l2', 'activations, non-torch, CUDA graphs']
+      ]);
+      var cW = callout(yWC, 452, [
+        ['l1', 'weights  ' + f2(WGT) + ' GiB'],
+        ['l2', '21,921,428,072 B, 3 shards']
+      ]);
+
+      // ---- step 0 callout (fades when the cut arrives)
+      var c0 = el('g', {}, g);
+      el('text', { 'class': 'big', x: CX, y: 270 }, c0, 'one GPU, one budget');
+      el('text', { 'class': 'l2', x: CX, y: 312 }, c0, 'every number here is a share of ' + f2(CARD) + ' GiB');
+
+      // ---- state: s[0..3] = cut, weights, overhead, KV
+      var s = [0, 0, 0, 0], cancel = null;
+      function draw() {
+        var yO0 = BOT - hW * s[1];
+        var yO1 = yO0 - hO * s[2];
+        var yK1 = yO1 - hK * s[3];
+        outR.setAttribute('height', (hOut * s[0]).toFixed(2));
+        cutL.setAttribute('y1', (TOP + hOut * s[0]).toFixed(2));
+        cutL.setAttribute('y2', (TOP + hOut * s[0]).toFixed(2));
+        cutL.setAttribute('opacity', s[0].toFixed(3));
+        outT.setAttribute('opacity', s[0].toFixed(3));
+        wR.setAttribute('y', yO0.toFixed(2)); wR.setAttribute('height', (hW * s[1]).toFixed(2));
+        oR.setAttribute('y', yO1.toFixed(2)); oR.setAttribute('height', (hO * s[2]).toFixed(2));
+        kR.setAttribute('y', yK1.toFixed(2)); kR.setAttribute('height', (hK * s[3]).toFixed(2));
+        wT.setAttribute('opacity', s[1].toFixed(3));
+        kT.setAttribute('y', (yK1 + hK * s[3] / 2).toFixed(2));
+        kT.setAttribute('opacity', s[3].toFixed(3));
+        cardT.setAttribute('opacity', (1 - s[0]).toFixed(3));
+        c0.setAttribute('opacity', (1 - s[0]).toFixed(3));
+        cOut.setAttribute('opacity', s[0].toFixed(3));
+        cW.setAttribute('opacity', s[1].toFixed(3));
+        cOH.setAttribute('opacity', s[2].toFixed(3));
+        cKV.setAttribute('opacity', s[3].toFixed(3));
+      }
+      draw();
+
+      Deck.slide(ID, {
+        enter: function () { s = [0, 0, 0, 0]; draw(); },
+        step: function (n, prev, c) {
+          var t = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0, n >= 3 ? 1 : 0, n >= 4 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s = t; draw(); return; }
+          var f = s.slice();
+          cancel = Deck.tween(800, function (k) {
+            s = f.map(function (v, i) { return Deck.lerp(v, t[i], k); });
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

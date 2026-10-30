@@ -1,0 +1,272 @@
+<section class="slide" id="d501-run-simulation" data-steps="8">
+  <p class="kicker reveal">endpoint picker</p>
+  <p class="statement reveal">Prefix pulls requests together, load pushes them apart.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d501-run-simulation-t d501-run-simulation-d">
+      <title id="d501-run-simulation-t">A stream of eight requests routed over three simulated vLLM pods by the endpoint picker</title>
+      <desc id="d501-run-simulation-d">Built-in default weights queue 2, KV 2, prefix 3; pods with queue 5 or more or KV 0.8 or more are filtered out first. Pods A, B and C start with queue 2 each and KV 0.20, 0.40 and 0.50. Request 1, shared prompt: A 3.60, B 3.20, C 3.00, goes to A. Request 2, unique prompt: A 1.12, B 3.20, C 3.00, goes to B. Request 3, shared prompt: A 3.37, B 0.96, C 3.00, goes to A. Request 4, shared prompt: A 3.25, B 1.96, C 3.00, goes to A. Request 5, unique prompt: A 0.88, B 2.29, C 3.00, goes to C. Request 6, shared prompt: A 3.13, B 2.96, C 2.76, goes to A. Request 7, shared prompt: A 3.01, B 2.96, C 2.76, goes to A. Request 8, shared prompt: B 2.96, C 2.76 (A filtered out), goes to B. Pod A takes requests 1, 3, 4, 6 and 7 and reaches queue 5; request 8 goes to B, which then also caches the shared prompt. Toy rules: a routed request adds 1 to the queue and 0.03 KV per new block, and every third arrival each pod finishes one request.</desc>
+      <g id="d501-run-simulation-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d501-run-simulation svg.diagram{width:100%;height:100%;max-width:none;}
+    #d501-run-simulation text{font-family:var(--font-mono);}
+    #d501-run-simulation .rq{font-size:24px;font-weight:600;fill:var(--color-text);}
+    #d501-run-simulation .rk{font-size:20px;fill:var(--color-text-muted);}
+    #d501-run-simulation .rule{font-size:20px;fill:var(--color-text-muted);text-anchor:end;}
+    #d501-run-simulation .gt{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d501-run-simulation .ch{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #d501-run-simulation .sq{fill:none;stroke:var(--color-text-dim);stroke-width:2.5;}
+    #d501-run-simulation .sqs{fill:color-mix(in oklab,var(--color-accent) 30%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #d501-run-simulation .band{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #d501-run-simulation .bandhi{fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #d501-run-simulation .pn{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d501-run-simulation .pl{font-size:38px;font-weight:700;fill:var(--color-text);text-anchor:middle;}
+    #d501-run-simulation .raw{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d501-run-simulation .con{font-size:28px;fill:var(--color-text);text-anchor:middle;}
+    #d501-run-simulation .tot{font-size:32px;font-weight:700;fill:var(--color-text);text-anchor:middle;}
+    #d501-run-simulation .win .tot{fill:var(--color-accent);}
+    #d501-run-simulation .warn{font-size:26px;fill:color-mix(in oklab,#f59e0b 72%,var(--color-text));text-anchor:middle;}
+    #d501-run-simulation .rl{font-size:22px;font-weight:600;fill:var(--color-text-soft);}
+    #d501-run-simulation .rf{font-size:22px;fill:var(--color-text-muted);}
+    #d501-run-simulation .ln{stroke:var(--color-text-faint);stroke-width:3;stroke-linecap:round;}
+    #d501-run-simulation .hd{fill:var(--color-text-faint);}
+    #d501-run-simulation .lnw{stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;}
+    #d501-run-simulation .hdw{fill:var(--color-accent);}
+    #d501-run-simulation .dot{fill:var(--color-accent);}
+    #d501-run-simulation .lb{font-size:20px;fill:var(--color-text-muted);}
+    #d501-run-simulation .pip{fill:none;stroke:var(--color-text-faint);stroke-width:2;}
+    #d501-run-simulation .pipf{fill:var(--color-accent);}
+    #d501-run-simulation .pipw{fill:#f59e0b;}
+    #d501-run-simulation .trk{fill:none;stroke:var(--color-text-faint);stroke-width:2;}
+    #d501-run-simulation .kvf{fill:var(--color-accent);}
+    #d501-run-simulation .kvw{fill:#f59e0b;}
+    #d501-run-simulation .tick{stroke:var(--color-text);stroke-width:2.5;}
+    #d501-run-simulation .nv{font-size:24px;fill:var(--color-text);}
+    #d501-run-simulation .kn{font-size:22px;fill:var(--color-text);}
+    #d501-run-simulation .slot{fill:none;stroke:var(--color-text-faint);stroke-width:2;}
+    #d501-run-simulation .slotf{fill:var(--color-accent);}
+    #d501-run-simulation .ot{font-size:20px;fill:var(--color-text-muted);}
+    #d501-run-simulation .sent{font-size:22px;fill:var(--color-text-soft);}
+    #d501-run-simulation .status{font-size:22px;fill:var(--color-text);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd501-run-simulation';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function ramp(k, a, b) { return clamp((k - a) / (b - a)); }
+      function fmt2(v) { return (Math.round(v * 100) / 100).toFixed(2); }
+
+      // DATA is produced by sim/simulate.py (scores via research/L3-epp/examples/score_math.py), pasted in by sim/build.py
+      var DATA = {"weights":{"queue":2,"kv":2,"prefix":3},"start":{"A":{"q":2,"kv":0.2,"sh":0,"ot":0},"B":{"q":2,"kv":0.4,"sh":0,"ot":0},"C":{"q":2,"kv":0.5,"sh":0,"ot":0}},"intro":"Fake pods. A request adds 1 to the queue and 0.03 KV per new block.","reqs":[{"n":1,"kind":"shared","kindText":"shared prompt","blocks":8,"nshared":6,"rows":{"A":{"raw":["1.00","0.80","0/8"],"con":["2.00","1.60","0.00"],"tot":"3.60"},"B":{"raw":["1.00","0.60","0/8"],"con":["2.00","1.20","0.00"],"tot":"3.20"},"C":{"raw":["1.00","0.50","0/8"],"con":["2.00","1.00","0.00"],"tot":"3.00"}},"dropped":[],"why":{},"pick":"A","arrive":{"A":{"q":2,"kv":0.2,"sh":0,"ot":0},"B":{"q":2,"kv":0.4,"sh":0,"ot":0},"C":{"q":2,"kv":0.5,"sh":0,"ot":0}},"after":{"A":{"q":3,"kv":0.44,"sh":6,"ot":2},"B":{"q":2,"kv":0.4,"sh":0,"ot":0},"C":{"q":2,"kv":0.5,"sh":0,"ot":0}},"status":"Queues tie and nothing is cached: lowest KV usage wins, so A."},{"n":2,"kind":"unique","kindText":"unique prompt","blocks":4,"nshared":0,"rows":{"A":{"raw":["0.00","0.56","0/4"],"con":["0.00","1.12","0.00"],"tot":"1.12"},"B":{"raw":["1.00","0.60","0/4"],"con":["2.00","1.20","0.00"],"tot":"3.20"},"C":{"raw":["1.00","0.50","0/4"],"con":["2.00","1.00","0.00"],"tot":"3.00"}},"dropped":[],"why":{},"pick":"B","arrive":{"A":{"q":3,"kv":0.44,"sh":6,"ot":2},"B":{"q":2,"kv":0.4,"sh":0,"ot":0},"C":{"q":2,"kv":0.5,"sh":0,"ot":0}},"after":{"A":{"q":3,"kv":0.44,"sh":6,"ot":2},"B":{"q":3,"kv":0.52,"sh":0,"ot":4},"C":{"q":2,"kv":0.5,"sh":0,"ot":0}},"status":"Unique prompt: A's queue is longest, B has less KV in use than C."},{"n":3,"kind":"shared","kindText":"shared prompt","blocks":8,"nshared":6,"rows":{"A":{"raw":["0.00","0.56","6/8"],"con":["0.00","1.12","2.25"],"tot":"3.37"},"B":{"raw":["0.00","0.48","0/8"],"con":["0.00","0.96","0.00"],"tot":"0.96"},"C":{"raw":["1.00","0.50","0/8"],"con":["2.00","1.00","0.00"],"tot":"3.00"}},"dropped":[],"why":{},"pick":"A","arrive":{"A":{"q":3,"kv":0.44,"sh":6,"ot":2},"B":{"q":3,"kv":0.52,"sh":0,"ot":4},"C":{"q":2,"kv":0.5,"sh":0,"ot":0}},"after":{"A":{"q":4,"kv":0.5,"sh":6,"ot":4},"B":{"q":3,"kv":0.52,"sh":0,"ot":4},"C":{"q":2,"kv":0.5,"sh":0,"ot":0}},"status":"6 of 8 blocks match on A: prefix outvotes its longer queue."},{"n":4,"kind":"shared","kindText":"shared prompt","blocks":8,"nshared":6,"rows":{"A":{"raw":["0.00","0.50","6/8"],"con":["0.00","1.00","2.25"],"tot":"3.25"},"B":{"raw":["0.50","0.48","0/8"],"con":["1.00","0.96","0.00"],"tot":"1.96"},"C":{"raw":["1.00","0.50","0/8"],"con":["2.00","1.00","0.00"],"tot":"3.00"}},"dropped":[],"why":{},"pick":"A","arrive":{"A":{"q":3,"kv":0.5,"sh":6,"ot":4},"B":{"q":2,"kv":0.52,"sh":0,"ot":4},"C":{"q":1,"kv":0.5,"sh":0,"ot":0}},"after":{"A":{"q":4,"kv":0.56,"sh":6,"ot":6},"B":{"q":2,"kv":0.52,"sh":0,"ot":4},"C":{"q":1,"kv":0.5,"sh":0,"ot":0}},"status":"Again: A scores 3.25 against 3.00 for C, the prompt sticks to A."},{"n":5,"kind":"unique","kindText":"unique prompt","blocks":4,"nshared":0,"rows":{"A":{"raw":["0.00","0.44","0/4"],"con":["0.00","0.88","0.00"],"tot":"0.88"},"B":{"raw":["0.67","0.48","0/4"],"con":["1.33","0.96","0.00"],"tot":"2.29"},"C":{"raw":["1.00","0.50","0/4"],"con":["2.00","1.00","0.00"],"tot":"3.00"}},"dropped":[],"why":{},"pick":"C","arrive":{"A":{"q":4,"kv":0.56,"sh":6,"ot":6},"B":{"q":2,"kv":0.52,"sh":0,"ot":4},"C":{"q":1,"kv":0.5,"sh":0,"ot":0}},"after":{"A":{"q":4,"kv":0.56,"sh":6,"ot":6},"B":{"q":2,"kv":0.52,"sh":0,"ot":4},"C":{"q":2,"kv":0.62,"sh":0,"ot":4}},"status":"Unique prompt: no prefix to reuse, C has the shortest queue."},{"n":6,"kind":"shared","kindText":"shared prompt","blocks":8,"nshared":6,"rows":{"A":{"raw":["0.00","0.44","6/8"],"con":["0.00","0.88","2.25"],"tot":"3.13"},"B":{"raw":["1.00","0.48","0/8"],"con":["2.00","0.96","0.00"],"tot":"2.96"},"C":{"raw":["1.00","0.38","0/8"],"con":["2.00","0.76","0.00"],"tot":"2.76"}},"dropped":[],"why":{},"pick":"A","arrive":{"A":{"q":4,"kv":0.56,"sh":6,"ot":6},"B":{"q":2,"kv":0.52,"sh":0,"ot":4},"C":{"q":2,"kv":0.62,"sh":0,"ot":4}},"after":{"A":{"q":5,"kv":0.62,"sh":6,"ot":8},"B":{"q":2,"kv":0.52,"sh":0,"ot":4},"C":{"q":2,"kv":0.62,"sh":0,"ot":4}},"status":"A wins by only 0.17: its queue is 4, the prefix still pulls."},{"n":7,"kind":"shared","kindText":"shared prompt","blocks":8,"nshared":6,"rows":{"A":{"raw":["0.00","0.38","6/8"],"con":["0.00","0.76","2.25"],"tot":"3.01"},"B":{"raw":["1.00","0.48","0/8"],"con":["2.00","0.96","0.00"],"tot":"2.96"},"C":{"raw":["1.00","0.38","0/8"],"con":["2.00","0.76","0.00"],"tot":"2.76"}},"dropped":[],"why":{},"pick":"A","arrive":{"A":{"q":4,"kv":0.62,"sh":6,"ot":8},"B":{"q":1,"kv":0.52,"sh":0,"ot":4},"C":{"q":1,"kv":0.62,"sh":0,"ot":4}},"after":{"A":{"q":5,"kv":0.68,"sh":6,"ot":10},"B":{"q":1,"kv":0.52,"sh":0,"ot":4},"C":{"q":1,"kv":0.62,"sh":0,"ot":4}},"status":"A wins by only 0.05, with queue 4 and KV 0.62."},{"n":8,"kind":"shared","kindText":"shared prompt","blocks":8,"nshared":6,"rows":{"A":null,"B":{"raw":["1.00","0.48","0/8"],"con":["2.00","0.96","0.00"],"tot":"2.96"},"C":{"raw":["1.00","0.38","0/8"],"con":["2.00","0.76","0.00"],"tot":"2.76"}},"dropped":["A"],"why":{"A":"filtered out: queue is 5"},"pick":"B","arrive":{"A":{"q":5,"kv":0.68,"sh":6,"ot":10},"B":{"q":1,"kv":0.52,"sh":0,"ot":4},"C":{"q":1,"kv":0.62,"sh":0,"ot":4}},"after":{"A":{"q":5,"kv":0.68,"sh":6,"ot":10},"B":{"q":2,"kv":0.76,"sh":6,"ot":6},"C":{"q":1,"kv":0.62,"sh":0,"ot":4}},"status":"A's queue is 5, so the filter drops it. B wins and now holds the prompt too."}]};
+      var PODS = ['A', 'B', 'C'], NREQ = DATA.reqs.length;
+      var RY = [120, 236, 352], RH = 110;
+      var CX = [135, 245, 355], TX = 470;           // queue, kv, prefix, total columns
+      var NPIP = 6, NSLOT = 6;
+      var RULES = [['queue', '(max - q) / (max - min)'], ['KV', '1 - usage'], ['prefix', 'matched / total blocks']];
+
+      var g = document.getElementById(ID + '-g');
+
+      // ---- top band: the request and the filter rule
+      var gReq = el('g', {}, g);
+      var reqLabel = el('text', { 'class': 'rq', x: 20, y: 46 }, gReq, '');
+      var reqSq = [];
+      for (var b = 0; b < 8; b++) reqSq.push(el('rect', { 'class': 'sq', x: 196 + b * 36, y: 24, width: 30, height: 30, rx: 6 }, gReq));
+      var reqKind = el('text', { 'class': 'rk', x: 500, y: 46 }, gReq, '');
+      el('text', { 'class': 'rule', x: 1100, y: 46 }, g, 'filters out queue 5+ or KV 0.8+');
+
+      // ---- headers
+      el('text', { 'class': 'gt', x: 300, y: 86 }, g, 'endpoint picker, default weights');
+      el('text', { 'class': 'gt', x: 828, y: 86 }, g, 'vLLM pod (simulated)');
+      ['queue ×' + DATA.weights.queue, 'KV ×' + DATA.weights.kv, 'prefix ×' + DATA.weights.prefix].forEach(function (t, i) {
+        el('text', { 'class': 'ch', x: CX[i], y: 110 }, g, t);
+      });
+      el('text', { 'class': 'ch', x: TX, y: 110 }, g, 'total');
+
+      // ---- one band per pod
+      var rows = PODS.map(function (name, i) {
+        var y0 = RY[i], r = {};
+        r.g = el('g', {}, g);
+        el('rect', { 'class': 'band', x: 20, y: y0, width: 1080, height: RH, rx: 14 }, r.g);
+        r.hi = el('rect', { 'class': 'bandhi', x: 20, y: y0, width: 1080, height: RH, rx: 14 }, r.g);
+        el('text', { 'class': 'pn', x: 52, y: y0 + 40 }, r.g, 'pod');
+        el('text', { 'class': 'pl', x: 52, y: y0 + 86 }, r.g, name);
+        // score cells
+        r.cells = el('g', {}, r.g);
+        r.raw = []; r.con = [];
+        CX.forEach(function (cx) {
+          r.raw.push(el('text', { 'class': 'raw', x: cx, y: y0 + 44 }, r.cells, ''));
+          r.con.push(el('text', { 'class': 'con', x: cx, y: y0 + 84 }, r.cells, ''));
+        });
+        r.tot = el('text', { 'class': 'tot', x: TX, y: y0 + 72 }, r.cells, '');
+        r.rule = el('g', {}, r.g);
+        el('text', { 'class': 'rl', x: 84, y: y0 + 66 }, r.rule, RULES[i][0]);
+        el('text', { 'class': 'rf', x: 190, y: y0 + 66 }, r.rule, RULES[i][1]);
+        r.warn = el('text', { 'class': 'warn', x: 300, y: y0 + 66 }, r.g, '');
+        // route arrow
+        r.arrow = el('g', {}, r.g);
+        r.ln = el('line', { 'class': 'ln', x1: 530, y1: y0 + 55, x2: 552, y2: y0 + 55 }, r.arrow);
+        r.hd = el('polygon', { 'class': 'hd', points: '564,' + (y0 + 55) + ' 550,' + (y0 + 47) + ' 550,' + (y0 + 63) }, r.arrow);
+        r.dot = el('circle', { 'class': 'dot', cx: 530, cy: y0 + 55, r: 7 }, r.g);
+        // pod card: queue pips, KV bar
+        el('text', { 'class': 'lb', x: 580, y: y0 + 42 }, r.g, 'queue');
+        r.pipBg = []; r.pipFg = [];
+        for (var j = 0; j < NPIP; j++) {
+          r.pipBg.push(el('rect', { 'class': 'pip', x: 648 + j * 20, y: y0 + 24, width: 16, height: 18, rx: 4 }, r.g));
+          r.pipFg.push(el('rect', { 'class': 'pipf', x: 648 + j * 20, y: y0 + 24, width: 16, height: 18, rx: 4 }, r.g));
+        }
+        r.qn = el('text', { 'class': 'nv', x: 776, y: y0 + 42 }, r.g, '');
+        el('text', { 'class': 'lb', x: 580, y: y0 + 90 }, r.g, 'KV');
+        el('rect', { 'class': 'trk', x: 624, y: y0 + 72, width: 112, height: 18, rx: 9 }, r.g);
+        r.kvf = el('rect', { 'class': 'kvf', x: 624, y: y0 + 72, width: 0, height: 18, rx: 9 }, r.g);
+        el('line', { 'class': 'tick', x1: 624 + 0.8 * 112, y1: y0 + 67, x2: 624 + 0.8 * 112, y2: y0 + 95 }, r.g);
+        r.kvn = el('text', { 'class': 'kn', x: 748, y: y0 + 90 }, r.g, '');
+        // pod card: cached blocks and the requests sent here
+        el('text', { 'class': 'lb', x: 826, y: y0 + 42 }, r.g, 'cached');
+        r.slotBg = []; r.slotFg = [];
+        for (var s = 0; s < NSLOT; s++) {
+          r.slotBg.push(el('rect', { 'class': 'slot', x: 906 + s * 22, y: y0 + 24, width: 18, height: 18, rx: 4 }, r.g));
+          r.slotFg.push(el('rect', { 'class': 'slotf', x: 906 + s * 22, y: y0 + 24, width: 18, height: 18, rx: 4 }, r.g));
+        }
+        r.ot = el('text', { 'class': 'ot', x: 1046, y: y0 + 42 }, r.g, '');
+        el('text', { 'class': 'lb', x: 826, y: y0 + 90 }, r.g, 'sent');
+        r.sent = el('text', { 'class': 'sent', x: 906, y: y0 + 90 }, r.g, '');
+        return r;
+      });
+
+      var status = el('text', { 'class': 'status', x: 560, y: 492 }, g, '');
+
+      // ---- state of pod p seen at step n, progress k (0..1); pre = before the arrival tick, mid = at arrival, post = after routing
+      function podView(name, n, k) {
+        var req = DATA.reqs[n - 1];
+        var pre = n === 1 ? DATA.start[name] : DATA.reqs[n - 2].after[name];
+        var mid = req.arrive[name], post = req.after[name];
+        var a = ramp(k, 0.0, 0.18), d = ramp(k, 0.74, 0.92);
+        var q = d > 0 ? Deck.lerp(mid.q, post.q, d) : Deck.lerp(pre.q, mid.q, a);
+        var kv = d > 0 ? Deck.lerp(mid.kv, post.kv, d) : Deck.lerp(pre.kv, mid.kv, a);
+        var qShown = k < 0.09 ? pre.q : (k < 0.8 ? mid.q : post.q);
+        var otShown = k < 0.8 ? mid.ot : post.ot;
+        var slots = [];
+        for (var i = 0; i < NSLOT; i++) {
+          var had = mid.sh > i ? 1 : 0, gets = post.sh > i ? 1 : 0;
+          slots.push(had ? 1 : (gets ? ramp(k, 0.76 + i * 0.02, 0.82 + i * 0.02) : 0));
+        }
+        var sent = [];
+        for (var m = 0; m < n - 1; m++) if (DATA.reqs[m].pick === name) sent.push(m + 1);
+        if (req.pick === name && k >= 0.8) sent.push(n);
+        return { q: q, kv: kv, qShown: qShown, otShown: otShown, slots: slots, sent: sent };
+      }
+
+      function drawPod(r, v) {
+        for (var j = 0; j < NPIP; j++) {
+          var f = clamp(v.q - j);
+          r.pipFg[j].setAttribute('opacity', f.toFixed(3));
+          r.pipFg[j].setAttribute('class', v.q >= 4.5 && j >= 4 ? 'pipw' : 'pipf');
+        }
+        r.qn.textContent = String(v.qShown);
+        r.kvf.setAttribute('width', Math.max(0, Math.min(1, v.kv)) * 112);
+        r.kvf.setAttribute('class', v.kv >= 0.8 ? 'kvw' : 'kvf');
+        r.kvn.textContent = fmt2(v.kv);
+        for (var i = 0; i < NSLOT; i++) r.slotFg[i].setAttribute('opacity', v.slots[i].toFixed(3));
+        r.ot.textContent = v.otShown > 0 ? '+' + v.otShown : '';
+        r.sent.textContent = v.sent.join(' ');
+      }
+
+      function drawRows(n, k) {
+        var req = DATA.reqs[n - 1];
+        var reveal = ramp(k, 0.22, 0.34), win = ramp(k, 0.52, 0.62);
+        rows.forEach(function (r, i) {
+          var name = PODS[i], sc = req.rows[name], dropped = req.dropped.indexOf(name) !== -1;
+          var show = clamp((k - (0.22 + i * 0.07)) / 0.12);
+          var isWin = req.pick === name;
+          r.cells.setAttribute('opacity', (sc && !dropped ? show * (isWin ? 1 : 1 - 0.5 * win) : 0).toFixed(3));
+          if (sc && !dropped) {
+            for (var c = 0; c < 3; c++) { r.raw[c].textContent = sc.raw[c]; r.con[c].textContent = sc.con[c]; }
+            r.tot.textContent = sc.tot;
+          }
+          r.rule.setAttribute('opacity', (n === 1 ? 1 - ramp(k, 0.0, 0.18) : 0).toFixed(3));
+          r.warn.textContent = dropped ? req.why[name] : '';
+          r.warn.setAttribute('opacity', (dropped ? show : 0).toFixed(3));
+          r.g.setAttribute('class', isWin ? 'win' : '');
+          r.hi.setAttribute('opacity', (isWin ? win : 0).toFixed(3));
+          r.arrow.setAttribute('class', '');
+          r.ln.setAttribute('class', isWin && win > 0 ? 'lnw' : 'ln');
+          r.hd.setAttribute('class', isWin && win > 0 ? 'hdw' : 'hd');
+          r.arrow.setAttribute('opacity', (dropped ? 0.25 : 1).toFixed(3));
+          var f = isWin ? ramp(k, 0.62, 0.78) : 0;
+          r.dot.setAttribute('cx', (530 + 34 * f).toFixed(1));
+          r.dot.setAttribute('opacity', (isWin && f > 0 && f < 1 ? 1 : 0).toFixed(3));
+        });
+      }
+
+      function drawTop(n, k) {
+        var req = DATA.reqs[n - 1];
+        var out = 1 - ramp(k, 0.0, 0.10), inn = ramp(k, 0.10, 0.24);
+        var prev = n > 1 ? DATA.reqs[n - 2] : null;
+        var cur = k < 0.10 && prev ? prev : req;
+        var vis = k < 0.10 ? (prev ? out : 0) : inn;
+        reqLabel.textContent = 'request ' + cur.n + '/' + NREQ;
+        reqLabel.setAttribute('opacity', vis.toFixed(3));
+        for (var b = 0; b < 8; b++) {
+          var has = b < cur.blocks;
+          reqSq[b].setAttribute('opacity', (has ? vis : 0).toFixed(3));
+          reqSq[b].setAttribute('class', b < cur.nshared ? 'sqs' : 'sq');
+        }
+        reqKind.textContent = cur.kindText;
+        reqKind.setAttribute('opacity', vis.toFixed(3));
+      }
+
+      function drawStatus(n, k) {
+        var req = DATA.reqs[n - 1];
+        var prev = n > 1 ? DATA.reqs[n - 2].status : DATA.intro;
+        status.textContent = k < 0.15 ? prev : req.status;
+        status.setAttribute('opacity', (k < 0.15 ? 1 - ramp(k, 0.0, 0.15) : ramp(k, 0.5, 0.66)).toFixed(3));
+      }
+
+      function draw(n, k) {
+        if (n === 0) {
+          reqLabel.textContent = DATA.reqs.length + ' requests will arrive';
+          reqLabel.setAttribute('opacity', 1);
+          reqSq.forEach(function (s) { s.setAttribute('opacity', 0); });
+          reqKind.setAttribute('opacity', 0);
+          rows.forEach(function (r, i) {
+            r.cells.setAttribute('opacity', 0); r.warn.setAttribute('opacity', 0); r.hi.setAttribute('opacity', 0);
+            r.g.setAttribute('class', ''); r.ln.setAttribute('class', 'ln'); r.hd.setAttribute('class', 'hd');
+            r.arrow.setAttribute('opacity', 1); r.dot.setAttribute('opacity', 0); r.rule.setAttribute('opacity', 1);
+            var s0 = DATA.start[PODS[i]];
+            drawPod(r, { q: s0.q, kv: s0.kv, qShown: s0.q, otShown: s0.ot, slots: [0, 0, 0, 0, 0, 0], sent: [] });
+          });
+          status.textContent = DATA.intro;
+          status.setAttribute('opacity', 1);
+          return;
+        }
+        drawTop(n, k);
+        drawRows(n, k);
+        rows.forEach(function (r, i) { drawPod(r, podView(PODS[i], n, k)); });
+        drawStatus(n, k);
+      }
+      draw(0, 1);
+
+      var cancel = null;
+      Deck.slide('d501-run-simulation', {
+        enter: function () { if (cancel) { cancel(); cancel = null; } draw(0, 1); },
+        step: function (n, prev, c) {
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant || n === 0 || n < prev) { draw(n, 1); return; }
+          draw(n, 0);
+          cancel = Deck.tween(1500, function (k) { draw(n, k); }, { ease: Deck.ease.linear });
+        }
+      });
+    })();
+  </script>
+</section>

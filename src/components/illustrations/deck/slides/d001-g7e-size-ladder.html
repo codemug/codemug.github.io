@@ -1,0 +1,107 @@
+<section class="slide" id="d001-g7e-size-ladder" data-steps="4">
+  <p class="kicker reveal">g7e</p>
+  <p class="statement reveal">Six sizes, one GPU to eight.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d001-g7e-size-ladder-t d001-g7e-size-ladder-d">
+      <title id="d001-g7e-size-ladder-t">The g7e size ladder: six sizes from g7e.2xlarge to g7e.48xlarge, one to eight 96 GB GDDR7 GPUs each</title>
+      <desc id="d001-g7e-size-ladder-d">Six columns, one per g7e size: g7e.2xlarge, g7e.4xlarge, g7e.8xlarge, g7e.12xlarge, g7e.24xlarge, g7e.48xlarge. Rows show GPU count (1, 1, 1, 2, 4, 8 GPUs, each 96 GB GDDR7), vCPU (8 to 192), RAM (64 to 2048 GiB), network (50 to 1600 Gbps) and NVMe instance store (1.9 TB x1 for the first three sizes, then 3.8 TB x1, x2, x4). Row labels are right-aligned in their own column at x 120; the cards start at x 150. Steps light the GPU row, then RAM, then NVMe; the last step rings g7e.2xlarge as the article's pick, one GPU per node.</desc>
+      <g id="d001-g7e-size-ladder-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d001-g7e-size-ladder svg.diagram{width:100%;height:100%;max-width:none;}
+    #d001-g7e-size-ladder text{font-family:var(--font-mono);}
+    #d001-g7e-size-ladder .colbox{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;}
+    #d001-g7e-size-ladder .sizel{font-size:20px;text-anchor:middle;fill:var(--color-text);}
+    /* row labels: value colour at 70% opacity, right-aligned in their own column */
+    #d001-g7e-size-ladder .gutter{font-size:20px;text-anchor:end;fill:var(--color-text-soft);opacity:.7;}
+    #d001-g7e-size-ladder .val{font-size:20px;text-anchor:middle;fill:var(--color-text-soft);}
+    #d001-g7e-size-ladder .gpu{fill:var(--color-accent);}
+    #d001-g7e-size-ladder .ring{fill:none;stroke:var(--color-accent);stroke-width:3;}
+    #d001-g7e-size-ladder .pick{font-size:20px;text-anchor:middle;fill:var(--color-accent);}
+    #d001-g7e-size-ladder .cap{font-size:22px;text-anchor:middle;fill:var(--color-text-muted);}
+    #d001-g7e-size-ladder [data-from]{opacity:0;transition:opacity .5s;}
+    #d001-g7e-size-ladder [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd001-g7e-size-ladder';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // y-bands (each text layer in its own band, >=12 units clear of the next):
+      //   69..84   pick tag (step 4, above the first card's name)
+      //   97..112  size names (baseline 112, above the cards)
+      //   130..420 cards (x 150..1080): GPU squares 190..240 (2 rows of 22px),
+      //            vCPU 265..280, RAM 305..320, NET 345..360, NVMe 385..400
+      //   row labels: right-aligned, ending at x 120 (cards start at x 150, 30 clear)
+      //   452..468 caption (baseline 468)
+      var DATA = [
+        { name: 'g7e.2xlarge',  gpu: 1, vcpu: '8 vCPU',   ram: '64 GiB',   net: '50 Gbps',   nvme: '1.9 TB x1' },
+        { name: 'g7e.4xlarge',  gpu: 1, vcpu: '16 vCPU',  ram: '128 GiB',  net: '50 Gbps',   nvme: '1.9 TB x1' },
+        { name: 'g7e.8xlarge',  gpu: 1, vcpu: '32 vCPU',  ram: '256 GiB',  net: '100 Gbps',  nvme: '1.9 TB x1' },
+        { name: 'g7e.12xlarge', gpu: 2, vcpu: '48 vCPU',  ram: '512 GiB',  net: '400 Gbps',  nvme: '3.8 TB x1' },
+        { name: 'g7e.24xlarge', gpu: 4, vcpu: '96 vCPU',  ram: '1024 GiB', net: '800 Gbps',  nvme: '3.8 TB x2' },
+        { name: 'g7e.48xlarge', gpu: 8, vcpu: '192 vCPU', ram: '2048 GiB', net: '1600 Gbps', nvme: '3.8 TB x4' }
+      ];
+      // six 140-wide cards, 18 gaps, x 150..1080 (label column ends at x 120)
+      var COL_W = 140, COL_X0 = 150, PITCH = 158;
+      var CX = DATA.map(function (_, k) { return COL_X0 + k * PITCH + COL_W / 2; });
+      var SQ = 22, SQG = 6; // GPU square size and gap (>=22 units)
+
+      var g = document.getElementById(ID + '-g');
+
+      // row labels, right-aligned in their own column (clear of the cards by 30)
+      el('text', { 'class': 'gutter', x: 120, y: 221 }, g, 'GPU');
+      el('text', { 'class': 'gutter', x: 120, y: 280 }, g, 'vCPU');
+      el('text', { 'class': 'gutter', x: 120, y: 320 }, g, 'RAM');
+      el('text', { 'class': 'gutter', x: 120, y: 360 }, g, 'NET');
+      el('text', { 'class': 'gutter', x: 120, y: 400 }, g, 'NVMe');
+
+      DATA.forEach(function (d, k) {
+        var cx = CX[k];
+        el('text', { 'class': 'sizel', x: cx, y: 112 }, g, d.name);
+        el('rect', { 'class': 'colbox', x: cx - COL_W / 2, y: 130, width: COL_W, height: 290, rx: 10 }, g);
+        el('text', { 'class': 'val', x: cx, y: 280 }, g, d.vcpu);
+        el('text', { 'class': 'val', x: cx, y: 360 }, g, d.net);
+        // GPU squares: a 4-wide grid, up to 2 rows (step 1 lights the row across all rungs)
+        var gpg = el('g', { 'data-from': '1' }, g);
+        var gx0 = cx - (4 * SQ + 3 * SQG) / 2;
+        for (var i = 0; i < d.gpu; i++) {
+          el('rect', { 'class': 'gpu', x: gx0 + (i % 4) * (SQ + SQG), y: (i < 4 ? 190 : 218), width: SQ, height: SQ, rx: 4 }, gpg);
+        }
+        // RAM (step 2) and NVMe (step 3) rows
+        var ramg = el('g', { 'data-from': '2' }, g);
+        el('text', { 'class': 'val', x: cx, y: 320 }, ramg, d.ram);
+        var nvg = el('g', { 'data-from': '3' }, g);
+        el('text', { 'class': 'val', x: cx, y: 400 }, nvg, d.nvme);
+      });
+
+      // step 4: ring the first card as the article's pick (tag above its name)
+      var pick = el('g', { 'data-from': '4' }, g);
+      el('rect', { 'class': 'ring', x: COL_X0 - 4, y: 126, width: COL_W + 8, height: 298, rx: 12 }, pick);
+      el('text', { 'class': 'pick', x: CX[0], y: 84 }, pick, "the article's pick");
+
+      // one caption per state (22px so the longest line keeps its margins)
+      el('g', { 'data-from': '0', 'data-until': '1' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'the family spans 8 to 192 vCPU and 50 to 1600 Gbps'));
+      el('g', { 'data-from': '1', 'data-until': '2' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'GPUs per size: 1, 1, 1, 2, 4, 8 (each GPU: 96 GB GDDR7)'));
+      el('g', { 'data-from': '2', 'data-until': '3' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'RAM doubles at every size, from 64 GiB to 2048 GiB'));
+      el('g', { 'data-from': '3', 'data-until': '4' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'NVMe store: from one 1.9 TB disk to four 3.8 TB disks'));
+      el('g', { 'data-from': '4' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'one GPU per node: a node failure costs one replica, a scale-up adds one GPU'));
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

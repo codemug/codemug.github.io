@@ -775,5 +775,152 @@
     "kicker": "quantization",
     "statement": "Whether the GPU multiplies FP8 or FP4 natively depends on its generation.",
     "notes": "SAY: this is where part 2 hands over. Quantization only pays off if the GPU can do the maths in that format directly, and which formats it multiplies natively (FP8, FP4) depends on its generation. So the next questions are about the hardware: how much memory, how much bandwidth, which interconnect, and which GPU. That is part 3. (No per-generation support table here on purpose: it needs vendor documentation as its source, so it belongs in part 3. Nothing on this slide is a measurement.)"
+  },
+  "d001-g7e-size-ladder": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "g7e",
+    "statement": "Six sizes, one GPU to eight.",
+    "notes": "SAY: The g7e family is one GPU shape at six sizes. From g7e.2xlarge to g7e.48xlarge you go from one to eight 96 GB GDDR7 GPUs, and vCPU, RAM and network scale with it, from 8 vCPU and 50 Gbps up to 192 vCPU and 1600 Gbps. The NVMe instance store goes from a single 1.9 TB disk to four 3.8 TB disks. For this article's one-GPU-per-node pool we pick g7e.2xlarge."
+  },
+  "d002-regions-quota": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "regions and quota",
+    "statement": "Thirteen regions offer g7e, and the quota counts vCPUs.",
+    "notes": "SAY: On the EC2 instance types by Region page, g7e is listed in 13 of the 39 Regions. The lit dots are those 13: us-east-1, us-east-2, us-west-2, ap-south-1, ap-southeast-3, ap-southeast-5, ap-southeast-7, ap-northeast-1, ap-northeast-2, eu-central-1, eu-west-2, eu-south-2 and eu-north-1. Three well-known Regions do not offer g7e: us-west-1 (N. California), ap-southeast-1 (Singapore) and eu-west-1 (Ireland). Then the quota that gates the pool: Running On-Demand G and VT instances is measured in vCPU, defaults to 0, and is adjustable. A g7e.2xlarge uses 8 vCPU, so a quota of 80 vCPU allows exactly 10 of them, 80 divided by 8. And 192 vCPU is exactly one g7e.48xlarge."
+  },
+  "d101-karpenter-loop": {
+    "steps": 5,
+    "tool": "none",
+    "kicker": "karpenter",
+    "statement": "A pending pod becomes a node in five moves.",
+    "notes": "SAY: A vllm pod is Pending because it asks for a GPU and no existing node has one free. Karpenter does not wait for a human: it finds the pending pod, simulates a tight bin-pack to pick a node shape, creates the NodeClaim for it, and calls EC2 RunInstances with the EC2NodeClass resolved. Once the Bottlerocket node is Ready and advertising the GPU, kube-scheduler does the binding. Remember the division of labour: Karpenter launches the node, but the scheduler still binds the pod."
+  },
+  "d102-bottlerocket-anatomy": {
+    "steps": 7,
+    "tool": "none",
+    "kicker": "bottlerocket",
+    "statement": "A node you cannot log in to, by design.",
+    "notes": "SAY: A g7e node runs Bottlerocket, and the first thing you notice is that you cannot log in. The stack builds bottom to top. At the bottom, the root filesystem is read-only and verified block by block by dm-verity; if corruption is detected the kernel restarts. /etc is a tmpfs, so configuration is not file edits but values set through the settings API, and settings persist across reboot and OS upgrades. /local is the one writable filesystem, and it survives reboots and OS updates. SELinux runs in enforcing mode, and there is no shell and no SSH at all: admin happens through the admin and control containers, and the API runs over a unix socket. The aws-k8s-nvidia variant comes with the NVIDIA stack baked in: driver, container toolkit, device plugin, MIG manager and fabric manager. So what does an SRE give up? The ad hoc shell. Every change goes through settings, the API, or a new AMI."
+  },
+  "d201-memory-budget": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "gpu memory",
+    "statement": "Most of the card becomes KV cache.",
+    "notes": "SAY: Start with one 96 GB card, about 95.59 GiB as the driver reports it (an assumption, read your own nvidia-smi). The utilization flag cuts it: 0.90 means vLLM may use 86.03 GiB and 9.56 GiB stays outside. Inside that budget the NVFP4 weights take 20.42 GiB, and vLLM measures another few GiB for activations, non-torch memory and CUDA graphs: 5 GiB is my assumed value, the real one is the gap you see in the startup log. Whatever is left, 60.62 GiB here, is the KV cache pool, 1,168 blocks of 53.125 MiB. Read the real number from the line Available KV cache memory. Every figure on this slide is computed, none was measured on a GPU."
+  },
+  "d202-kv-block": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "kv cache",
+    "statement": "One KV block, two meanings.",
+    "notes": "SAY: Qwen3.8-27B has 64 layers: sixteen groups of three linear-attention layers and one full-attention layer, plus one MTP layer when speculative decoding is on. vLLM regroups them into groups of 17 layers: one attention group and three state groups, the last with three padding layers. All groups share one block size so one pool can serve both. In the attention group a block holds 1,600 tokens of K and V; in a state group the same block holds a single copy of the recurrent state, whatever the context length. That is why the block size is 1,600 tokens: it is the smallest aligned size whose attention page is at least one state page. A request of 8,192 tokens needs 6 attention blocks and 15 state blocks, so the state costs more than the attention at that length. Computed for fp8 KV, MTP 3 and prefix caching on; read the startup line Setting attention block size to N tokens."
+  },
+  "d203-prefix-grid": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "prefix cache",
+    "statement": "Prefix hits land on block boundaries.",
+    "notes": "SAY: Prefix caching works on whole blocks, and for this model a block is 1,600 tokens. Take a 3,000 token prompt. If only the first 1,000 tokens are shared, block 0 never fills, so the cache can reuse nothing: 0 hit tokens, and the 1,000 tokens are recomputed. If 1,700 tokens are shared, block 0 is whole and 1,600 tokens hit; the other 100 are recomputed. So hit tokens equal floor of shared over 1,600, times 1,600. In practice a short system prompt, under 1,600 tokens, never hits. Check the prefix cache hit and query counters and the startup block size line. The block size is computed, not measured."
+  },
+  "d204-streamer-pipeline": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "model loading",
+    "statement": "The streamer reads while the GPU loads.",
+    "notes": "SAY: The default way to load is two phases: fetch the whole checkpoint onto local disk, from the Hub or an init container copy from S3, and only then load it to the GPU, so the GPU waits. The Run:ai Model Streamer overlaps the two. It reads the safetensors shards straight from S3 with several concurrent clients, in 8 MiB chunks, into a buffer in CPU memory, and vLLM copies each tensor to the GPU while later chunks are still arriving. Two knobs matter: concurrency, 16 in this article against a default of 8 clients, and memory_limit, default 40 GB with 18 ring buffers. The NIC is the ceiling at 50 Gbps. The host RAM is the trap: the buffer can hold the whole 20.42 GiB checkpoint and the pod also needs about 10 GiB for the process, so size the pod memory limit for both. The animation timing is illustrative, not a benchmark."
+  },
+  "d301-round-robin-vs-epp": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "endpoint picker",
+    "statement": "Round robin deals blind. The picker scores first.",
+    "notes": "SAY: Three vLLM pods in three different states. Pod A is idle but has none of this prompt cached, pod B has a short queue and the whole prompt prefix cached, pod C has the longest queue and the highest KV usage. Round robin hands the request to whoever is next in line, here pod C, and never looks at any of that. With the endpoint picker the gateway parks the request and sends headers and body to it. The picker drops pods past its limits (queue above 5 or KV above 0.8, none here), scores each pod as 2 times the queue score plus 2 times the KV score plus 3 times the prefix score, and the highest total wins: pod B with 4.6, against 3.6 for A and 1.8 for C. It replies with that pod's address and the gateway forwards the request straight to it. The pod numbers are toy values; the weights are the built-in default."
+  },
+  "d302-three-signals": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "endpoint picker",
+    "statement": "Three ways in. The pods are only asked about load.",
+    "notes": "SAY: The picker has three ways to learn about pods, and only the first one asks the pods anything. A: every 50 milliseconds it does a plain HTTP GET of /metrics on each pod and keeps five series; waiting requests feeds the queue scorer and KV cache usage feeds the KV scorer. B: the prefix scorer does not read vLLM's prefix cache counters at all. After each pick the picker writes down, in its own memory, which pod got which 64-token blocks of the prompt, and scores later requests against that record. That is the approximate prefix index and it is the llm-d default. C: if you opt in, vLLM publishes BlockStored and BlockRemoved events over ZMQ and the picker builds a precise index from the real cache contents. The default in llm-d v1.0.0 is A plus B."
+  },
+  "d303-weights-exchange-rate": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "endpoint picker",
+    "statement": "Scorer weights are an exchange rate.",
+    "notes": "SAY: Scores are weighted sums, so every weight is an exchange rate between signals. Take two pods: A has the prompt prefix cached, B is idle with KV usage 0.10, both queues empty. A full prefix hit is worth the prefix weight and each point of KV usage costs the KV weight, so A wins while its KV usage stays below 0.10 plus prefix weight over KV weight. With the built-in 2/2/3 that is 1.60, more than the whole KV range, so the score never lets go and only the 0.8 filter stops A: six of six picks went to A at 0.79 and none at 0.85. With 2/3/1 it is 0.10 plus a third, 0.43: six of six at 0.43 and none at 0.44. With the built-in weights but one queued request on A, the queue costs A two points and the break-even drops to 0.60. Measured on the real picker image with two fake pods, six fresh prompts per cell."
+  },
+  "d401-control-and-data-plane": {
+    "steps": 5,
+    "tool": "none",
+    "kicker": "envoy ai gateway",
+    "statement": "Envoy Gateway does this. The AI Gateway adds that.",
+    "notes": "SAY: Start with what you already have. Envoy Gateway is one controller, the envoy-gateway Deployment. It watches the Gateway API kinds and programs the Envoy proxy pod over xDS, and that pod is 2 of 2 ready, envoy plus shutdown-manager. The AI Gateway adds three things. One, a second controller, ai-gateway-controller, which watches the four new kinds, AIGatewayRoute, AIServiceBackend, BackendSecurityPolicy and GatewayConfig, and shares Gateway, ReferenceGrant and InferencePool with Envoy Gateway. Two, Envoy Gateway has an extension manager that calls an extension server over gRPC on port 1063 with the Translation, Cluster and Route hooks, before the xDS goes to Envoy; that is also how InferencePool reaches the AI controller. Three, once the first AIGatewayRoute exists, a mutating webhook on port 9443 adds the ai-gateway-extproc container to the proxy pod, so it goes from 2 of 2 to 3 of 3. On Kubernetes 1.33 or later it is a native sidecar. Then the install order that worked: Inference Extension CRDs, Gateway API plus Envoy Gateway CRDs, the six AI CRDs, the AI controller, then Envoy Gateway with the InferencePool addon. Follow the docs order and it breaks: the addon before the AI controller leaves envoy-gateway never Ready, and the Inference Extension CRDs after the AI controller leave the pool status empty until you restart the controller."
+  },
+  "d402-request-path": {
+    "steps": 5,
+    "tool": "none",
+    "kicker": "envoy ai gateway",
+    "statement": "One request, end to end.",
+    "notes": "SAY: The client posts to /v1/chat/completions with the model name in the body. Envoy asks the ai-gateway-extproc sidecar, which reads the model from the body and sets x-ai-eg-model. A client-supplied x-ai-eg-model is overwritten: only the body decides. Envoy then matches the route on that header, and the backend is the InferencePool. Next Envoy asks the endpoint picker through its own ext_proc filter; the picker only answers with x-gateway-destination-endpoint, and because the pool cluster is ORIGINAL_DST, Envoy itself sends the request to that pod. On the way back the sidecar reads the token usage and records four histograms: gen_ai_client_token_usage, gen_ai_server_request_duration_seconds, gen_ai_server_time_to_first_token_seconds and gen_ai_server_time_per_output_token_seconds. Last, if the route lives in another namespace than the pool, the pool namespace needs a ReferenceGrant with two from entries, AIGatewayRoute and HTTPRoute; with only the first the route is Accepted but every request gets a 500."
+  },
+  "d501-run-simulation": {
+    "steps": 8,
+    "tool": "none",
+    "kicker": "endpoint picker",
+    "statement": "Prefix pulls requests together, load pushes them apart.",
+    "notes": "SAY: Three fake pods and eight requests, nothing here runs on a GPU. For each request the picker first drops any pod with a queue of 5 or more or KV usage of 0.8 or more, then scores the rest: queue score times 2, KV score times 2, prefix score times 3, the built-in default weights. Request 1 has nothing cached anywhere and the queues tie, so the lowest KV usage wins. From request 3 the shared system prompt matches 6 of 8 blocks on pod A, and that prefix score outvotes A's longer queue. By request 7 A wins by only 0.05 with queue 4. At request 8 A has queue 5, the filter drops it, and B takes the prompt and now caches it too. The toy rules: a routed request adds 1 to the queue and 0.03 KV per new block, and every third arrival each pod finishes one request."
+  },
+  "d502-metric-birthplaces": {
+    "steps": 6,
+    "tool": "none",
+    "kicker": "metrics",
+    "statement": "Each metric is born at one stage of the request.",
+    "notes": "SAY: One request crosses five stages. The picker keeps two clocks that start when the request is received, the TTFT clock stops at the first response byte and the duration clock at the end, and it times its own pick. In vLLM the queue has a gauge and a wait time, prefill has the prefix cache hits and the prefill time, and time to first token spans queue plus prefill. Decode has the decode time, the inter token latency, and the success counter, and the end to end latency spans everything inside vLLM. Then the two layers: the picker scrapes every pod every 50 ms, ignores data older than 2 s, and rewrites the pool averages every 5 s. Prometheus scrapes those averages every 10 s, the default of the rendered ServiceMonitor, and KEDA asks for one series. The bar widths are not to scale."
+  },
+  "d503-hit-ratio": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "metrics arithmetic",
+    "statement": "Sum, then divide. Quantiles live inside buckets.",
+    "notes": "SAY: This is where the dashboards lie. Real counter names, toy values: 1,200,000 queried tokens, 840,000 local hits, the connector sees only the 360,000 local misses and hits 90,000 of those, so the cached share is 930,000 of 1,200,000, 77.5%, and 270,000 tokens were computed. The trap is per-pod: pod A 1,050 of 1,500 is 70%, pod B 1,500 of 3,000 is 50% on 1:2 traffic, and summing first then dividing gives 56.7%, not the 60% you get averaging the ratios. On the right, a histogram quantile is an interpolation inside a bucket: the p50 rank 50 lands in the 0.1 to 0.5 bucket and works out to 0.42s, the p95 rank 95 lands in the 1 to 5 bucket and works out to 3.0s. The bucket edges set the resolution."
+  },
+  "d601-keda-ownership": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "autoscaling",
+    "statement": "Two controllers, one replica ladder.",
+    "notes": "SAY: One replica ladder, two owners. KEDA only moves the count between 0 and 1, on a 30s poll, gated by the activation threshold. Everything from 1 upward is the HPA, synced every 15s, and the HPA takes the max over all triggers. A burst climbs the pod to 8 almost immediately, because scale up stabilization is 0s by default. When the burst ends, the 300s scale down stabilization window holds the count high before it descends. The two trigger bars, waiting requests and KV cache, feed the max. Bar widths are illustrative."
+  },
+  "d603-value-vs-averagevalue": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "keda metricType",
+    "statement": "The replica count is the term that flips the answer.",
+    "notes": "SAY: Same inputs, two answers. Four replicas are running, the EPP average queue is 3, the threshold is 2. The KEDA default metricType is AverageValue, so the trigger computes ceil(3/2) = 2, which says scale DOWN from 4. Wrong for a per-pod average: the current-replica term was dropped. The fix is metricType: Value, which keeps the term: ceil(4 x 3/2) = 6, scale UP. The replica count is the term that flips the answer. Toy numbers; formulas from the KEDA replica calculator."
+  },
+  "d602-scale-out-chain": {
+    "steps": 7,
+    "tool": "none",
+    "kicker": "cold start",
+    "statement": "Scaling out is a chain, and only its first hop runs on a clock we can quote.",
+    "notes": "SAY: This is the chain from a rising queue metric to served traffic, and only one hop has a sourced number. The HPA syncs on a 15s loop, and at 0 to 1 the KEDA poll moves the count, every 30s. Then: the pod is Pending because no node fits, Karpenter has to launch a new node, then the image pulls and the model weights load, and only then does the readiness probe pass. None of those durations are measured here, so they are drawn as equal question-mark bars. The point: with a floor of at least 1 replica, the node and model-load hops stay out of the path of baseline traffic, so a floor of replicas keeps them out of the hot path."
+  },
+  "d701-tier-ladder": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "kv cache offloading",
+    "statement": "Copies go down at prefill, not at eviction.",
+    "notes": "SAY: Three tiers on one g7e.2xlarge: the GPU pool, a CPU RAM tier, and the local NVMe. At 32 KiB per token at fp8, a 16 GiB CPU tier holds 524,288 tokens and an 800 GiB NVMe budget holds 26,214,400. The GPU pool size is a toy value, read yours from the startup log. The key point is the direction of the copies. vLLM writes each chunk down to every tier as the prompt chunk completes, not when the GPU evicts it. So eviction only drops one copy: the CPU tier evicts least recently used, and the NVMe tier never evicts at all. On a later prefix hit the chunks are loaded back up from the nearest tier that has them, and an NVMe hit is staged through CPU RAM. Because vLLM never deletes the cached files, the NVMe tier needs a cleanup sidecar that trims the oldest files above the budget. The chunk size of 1,600 tokens is computed for this model, so read the startup line instead of trusting it."
+  },
+  "d702-prefix-hit-tiers": {
+    "steps": 4,
+    "tool": "none",
+    "kicker": "kv cache offloading",
+    "statement": "A hit comes from the nearest tier with a copy.",
+    "notes": "SAY: The same shared prefix, four situations, depending on which copy survived. In the GPU lane nothing moves and only the new tokens are prefilled. In the CPU lane the GPU copy was evicted, so the chunks are copied up by DMA. In the NVMe lane both the GPU and CPU copies are gone, so the chunks are read into CPU RAM first and then copied to the GPU: two hops, and the scheduler is told to retry until they land. In the miss lane no tier has a copy and everything is prefilled again. The toy prefix is 8 chunks of 1,600 tokens, 12,800 tokens, which is 400 MiB of attention KV at 32 KiB per token. There are no timings on this slide on purpose: AWS publishes only IOPS for the g7e local NVMe, so measure it. And a prefix shorter than one 1,600-token chunk can never hit an external tier."
   }
 }

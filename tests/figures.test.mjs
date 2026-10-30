@@ -11,7 +11,7 @@ const slideId = (s) => (typeof s === 'string' ? s : s.id);
 const stepsOf = (s) => (typeof s === 'string' ? Array.from({ length: steps(s) + 1 }, (_, i) => i) : s.steps);
 
 test("the slides are the deck's non-decorative slides plus the trainpass slide", () => {
-  assert.equal(slideIds.length, 112);
+  assert.equal(slideIds.filter((id) => !/^d\d/.test(id)).length, 112); // Part 4's own slides (d-prefixed) are covered by part4.test.mjs
   for (const id of ['s02-vec2d', 's41-wu-wd-intro', 's45-ffn-flow', 't709-native-support', 'x01-trainpass']) {
     assert.ok(slideIds.includes(id), `should include ${id}`);
   }

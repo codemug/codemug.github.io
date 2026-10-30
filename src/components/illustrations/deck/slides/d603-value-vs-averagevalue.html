@@ -1,0 +1,135 @@
+<section class="slide" id="d603-value-vs-averagevalue" data-steps="3">
+  <p class="kicker reveal">keda metricType</p>
+  <p class="statement reveal">The replica count is the term that flips the answer.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d603-value-vs-averagevalue-t d603-value-vs-averagevalue-d">
+      <title id="d603-value-vs-averagevalue-t">Value versus AverageValue: the same inputs, two answers</title>
+      <desc id="d603-value-vs-averagevalue-d">Shared inputs: 4 replicas running, EPP average queue 3 from llm_d_epp_average_queue_size, threshold 2. Left panel: the AverageValue trigger, the KEDA default, computes ceil(3/2) = 2 and scales down from 4, because the current-replica term is dropped from the formula. Right panel: the Value trigger keeps the term, ceil(4 x 3/2) = 6, and scales up. Verdict: the default metricType is AverageValue, so per-pod triggers need metricType: Value. Toy numbers, formulas from the KEDA replica calculator.</desc>
+      <g id="d603-value-vs-averagevalue-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d603-value-vs-averagevalue svg.diagram{width:100%;height:100%;max-width:none;}
+    #d603-value-vs-averagevalue text{font-family:var(--font-mono);}
+    #d603-value-vs-averagevalue .box{fill:color-mix(in oklab,var(--color-text-dim) 10%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;rx:8;}
+    #d603-value-vs-averagevalue .vbox{fill:color-mix(in oklab,var(--color-accent) 7%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;rx:8;}
+    #d603-value-vs-averagevalue .vbox2{fill:color-mix(in oklab,var(--color-accent) 14%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;rx:8;}
+    #d603-value-vs-averagevalue .vlab{font-size:20px;fill:var(--color-text-muted);}
+    #d603-value-vs-averagevalue .cval{font-size:34px;font-weight:600;fill:var(--color-text);}
+    #d603-value-vs-averagevalue .mline{font-size:20px;fill:var(--color-text-soft);}
+    #d603-value-vs-averagevalue .mnote{fill:var(--color-text-muted);}
+    #d603-value-vs-averagevalue .phead{font-size:22px;font-weight:600;fill:var(--color-text);}
+    #d603-value-vs-averagevalue .fml{font-size:28px;fill:var(--color-text-soft);}
+    #d603-value-vs-averagevalue .ghost{fill:var(--color-text-faint);}
+    #d603-value-vs-averagevalue .strike{stroke:var(--color-text-faint);stroke-width:2.5;}
+    #d603-value-vs-averagevalue .term{fill:var(--color-accent);font-weight:600;}
+    #d603-value-vs-averagevalue .res{font-size:24px;font-weight:600;}
+    #d603-value-vs-averagevalue .down{fill:var(--color-text-muted);}
+    #d603-value-vs-averagevalue .up{fill:var(--color-accent);}
+    #d603-value-vs-averagevalue .note{font-size:20px;fill:var(--color-text-muted);}
+    #d603-value-vs-averagevalue .v1{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #d603-value-vs-averagevalue .v2{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #d603-value-vs-averagevalue .v2 .fx{fill:var(--color-accent);font-weight:600;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd603-value-vs-averagevalue';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // ---- shared context: three boxes + metric line (state 0)
+      var gCtx = el('g', {}, g);
+      var CTX = [
+        { x: 20, lab: 'replicas running', val: '4' },
+        { x: 390, lab: 'EPP average queue', val: '3' },
+        { x: 760, lab: 'threshold', val: '2' }
+      ];
+      CTX.forEach(function (b) {
+        el('rect', { 'class': 'box', x: b.x, y: 30, width: 340, height: 70 }, gCtx);
+        el('text', { 'class': 'vlab', x: b.x + 16, y: 58 }, gCtx, b.lab);
+        el('text', { 'class': 'cval', x: b.x + 16, y: 92 }, gCtx, b.val);
+      });
+      var mline = el('text', { 'class': 'mline', x: 20, y: 128 }, gCtx, 'llm_d_epp_average_queue_size = 3');
+      el('tspan', { 'class': 'mnote' }, mline, ' (average queue per pod)');
+
+      // ---- left panel: AverageValue (step 1)
+      var gLeft = el('g', {}, g);
+      el('rect', { 'class': 'vbox', x: 20, y: 155, width: 530, height: 240 }, gLeft);
+      el('text', { 'class': 'phead', x: 44, y: 190 }, gLeft, 'AverageValue (KEDA default)');
+      var fL = el('text', { 'class': 'fml', x: 44, y: 260 }, gLeft, '');
+      el('tspan', {}, fL, 'ceil( ');
+      el('tspan', { 'class': 'ghost' }, fL, '4 x ');
+      el('tspan', {}, fL, '3 / 2 )');
+      el('line', { 'class': 'strike', x1: 170, y1: 248, x2: 255, y2: 248 }, gLeft);
+      var rL = el('text', { 'class': 'res down', x: 44, y: 305 }, gLeft, '= 2 replicas');
+      el('text', { 'class': 'res down', x: 44, y: 341 }, gLeft, 'scales DOWN (from 4)');
+      el('text', { 'class': 'note', x: 44, y: 377 }, gLeft, 'the replica term is dropped');
+
+      // ---- right panel: Value (step 2)
+      var gRight = el('g', {}, g);
+      el('rect', { 'class': 'vbox2', x: 580, y: 155, width: 520, height: 240 }, gRight);
+      el('text', { 'class': 'phead', x: 604, y: 190 }, gRight, 'Value (metricType: Value)');
+      var fR = el('text', { 'class': 'fml', x: 604, y: 260 }, gRight, '');
+      el('tspan', {}, fR, 'ceil( ');
+      el('tspan', { 'class': 'term' }, fR, '4 x ');
+      el('tspan', {}, fR, '3 / 2 )');
+      el('text', { 'class': 'res up', x: 604, y: 305 }, gRight, '= 6 replicas');
+      el('text', { 'class': 'res up', x: 604, y: 341 }, gRight, 'scales UP (from 4)');
+      el('text', { 'class': 'note', x: 604, y: 377 }, gRight, 'the replica term stays');
+
+      // ---- verdict (step 3)
+      var gVerd = el('g', {}, g);
+      el('rect', { 'class': 'box', x: 20, y: 425, width: 1080, height: 75 }, gVerd);
+      el('text', { 'class': 'v1', x: 560, y: 456 }, gVerd, 'the default metricType is AverageValue: the replica term drops out');
+      var v2 = el('text', { 'class': 'v2', x: 560, y: 486 }, gVerd, 'per-pod triggers need ');
+      el('tspan', { 'class': 'fx' }, v2, 'metricType: Value');
+
+      // ---- state
+      function targets(n) {
+        return {
+          ctx: n >= 0 ? 1 : 0,
+          left: n >= 1 ? 1 : 0,
+          right: n >= 2 ? 1 : 0,
+          verd: n >= 3 ? 1 : 0
+        };
+      }
+      var S = { ctx: 0, left: 0, right: 0, verd: 0 };
+      function setOp(e, v) { e.style.opacity = v.toFixed(3); }
+      function draw() {
+        setOp(gCtx, S.ctx);
+        setOp(gLeft, S.left);
+        setOp(gRight, S.right);
+        setOp(gVerd, S.verd);
+      }
+      draw();
+
+      var cancel = null;
+      Deck.slide(ID, {
+        enter: function () { S = { ctx: 0, left: 0, right: 0, verd: 0 }; draw(); },
+        leave: function () { if (cancel) { cancel(); cancel = null; } },
+        step: function (n, prev, c) {
+          var t = targets(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = { ctx: t.ctx, left: t.left, right: t.right, verd: t.verd }; draw(); return; }
+          var f = { ctx: S.ctx, left: S.left, right: S.right, verd: S.verd };
+          cancel = Deck.tween(600, function (k) {
+            S.ctx = Deck.lerp(f.ctx, t.ctx, k);
+            S.left = Deck.lerp(f.left, t.left, k);
+            S.right = Deck.lerp(f.right, t.right, k);
+            S.verd = Deck.lerp(f.verd, t.verd, k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

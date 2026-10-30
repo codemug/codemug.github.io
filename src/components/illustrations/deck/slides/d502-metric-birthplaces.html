@@ -1,0 +1,248 @@
+<section class="slide" id="d502-metric-birthplaces" data-steps="6">
+  <p class="kicker reveal">metrics</p>
+  <p class="statement reveal">Each metric is born at one stage of the request.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d502-metric-birthplaces-t d502-metric-birthplaces-d">
+      <title id="d502-metric-birthplaces-t">Where each metric is born: the request lifecycle, then the two-layer metric map</title>
+      <desc id="d502-metric-birthplaces-d">One request crosses five stages left to right: gateway, picker, vLLM queue, prefill, decode. Twelve metrics sit on the stage that produces them. The picker exposes llm_d_epp_request_duration_seconds and llm_d_epp_request_ttft_seconds, two clocks that start when the request is received, and llm_d_epp_scheduler_e2e_duration_seconds. At the queue vLLM exposes vllm:num_requests_waiting and vllm:request_queue_time_seconds. At prefill it exposes vllm:prefix_cache_hits_total, vllm:request_prefill_time_seconds and vllm:time_to_first_token_seconds, which spans queue plus prefill. At decode it exposes vllm:request_decode_time_seconds, vllm:inter_token_latency_seconds, vllm:e2e_request_latency_seconds and vllm:request_success_total. The last two steps show the two-layer map: the vLLM pod gauges vllm:num_requests_waiting and vllm:kv_cache_usage_perc are scraped by the picker every 50 ms, and data older than 2 s is dropped. The picker averages them into llm_d_epp_average_queue_size and llm_d_epp_average_kv_cache_utilization, rewritten every 5 s. Prometheus scrapes the picker every 10 s, the default of the rendered ServiceMonitor, and a KEDA trigger reads max(llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4"}).</desc>
+      <g id="d502-metric-birthplaces-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d502-metric-birthplaces svg.diagram{width:100%;height:100%;max-width:none;}
+    #d502-metric-birthplaces text{font-family:var(--font-mono);}
+    #d502-metric-birthplaces [data-from]{opacity:0;transition:opacity .5s;}
+    #d502-metric-birthplaces [data-from].on{opacity:1;}
+    #d502-metric-birthplaces .sb{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d502-metric-birthplaces .sbc{fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #d502-metric-birthplaces .sn{fill:var(--color-text);text-anchor:middle;font-weight:600;}
+    #d502-metric-birthplaces .ss{font-size:22px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d502-metric-birthplaces .ar{stroke:var(--color-text-faint);stroke-width:3;stroke-linecap:round;}
+    #d502-metric-birthplaces .ah{fill:var(--color-text-faint);}
+    #d502-metric-birthplaces .tr{stroke:var(--color-hairline);stroke-width:1.5;stroke-dasharray:2 7;stroke-linecap:round;}
+    #d502-metric-birthplaces .rp{fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #d502-metric-birthplaces .rpt{font-size:20px;fill:var(--color-accent);text-anchor:middle;}
+    #d502-metric-birthplaces .vl{stroke:var(--color-hairline);stroke-width:1.5;}
+    #d502-metric-birthplaces .ld{stroke:var(--color-hairline);stroke-width:1.5;stroke-dasharray:2 7;stroke-linecap:round;}
+    #d502-metric-birthplaces .mn{font-size:20px;fill:var(--color-text-soft);}
+    #d502-metric-birthplaces .cur .mn{fill:var(--color-accent);}
+    #d502-metric-birthplaces .bar{fill:color-mix(in oklab,var(--color-accent) 38%,var(--color-surface-deep));stroke:color-mix(in oklab,var(--color-accent) 55%,transparent);stroke-width:1.5;}
+    #d502-metric-birthplaces .cur .bar{fill:var(--color-accent);stroke:var(--color-accent);}
+    #d502-metric-birthplaces .mk{fill:color-mix(in oklab,var(--color-accent) 45%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #d502-metric-birthplaces .cur .mk{fill:var(--color-accent);}
+    #d502-metric-birthplaces .tk{stroke:color-mix(in oklab,var(--color-accent) 60%,var(--color-surface-deep));stroke-width:4;stroke-linecap:round;}
+    #d502-metric-birthplaces .cur .tk{stroke:var(--color-accent);}
+    #d502-metric-birthplaces .lg{font-size:20px;fill:var(--color-text-muted);}
+    #d502-metric-birthplaces .nd{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d502-metric-birthplaces .ndk{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #d502-metric-birthplaces .nt{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #d502-metric-birthplaces .nc{font-size:22px;fill:var(--color-text-muted);text-anchor:end;}
+    #d502-metric-birthplaces .nm{font-size:22px;fill:var(--color-text-soft);}
+    #d502-metric-birthplaces .nma{font-size:22px;fill:var(--color-accent);}
+    #d502-metric-birthplaces .el{font-size:22px;fill:var(--color-text-muted);}
+    #d502-metric-birthplaces .ea{stroke:var(--color-accent);stroke-width:3.5;stroke-linecap:round;}
+    #d502-metric-birthplaces .eh{fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd502-metric-birthplaces';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      var lerp = Deck.lerp;
+
+      // ---- the five stages of one request (steps 0 to 4), then the two-layer map (steps 5 and 6)
+      var STAGES = [
+        { n: 'gateway', big: 'gateway', sub: 'request arrives' },
+        { n: 'picker', big: 'picker', sub: 'picks a pod' },
+        { n: 'queue', big: 'vLLM queue', sub: 'waits in line' },
+        { n: 'prefill', big: 'prefill', sub: 'reads the prompt' },
+        { n: 'decode', big: 'decode', sub: 'writes tokens' }
+      ];
+      var COL0 = 540, CW = 112;                   // timeline columns
+      var BIG = { x0: 25, pitch: 220, w: 190, y: 200, h: 130 };
+      var ROWS = [
+        { name: 'llm_d_epp_request_duration_seconds', kind: 'bar', c0: 0, c1: 4, step: 1 },
+        { name: 'llm_d_epp_request_ttft_seconds', kind: 'bar', c0: 0, c1: 3, step: 1 },
+        { name: 'llm_d_epp_scheduler_e2e_duration_seconds', kind: 'bar', c0: 1, c1: 1, step: 1 },
+        { name: 'vllm:num_requests_waiting', kind: 'dots', c0: 2, step: 2 },
+        { name: 'vllm:request_queue_time_seconds', kind: 'bar', c0: 2, c1: 2, step: 2 },
+        { name: 'vllm:prefix_cache_hits_total', kind: 'dot', c0: 3, step: 3 },
+        { name: 'vllm:request_prefill_time_seconds', kind: 'bar', c0: 3, c1: 3, step: 3 },
+        { name: 'vllm:time_to_first_token_seconds', kind: 'bar', c0: 2, c1: 3, step: 3 },
+        { name: 'vllm:request_decode_time_seconds', kind: 'bar', c0: 4, c1: 4, step: 4 },
+        { name: 'vllm:inter_token_latency_seconds', kind: 'ticks', c0: 4, step: 4 },
+        { name: 'vllm:e2e_request_latency_seconds', kind: 'bar', c0: 2, c1: 4, step: 4 },
+        { name: 'vllm:request_success_total', kind: 'end', c0: 4, step: 4 }
+      ];
+      var RY0 = 92, RP = 33, CHAR = 12;
+
+      var g = document.getElementById(ID + '-g');
+
+      // ======== part 1: lifecycle (visible for steps 0 to 4)
+      var life = el('g', { 'data-from': 0, 'data-until': 5 }, g);
+
+      // vertical stage guides and the legend belong to the table form (step 1 on)
+      var table = el('g', { 'data-from': 1, 'data-until': 5 }, life);
+      for (var k = 0; k <= 5; k++) el('line', { 'class': 'vl', x1: COL0 + CW * k, y1: 70, x2: COL0 + CW * k, y2: RY0 + RP * 11 + 16 }, table);
+      el('text', { 'class': 'lg', x: 20, y: 497 }, table, 'bar: a duration it measures');
+      el('text', { 'class': 'lg', x: 400, y: 497 }, table, 'dot: a count or a level');
+      el('text', { 'class': 'lg', x: 720, y: 497 }, table, 'stage widths not to scale');
+
+      // rows
+      var rowEls = ROWS.map(function (r, i) {
+        var cy = RY0 + RP * i, g0 = el('g', { 'data-from': r.step, 'data-until': 5 }, life);
+        el('text', { 'class': 'mn', x: 20, y: cy + 7 }, g0, r.name);
+        var gm = el('g', {}, g0);
+        var startX = COL0 + CW * r.c0;
+        el('line', { 'class': 'ld', x1: 20 + r.name.length * CHAR + 10, y1: cy, x2: startX + 2, y2: cy }, g0);
+        var o = { g: g0, gm: gm, row: r, cy: cy };
+        if (r.kind === 'bar') {
+          o.bar = el('rect', { 'class': 'bar', x: startX + 6, y: cy - 8, width: 0, height: 16, rx: 8 }, gm);
+        } else if (r.kind === 'dots') {
+          [26, 54, 82].forEach(function (dx) { el('circle', { 'class': 'mk', cx: startX + dx, cy: cy, r: 8 }, gm); });
+        } else if (r.kind === 'dot') {
+          el('circle', { 'class': 'mk', cx: startX + 20, cy: cy, r: 8 }, gm);
+        } else if (r.kind === 'ticks') {
+          for (var t = 0; t < 6; t++) el('line', { 'class': 'tk', x1: startX + 14 + t * 16, y1: cy - 9, x2: startX + 14 + t * 16, y2: cy + 9 }, gm);
+        } else if (r.kind === 'end') {
+          el('circle', { 'class': 'mk', cx: COL0 + CW * 5 - 20, cy: cy, r: 8 }, gm);
+        }
+        return o;
+      });
+
+      // stage boxes: big in the story form, small header in the table form
+      var stageEls = STAGES.map(function (st, i) {
+        var gs = el('g', {}, life);
+        var rect = el('rect', { 'class': 'sb', x: 0, y: 0, width: 10, height: 10, rx: 14 }, gs);
+        var name = el('text', { 'class': 'sn', x: 0, y: 0 }, gs, st.big);
+        var sub = el('text', { 'class': 'ss', x: BIG.x0 + BIG.pitch * i + BIG.w / 2, y: BIG.y + BIG.h + 42 }, gs, st.sub);
+        return { rect: rect, name: name, sub: sub, st: st, i: i };
+      });
+      // arrows between the big boxes and the travelling request
+      var story = el('g', {}, life);
+      for (var a = 0; a < 4; a++) {
+        var ax0 = BIG.x0 + BIG.pitch * a + BIG.w + 4, ax1 = BIG.x0 + BIG.pitch * (a + 1) - 6, ay = BIG.y + BIG.h / 2;
+        el('line', { 'class': 'ar', x1: ax0, y1: ay, x2: ax1 - 8, y2: ay }, story);
+        el('polygon', { 'class': 'ah', points: (ax1 + 1) + ',' + ay + ' ' + (ax1 - 11) + ',' + (ay - 8) + ' ' + (ax1 - 11) + ',' + (ay + 8) }, story);
+      }
+      var pill = el('g', {}, story);
+      el('line', { 'class': 'tr', x1: BIG.x0 + BIG.w / 2, y1: BIG.y - 36, x2: BIG.x0 + BIG.pitch * 4 + BIG.w / 2, y2: BIG.y - 36 }, story);
+      el('rect', { 'class': 'rp', x: -54, y: -17, width: 108, height: 34, rx: 17 }, pill);
+      el('text', { 'class': 'rpt', x: 0, y: 7 }, pill, 'request');
+
+      // ======== part 2: the two-layer map (steps 5 and 6)
+      var map = el('g', {}, g);
+      function node(x, y, w, h, cls, parent) { return el('rect', { 'class': cls, x: x, y: y, width: w, height: h, rx: 14 }, parent); }
+      function arrow(x, y0, y1, parent) {
+        el('line', { 'class': 'ea', x1: x, y1: y0, x2: x, y2: y1 - 9 }, parent);
+        el('polygon', { 'class': 'eh', points: x + ',' + (y1 + 1) + ' ' + (x - 8) + ',' + (y1 - 11) + ' ' + (x + 8) + ',' + (y1 - 11) }, parent);
+      }
+      // layer 1: pod gauges
+      var n1 = el('g', { 'data-from': 5 }, map);
+      node(20, 22, 440, 108, 'nd', n1);
+      el('text', { 'class': 'nt', x: 38, y: 56 }, n1, 'layer 1: pod gauges');
+      el('text', { 'class': 'nm', x: 38, y: 88 }, n1, 'vllm:num_requests_waiting');
+      el('text', { 'class': 'nm', x: 38, y: 116 }, n1, 'vllm:kv_cache_usage_perc');
+      // edge 1 to 2 and layer 2: picker averages
+      var n2 = el('g', { 'data-from': 5 }, map);
+      arrow(340, 130, 166, n2);
+      el('text', { 'class': 'el', x: 362, y: 154 }, n2, 'picker scrapes every 50 ms, drops data older than 2 s');
+      node(240, 166, 600, 108, 'ndk', n2);
+      el('text', { 'class': 'nt', x: 258, y: 200 }, n2, 'layer 2: pool averages');
+      el('text', { 'class': 'nc', x: 822, y: 200 }, n2, 'every 5 s');
+      el('text', { 'class': 'nma', x: 258, y: 232 }, n2, 'llm_d_epp_average_queue_size');
+      el('text', { 'class': 'nma', x: 258, y: 260 }, n2, 'llm_d_epp_average_kv_cache_utilization');
+      // Prometheus
+      var n3 = el('g', { 'data-from': 6 }, map);
+      arrow(560, 274, 310, n3);
+      el('text', { 'class': 'el', x: 582, y: 298 }, n3, 'scraped every 10 s (ServiceMonitor)');
+      node(440, 310, 300, 56, 'nd', n3);
+      el('text', { 'class': 'nt', x: 458, y: 346 }, n3, 'Prometheus');
+      // KEDA
+      var n4 = el('g', { 'data-from': 6 }, map);
+      arrow(580, 366, 402, n4);
+      el('text', { 'class': 'el', x: 602, y: 390 }, n4, 'KEDA queries, one series back');
+      node(180, 402, 920, 96, 'nd', n4);
+      el('text', { 'class': 'nt', x: 198, y: 436 }, n4, 'KEDA trigger');
+      el('text', { 'class': 'nm', x: 198, y: 474 }, n4, 'max(llm_d_epp_average_queue_size{name="qwen38-27b-nvfp4"})');
+
+      // ======== state: morph s (story to table) and reach r (how far the request has travelled)
+      var S = { s: 0, r: 0 }, cancel = null, stopLoop = null;
+
+      function geom(i, s) {
+        var bx = BIG.x0 + BIG.pitch * i, sx = COL0 + CW * i + 4;
+        return { x: lerp(bx, sx, s), y: lerp(BIG.y, 20, s), w: lerp(BIG.w, CW - 8, s), h: lerp(BIG.h, 40, s), fs: lerp(28, 20, s) };
+      }
+      function drawStages(n) {
+        stageEls.forEach(function (o) {
+          var q = geom(o.i, S.s);
+          o.rect.setAttribute('x', q.x.toFixed(1)); o.rect.setAttribute('y', q.y.toFixed(1));
+          o.rect.setAttribute('width', q.w.toFixed(1)); o.rect.setAttribute('height', q.h.toFixed(1));
+          o.name.setAttribute('x', (q.x + q.w / 2).toFixed(1));
+          o.name.setAttribute('y', (q.y + q.h / 2 + q.fs * 0.35).toFixed(1));
+          o.name.setAttribute('font-size', q.fs.toFixed(1));
+          o.name.textContent = S.s < 0.5 ? o.st.big : o.st.n;
+          o.sub.setAttribute('opacity', (1 - clamp(S.s * 2.2)).toFixed(3));
+          if (n === 0) return;
+          var cur = (n === 1 && o.i <= 1) || (n >= 2 && n <= 4 && o.i === n);
+          o.rect.setAttribute('class', cur ? 'sbc' : 'sb');
+        });
+        story.setAttribute('opacity', (1 - clamp(S.s * 2.2)).toFixed(3));
+      }
+      function drawBars(n) {
+        rowEls.forEach(function (o) {
+          var r = o.row;
+          o.g.classList.toggle('cur', r.step === n);
+          if (o.bar) {
+            var end = Math.min(r.c1 + 1, S.r + 1), w = (end - r.c0) * CW - 12;
+            o.bar.setAttribute('width', Math.max(0, w).toFixed(1));
+          }
+        });
+      }
+      function draw(n) { drawStages(n); drawBars(n); }
+
+      var curStep = 0;
+      function reqLoop(secs) {
+        // the request pill dwells at each stage in turn; at step 0 the stage it sits over lights up
+        var p = ((secs / 8) % 1) * 4, seg = Math.min(3, Math.floor(p)), f = p - seg;
+        var e = f < 0.35 ? 0 : (f - 0.35) / 0.65, ease = e * e * (3 - 2 * e);
+        var idx = seg + ease, x = BIG.x0 + BIG.w / 2 + BIG.pitch * idx;
+        pill.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + (BIG.y - 36) + ')');
+        if (curStep === 0) {
+          var at = Math.round(idx);
+          stageEls.forEach(function (o) { o.rect.setAttribute('class', o.i === at ? 'sbc' : 'sb'); });
+        }
+      }
+
+      draw(0);
+      Deck.slide('d502-metric-birthplaces', {
+        enter: function () {
+          if (cancel) { cancel(); cancel = null; }
+          S = { s: 0, r: 0 }; curStep = 0; draw(0);
+          if (stopLoop) stopLoop();
+          stopLoop = Deck.loop(reqLoop);
+        },
+        leave: function () { if (stopLoop) { stopLoop(); stopLoop = null; } if (cancel) { cancel(); cancel = null; } },
+        step: function (n, prev, c) {
+          if (cancel) { cancel(); cancel = null; }
+          curStep = n;
+          var to = { s: n >= 1 ? 1 : 0, r: Math.min(n, 4) }, from = { s: S.s, r: S.r };
+          if (c.instant || n < prev) { S = to; draw(n); return; }
+          cancel = Deck.tween(1100, function (t) {
+            S = { s: lerp(from.s, to.s, t), r: lerp(from.r, to.r, t) };
+            draw(n);
+          });
+        }
+      });
+    })();
+  </script>
+</section>

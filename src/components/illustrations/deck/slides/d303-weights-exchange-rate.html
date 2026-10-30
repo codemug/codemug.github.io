@@ -1,0 +1,203 @@
+<section class="slide" id="d303-weights-exchange-rate" data-steps="4">
+  <p class="kicker reveal">endpoint picker</p>
+  <p class="statement reveal">Scorer weights are an exchange rate.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d303-weights-exchange-rate-t d303-weights-exchange-rate-d">
+      <title id="d303-weights-exchange-rate-t">How far the prefix-warm pod's KV usage can rise before an idle pod wins, for three weight settings</title>
+      <desc id="d303-weights-exchange-rate-d">A line chart of pod A's score minus pod B's score against pod A's KV usage from 0 to 1. Pod A has the prompt prefix cached, pod B is idle with KV 0.10, both queues are 0. With the built-in weights 2/2/3 (queue, KV, prefix) the line stays above 0 all the way, because the prefix weight 3 is larger than the whole KV range of weight 2, so only the 0.8 filter stops pod A: measured 6 of 6 picks of A at KV 0.79 and 0 of 6 at 0.85. With weights 2/3/1 the line crosses 0 at KV 0.43 (0.10 plus 1/3): measured 6 of 6 at 0.43 and 0 of 6 at 0.44. With the stock weights and 1 queued request on A, the line crosses 0 at 0.60 (0.10 plus (3 minus 2)/2): measured 6 of 6 at 0.55 and 0 of 6 at 0.65. One full prefix hit buys prefix weight divided by KV weight of extra KV usage.</desc>
+      <defs id="d303-weights-exchange-rate-defs"></defs>
+      <g id="d303-weights-exchange-rate-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d303-weights-exchange-rate svg.diagram{width:100%;height:100%;max-width:none;}
+    #d303-weights-exchange-rate text{font-family:var(--font-mono);}
+    #d303-weights-exchange-rate .ttl{font-size:20px;fill:var(--color-text-muted);}
+    #d303-weights-exchange-rate .axl{stroke:var(--color-text-faint);stroke-width:2;}
+    #d303-weights-exchange-rate .grd{stroke:var(--color-hairline);stroke-width:1.5;}
+    #d303-weights-exchange-rate .zero{stroke:var(--color-text-dim);stroke-width:2.5;}
+    #d303-weights-exchange-rate .tk{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d303-weights-exchange-rate .tky{font-size:20px;fill:var(--color-text-muted);text-anchor:end;}
+    #d303-weights-exchange-rate .shade{fill:color-mix(in oklab,var(--color-text-faint) 20%,transparent);}
+    #d303-weights-exchange-rate .fline{stroke:var(--color-text-muted);stroke-width:2.5;stroke-dasharray:6 5;}
+    #d303-weights-exchange-rate .flab{font-size:20px;fill:var(--color-text-soft);}
+    #d303-weights-exchange-rate .curve{fill:none;stroke-width:4.5;stroke-linecap:round;}
+    #d303-weights-exchange-rate .c1{stroke:var(--color-text-muted);}
+    #d303-weights-exchange-rate .c2{stroke:var(--color-accent);}
+    #d303-weights-exchange-rate .c3{stroke:var(--color-text-muted);stroke-dasharray:11 8;}
+    #d303-weights-exchange-rate .hdot{fill:var(--color-text-muted);}
+    #d303-weights-exchange-rate .hdot.cy{fill:var(--color-accent);}
+    #d303-weights-exchange-rate .el{font-size:20px;font-weight:600;}
+    #d303-weights-exchange-rate .el.g{fill:var(--color-text-soft);}
+    #d303-weights-exchange-rate .el.cy{fill:var(--color-accent);}
+    #d303-weights-exchange-rate .el.sm{font-weight:400;fill:var(--color-text-muted);}
+    #d303-weights-exchange-rate .ring{fill:var(--color-bg);stroke-width:3.5;}
+    #d303-weights-exchange-rate .ring.g{stroke:var(--color-text-soft);}
+    #d303-weights-exchange-rate .ring.cy{stroke:var(--color-accent);}
+    #d303-weights-exchange-rate .bev{font-size:20px;font-weight:600;}
+    #d303-weights-exchange-rate .bev.g{fill:var(--color-text-soft);}
+    #d303-weights-exchange-rate .bev.cy{fill:var(--color-accent);}
+    #d303-weights-exchange-rate .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #d303-weights-exchange-rate .setup{font-size:20px;fill:var(--color-text-soft);}
+    #d303-weights-exchange-rate .rate{font-size:22px;font-weight:600;fill:var(--color-accent);}
+    #d303-weights-exchange-rate .th{font-size:20px;fill:var(--color-text-muted);}
+    #d303-weights-exchange-rate .td{font-size:20px;fill:var(--color-text);}
+    #d303-weights-exchange-rate .td.n{font-weight:600;}
+    #d303-weights-exchange-rate .td.n.cy{fill:var(--color-accent);}
+    #d303-weights-exchange-rate .rl{fill:none;stroke-width:4.5;stroke-linecap:round;}
+    #d303-weights-exchange-rate .rl.c1{stroke:var(--color-text-muted);}
+    #d303-weights-exchange-rate .rl.c2{stroke:var(--color-accent);}
+    #d303-weights-exchange-rate .rl.c3{stroke:var(--color-text-muted);stroke-dasharray:9 6;}
+    #d303-weights-exchange-rate .hair{stroke:var(--color-hairline);stroke-width:1.5;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd303-weights-exchange-rate';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function seg(t, a, b) { return clamp((t - a) / (b - a)); }
+      function show(e, v) { e.style.opacity = v.toFixed(3); }
+      function f2(v) { return (Math.round(v * 100 + 1e-7) / 100).toFixed(2); }
+
+      // The scoring model of examples/score_math.py (llm-d-router v1.0.0 scorers): pod B is idle (queue 0, KV 0.10,
+      // no prefix), pod A has the whole prefix cached; the weights are queue / KV / prefix.
+      var KVB = 0.10;
+      var CURVES = [
+        { w: [2, 2, 3], qa: 0 },   // the built-in default
+        { w: [2, 3, 1], qa: 0 },   // the generic example config of the article
+        { w: [2, 2, 3], qa: 1 }    // built-in default, pod A has 1 queued request
+      ];
+      function diff(c, kva) {      // pod A score minus pod B score
+        var qA = c.qa === 0 ? 1 : 0, qB = 1;              // queue-scorer is min-max over the candidates
+        return c.w[0] * (qA - qB) + c.w[1] * ((1 - kva) - (1 - KVB)) + c.w[2] * 1;
+      }
+      function breakeven(c) {      // KV usage of A where the idle pod starts to win, or null if never within 0..1
+        if (diff(c, 1) > 0) return null;
+        var lo = 0, hi = 1;
+        for (var i = 0; i < 40; i++) { var m = (lo + hi) / 2; if (diff(c, m) > 0) lo = m; else hi = m; }
+        return lo;
+      }
+      var BE = CURVES.map(breakeven);                    // [null, 0.4333, 0.6]
+      var FILTER = 0.8;                                  // utilization-detector: KV above 0.8 drops the pod
+
+      // ---- plot geometry
+      var PX0 = 96, PX1 = 864, PYT = 50, PYB = 290, DMAX = 3.4, DMIN = -2;
+      var UY = (PYB - PYT) / (DMAX - DMIN);
+      function X(k) { return PX0 + (PX1 - PX0) * k; }
+      function Y(d) { return PYT + (DMAX - d) * UY; }
+
+      var g = document.getElementById(ID + '-g'), defs = document.getElementById(ID + '-defs');
+
+      el('text', { 'class': 'ttl', x: PX0, y: 34 }, g, 'A score minus B score: above 0, A wins; below 0, B wins');
+      // filter region (right of 0.8)
+      var gFilt = el('g', {}, g);
+      el('rect', { 'class': 'shade', x: X(FILTER), y: PYT, width: X(1) - X(FILTER), height: PYB - PYT }, gFilt);
+      el('line', { 'class': 'fline', x1: X(FILTER), y1: PYT, x2: X(FILTER), y2: PYB }, gFilt);
+      el('text', { 'class': 'flab', x: X(FILTER) + 10, y: 78 }, gFilt, 'A is out');
+      el('text', { 'class': 'flab', x: X(FILTER) + 10, y: 102 }, gFilt, 'KV > 0.8');
+      // grid, zero line, axes, ticks
+      el('line', { 'class': 'grd', x1: PX0, y1: Y(2), x2: PX1, y2: Y(2) }, g);
+      el('line', { 'class': 'axl', x1: PX0, y1: PYB, x2: PX1, y2: PYB }, g);
+      el('line', { 'class': 'axl', x1: PX0, y1: PYT, x2: PX0, y2: PYB }, g);
+      el('line', { 'class': 'zero', x1: PX0, y1: Y(0), x2: PX1, y2: Y(0) }, g);
+      [[2, '+2'], [0, '0'], [-2, '-2']].forEach(function (t) { el('text', { 'class': 'tky', x: PX0 - 12, y: Y(t[0]), dy: '.35em' }, g, t[1]); });
+      [0, 0.2, 0.4, 0.6, 0.8, 1].forEach(function (k) {
+        el('line', { 'class': 'axl', x1: X(k), y1: PYB, x2: X(k), y2: PYB + 8 }, g);
+        el('text', { 'class': 'tk', x: X(k), y: PYB + 30 }, g, k === 0 ? '0' : k === 1 ? '1.0' : f2(k).replace(/0$/, ''));
+      });
+      el('text', { 'class': 'ttl', x: X(1) + 44, y: PYB + 30 }, g, 'KV usage of A');
+
+      // setup, top right
+      el('rect', { 'class': 'card', x: 876, y: 24, width: 224, height: 84, rx: 10 }, g);
+      ['A: prefix warm', 'B: idle, KV 0.10', 'both queue 0'].forEach(function (t, i) { el('text', { 'class': 'setup', x: 888, y: 50 + i * 24 }, g, t); });
+
+      // ---- curves, revealed left to right by a clip rect that grows with the progress
+      var STYLE = ['c1', 'c2', 'c3'], DOT = ['hdot', 'hdot cy', 'hdot'];
+      var curves = CURVES.map(function (c, i) {
+        var cp = el('clipPath', { id: ID + '-clip' + i }, defs);
+        var cr = el('rect', { x: PX0 - 6, y: 0, width: 0, height: 520 }, cp);
+        var path = el('path', { 'class': 'curve ' + STYLE[i], d: 'M' + X(0) + ' ' + Y(diff(c, 0)) + 'L' + X(1) + ' ' + Y(diff(c, 1)), 'clip-path': 'url(#' + ID + '-clip' + i + ')' }, g);
+        var dot = el('circle', { 'class': DOT[i], r: 7, cx: X(0), cy: Y(diff(c, 0)), opacity: 0 }, g);
+        return { cr: cr, path: path, dot: dot, c: c };
+      });
+      // end labels (right margin)
+      var lab1 = el('g', {}, g), lab2 = el('g', {}, g), lab3 = el('g', {}, g);
+      el('text', { 'class': 'el g', x: 876, y: Y(diff(CURVES[0], 1)) - 4 }, lab1, 'stock 2/2/3');
+      el('text', { 'class': 'el sm', x: 876, y: Y(diff(CURVES[0], 1)) + 22 }, lab1, 'never crosses 0');
+      el('text', { 'class': 'el cy', x: 876, y: Y(diff(CURVES[1], 1)) + 6 }, lab2, '2/3/1');
+      el('text', { 'class': 'el g', x: 876, y: Y(diff(CURVES[2], 1)) - 4 }, lab3, 'stock + 1');
+      el('text', { 'class': 'el g', x: 876, y: Y(diff(CURVES[2], 1)) + 20 }, lab3, 'queued on A');
+      // break-even markers
+      var be2 = el('g', {}, g), be3 = el('g', {}, g);
+      el('circle', { 'class': 'ring cy', cx: X(BE[1]), cy: Y(0), r: 8 }, be2);
+      el('text', { 'class': 'bev cy', x: X(BE[1]) - 12, y: Y(0) + 32, 'text-anchor': 'end' }, be2, f2(BE[1]));
+      el('circle', { 'class': 'ring g', cx: X(BE[2]), cy: Y(0), r: 8 }, be3);
+      el('text', { 'class': 'bev g', x: X(BE[2]) + 12, y: Y(0) - 14 }, be3, f2(BE[2]));
+
+      // ---- the table: weights | where A stops winning | measured picks of A (6 fresh prompts per cell)
+      var C1 = 70, C2 = 380, C3 = 760, RY = [428, 458, 488];
+      var rate = el('text', { 'class': 'rate', x: 20, y: 358 }, g, 'one full prefix hit buys (prefix weight / KV weight) of extra KV usage');
+      var head = el('g', {}, g);
+      el('text', { 'class': 'th', x: C1, y: 392 }, head, 'weights, queue/KV/prefix');
+      el('text', { 'class': 'th', x: C2, y: 392 }, head, 'A wins while KV of A <');
+      el('text', { 'class': 'th', x: C3, y: 392 }, head, 'measured picks of A');
+      el('line', { 'class': 'hair', x1: 20, y1: 402, x2: 1100, y2: 402 }, head);
+      var ROWS = [
+        { c: 'c1', n: 'stock 2/2/3', f: '0.10 + 3/2 = 1.60 (never)', m: '6/6 at 0.79, 0/6 at 0.85' },
+        { c: 'c2', n: '2/3/1', f: '0.10 + 1/3 = ' + f2(BE[1]), m: '6/6 at 0.43, 0/6 at 0.44' },
+        { c: 'c3', n: 'stock + 1 queued on A', f: '0.10 + (3 - 2)/2 = ' + f2(BE[2]), m: '6/6 at 0.55, 0/6 at 0.65' }
+      ];
+      var rows = ROWS.map(function (r, i) {
+        var y = RY[i], o = { a: el('g', {}, g), m: el('g', {}, g) };
+        el('line', { 'class': 'rl ' + r.c, x1: 20, y1: y - 6, x2: 54, y2: y - 6 }, o.a);
+        el('text', { 'class': 'td n' + (i === 1 ? ' cy' : ''), x: C1, y: y }, o.a, r.n);
+        el('text', { 'class': 'td', x: C2, y: y }, o.a, r.f);
+        el('text', { 'class': 'td', x: C3, y: y }, o.m, r.m);
+        return o;
+      });
+
+      // state: [stock curve, filter, 2/3/1 curve, queued curve]
+      var TARGET = [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]];
+      var S = TARGET[0].slice(), cancel = null;
+      var prog = [0, 2, 3];                                // which state slot drives which curve
+
+      function draw() {
+        var p = [S[0], S[2], S[3]], f = S[1];
+        curves.forEach(function (cv, i) {
+          var k = p[i], w = (X(1) - X(0) + 12) * k;
+          cv.cr.setAttribute('width', w.toFixed(1));
+          var kk = clamp(k);
+          cv.dot.setAttribute('cx', X(kk).toFixed(1)); cv.dot.setAttribute('cy', Y(diff(cv.c, kk)).toFixed(1));
+          show(cv.dot, kk > 0 && kk < 1 ? 1 : 0);
+        });
+        show(lab1, seg(S[0], 0.85, 1)); show(lab2, seg(S[2], 0.85, 1)); show(lab3, seg(S[3], 0.85, 1));
+        show(be2, seg(S[2], 0.85, 1)); show(be3, seg(S[3], 0.85, 1));
+        show(gFilt, f);
+        show(rate, seg(S[0], 0, 0.6)); show(head, seg(S[0], 0, 0.6));
+        show(rows[0].a, seg(S[0], 0.6, 1)); show(rows[0].m, f);
+        show(rows[1].a, seg(S[2], 0.6, 1)); show(rows[1].m, seg(S[2], 0.8, 1));
+        show(rows[2].a, seg(S[3], 0.6, 1)); show(rows[2].m, seg(S[3], 0.8, 1));
+      }
+      draw();
+
+      Deck.slide(ID, {
+        enter: function () { S = TARGET[0].slice(); draw(); },
+        step: function (n, prev, c) {
+          var to = TARGET[Math.min(n, 4)], from = S.slice();
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to.slice(); draw(); return; }
+          cancel = Deck.tween(n > prev ? 1400 : 700, function (t) { S = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>

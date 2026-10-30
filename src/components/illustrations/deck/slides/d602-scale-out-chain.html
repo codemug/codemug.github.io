@@ -1,0 +1,161 @@
+<section class="slide" id="d602-scale-out-chain" data-steps="7">
+  <p class="kicker reveal">cold start</p>
+  <p class="statement reveal">Scaling out is a chain, and only its first hop runs on a clock we can quote.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d602-scale-out-chain-t d602-scale-out-chain-d">
+      <title id="d602-scale-out-chain-t">The scale-out chain from a rising metric to served traffic</title>
+      <desc id="d602-scale-out-chain-d">Seven hops, top to bottom: metric rises (queue depth and KV usage), HPA adds a replica within its 15s sync loop (30s at 0 to 1 on the KEDA poll), pod Pending because no node fits, Karpenter launches a new node, image pull plus weight load from S3 or local cache, readiness probe passes, traffic served. Only the HPA hop carries sourced numbers (15s and 30s); the other duration hops are equal-width question-mark bars marked not measured here. A floor of replicas keeps the node and model-load hops out of the hot path.</desc>
+      <defs>
+        <marker id="d602-scale-out-chain-ah" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0,0 L11,6 L0,12 z" fill="var(--color-text-faint)"/></marker>
+      </defs>
+      <g id="d602-scale-out-chain-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d602-scale-out-chain svg.diagram{width:100%;height:100%;max-width:none;}
+    #d602-scale-out-chain text{font-family:var(--font-mono);}
+    #d602-scale-out-chain .lab{font-size:20px;fill:var(--color-text-soft);}
+    #d602-scale-out-chain .lab2{font-size:20px;fill:var(--color-text-muted);}
+    #d602-scale-out-chain .skel{fill:none;stroke:var(--color-border-strong);stroke-width:2;stroke-dasharray:5 5;}
+    #d602-scale-out-chain .bar2{fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;rx:6;}
+    #d602-scale-out-chain .barn{fill:color-mix(in oklab,var(--color-text-dim) 18%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2.5;rx:6;}
+    #d602-scale-out-chain .q{font-size:24px;font-weight:600;fill:var(--color-text-soft);text-anchor:middle;}
+    #d602-scale-out-chain .chipa{font-size:22px;font-weight:600;fill:var(--color-accent);}
+    #d602-scale-out-chain .chipb{font-size:20px;fill:var(--color-text-muted);}
+    #d602-scale-out-chain .chipn{font-size:20px;fill:var(--color-text-faint);}
+    #d602-scale-out-chain .dot1{fill:var(--color-text-soft);}
+    #d602-scale-out-chain .dot7{fill:var(--color-accent);}
+    #d602-scale-out-chain .arr{stroke:var(--color-text-faint);stroke-width:2.5;fill:none;}
+    #d602-scale-out-chain .dom{fill:none;stroke:var(--color-accent);stroke-width:2.5;}
+    #d602-scale-out-chain .concl{font-size:20px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd602-scale-out-chain';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // ---- geometry: 7 rows, bar zone x 380..750, chips at x 790
+      var C = [64, 122, 180, 238, 296, 354, 412];
+      var CX = 565, BX = 380, BW = 370, CHX = 790;
+      var LINES = [
+        ['metric rises', 'queue depth / KV usage'],
+        ['HPA adds a replica', '(KEDA at 0 to 1)'],
+        ['pod Pending', '(no node fits)'],
+        ['Karpenter launches', 'a new node (NodeClaim)'],
+        ['image pull +', 'weight load (S3 or cache)'],
+        ['readiness', '(model loaded)'],
+        ['traffic served', '(EPP routes it)']
+      ];
+
+      // ---- skeleton: empty chain (always visible)
+      var skel = el('g', {}, g);
+      for (var i = 1; i <= 5; i++) {
+        el('rect', { 'class': 'skel', x: BX, y: C[i] - 13, width: BW, height: 26, rx: 6 }, skel);
+      }
+      [0, 6].forEach(function (i) {
+        el('circle', { 'class': 'skel', cx: CX, cy: C[i], r: 12 }, skel);
+      });
+
+      // ---- labels (appear with their hop)
+      var gLab = [];
+      LINES.forEach(function (L, i) {
+        var gr = el('g', {}, g);
+        el('text', { 'class': 'lab', x: 30, y: C[i] - 2 }, gr, L[0]);
+        el('text', { 'class': 'lab2', x: 30, y: C[i] + 22 }, gr, L[1]);
+        gLab.push(gr);
+      });
+
+      // ---- bars: row 2 accent (sourced), rows 3 to 6 question-mark (not measured)
+      var bars = [], qs = [];
+      for (var j = 1; j <= 5; j++) {
+        var cls = j === 1 ? 'bar2' : 'barn';
+        bars.push(el('rect', { 'class': cls, x: BX, y: C[j] - 13, width: 0.01, height: 26, rx: 6 }, g));
+        if (j !== 1) {
+          qs.push(el('text', { 'class': 'q', x: CX, y: C[j] + 8 }, g, '?'));
+        }
+      }
+      var domRects = [3, 4].map(function (j) {
+        return el('rect', { 'class': 'dom', x: BX, y: C[j] - 13, width: BW, height: 26, rx: 6 }, g);
+      });
+
+      // ---- chips (right)
+      var gChip2 = el('g', {}, g);
+      el('text', { 'class': 'chipa', x: CHX, y: C[1] - 4 }, gChip2, '15s HPA sync loop');
+      el('text', { 'class': 'chipb', x: CHX, y: C[1] + 20 }, gChip2, '30s at 0 to 1, KEDA poll');
+      var gChipsN = [2, 3, 4, 5].map(function (j) {
+        var gr = el('g', {}, g);
+        el('text', { 'class': 'chipn', x: CHX, y: C[j] + 7 }, gr, 'not measured here');
+        return gr;
+      });
+
+      // ---- event dots (rows 1 and 7)
+      var dot1 = el('circle', { 'class': 'dot1', cx: CX, cy: C[0], r: 7 }, g);
+      var dot7 = el('circle', { 'class': 'dot7', cx: CX, cy: C[6], r: 7 }, g);
+
+      // ---- arrows between rows (appear with the hop below)
+      var ARR = [[82, 103], [141, 161], [199, 219], [257, 277], [315, 335], [373, 394]];
+      var arrs = ARR.map(function (a) {
+        return el('line', { 'class': 'arr', x1: CX, y1: a[0], x2: CX, y2: a[1] - 8, 'marker-end': 'url(#' + ID + '-ah)' }, g);
+      });
+
+      // ---- conclusion (last step): two lines, the top statement says something else now
+      var gConcl = el('g', {}, g);
+      el('text', { 'class': 'concl', x: 560, y: 462 }, gConcl, 'A floor of replicas keeps the node and model-load hops');
+      el('text', { 'class': 'concl', x: 560, y: 486 }, gConcl, 'out of the hot path.');
+
+      // ---- state
+      function targets(n) {
+        var H = [0, 0, 0, 0, 0, 0, 0], A = [0, 0, 0, 0, 0, 0];
+        for (var i = 0; i < 7; i++) H[i] = n >= i + 1 ? 1 : 0;
+        for (var j = 0; j < 6; j++) A[j] = n >= j + 2 ? 1 : 0;
+        return { H: H, A: A, dom: n >= 7 ? 1 : 0 };
+      }
+      var S = targets(0);
+      function setOp(e, v) { e.style.opacity = v.toFixed(3); }
+      function draw() {
+        for (var i = 0; i < 7; i++) setOp(gLab[i], S.H[i]);
+        for (var j = 0; j < 5; j++) {
+          setOp(bars[j], S.H[j + 1]);
+          bars[j].setAttribute('width', Math.max(0.01, BW * S.H[j + 1]).toFixed(2));
+        }
+        for (var q = 0; q < 4; q++) setOp(qs[q], S.H[q + 2]);
+        for (var c = 0; c < 4; c++) setOp(gChipsN[c], S.H[c + 2]);
+        setOp(gChip2, S.H[1]);
+        setOp(dot1, S.H[0]);
+        setOp(dot7, S.H[6]);
+        for (var a = 0; a < 6; a++) setOp(arrs[a], S.A[a]);
+        domRects.forEach(function (d) { setOp(d, S.dom); });
+        setOp(gConcl, S.dom);
+      }
+      draw();
+
+      var cancel = null;
+      Deck.slide(ID, {
+        enter: function () { S = targets(0); draw(); },
+        leave: function () { if (cancel) { cancel(); cancel = null; } },
+        step: function (n, prev, c) {
+          var t = targets(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = t; draw(); return; }
+          var f = { H: S.H.slice(), A: S.A.slice(), dom: S.dom };
+          cancel = Deck.tween(600, function (k) {
+            S.H = f.H.map(function (v, i) { return Deck.lerp(v, t.H[i], k); });
+            S.A = f.A.map(function (v, i) { return Deck.lerp(v, t.A[i], k); });
+            S.dom = Deck.lerp(f.dom, t.dom, k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

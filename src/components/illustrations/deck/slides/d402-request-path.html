@@ -1,0 +1,244 @@
+<section class="slide" id="d402-request-path" data-steps="5">
+  <p class="kicker reveal">envoy ai gateway</p>
+  <p class="statement reveal">One request, end to end.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d402-request-path-t d402-request-path-d">
+      <title id="d402-request-path-t">One request through the Envoy AI Gateway: the model is read from the body, a header is set, the route matches, the endpoint picker chooses a pod, and token usage becomes four gen_ai histograms</title>
+      <desc id="d402-request-path-d">A client sends POST /v1/chat/completions with model qwen38-27b-nvfp4 in the body. Envoy asks the ai-gateway-extproc sidecar, which reads the model from the body and sets the header x-ai-eg-model, replacing any client value. Envoy matches the route on that header, and the backend is the InferencePool. Envoy then asks the endpoint picker, which sets x-gateway-destination-endpoint, and the pool cluster is ORIGINAL_DST, so the request goes to the chosen vLLM pod on port 8000. On the way back the sidecar reads the token usage and records four histograms: gen_ai_client_token_usage, gen_ai_server_request_duration_seconds, gen_ai_server_time_to_first_token_seconds and gen_ai_server_time_per_output_token_seconds. A small inset shows the ReferenceGrant a cross-namespace route needs, with two from entries: AIGatewayRoute and HTTPRoute.</desc>
+      <defs>
+        <marker id="d402-request-path-mn" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto-start-reverse"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-text-dim)"/></marker>
+        <marker id="d402-request-path-ma" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto-start-reverse"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <g id="d402-request-path-main">
+      <!-- ledger: what the request carries -->
+      <g class="card">
+        <rect class="cd" x="20" y="20" width="470" height="108" rx="14"/>
+        <text class="t20 dim" x="38" y="49">client sends</text>
+        <text class="t20 soft" x="38" y="81">POST /v1/chat/completions</text>
+        <text class="t20 soft" x="38" y="111">{"model": "<tspan class="acc">qwen38-27b-nvfp4</tspan>", ...}</text>
+      </g>
+      <g class="card">
+        <rect class="cd ph" x="510" y="20" width="590" height="108" rx="14"/>
+        <text class="t20 dim" x="528" y="49">added by the gateway</text>
+        <g data-from="1">
+          <text class="t20 amb" x="1082" y="49" text-anchor="end">client header replaced</text>
+          <text class="t20 acc" x="528" y="81">x-ai-eg-model: qwen38-27b-nvfp4</text>
+        </g>
+        <g data-from="3">
+          <text class="t20 acc" x="528" y="111">x-gateway-destination-endpoint: &lt;chosen pod&gt;</text>
+        </g>
+      </g>
+
+      <!-- request and response lanes -->
+      <line id="d402-request-path-a1" class="cn" x1="172" y1="190" x2="248" y2="190"/>
+      <line id="d402-request-path-a2" class="cn" x1="672" y1="190" x2="848" y2="190"/>
+      <line id="d402-request-path-b1" class="cn fl" x1="848" y1="232" x2="672" y2="232"/>
+      <line id="d402-request-path-b2" class="cn fl" x1="248" y1="232" x2="172" y2="232"/>
+      <text class="t20 soft" x="760" y="178" text-anchor="middle" data-from="3">ORIGINAL_DST</text>
+      <text class="t20 acc" x="760" y="258" text-anchor="middle" data-from="4">usage</text>
+
+      <!-- stations -->
+      <g id="d402-request-path-cl" class="stn">
+        <rect class="st" x="20" y="150" width="150" height="112" rx="16"/>
+        <text class="t24 ttl" x="95" y="242" text-anchor="middle">client</text>
+      </g>
+      <g id="d402-request-path-en" class="stn">
+        <rect class="st" x="250" y="150" width="420" height="112" rx="16"/>
+        <text class="t24 ttl" x="270" y="182">envoy</text>
+        <g data-from="2">
+          <text class="t20 soft" x="270" y="214">match x-ai-eg-model</text>
+          <text class="t20 soft" x="270" y="244">backend: InferencePool</text>
+        </g>
+      </g>
+      <g id="d402-request-path-gr" class="stn">
+        <rect class="st grp" x="850" y="150" width="250" height="114" rx="16"/>
+        <text class="t20 dim" x="870" y="174">InferencePool</text>
+        <rect id="d402-request-path-p1" class="pd" x="866" y="184" width="218" height="31" rx="8"/>
+        <text class="t20 pt" x="975" y="206" text-anchor="middle">vLLM :8000</text>
+        <rect class="pd" x="866" y="223" width="218" height="31" rx="8"/>
+        <text class="t20 pt2" x="975" y="245" text-anchor="middle">vLLM :8000</text>
+      </g>
+
+      <!-- helpers: asked by envoy, never in the data path -->
+      <line id="d402-request-path-h1" class="cn dbl" x1="345" y1="266" x2="345" y2="302"/>
+      <line id="d402-request-path-h2" class="cn dbl" x1="635" y1="266" x2="635" y2="302"/>
+      <g id="d402-request-path-xp" class="stn">
+        <rect class="st" x="205" y="306" width="280" height="76" rx="14"/>
+        <text class="t22 ttl" x="345" y="338" text-anchor="middle">ai-gateway-extproc</text>
+        <text class="t20 dim" x="345" y="366" text-anchor="middle">sidecar in the pod</text>
+      </g>
+      <g id="d402-request-path-ep" class="stn">
+        <rect class="st" x="510" y="306" width="250" height="76" rx="14"/>
+        <text class="t22 ttl" x="635" y="338" text-anchor="middle">endpoint picker</text>
+        <text class="t20 dim" x="635" y="366" text-anchor="middle">EPP, gRPC :9002</text>
+      </g>
+
+      <!-- moving parts -->
+      <circle id="d402-request-path-pa" class="ping" r="6"/>
+      <circle id="d402-request-path-pb" class="ping" r="6"/>
+      <circle id="d402-request-path-pc" class="ping" r="6"/>
+      <g id="d402-request-path-rq" class="pkt"><rect x="-18" y="-11" width="36" height="22" rx="6"/></g>
+      <g id="d402-request-path-rs" class="pkt out"><rect x="-18" y="-11" width="36" height="22" rx="6"/></g>
+      </g>
+
+      <!-- inset: cross-namespace route -->
+      <g data-from="5">
+        <rect class="cd" x="820" y="282" width="280" height="120" rx="14"/>
+        <text class="t22 soft" x="838" y="310">ReferenceGrant</text>
+        <text class="t20 dim" x="838" y="336">cross-namespace</text>
+        <text class="t20 acc" x="838" y="362">from: AIGatewayRoute</text>
+        <text class="t20 acc" x="838" y="388">from: HTTPRoute</text>
+      </g>
+
+      <!-- response side: usage becomes metrics -->
+      <g data-from="4" style="transition-delay:.4s">
+        <line id="d402-request-path-mc" class="cn act" x1="345" y1="386" x2="345" y2="420"/>
+        <text class="t20 acc" x="361" y="408">reads usage</text>
+        <g class="chip"><rect x="20" y="424" width="324" height="32" rx="8"/><text class="t20" x="32" y="447">gen_ai_client_token_usage</text></g>
+        <g class="chip"><rect x="356" y="424" width="480" height="32" rx="8"/><text class="t20" x="368" y="447">gen_ai_server_request_duration_seconds</text></g>
+        <text class="t20 dim" x="852" y="447">4 histograms</text>
+        <g class="chip"><rect x="20" y="464" width="516" height="32" rx="8"/><text class="t20" x="32" y="487">gen_ai_server_time_to_first_token_seconds</text></g>
+        <g class="chip"><rect x="548" y="464" width="540" height="32" rx="8"/><text class="t20" x="560" y="487">gen_ai_server_time_per_output_token_seconds</text></g>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #d402-request-path svg.diagram{width:100%;height:100%;max-width:none;}
+    #d402-request-path text{font-family:var(--font-mono);}
+    #d402-request-path{--amb:color-mix(in oklab,#f59e0b 80%,var(--color-text));}
+    #d402-request-path .t20{font-size:20px;}
+    #d402-request-path .t22{font-size:22px;font-weight:600;}
+    #d402-request-path .t24{font-size:24px;font-weight:600;}
+    #d402-request-path .dim{fill:var(--color-text-dim);}
+    #d402-request-path .soft{fill:var(--color-text-soft);}
+    #d402-request-path .acc{fill:var(--color-accent);}
+    #d402-request-path .amb{fill:var(--amb);}
+    #d402-request-path .cd{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #d402-request-path .cd.ph{stroke-dasharray:8 7;}
+    #d402-request-path .stn{transition:opacity .5s;}
+    #d402-request-path .stn.off{opacity:.55;}
+    #d402-request-path .st{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;transition:stroke .5s,fill .5s;}
+    #d402-request-path .st.grp{stroke-dasharray:9 7;}
+    #d402-request-path .ttl{fill:var(--color-text-soft);transition:fill .5s;}
+    #d402-request-path .stn.lit .st{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #d402-request-path .stn.lit .ttl{fill:var(--color-accent);}
+    #d402-request-path .stn.now .st{stroke-width:4;}
+    #d402-request-path .pd{fill:var(--color-surface-deep);stroke:var(--color-text-faint);stroke-width:2;transition:stroke .5s,fill .5s;}
+    #d402-request-path .pt, #d402-request-path .pt2{fill:var(--color-text-muted);transition:fill .5s;}
+    #d402-request-path .pd.on{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-deep));}
+    #d402-request-path .pt.on{fill:var(--color-accent);}
+    #d402-request-path .cn{fill:none;stroke:var(--color-text-faint);stroke-width:3;stroke-linecap:round;marker-end:url(#d402-request-path-mn);transition:stroke .5s;}
+    #d402-request-path .cn.dbl{marker-start:url(#d402-request-path-mn);}
+    #d402-request-path .cn.act{stroke:var(--color-accent);marker-end:url(#d402-request-path-ma);}
+    #d402-request-path .cn.dbl.act{marker-start:url(#d402-request-path-ma);}
+    #d402-request-path .cn.fl.act{stroke-dasharray:9 8;}
+    #d402-request-path .chip rect{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #d402-request-path .chip text{fill:var(--color-accent);}
+    #d402-request-path .ping{fill:var(--color-accent);opacity:0;}
+    #d402-request-path .pkt rect{fill:var(--color-accent);}
+    #d402-request-path .pkt.out rect{fill:var(--color-bg);stroke:var(--color-accent);stroke-width:3;}
+    #d402-request-path .pkt{opacity:0;}
+    #d402-request-path [data-from]{opacity:0;transition:opacity .5s ease;}
+    #d402-request-path [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd402-request-path';
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function set(e, on) { e.classList.toggle('on', on); }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+
+      // first step at which each station is lit
+      var LIT = { cl: 0, en: 1, xp: 1, ep: 3, gr: 3 };
+      // connectors that are active (cyan) from a step on
+      var ACT = { a1: 1, h1: 1, a2: 3, h2: 3, b1: 4, b2: 4 };
+      // pings: a short dot running to and from the helper that is being asked in this step
+      var PING = { pa: [1, 345, 266, 302], pb: [3, 635, 266, 302], pc: [4, 345, 386, 420] };
+      var RQ = $('rq'), RS = $('rs'), cancelMove = null, cancelLoop = null, cancelDy = null, cur = 0;
+      // the picture sits low while the lower half is empty and rises when the metrics arrive
+      var MAIN = $('main'), DY0 = 55, dy = DY0;
+      function setDy(v) { dy = v; MAIN.setAttribute('transform', 'translate(0 ' + v.toFixed(1) + ')'); }
+
+      function paint(n) {
+        Object.keys(LIT).forEach(function (k) {
+          var g = $(k);
+          g.classList.toggle('off', n < LIT[k]);
+          g.classList.toggle('lit', n >= LIT[k]);
+          g.classList.toggle('now', n === LIT[k] && n > 0);
+        });
+        Object.keys(ACT).forEach(function (k) { $(k).classList.toggle('act', n >= ACT[k]); });
+        set($('p1'), n >= 3);
+        $('p1').parentNode.querySelector('.pt').classList.toggle('on', n >= 3);
+        cur = n;
+      }
+      function rest(n) {
+        // resting state of the two packets
+        RQ.style.opacity = n === 0 ? 1 : 0;
+        RQ.setAttribute('transform', 'translate(95 190)');
+        RS.style.opacity = 0;
+      }
+      function pkt(g, x, y, o) { g.setAttribute('transform', 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')'); g.style.opacity = o; }
+
+      function move(n) {
+        if (n === 1) {
+          return Deck.tween(1100, function (k) {
+            var a = clamp(k / 0.8);
+            pkt(RQ, Deck.lerp(95, 238, a), 190, 1 - clamp((k - 0.8) / 0.2));
+          }, { ease: Deck.ease.inOut });
+        }
+        if (n === 3) {
+          return Deck.tween(1100, function (k) {
+            var a = clamp(k / 0.8);
+            pkt(RQ, Deck.lerp(684, 852, a), 190, clamp(k / 0.1) * (1 - clamp((k - 0.8) / 0.2)));
+          }, { ease: Deck.ease.inOut });
+        }
+        if (n === 4) {
+          return Deck.tween(1500, function (k) {
+            if (k < 0.5) { pkt(RS, Deck.lerp(836, 684, clamp(k / 0.45)), 232, 1 - clamp((k - 0.45) / 0.05)); }
+            else { pkt(RS, Deck.lerp(238, 184, clamp((k - 0.55) / 0.45)), 232, clamp((k - 0.5) / 0.05) * (1 - clamp((k - 0.95) / 0.05))); }
+          }, { ease: Deck.ease.linear });
+        }
+        return null;
+      }
+
+      function startLoop() {
+        if (cancelLoop) cancelLoop();
+        cancelLoop = Deck.loop(function (s) {
+          var flows = [].slice.call(document.querySelectorAll('#' + ID + ' .cn.fl.act'));
+          flows.forEach(function (f) { f.style.strokeDashoffset = (s * 34).toFixed(1); });
+          Object.keys(PING).forEach(function (k) {
+            var p = PING[k], e = $(k), on = cur === p[0];
+            if (!on) { e.style.opacity = 0; return; }
+            var ph = (s % 1.6) / 1.6, t = ph < 0.5 ? ph / 0.5 : 1 - (ph - 0.5) / 0.5;
+            e.setAttribute('cx', p[1]);
+            e.setAttribute('cy', Deck.lerp(p[2] + 6, p[3] - 6, t));
+            e.style.opacity = 1;
+          });
+        });
+      }
+
+      setDy(DY0); paint(0); rest(0);
+      Deck.slide(ID, {
+        enter: function () { setDy(DY0); paint(0); rest(0); startLoop(); },
+        leave: function () {
+          if (cancelLoop) { cancelLoop(); cancelLoop = null; }
+          if (cancelMove) { cancelMove(); cancelMove = null; }
+          if (cancelDy) { cancelDy(); cancelDy = null; }
+        },
+        step: function (n, prev, c) {
+          if (cancelMove) { cancelMove(); cancelMove = null; }
+          if (cancelDy) { cancelDy(); cancelDy = null; }
+          paint(n); rest(n);
+          if (!cancelLoop) startLoop();
+          var to = n >= 4 ? 0 : DY0, from = dy;
+          if (c.instant) { setDy(to); return; }
+          cancelDy = Deck.tween(700, function (k) { setDy(Deck.lerp(from, to, k)); });
+          if (n === prev + 1) cancelMove = move(n);
+        }
+      });
+    })();
+  </script>
+</section>

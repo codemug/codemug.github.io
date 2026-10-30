@@ -1,0 +1,154 @@
+<section class="slide" id="d701-tier-ladder" data-steps="4">
+  <p class="kicker reveal">kv cache offloading</p>
+  <p class="statement reveal">Copies go down at prefill, not at eviction.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d701-tier-ladder-t d701-tier-ladder-d">
+      <title id="d701-tier-ladder-t">Three tiers of KV cache on a g7e.2xlarge: GPU memory, CPU RAM and local NVMe, written through as each prompt chunk completes</title>
+      <desc id="d701-tier-ladder-d">Three stacked cards. GPU memory: an example KV pool of 59 GiB (a toy value), 1,933,312 tokens. CPU RAM: an example 16 GiB tier of the node's 64 GiB, 524,288 tokens. Local NVMe: an 800 GiB budget of the 1.9 TB nominal instance store, 26,214,400 tokens. All counts use 32 KiB per token (fp8, 32,768 bytes). Each prompt is cut into chunks of 1,600 tokens. Step one: each chunk is written down to CPU RAM and then NVMe as it completes. Step two: eviction drops only one copy, the GPU and CPU copies go while the NVMe copy stays, and NVMe never evicts. Step three: a later prefix hit loads the chunks back up from the nearest tier that has them. Step four: a cleanup sidecar trims the oldest NVMe files above the 800 GiB budget, because vLLM never deletes them.</desc>
+      <g id="d701-tier-ladder-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d701-tier-ladder svg.diagram{width:100%;height:100%;max-width:none;}
+    #d701-tier-ladder text{font-family:var(--font-mono);}
+    #d701-tier-ladder .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d701-tier-ladder .nm{font-size:24px;font-weight:700;fill:var(--color-text);}
+    #d701-tier-ladder .sb{font-size:22px;fill:var(--color-text-muted);}
+    #d701-tier-ladder .tk{font-size:22px;font-weight:600;fill:var(--color-accent);}
+    #d701-tier-ladder .sm{font-size:20px;fill:var(--color-text-dim);}
+    #d701-tier-ladder .gh{fill:none;stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:5 4;}
+    #d701-tier-ladder .cell{fill:var(--color-accent);}
+    #d701-tier-ladder .note{font-size:22px;fill:var(--color-text-muted);}
+    #d701-tier-ladder .arr{stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;fill:none;}
+    #d701-tier-ladder .arrh{fill:var(--color-accent);}
+    #d701-tier-ladder .alab{font-size:22px;fill:var(--color-accent);}
+    #d701-tier-ladder .dot{fill:var(--color-text);}
+    #d701-tier-ladder .chip{fill:color-mix(in oklab,var(--color-accent) 12%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #d701-tier-ladder .chipt{font-size:22px;text-anchor:middle;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd701-tier-ladder';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function ramp(x, a, b) { return Math.max(0, Math.min(1, (x - a) / (b - a))); }
+      function fmt(n) { return n.toLocaleString('en-US'); }
+
+      // ---- numbers: L6 NOTES-2 F10 and examples/sizing.out
+      var BPT = 2 * 4 * 256 * 16 * 1;            // K and V x 4 KV heads x 256 dim x 16 full-attention layers x 1 byte (fp8) = 32,768 B = 32 KiB
+      var GIB = 1073741824;
+      function tokens(gib) { return gib * GIB / BPT; }   // 16 -> 524,288 ; 800 -> 26,214,400 ; 59 (toy) -> 1,933,312
+      var N = 8, X0 = 420, CW = 30, GAP = 6, CH = 28, SLIDE = 26;
+
+      var g = document.getElementById(ID + '-g');
+      var TIERS = [
+        { y: 16,  h: 100, cy: 62,  name: 'GPU memory',               sub: 'KV pool 59 GiB (toy)',        gib: 59 },
+        { y: 172, h: 100, cy: 208, name: 'CPU RAM',                  sub: '16 GiB (node RAM: 64 GiB)',   gib: 16 },
+        { y: 328, h: 160, cy: 372, name: 'local NVMe, g7e.2xlarge',  sub: '800 GiB of 1.9 TB nominal',   gib: 800 }
+      ];
+
+      var cells = [[], [], []], ghosts = [[], [], []];   // fill rects and dashed slots per tier
+      TIERS.forEach(function (t, ti) {
+        el('rect', { 'class': 'card', x: 20, y: t.y, width: 1080, height: t.h, rx: 14 }, g);
+        el('text', { 'class': 'nm', x: 44, y: t.y + 34 }, g, t.name);
+        el('text', { 'class': 'sb', x: 44, y: t.y + 62 }, g, t.sub);
+        el('text', { 'class': 'tk', x: 44, y: t.y + 90 }, g, fmt(tokens(t.gib)) + ' tokens');
+        for (var i = 0; i < N; i++) {
+          var x = X0 + i * (CW + GAP);
+          ghosts[ti].push(el('rect', { 'class': 'gh', x: x, y: t.cy, width: CW, height: CH, rx: 5 }, g));
+          cells[ti].push(el('rect', { 'class': 'cell', x: x, y: t.cy, width: CW, height: CH, rx: 5 }, g));
+        }
+      });
+      el('text', { 'class': 'sm', x: X0, y: TIERS[0].y + 34 }, g, 'chunks of 1,600 tokens');
+
+      // ---- right-hand notes (appear with eviction)
+      var notes = el('g', {}, g);
+      el('text', { 'class': 'note', x: 740, y: TIERS[0].y + 60 }, notes, 'evicts: this copy only');
+      el('text', { 'class': 'note', x: 740, y: TIERS[1].y + 60 }, notes, 'evicts LRU: this copy only');
+      el('text', { 'class': 'note', x: 740, y: TIERS[2].y + 34 }, notes, 'never evicts');
+      el('text', { 'class': 'note', x: 740, y: TIERS[2].y + 62 }, notes, 'grows until deleted');
+
+      // ---- arrows in the two gaps: down (write-through) at x=60, up (promotion) at x=600
+      var GAPS = [{ y: 116 }, { y: 272 }];
+      var down = el('g', {}, g), up = el('g', {}, g);
+      GAPS.forEach(function (gp) {
+        el('line', { 'class': 'arr', x1: 60, y1: gp.y + 8, x2: 60, y2: gp.y + 40 }, down);
+        el('polygon', { 'class': 'arrh', points: '60,' + (gp.y + 50) + ' 50,' + (gp.y + 36) + ' 70,' + (gp.y + 36) }, down);
+        el('line', { 'class': 'arr', x1: 600, y1: gp.y + 16, x2: 600, y2: gp.y + 48 }, up);
+        el('polygon', { 'class': 'arrh', points: '600,' + (gp.y + 6) + ' 590,' + (gp.y + 20) + ' 610,' + (gp.y + 20) }, up);
+      });
+      var downLab = el('text', { 'class': 'alab', x: 88, y: GAPS[0].y + 36 }, down, 'written down as each chunk completes');
+      var downLab2 = el('text', { 'class': 'alab', x: 88, y: GAPS[1].y + 36 }, down, 'cascaded on to NVMe');
+      var upLab = el('text', { 'class': 'alab', x: 628, y: GAPS[0].y + 36 }, up, 'loaded up from the nearest tier');
+      var upLab2 = el('text', { 'class': 'alab', x: 628, y: GAPS[1].y + 36 }, up, 'an NVMe hit goes via CPU RAM');
+      var dots = [
+        el('circle', { 'class': 'dot', r: 7, cx: 60 }, g), el('circle', { 'class': 'dot', r: 7, cx: 60 }, g),
+        el('circle', { 'class': 'dot', r: 7, cx: 600 }, g), el('circle', { 'class': 'dot', r: 7, cx: 600 }, g)
+      ];
+
+      // ---- sidecar chip inside the NVMe card
+      var chip = el('g', {}, g);
+      el('rect', { 'class': 'chip', x: 44, y: 438, width: 1032, height: 40, rx: 10 }, chip);
+      el('text', { 'class': 'chipt', x: 560, y: 465 }, chip, 'vLLM never deletes cached files: a sidecar trims the oldest above 800 GiB');
+
+      // ---- state: s1 write-through, s2 eviction, s3 hit, s4 sidecar
+      var s = [0, 0, 0, 0], cancel = null;
+      function draw() {
+        var s1 = s[0], s2 = s[1], s3 = s[2], s4 = s[3];
+        for (var i = 0; i < N; i++) {
+          var cpuBase = ramp(s1, 0.05 + i * 0.04, 0.35 + i * 0.04);
+          var nvBase = ramp(s1, 0.45 + i * 0.035, 0.70 + i * 0.035);
+          var gpuEv = ramp(s2, i * 0.03, 0.4 + i * 0.03);
+          var cpuEv = ramp(s2, 0.3 + i * 0.03, 0.7 + i * 0.03);
+          var cpuRest = ramp(s3, i * 0.04, 0.3 + i * 0.04);
+          var gpuRest = ramp(s3, 0.45 + i * 0.035, 0.70 + i * 0.035);
+          var gpuP = 1 - gpuEv + gpuEv * gpuRest;
+          var cpuP = cpuBase * (1 - cpuEv) + cpuBase * cpuEv * cpuRest;
+          var offs = [gpuEv * (1 - gpuRest) * SLIDE, cpuEv * (1 - cpuRest) * SLIDE - (1 - cpuBase) * SLIDE, -(1 - nvBase) * SLIDE];
+          var ps = [gpuP, cpuP, nvBase];
+          for (var t = 0; t < 3; t++) {
+            cells[t][i].setAttribute('opacity', ps[t].toFixed(3));
+            cells[t][i].setAttribute('y', (TIERS[t].cy + offs[t]).toFixed(2));
+            ghosts[t][i].setAttribute('opacity', (1 - ps[t]).toFixed(3));
+          }
+        }
+        notes.setAttribute('opacity', ramp(s2, 0.3, 1).toFixed(3));
+        down.setAttribute('opacity', ramp(s1, 0, 0.2).toFixed(3));
+        up.setAttribute('opacity', ramp(s3, 0, 0.2).toFixed(3));
+        chip.setAttribute('opacity', s4.toFixed(3));
+        // one-shot dots: down gap1 then gap2 during s1; up gap2 then gap1 during s3
+        function place(d, p, y0, y1, x) {
+          d.setAttribute('opacity', (p > 0 && p < 1) ? '1' : '0');
+          d.setAttribute('cy', (y0 + (y1 - y0) * p).toFixed(1));
+        }
+        place(dots[0], ramp(s1, 0, 0.45), GAPS[0].y + 6, GAPS[0].y + 48);
+        place(dots[1], ramp(s1, 0.4, 0.85), GAPS[1].y + 6, GAPS[1].y + 48);
+        place(dots[2], ramp(s3, 0, 0.45), GAPS[1].y + 48, GAPS[1].y + 6);
+        place(dots[3], ramp(s3, 0.4, 0.85), GAPS[0].y + 48, GAPS[0].y + 6);
+      }
+      draw();
+
+      Deck.slide(ID, {
+        enter: function () { s = [0, 0, 0, 0]; draw(); },
+        step: function (n, prev, c) {
+          var t = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0, n >= 3 ? 1 : 0, n >= 4 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s = t; draw(); return; }
+          var f = s.slice();
+          cancel = Deck.tween(1500, function (k) {
+            s = f.map(function (v, i) { return Deck.lerp(v, t[i], k); });
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

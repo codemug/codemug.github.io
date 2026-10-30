@@ -1,0 +1,229 @@
+<section class="slide" id="d401-control-and-data-plane" data-steps="5">
+  <p class="kicker reveal">envoy ai gateway</p>
+  <p class="statement reveal">Envoy Gateway does this. The AI Gateway adds that.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d401-control-and-data-plane-t d401-control-and-data-plane-d">
+      <title id="d401-control-and-data-plane-t">Envoy Gateway on its own, then the three things the AI Gateway adds, and the install order that worked</title>
+      <desc id="d401-control-and-data-plane-d">Envoy Gateway has one controller, the Deployment envoy-gateway. It watches GatewayClass, Gateway, HTTPRoute and ReferenceGrant, plus its own CRDs such as Backend and EnvoyProxy, and programs the Envoy proxy pod over xDS. The pod is 2 of 2 ready, with the containers envoy and shutdown-manager. The AI Gateway adds three things. First, a second controller, the Deployment ai-gateway-controller, which watches AIGatewayRoute, AIServiceBackend, BackendSecurityPolicy and GatewayConfig, plus Gateway, ReferenceGrant and InferencePool. Second, Envoy Gateway calls it as an extension server over gRPC on port 1063 with the hooks Translation, Cluster and Route, and with that configured Envoy Gateway also watches InferencePool and hands it over. Third, once the first AIGatewayRoute exists, a mutating webhook on port 9443 adds the container ai-gateway-extproc to the proxy pod, which becomes 3 of 3 ready. The install order that worked has five steps: the Inference Extension CRDs, the Gateway API and Envoy Gateway CRDs, the six AI CRDs, the AI controller, then Envoy Gateway with the InferencePool addon. The docs order breaks: the pool addon before the AI controller leaves envoy-gateway never Ready, and the Inference Extension CRDs after the AI controller leave the pool status empty until a restart.</desc>
+      <defs>
+        <marker id="d401-control-and-data-plane-mn" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto-start-reverse"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-text-muted)"/></marker>
+        <marker id="d401-control-and-data-plane-ma" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto-start-reverse"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-accent)"/></marker>
+      </defs>
+
+      <g id="d401-control-and-data-plane-main">
+        <!-- control plane: Envoy Gateway, what it already does -->
+        <rect class="bx" x="20" y="20" width="432" height="194" rx="16"/>
+        <text class="t24 soft" x="38" y="52">Envoy Gateway controller</text>
+        <text class="t20 dim" x="38" y="80">envoy-gateway watches</text>
+        <g id="d401-control-and-data-plane-eg"></g>
+        <text class="t20 dim" x="38" y="191">+ EG CRDs: Backend, EnvoyProxy</text>
+
+        <!-- control plane: the AI Gateway controller, the second controller -->
+        <rect class="bx ph" x="602" y="20" width="498" height="194" rx="16" data-from="0" data-until="1"/>
+        <g data-from="1">
+          <rect class="bx hl" x="602" y="20" width="498" height="194" rx="16"/>
+          <text class="t24 acc" x="620" y="52">AI Gateway controller</text>
+          <text class="t20 dim" x="620" y="80">ai-gateway-controller watches</text>
+          <g id="d401-control-and-data-plane-ai"></g>
+        </g>
+
+        <!-- the extension hooks between them -->
+        <g data-from="2">
+          <text class="t20 acc" x="527" y="104" text-anchor="middle">extension</text>
+          <text class="t20 acc" x="527" y="128" text-anchor="middle">gRPC :1063</text>
+          <line class="cn acc2 dbl" x1="462" y1="146" x2="592" y2="146"/>
+          <circle id="d401-control-and-data-plane-ping" class="ping" r="6" cy="146"/>
+          <text class="t20 acc" x="527" y="244" text-anchor="middle">hooks: Translation, Cluster, Route</text>
+        </g>
+
+        <!-- arrows from the controllers to the proxy pod -->
+        <line id="d401-control-and-data-plane-xds" class="cn fl act" x1="120" y1="216" x2="120" y2="260"/>
+        <text class="t20 soft" x="136" y="244">xDS</text>
+        <g data-from="3">
+          <line id="d401-control-and-data-plane-wh" class="cn acc2 fl act" x1="851" y1="216" x2="851" y2="260"/>
+          <text class="t20 acc" x="867" y="244">webhook :9443</text>
+        </g>
+
+        <!-- data plane: the Envoy proxy pod -->
+        <rect id="d401-control-and-data-plane-pod" class="bx pod" x="20" y="262" width="1080" height="72" rx="16"/>
+        <text class="t24 soft" x="38" y="292">Envoy proxy pod</text>
+        <text id="d401-control-and-data-plane-rd" class="t20 dim" x="38" y="320">ready 2/2</text>
+        <g id="d401-control-and-data-plane-pc"></g>
+        <rect class="slot" x="628" y="280" width="240" height="36" rx="7" data-from="0" data-until="3"/>
+        <g data-from="3">
+          <g id="d401-control-and-data-plane-xp"></g>
+          <text class="t20 dim" x="884" y="304">native sidecar</text>
+        </g>
+      </g>
+
+      <!-- install order -->
+      <g id="d401-control-and-data-plane-strip"></g>
+      <g data-from="5">
+        <text class="t20 amb" x="20" y="456">Docs order, 5 before 4: envoy-gateway never Ready</text>
+        <text class="t20 amb" x="20" y="486">Docs order, 1 after 4: pool status empty until a restart</text>
+      </g>
+    </svg>
+  </div>
+
+  <style>
+    #d401-control-and-data-plane svg.diagram{width:100%;height:100%;max-width:none;}
+    #d401-control-and-data-plane text{font-family:var(--font-mono);}
+    #d401-control-and-data-plane{--amb:color-mix(in oklab,#f59e0b 80%,var(--color-text));}
+    #d401-control-and-data-plane .t20{font-size:20px;}
+    #d401-control-and-data-plane .t24{font-size:24px;font-weight:600;}
+    #d401-control-and-data-plane .dim{fill:var(--color-text-dim);}
+    #d401-control-and-data-plane .soft{fill:var(--color-text-soft);}
+    #d401-control-and-data-plane .acc{fill:var(--color-accent);}
+    #d401-control-and-data-plane .amb{fill:var(--amb);}
+    #d401-control-and-data-plane .bx{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;transition:stroke .5s,fill .5s;}
+    #d401-control-and-data-plane .bx.ph{stroke-dasharray:9 8;stroke:var(--color-text-faint);}
+    #d401-control-and-data-plane .bx.hl{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 5%,var(--color-surface-deep));}
+    #d401-control-and-data-plane .bx.pod.new{stroke:var(--color-accent);}
+    #d401-control-and-data-plane .slot{fill:none;stroke:var(--color-text-faint);stroke-width:2;stroke-dasharray:7 6;}
+    #d401-control-and-data-plane .ch rect{fill:var(--color-surface-deep);stroke:var(--color-text-faint);stroke-width:2;transition:stroke .3s,fill .3s;}
+    #d401-control-and-data-plane .ch text{font-size:20px;fill:var(--color-text-muted);transition:fill .3s;}
+    #d401-control-and-data-plane .ch.hot rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 16%,var(--color-surface-deep));}
+    #d401-control-and-data-plane .ch.hot text{fill:var(--color-accent);}
+    #d401-control-and-data-plane .ch.new rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));}
+    #d401-control-and-data-plane .ch.new text{fill:var(--color-accent);}
+    #d401-control-and-data-plane .ch.new.hot rect{fill:color-mix(in oklab,var(--color-accent) 26%,var(--color-surface-deep));}
+    #d401-control-and-data-plane .ch.ctr text{fill:var(--color-text-soft);}
+    #d401-control-and-data-plane .ch.ctr rect{stroke:var(--color-border-strong);}
+    #d401-control-and-data-plane .cn{fill:none;stroke:var(--color-text-muted);stroke-width:3;stroke-linecap:round;marker-end:url(#d401-control-and-data-plane-mn);}
+    #d401-control-and-data-plane .cn.dbl{marker-start:url(#d401-control-and-data-plane-mn);}
+    #d401-control-and-data-plane .cn.acc2{stroke:var(--color-accent);marker-end:url(#d401-control-and-data-plane-ma);}
+    #d401-control-and-data-plane .cn.dbl.acc2{marker-start:url(#d401-control-and-data-plane-ma);}
+    #d401-control-and-data-plane .cn.fl{stroke-dasharray:9 8;}
+    #d401-control-and-data-plane .ping{fill:var(--color-accent);}
+    #d401-control-and-data-plane .sc rect{fill:var(--color-surface-deep);stroke:var(--color-text-faint);stroke-width:2.5;transition:stroke .4s,fill .4s;}
+    #d401-control-and-data-plane .sc text{font-size:20px;}
+    #d401-control-and-data-plane .sc .l1{fill:var(--color-text-soft);font-weight:600;transition:fill .4s;}
+    #d401-control-and-data-plane .sc .l2{fill:var(--color-text-dim);}
+    #d401-control-and-data-plane .sc.on rect{stroke:var(--color-accent);fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));}
+    #d401-control-and-data-plane .sc.on .l1{fill:var(--color-accent);}
+    #d401-control-and-data-plane[data-cur="5"] .sc.warn rect{stroke:var(--amb);}
+    #d401-control-and-data-plane[data-cur="5"] .sc.warn .l1{fill:var(--amb);}
+    #d401-control-and-data-plane .sa{fill:none;stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+    #d401-control-and-data-plane [data-from]{opacity:0;transition:opacity .5s ease;}
+    #d401-control-and-data-plane [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd401-control-and-data-plane';
+      var NS = 'http://www.w3.org/2000/svg';
+      var DY0 = 80;
+      function $(s) { return document.getElementById(ID + '-' + s); }
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // a one-line chip, 20px mono: 12 units per character
+      function chip(parent, x, y, label, cls, h) {
+        var w = label.length * 12 + 14, g = el('g', { 'class': 'ch ' + cls }, parent);
+        el('rect', { x: x, y: y, width: w, height: h || 30, rx: 7 }, g);
+        el('text', { x: x + 7, y: y + (h ? h / 2 + 7 : 21) }, g, label);
+        return { g: g, w: w };
+      }
+      // chips laid out in rows, 8 units apart, starting at (x0, y0), rows 38 apart
+      function rows(parent, x0, y0, spec) {
+        var out = [];
+        spec.forEach(function (row, r) {
+          var x = x0;
+          row.forEach(function (it) { var c = chip(parent, x, y0 + r * 38, it[0], it[1]); x += c.w + 8; out.push(c.g); });
+        });
+        return out;
+      }
+
+      // Envoy Gateway watches (the Gateway API kinds plus InferencePool, handed over by backendResources)
+      var EGC = rows($('eg'), 36, 94, [
+        [['GatewayClass', ''], ['Gateway', ''], ['HTTPRoute', '']],
+        [['ReferenceGrant', ''], ['InferencePool', '']]
+      ]);
+      // InferencePool reaches Envoy Gateway only through the extension manager (backendResources), so it joins in step 2
+      EGC[4].setAttribute('data-from', '2');
+      EGC[4].classList.add('new');
+      // the AI Gateway controller watches: four new kinds (cyan), three shared kinds (grey)
+      var AIC = rows($('ai'), 618, 94, [
+        [['AIGatewayRoute', 'new'], ['AIServiceBackend', 'new']],
+        [['BackendSecurityPolicy', 'new'], ['GatewayConfig', 'new']],
+        [['Gateway', ''], ['ReferenceGrant', ''], ['InferencePool', '']]
+      ]);
+      AIC.forEach(function (g, i) { g.style.transitionDelay = (i * 0.07).toFixed(2) + 's'; });
+
+      // the proxy pod: two containers before the first route, a third after it
+      var PC = $('pc');
+      chip(PC, 300, 280, 'envoy', 'ctr', 36);
+      chip(PC, 398, 280, 'shutdown-manager', 'ctr', 36);
+      var XP = chip($('xp'), 628, 280, 'ai-gateway-extproc', 'new', 36);
+
+      // the install order that worked, with the docs order warnings on chips 1 and 5
+      var ST = [
+        ['1 GIE CRDs', 'InferencePool', 184, 'warn'],
+        ['2 Gateway API', '+ EG CRDs', 184, ''],
+        ['3 AI CRDs', '6 kinds', 136, ''],
+        ['4 AI controller', '1 pod', 208, ''],
+        ['5 Envoy Gateway', '+ pool addon', 208, 'warn']
+      ];
+      var SG = $('strip'), SX = 20, SY = 360, SH = 60, SC = [];
+      ST.forEach(function (s, i) {
+        var g = el('g', { 'class': 'sc ' + s[3], 'data-from': 4 }, SG);
+        g.style.transitionDelay = (i * 0.16).toFixed(2) + 's';
+        el('rect', { x: SX, y: SY, width: s[2], height: SH, rx: 12 }, g);
+        el('text', { 'class': 'l1', x: SX + 14, y: SY + 26 }, g, s[0]);
+        el('text', { 'class': 'l2', x: SX + 14, y: SY + 50 }, g, s[1]);
+        SC.push(g);
+        if (i < ST.length - 1) {
+          var a = el('g', { 'data-from': 4 }, SG);
+          a.style.transitionDelay = (i * 0.16 + 0.08).toFixed(2) + 's';
+          el('path', { 'class': 'sa', d: 'M' + (SX + s[2] + 8) + ' ' + (SY + 30) + 'H' + (SX + s[2] + 30) + 'm-8 -8l8 8l-8 8' }, a);
+        }
+        SX += s[2] + 40;
+      });
+
+      var main = $('main'), dy = DY0, cancelMove = null, cancelLoop = null, cur = 0;
+      function setDy(v) { dy = v; main.setAttribute('transform', 'translate(0 ' + v.toFixed(1) + ')'); }
+
+      function paint(n) {
+        cur = n;
+        $('pod').classList.toggle('new', n >= 3);
+        $('rd').textContent = n >= 3 ? 'ready 3/3' : 'ready 2/2';
+        $('wh').classList.toggle('act', n >= 3);
+      }
+
+      function startLoop() {
+        if (cancelLoop) cancelLoop();
+        cancelLoop = Deck.loop(function (s) {
+          // marching dashes on the live arrows
+          [].forEach.call(document.querySelectorAll('#' + ID + ' .cn.fl.act'), function (e) { e.style.strokeDashoffset = (s * 34).toFixed(1); });
+          // "watching": one chip after another lights up, on the controller that is the subject of the step
+          var step = Math.floor(s * 3) % 9;
+          EGC.forEach(function (g, i) { g.classList.toggle('hot', cur === 0 && i === step); });
+          AIC.forEach(function (g, i) { g.classList.toggle('hot', cur === 1 && i === step); });
+          // a packet of config crossing to the extension server and back
+          var ping = $('ping'), ph = (s % 1.8) / 1.8, t = ph < 0.5 ? ph / 0.5 : 1 - (ph - 0.5) / 0.5;
+          ping.setAttribute('cx', Deck.lerp(472, 582, t));
+          ping.style.opacity = cur === 2 ? 1 : 0;
+        });
+      }
+
+      setDy(DY0); paint(0);
+      Deck.slide(ID, {
+        enter: function () { setDy(DY0); paint(0); startLoop(); },
+        leave: function () { if (cancelLoop) { cancelLoop(); cancelLoop = null; } if (cancelMove) { cancelMove(); cancelMove = null; } },
+        step: function (n, prev, c) {
+          if (cancelMove) { cancelMove(); cancelMove = null; }
+          paint(n);
+          if (!cancelLoop) startLoop();
+          var to = n >= 4 ? 0 : DY0, from = dy;
+          if (c.instant) { setDy(to); return; }
+          cancelMove = Deck.tween(900, function (k) { setDy(Deck.lerp(from, to, k)); });
+        }
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,267 @@
+<section class="slide" id="d301-round-robin-vs-epp" data-steps="4">
+  <p class="kicker reveal">endpoint picker</p>
+  <p class="statement reveal">Round robin deals blind. The picker scores first.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d301-round-robin-vs-epp-t d301-round-robin-vs-epp-d">
+      <title id="d301-round-robin-vs-epp-t">Round robin sends the next request to pod C whatever its state; the endpoint picker scores all three pods and sends it to pod B</title>
+      <desc id="d301-round-robin-vs-epp-d">A request of 9 prompt blocks enters a gateway. Three vLLM pods are shown with toy states: pod A has queue 0, KV usage 0.20 and 0 of 9 prompt blocks cached; pod B has queue 3, KV 0.45 and 9 of 9 cached; pod C has queue 4, KV 0.75 and 4 of 9 cached. Round robin sends the request to pod C, the next in line, ignoring all of that. The gateway instead sends headers and body to the endpoint picker, which drops pods with queue above 5 or KV above 0.8 (none here), scores each pod as 2 times queue score plus 2 times KV score plus 3 times prefix score, and gets A 3.6, B 4.6, C 1.8. It replies with pod B, and the gateway forwards the request straight to pod B.</desc>
+      <g id="d301-round-robin-vs-epp-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d301-round-robin-vs-epp svg.diagram{width:100%;height:100%;max-width:none;}
+    #d301-round-robin-vs-epp text{font-family:var(--font-mono);}
+    #d301-round-robin-vs-epp .box{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d301-round-robin-vs-epp .boxt{font-size:24px;text-anchor:middle;fill:var(--color-text);}
+    #d301-round-robin-vs-epp .reqt{font-size:20px;text-anchor:middle;fill:var(--color-text-soft);}
+    #d301-round-robin-vs-epp .ghost{fill:none;stroke:var(--color-text-faint);stroke-width:2.5;stroke-dasharray:8 6;}
+    #d301-round-robin-vs-epp .lit{fill:color-mix(in oklab,var(--color-accent) 8%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #d301-round-robin-vs-epp .ept{font-size:24px;font-weight:600;}
+    #d301-round-robin-vs-epp .epk{font-size:20px;font-weight:600;fill:var(--color-accent);}
+    #d301-round-robin-vs-epp .epv{font-size:20px;fill:var(--color-text-soft);}
+    #d301-round-robin-vs-epp .ln{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;}
+    #d301-round-robin-vs-epp .ln.rr{stroke:var(--color-text-dim);}
+    #d301-round-robin-vs-epp .ln.pk{stroke:var(--color-accent);}
+    #d301-round-robin-vs-epp .hd.rr{fill:var(--color-text-dim);}
+    #d301-round-robin-vs-epp .hd.pk{fill:var(--color-accent);}
+    #d301-round-robin-vs-epp .dot.rr{fill:var(--color-text-muted);}
+    #d301-round-robin-vs-epp .dot.pk{fill:var(--color-accent);}
+    #d301-round-robin-vs-epp .alab{font-size:20px;}
+    #d301-round-robin-vs-epp .alab.rr{fill:var(--color-text-muted);}
+    #d301-round-robin-vs-epp .alab.pk{fill:var(--color-accent);}
+    #d301-round-robin-vs-epp .card{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d301-round-robin-vs-epp .pname{font-size:24px;font-weight:600;fill:var(--color-text);}
+    #d301-round-robin-vs-epp .hair{stroke:var(--color-hairline);stroke-width:1.5;}
+    #d301-round-robin-vs-epp .mlab{font-size:20px;fill:var(--color-text-muted);}
+    #d301-round-robin-vs-epp .mval{font-size:20px;fill:var(--color-text);}
+    #d301-round-robin-vs-epp .off{fill:none;stroke:var(--color-text-faint);stroke-width:2;}
+    #d301-round-robin-vs-epp .tq{fill:color-mix(in oklab,var(--color-accent) 30%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:1.5;}
+    #d301-round-robin-vs-epp .tk{fill:color-mix(in oklab,var(--color-accent) 62%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:1.5;}
+    #d301-round-robin-vs-epp .tp{fill:var(--color-accent);stroke:var(--color-accent);stroke-width:1.5;}
+    #d301-round-robin-vs-epp .tick{stroke:var(--color-text-muted);stroke-width:2.5;stroke-dasharray:4 3;}
+    #d301-round-robin-vs-epp .tot{font-size:22px;font-weight:600;fill:var(--color-accent);}
+    #d301-round-robin-vs-epp .pill{fill:none;stroke:var(--color-accent);stroke-width:2.5;}
+    #d301-round-robin-vs-epp .pillt{font-size:20px;text-anchor:middle;fill:var(--color-accent);}
+    #d301-round-robin-vs-epp .pill.rr{stroke:var(--color-text-dim);}
+    #d301-round-robin-vs-epp .pillt.rr{fill:var(--color-text-muted);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd301-round-robin-vs-epp';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function clamp(v) { return Math.max(0, Math.min(1, v)); }
+      function seg(t, a, b) { return clamp((t - a) / (b - a)); }
+      function mixv(a, b, t) { t = clamp(t); return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
+      function mix(a, b, t) { return 'rgb(' + mixv(a, b, t).join(',') + ')'; }
+      function f1(v) { return (Math.round(v * 10 + 1e-7) / 10).toFixed(1); }
+      function f2(v) { return (Math.round(v * 100 + 1e-7) / 100).toFixed(2); }
+
+      // TOY pods, the same table as examples/score_math.py (queue, KV usage, matched of 9 prompt blocks)
+      var PODS = [
+        { n: 'A', q: 0, kv: 0.20, m: 0 },
+        { n: 'B', q: 3, kv: 0.45, m: 9 },
+        { n: 'C', q: 4, kv: 0.75, m: 4 }
+      ];
+      var BLOCKS = 9, W = [2, 2, 3];                    // built-in default weights: queue 2, KV 2, prefix 3
+      var qs = PODS.map(function (p) { return p.q; }), lo = Math.min.apply(null, qs), hi = Math.max.apply(null, qs);
+      PODS.forEach(function (p) {                        // scorer formulas of llm-d-router v1.0.0
+        var sq = hi === lo ? 1 : (hi - p.q) / (hi - lo);
+        p.parts = [W[0] * sq, W[1] * (1 - p.kv), W[2] * p.m / BLOCKS];
+        p.total = p.parts[0] + p.parts[1] + p.parts[2];
+      });
+      var BEST = 0; PODS.forEach(function (p, i) { if (p.total > PODS[BEST].total) BEST = i; });
+      var RR = 2;                                        // round robin happens to be pointing at pod C
+
+      var CY = Deck.rgb('--color-accent'), DIM = Deck.rgb('--color-text-dim'), STR = Deck.rgb('--color-border-strong');
+      var g = document.getElementById(ID + '-g');
+
+      // ---- geometry
+      var CARD_Y = 272, CARD_H = 234, CARD_W = 340, CX0 = [20, 390, 760];
+      var EPP = { x: 600, y: 10, w: 500, h: 150 };
+      var RR_POLY = [[306, 124], [306, 190], [CX0[RR] + CARD_W / 2, 190], [CX0[RR] + CARD_W / 2, 254]];
+      var PK_POLY = [[216, 124], [216, 240], [CX0[BEST] + CARD_W / 2, 240], [CX0[BEST] + CARD_W / 2, 254]];
+      var UP_POLY = [[346, 74], [586, 74]], DN_POLY = [[600, 108], [360, 108]];
+      function pd(poly) { return 'M' + poly.map(function (p) { return p[0] + ' ' + p[1]; }).join('L'); }
+      function plen(poly) { var s = 0; for (var i = 1; i < poly.length; i++) s += Math.hypot(poly[i][0] - poly[i - 1][0], poly[i][1] - poly[i - 1][1]); return s; }
+      function pat(poly, t) {                             // point at fraction t along a polyline
+        var L = plen(poly) * clamp(t);
+        for (var i = 1; i < poly.length; i++) {
+          var a = poly[i - 1], b = poly[i], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          if (L <= d || i === poly.length - 1) { var u = d ? Math.min(1, L / d) : 0; return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]; }
+          L -= d;
+        }
+        return poly[0];
+      }
+      function head(parent, x, y, dir, cls) {            // arrowhead with its tip at (x, y)
+        var pts = dir === 'd' ? [x, y, x - 9, y - 15, x + 9, y - 15] : dir === 'r' ? [x, y, x - 15, y - 9, x - 15, y + 9] : [x, y, x + 15, y - 9, x + 15, y + 9];
+        return el('polygon', { 'class': 'hd ' + cls, points: pts.join(' ') }, parent);
+      }
+      function route(poly, cls, dir, tip) {
+        var p = el('path', { 'class': 'ln ' + cls, d: pd(poly), pathLength: 1, 'stroke-dasharray': 1 }, g);
+        return { p: p, h: head(g, tip[0], tip[1], dir, cls) };
+      }
+
+      // ---- request and gateway
+      el('rect', { 'class': 'box', x: 20, y: 56, width: 112, height: 60, rx: 12 }, g);
+      el('text', { 'class': 'reqt', x: 76, y: 79 }, g, 'request');
+      el('text', { 'class': 'reqt', x: 76, y: 103 }, g, BLOCKS + ' blocks');
+      el('rect', { 'class': 'box', x: 176, y: 48, width: 170, height: 76, rx: 12 }, g);
+      el('text', { 'class': 'boxt', x: 261, y: 86, dy: '.35em' }, g, 'gateway');
+      el('path', { 'class': 'ln rr', d: 'M132 86H150' }, g);
+      el('polygon', { 'class': 'hd rr', points: '176,86 161,77 161,95' }, g);
+
+      // ---- the picker box: a dashed ghost until the request is handed over
+      var eGhost = el('rect', { 'class': 'ghost', x: EPP.x, y: EPP.y, width: EPP.w, height: EPP.h, rx: 14 }, g);
+      var eLit = el('rect', { 'class': 'lit', x: EPP.x, y: EPP.y, width: EPP.w, height: EPP.h, rx: 14 }, g);
+      var eTitle = el('text', { 'class': 'ept', x: EPP.x + 18, y: EPP.y + 34 }, g, 'endpoint picker');
+      var L1 = el('g', {}, g), L2 = el('g', {}, g), L3 = el('g', {}, g), L3b = el('g', {}, g);
+      var LX = EPP.x + 18, CW = 12;                      // 20px monospace advance
+      function line(parent, y, key, rest) {
+        var t = el('text', { x: LX, y: y }, parent);
+        el('tspan', { 'class': 'epk' }, t, key);
+        if (rest) el('tspan', { 'class': 'epv' }, t, rest);
+      }
+      line(L1, EPP.y + 76, 'filter: ', 'drop queue > 5 or KV > 0.8');
+      var x2 = LX, y2 = EPP.y + 106; line(L2, y2, 'score: '); x2 += 7 * CW;
+      [['tq', '2×queue'], ['tk', '2×KV'], ['tp', '3×prefix']].forEach(function (s, i) {
+        if (i) { x2 += CW; el('text', { 'class': 'epv', x: x2, y: y2 }, L2, '+'); x2 += 2 * CW; }
+        el('rect', { 'class': s[0], x: x2, y: y2 - 14, width: 14, height: 14, rx: 3 }, L2);
+        x2 += 20;
+        el('text', { 'class': 'epv', x: x2, y: y2 }, L2, s[1]); x2 += s[1].length * CW;
+      });
+      line(L3, EPP.y + 136, 'pick: ', 'highest total');
+      line(L3b, EPP.y + 136, 'pick: ', 'pod ' + PODS[BEST].n + ', total ' + f1(PODS[BEST].total));
+
+      // ---- arrows: round robin (grey), to and from the picker, the picked route (cyan)
+      var rr = route(RR_POLY, 'rr', 'd', [RR_POLY[3][0], 268]);
+      var up = route(UP_POLY, 'pk', 'r', [600, 74]);
+      var dn = route(DN_POLY, 'pk', 'l', [346, 108]);
+      var pk = route(PK_POLY, 'pk', 'd', [PK_POLY[3][0], 268]);
+      var rrLab = el('text', { 'class': 'alab rr', x: 914, y: 224, 'text-anchor': 'end' }, g, 'next in line, load ignored');
+      var upLab = el('text', { 'class': 'alab pk', x: 473, y: 60, 'text-anchor': 'middle' }, g, 'headers + body');
+      var dnLab = el('text', { 'class': 'alab pk', x: 473, y: 136, 'text-anchor': 'middle' }, g, 'reply: ' + PODS[BEST].n + ' ip:port');
+      var pkLab = el('text', { 'class': 'alab pk', x: 232, y: 224 }, g, 'straight to ' + PODS[BEST].n);
+      var dRR = el('circle', { 'class': 'dot rr', r: 8, cx: 0, cy: 0, opacity: 0 }, g);
+      var dPK = el('circle', { 'class': 'dot pk', r: 8, cx: 0, cy: 0, opacity: 0 }, g);
+
+      // ---- three pod cards
+      var cards = PODS.map(function (p, i) {
+        var x = CX0[i], y = CARD_Y, o = {};
+        o.rect = el('rect', { 'class': 'card', x: x, y: y, width: CARD_W, height: CARD_H, rx: 14 }, g);
+        el('text', { 'class': 'pname', x: x + 16, y: y + 36 }, g, 'pod ' + p.n);
+        el('line', { 'class': 'hair', x1: x + 16, y1: y + 54, x2: x + CARD_W - 16, y2: y + 54 }, g);
+        var rows = [y + 84, y + 120, y + 156], bx = x + 104, vx = x + 276;
+        el('text', { 'class': 'mlab', x: x + 16, y: rows[0], dy: '.35em' }, g, 'queue');
+        for (var k = 0; k < 5; k++) el('rect', { 'class': k < p.q ? 'tq' : 'off', x: bx + k * 30, y: rows[0] - 11, width: 22, height: 22, rx: 4 }, g);
+        el('text', { 'class': 'mval', x: vx, y: rows[0], dy: '.35em' }, g, String(p.q));
+        el('text', { 'class': 'mlab', x: x + 16, y: rows[1], dy: '.35em' }, g, 'KV');
+        el('rect', { 'class': 'off', x: bx, y: rows[1] - 11, width: 160, height: 22, rx: 6 }, g);
+        el('rect', { 'class': 'tk', x: bx, y: rows[1] - 11, width: 160 * p.kv, height: 22, rx: 6 }, g);
+        o.tick = el('line', { 'class': 'tick', x1: bx + 128, y1: rows[1] - 16, x2: bx + 128, y2: rows[1] + 16 }, g);
+        el('text', { 'class': 'mval', x: vx, y: rows[1], dy: '.35em' }, g, f2(p.kv));
+        el('text', { 'class': 'mlab', x: x + 16, y: rows[2], dy: '.35em' }, g, 'prefix');
+        for (var b = 0; b < BLOCKS; b++) el('rect', { 'class': b < p.m ? 'tp' : 'off', x: bx + b * 18, y: rows[2] - 11, width: 14, height: 22, rx: 3 }, g);
+        el('text', { 'class': 'mval', x: vx, y: rows[2], dy: '.35em' }, g, p.m + '/' + BLOCKS);
+        // the score row: a stacked bar of weight x score, one segment per scorer
+        var sy = y + 200;
+        o.slab = el('text', { 'class': 'mlab', x: x + 16, y: sy, dy: '.35em' }, g, 'score');
+        o.segs = ['tq', 'tk', 'tp'].map(function (c) { return el('rect', { 'class': c, x: bx, y: sy - 13, width: 0, height: 26, rx: 0 }, g); });
+        o.tot = el('text', { 'class': 'tot', x: bx, y: sy, dy: '.35em' }, g, '');
+        o.pill = el('g', {}, g);
+        el('rect', { 'class': 'pill', x: x + CARD_W - 16 - 96, y: y + 12, width: 96, height: 32, rx: 16 }, o.pill);
+        el('text', { 'class': 'pillt', x: x + CARD_W - 16 - 48, y: y + 28, dy: '.35em' }, o.pill, 'picked');
+        if (i === RR) {
+          o.rrPill = el('g', {}, g);
+          el('rect', { 'class': 'pill rr', x: x + CARD_W - 16 - 156, y: y + 12, width: 156, height: 32, rx: 16 }, o.rrPill);
+          el('text', { 'class': 'pillt rr', x: x + CARD_W - 16 - 78, y: y + 28, dy: '.35em' }, o.rrPill, 'round robin');
+        }
+        o.bx = bx;
+        return o;
+      });
+      var UNIT = 31;                                     // px per score point
+
+      // state: [round robin, picker engaged, scores, pick]
+      var TARGET = [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]];
+      var S = TARGET[0].slice(), cancel = null, stopLoop = null;
+
+      function show(e, v) { e.style.opacity = v.toFixed(3); }
+      function drawRoute(r, p) { r.p.style.strokeDashoffset = (1 - p).toFixed(3); show(r.p, p > 0 ? 1 : 0); show(r.h, seg(p, 0.92, 1)); }
+      function draw() {
+        var a = S[0], ep = S[1], sc = S[2], pc = S[3];
+        // round robin
+        var ra = seg(a, 0, 0.85);
+        drawRoute(rr, ra); show(rrLab, seg(a, 0.6, 1));
+        var rd = pat(RR_POLY, ra); dRR.setAttribute('cx', rd[0]); dRR.setAttribute('cy', rd[1]);
+        show(dRR, ra > 0 && ra < 1 ? 1 : 0);
+        // hand the request to the picker
+        drawRoute(up, seg(ep, 0, 0.3)); show(upLab, seg(ep, 0, 0.3));
+        var lit = seg(ep, 0.3, 0.6);
+        show(eLit, lit); show(eGhost, 1 - lit);
+        eTitle.style.fill = mix(DIM, CY, lit);
+        show(L1, seg(ep, 0.45, 0.65)); show(L2, seg(ep, 0.6, 0.8)); show(L3, seg(ep, 0.75, 0.95) * (1 - seg(pc, 0.8, 1)));
+        show(L3b, seg(pc, 0.8, 1));
+        // scores fill
+        cards.forEach(function (c, i) {
+          var s = seg(sc, i * 0.18, i * 0.18 + 0.6), x = c.bx;
+          PODS[i].parts.forEach(function (v, k) {
+            c.segs[k].setAttribute('x', x.toFixed(1)); c.segs[k].setAttribute('width', (v * UNIT * s).toFixed(1));
+            x += v * UNIT * s;
+          });
+          c.tot.setAttribute('x', (x + 10).toFixed(1)); c.tot.textContent = s > 0 ? f1(PODS[i].total * s) : '';
+          show(c.tot, s > 0 ? 1 : 0); show(c.slab, seg(sc, 0, 0.15));
+          show(c.tick, seg(ep, 0.5, 0.8));
+        });
+        // the pick: reply, then the gateway forwards the request
+        drawRoute(dn, seg(pc, 0, 0.3)); show(dnLab, seg(pc, 0.05, 0.3));
+        var pa = seg(pc, 0.3, 0.8);
+        drawRoute(pk, pa); show(pkLab, seg(pc, 0.5, 0.8));
+        var pp = pat(PK_POLY, pa); dPK.setAttribute('cx', pp[0]); dPK.setAttribute('cy', pp[1]);
+        show(dPK, pa > 0 && pa < 1 ? 1 : 0);
+        var on = seg(pc, 0.75, 1);
+        cards.forEach(function (c, i) {
+          var o = i === BEST ? on : 0;
+          c.rect.style.stroke = mix(STR, CY, o);
+          c.rect.style.strokeWidth = (2.5 + o).toFixed(2);
+          c.rect.style.fill = 'color-mix(in oklab, var(--color-accent) ' + (9 * o).toFixed(2) + '%, var(--color-surface-deep))';
+          show(c.pill, o);
+          if (c.rrPill) show(c.rrPill, seg(a, 0.6, 1));
+        });
+      }
+      draw();
+
+      // after a route is drawn, a request keeps travelling it (round robin in step 1, the picked route in step 4)
+      function startLoop() {
+        if (stopLoop) { stopLoop(); stopLoop = null; }
+        if (Deck.reduced) return;
+        stopLoop = Deck.loop(function (secs) {
+          var p = (secs % 2.4) / 2.4, e = Deck.ease.inOut(p);
+          if (S[0] >= 1 && S[1] < 0.01) {
+            var q = pat(RR_POLY, e); dRR.setAttribute('cx', q[0]); dRR.setAttribute('cy', q[1]); show(dRR, 1 - seg(p, 0.85, 1));
+          } else if (S[3] >= 1) {
+            var r = pat(PK_POLY, e); dPK.setAttribute('cx', r[0]); dPK.setAttribute('cy', r[1]); show(dPK, 1 - seg(p, 0.85, 1));
+          }
+        });
+      }
+
+      Deck.slide(ID, {
+        enter: function () { S = TARGET[0].slice(); draw(); startLoop(); },
+        leave: function () { if (stopLoop) { stopLoop(); stopLoop = null; } },
+        step: function (n, prev, c) {
+          var to = TARGET[Math.min(n, 4)], from = S.slice();
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { S = to.slice(); draw(); return; }
+          cancel = Deck.tween(n > prev ? 1200 : 700, function (t) { S = Deck.lerp(from, to, t); draw(); });
+        }
+      });
+    })();
+  </script>
+</section>
