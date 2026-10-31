@@ -6,12 +6,8 @@ locals {
       discoveryTag = var.cluster_name
     }
     model = {
-      s3Uri     = "s3://${var.model_bucket_name}/${var.model_s3_prefix}"
+      s3Uri     = "s3://${local.models_bucket_name}/${var.model_s3_prefix}"
       awsRegion = var.region
-    }
-    # The kube-prometheus-stack release already creates the monitoring namespace.
-    observability = {
-      createNamespace = false
     }
   }
 }
@@ -33,7 +29,7 @@ output "node_role_name" {
 
 output "models_bucket_name" {
   description = "S3 bucket with the model weights"
-  value       = aws_s3_bucket.models.id
+  value       = local.models_bucket_name
 }
 
 output "chart_values" {

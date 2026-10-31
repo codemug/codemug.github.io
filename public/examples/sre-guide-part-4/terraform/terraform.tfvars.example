@@ -3,12 +3,12 @@
 region = "us-east-1"
 
 # cluster_name               = "example-cluster"
-# kubernetes_version         = "1.35"
+# kubernetes_version         = "1.36"
 # vpc_cidr                   = "10.0.0.0/16"
 # api_allowed_cidrs          = ["0.0.0.0/0"]  # narrow before production
 # model_name                 = "qwen38-27b-nvfp4"
 # model_s3_prefix            = "models/nvidia/Qwen3.8-27B-NVFP4/"
-# model_bucket_name          = "example-models-bucket"
+# model_bucket_name        = "example-cluster-models-us-east-1"  # default is <cluster_name>-models-<region>
 # system_instance_type       = "m5.xlarge"
 # system_node_group_min_size     = 2
 # system_node_group_max_size     = 4

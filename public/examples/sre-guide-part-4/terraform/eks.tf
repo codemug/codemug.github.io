@@ -31,9 +31,14 @@ module "eks" {
     "eks-pod-identity-agent" = {}
   }
 
-  # Small system node group: hosts Karpenter, the gateway data plane,
-  # KEDA, Prometheus and the picker. Bottlerocket x86; the module picks
-  # the newest EKS-optimized Bottlerocket AMI for this Kubernetes version.
+  # The initial node group. Some pods have to be running before Karpenter can
+  # launch a single node: Karpenter itself (its chart refuses to run on a node it
+  # created) and CoreDNS, which every pod needs. The other CPU-only controllers
+  # (the AWS Load Balancer Controller, Envoy Gateway, KEDA, Prometheus, the
+  # endpoint picker) run here too, so the GPU nodes only carry vLLM. Two
+  # m5.xlarge nodes fit all of that, and no taint is needed because the GPU
+  # taint already keeps other pods off the GPU nodes. Bottlerocket x86; the
+  # module picks the newest EKS-optimized Bottlerocket AMI for this version.
   eks_managed_node_groups = {
     system = {
       ami_type       = "BOTTLEROCKET_x86_64"

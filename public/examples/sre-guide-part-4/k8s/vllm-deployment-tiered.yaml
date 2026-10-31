@@ -50,7 +50,7 @@ spec:
           command: ["/bin/sh", "-c", 'rm -f /dev/shm/vllm_offload_*.mmap; exec vllm serve "$@"', "vllm-serve"]
           args:
             # model = S3 prefix (trailing slash). Needs config.json, tokenizer files and *.safetensors in that prefix.
-            - s3://example-models-bucket/models/nvidia/Qwen3.8-27B-NVFP4/
+            - s3://example-cluster-models-us-east-1/models/nvidia/Qwen3.8-27B-NVFP4/
             - --served-model-name=qwen38-27b-nvfp4
             - --host=0.0.0.0
             - --port=8000

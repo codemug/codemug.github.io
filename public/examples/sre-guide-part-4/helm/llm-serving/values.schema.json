@@ -75,7 +75,7 @@
       "description": "Structured values rendered into the container args (vLLM v0.32.0).",
       "type": "object",
       "additionalProperties": false,
-      "required": ["image", "maxModelLen", "kvCacheDtype", "gpuMemoryUtilization", "maxNumSeqs", "maxNumBatchedTokens", "tensorParallelSize", "speculativeTokens", "concurrency"],
+      "required": ["image", "maxModelLen", "kvCacheDtype", "gpuMemoryUtilization", "maxNumSeqs", "maxNumBatchedTokens", "tensorParallelSize", "speculativeTokens", "concurrency", "kvEvents"],
       "properties": {
         "image": {
           "description": "vLLM image; ENTRYPOINT is [\"vllm\",\"serve\"], so the args start with the model URL.",
@@ -121,6 +121,29 @@
           "description": "Run:ai Model Streamer concurrency in --model-loader-extra-config",
           "type": "integer",
           "minimum": 1
+        },
+        "kvEvents": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "zmqPort", "replayPort"],
+          "properties": {
+            "enabled": {
+              "description": "Precise prefix-cache routing, off by default: when on, vLLM serves the render endpoints and publishes the KV cache events the endpoint picker listens to; the picker values must match (epp-values-precise.yaml).",
+              "type": "boolean"
+            },
+            "zmqPort": {
+              "description": "Port of the ZMQ PUB socket that publishes the KV cache events.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            },
+            "replayPort": {
+              "description": "Port of the ZMQ replay socket the picker uses to rebuild its KV index.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535
+            }
+          }
         }
       }
     },
@@ -166,7 +189,7 @@
         "gateway": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["namespace", "createNamespace"],
+          "required": ["namespace", "createNamespace", "loadBalancerScheme"],
           "properties": {
             "namespace": {
               "description": "Namespace of the EnvoyProxy and Gateway (and of the AIGatewayRoute's parentRef).",
@@ -178,6 +201,11 @@
             "createNamespace": {
               "description": "Create the gateway namespace; set false when it already exists.",
               "type": "boolean"
+            },
+            "loadBalancerScheme": {
+              "description": "The NLB scheme of the gateway Service; internal is the safe default for an endpoint without authentication.",
+              "type": "string",
+              "enum": ["internal", "internet-facing"]
             }
           }
         }
@@ -188,7 +216,7 @@
       "description": "Per-cluster bounds and thresholds for the ScaledObject.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["enabled", "minReplicas", "maxReplicas", "queueThreshold", "kvCacheThreshold", "fallbackReplicas", "prometheusAddress", "businessHours"],
+      "required": ["enabled", "minReplicas", "maxReplicas", "fallbackReplicas", "prometheusAddress", "kvForecastThreshold", "kvCacheThreshold", "runningPerPod", "queueThreshold", "ttftSeconds"],
       "properties": {
         "enabled": {
           "description": "Render the ScaledObject.",
@@ -204,16 +232,6 @@
           "type": "integer",
           "minimum": 1
         },
-        "queueThreshold": {
-          "description": "Mean queued requests per pod (Value metric) that pushes scale-out; rendered quoted, so it stays a string.",
-          "type": "string",
-          "pattern": "^[0-9]+(\\.[0-9]+)?$"
-        },
-        "kvCacheThreshold": {
-          "description": "Hottest pod's KV cache utilization (0 to 1) that pushes scale-out; rendered quoted, so it stays a string.",
-          "type": "string",
-          "pattern": "^([01](\\.[0-9]+)?)$"
-        },
         "fallbackReplicas": {
           "description": "Replicas held when a Prometheus trigger fails 3 polls in a row.",
           "type": "integer",
@@ -224,32 +242,30 @@
           "type": "string",
           "pattern": "^https?://[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9/_.-]*)?$"
         },
-        "businessHours": {
-          "description": "On-hours floor: a cron window acting as a dynamic minimum.",
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["timezone", "start", "end", "replicas"],
-          "properties": {
-            "timezone": {
-              "type": "string",
-              "minLength": 1
-            },
-            "start": {
-              "description": "Cron expression (5 fields).",
-              "type": "string",
-              "minLength": 1
-            },
-            "end": {
-              "description": "Cron expression (5 fields).",
-              "type": "string",
-              "minLength": 1
-            },
-            "replicas": {
-              "description": "Dynamic minimum inside the window; rendered quoted, so it stays a string.",
-              "type": "string",
-              "pattern": "^[0-9]+$"
-            }
-          }
+        "kvForecastThreshold": {
+          "description": "KV cache utilization (0 to 1) forecast 10 minutes ahead that pushes scale-out; rendered quoted, so it stays a string.",
+          "type": "string",
+          "pattern": "^([01](\\.[0-9]+)?)$"
+        },
+        "kvCacheThreshold": {
+          "description": "Hottest pod's KV cache utilization (0 to 1) that pushes scale-out; rendered quoted, so it stays a string.",
+          "type": "string",
+          "pattern": "^([01](\\.[0-9]+)?)$"
+        },
+        "runningPerPod": {
+          "description": "Running requests per pod (AverageValue) at which the batch is considered saturated; --max-num-seqs is 64, so 32 is half-full. Rendered quoted, so it stays a string.",
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)?$"
+        },
+        "queueThreshold": {
+          "description": "Lowest queue the busiest pod held over 3 minutes (just under 1) that pushes scale-out; rendered quoted, so it stays a string.",
+          "type": "string",
+          "pattern": "^([01](\\.[0-9]+)?)$"
+        },
+        "ttftSeconds": {
+          "description": "p95 time to first token in seconds that pushes scale-out; rendered quoted, so it stays a string.",
+          "type": "string",
+          "pattern": "^[0-9]+(\\.[0-9]+)?$"
         }
       }
     },
@@ -257,22 +273,18 @@
       "title": "Prometheus rules + EPP metrics reader",
       "type": "object",
       "additionalProperties": false,
-      "required": ["enabled", "namespace", "createNamespace"],
+      "required": ["enabled", "namespace"],
       "properties": {
         "enabled": {
-          "description": "Render the PrometheusRule and the metrics-reader ServiceAccount/ClusterRole/ClusterRoleBinding/Secret.",
+          "description": "Render the PrometheusRule, the metrics-reader ServiceAccount/ClusterRole/ClusterRoleBinding/Secret and the Pod/ServiceMonitors.",
           "type": "boolean"
         },
         "namespace": {
-          "description": "Namespace of the metrics-reader objects; the ScaledObject's Prometheus address is http://kube-prometheus-stack-prometheus.<namespace>.svc:9090.",
+          "description": "Namespace of the metrics-reader objects and of the ServiceMonitor; the ScaledObject's Prometheus address is http://kube-prometheus-stack-prometheus.<namespace>.svc:9090.",
           "type": "string",
           "minLength": 1,
           "maxLength": 63,
           "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
-        },
-        "createNamespace": {
-          "description": "Create the monitoring namespace; set false when it already exists (the Prometheus stack creates it).",
-          "type": "boolean"
         }
       }
     }

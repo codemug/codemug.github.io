@@ -7,7 +7,7 @@ data:
   guard.sh: |
     #!/bin/sh
     # Keep $ROOT under $BUDGET_GIB GiB by deleting the oldest block files (FIFO by mtime).
-    # FIFO, not LRU (relatime makes atime unreliable); a hot but old prefix is rewritten on its next miss.
+    # First in first out by modification time; a hot but old prefix is simply written again on its next miss.
     # GUARD_ONCE=1 runs a single pass (used by the test).
     BUDGET_KIB=${BUDGET_KIB:-$((BUDGET_GIB * 1024 * 1024))}
     while :; do

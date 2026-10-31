@@ -1,8 +1,14 @@
 # The weights bucket: versioned, encrypted, public access blocked.
 # The vLLM pods read it through the Pod Identity role in pod_identity.tf.
+# The name includes the region so the same configuration can be applied
+# in another region without renaming.
+
+locals {
+  models_bucket_name = coalesce(var.model_bucket_name, "${var.cluster_name}-models-${var.region}")
+}
 
 resource "aws_s3_bucket" "models" {
-  bucket = var.model_bucket_name
+  bucket = local.models_bucket_name
 }
 
 resource "aws_s3_bucket_versioning" "models" {

@@ -16,9 +16,9 @@ variable "cluster_name" {
 }
 
 variable "kubernetes_version" {
-  description = "EKS Kubernetes version (1.34 to 1.37 supported; 1.35 is the default)"
+  description = "EKS Kubernetes version. 1.36 is the newest version that Envoy Gateway 1.9 and KEDA 2.21 list as tested; EKS, Karpenter and Bottlerocket also support 1.37"
   type        = string
-  default     = "1.35"
+  default     = "1.36"
 }
 
 variable "vpc_cidr" {
@@ -41,9 +41,9 @@ variable "model_name" {
 }
 
 variable "model_bucket_name" {
-  description = "S3 bucket that holds the model weights"
+  description = "S3 bucket that holds the model weights; defaults to <cluster_name>-models-<region>"
   type        = string
-  default     = "example-models-bucket"
+  default     = null
 }
 
 variable "model_s3_prefix" {

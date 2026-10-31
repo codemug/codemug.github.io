@@ -1,7 +1,7 @@
 # The one value holding the model name; every derived name (Deployment, SA, route, ScaledObject, selectors) uses it.
 model:
   name: qwen38-27b-nvfp4
-  s3Uri: s3://example-models-bucket/models/nvidia/Qwen3.8-27B-NVFP4/
+  s3Uri: s3://example-cluster-models-us-east-1/models/nvidia/Qwen3.8-27B-NVFP4/
   awsRegion: us-east-1
 
 # Karpenter GPU pool: NodePool + EC2NodeClass, and the AWS-side inputs from `terraform output chart_values_yaml`.
@@ -24,6 +24,11 @@ vllm:
   tensorParallelSize: 1
   speculativeTokens: 3
   concurrency: 16
+  # When on, vLLM serves the render endpoints and publishes the KV cache events the endpoint picker listens to; the picker values must match, see epp-values-precise.yaml.
+  kvEvents:
+    enabled: false
+    zmqPort: 5556
+    replayPort: 5559
 
 # Optional KV tiering (CPU RAM, then local NVMe): kv-transfer-config, guard sidecar and its ConfigMap.
 tiering:
@@ -41,30 +46,32 @@ routing:
     namespace: ai-gateway
     # Create the ai-gateway namespace; set false when it already exists.
     createNamespace: true
+    # The NLB scheme of the gateway Service; internal is the safe default for an endpoint without authentication.
+    loadBalancerScheme: internal
 
 # KEDA ScaledObject autoscaling of the vLLM Deployment: the per-cluster bounds and thresholds.
 autoscaling:
   enabled: true
+  # replica floor: scale-out is slow (node, image, weights), so never start from zero
   minReplicas: 1
+  # replica ceiling
   maxReplicas: 8
-  # mean queued requests per pod (Value metric) that pushes scale-out
-  queueThreshold: "2"
-  # hottest pod's KV cache utilization (0 to 1) that pushes scale-out
-  kvCacheThreshold: "0.7"
   # replicas held when a Prometheus trigger fails 3 polls in a row
   fallbackReplicas: 2
   # Prometheus the triggers poll (the service the Prometheus stack creates in the observability namespace)
   prometheusAddress: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
-  # on-hours floor: a cron window acting as a dynamic minimum
-  businessHours:
-    timezone: UTC
-    start: 0 8 * * 1-5
-    end: 0 18 * * 1-5
-    replicas: "2"
+  # KV cache utilization (0 to 1) forecast 10 minutes ahead that pushes scale-out
+  kvForecastThreshold: "0.7"
+  # hottest pod's KV cache utilization (0 to 1) that pushes scale-out
+  kvCacheThreshold: "0.7"
+  # running requests per pod at which the batch is considered saturated; --max-num-seqs is 64, so 32 is half-full
+  runningPerPod: "32"
+  # lowest queue the busiest pod held over 3 minutes (just under 1) that pushes scale-out
+  queueThreshold: "0.8"
+  # p95 time to first token in seconds that pushes scale-out
+  ttftSeconds: "10"
 
 # Prometheus recording rules + the EPP metrics-reader ServiceAccount in its own namespace.
 observability:
   enabled: true
   namespace: monitoring
-  # Create the monitoring namespace; set false when it already exists (the Prometheus stack creates it).
-  createNamespace: true

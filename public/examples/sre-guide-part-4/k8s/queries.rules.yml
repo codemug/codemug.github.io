@@ -126,8 +126,8 @@ groups:
   - name: llm-keda
     rules:
       # KEDA pairing (see NOTES.md): the EPP gauges and the p95 are PER-POD or non-additive values, so the
-      # trigger needs `metricType: Value` (HPA: ceil(current * value / threshold)). KEDA's default,
-      # AverageValue, computes ceil(value / threshold) and ignores the current replica count.
+      # trigger needs `metricType: Value` (HPA: ceil(ready pods * value / threshold)). KEDA's default,
+      # AverageValue, computes ceil(value / threshold) and ignores the replica count.
       # K1. Mean queue depth per pod, from the EPP. max() collapses duplicate series
       #     (two Prometheus replicas, an HA EPP pair) into exactly one element.
       - record: llm:keda:pool_queue_size
@@ -147,3 +147,40 @@ groups:
         expr: max(vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4"})
       - record: llm:keda:vllm_waiting_total
         expr: sum(vllm:num_requests_waiting{model_name="qwen38-27b-nvfp4"})
+
+  # ---------------------------------------------------------------- KEDA leading signals (each returns ONE series)
+  # A new vLLM pod needs a node, an image, the weights, torch.compile and CUDA graph capture before it is Ready, so
+  # these queries look ahead (or confirm a queue that will not clear) instead of waiting for users to feel a full cache.
+  - name: llm-keda-leading
+    rules:
+      # K6. Where the hottest pod's KV cache usage (0..1) will be 10 minutes from now, from a straight line fitted to
+      #     the last 15 minutes. max() comes first and the fit second: a new pod with an empty cache climbs steeply at
+      #     first, but it is not the hottest pod, so it cannot fake a trend. A short window is noisy (the cache swings by
+      #     several points in 30 seconds), so the fit needs 15 minutes. clamp keeps the answer in 0..1 (a cache cannot
+      #     be more than full). The second half drops the answer until the max series has 20 points (10 minutes) of
+      #     history, because a series that is only a few samples old (first install, a Prometheus restart) shows a wild
+      #     slope. A max is not additive, so the trigger uses metricType Value.
+      - record: llm:keda:worst_pod_kv_cache_forecast
+        expr: |
+          clamp(predict_linear(max(vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4"})[15m:30s], 600), 0, 1)
+          and
+          count_over_time(max(vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4"})[15m:30s]) >= 20
+      # K7. Requests in the running batch, summed over pods. The Deployment sets --max-num-seqs=64, so the batch is full
+      #     at 64 requests per pod and 32 per pod is a half-full batch. A sum is additive, so the trigger uses
+      #     metricType AverageValue with threshold 32: ceil(total / 32).
+      - record: llm:keda:vllm_running_total
+        expr: sum(vllm:num_requests_running{model_name="qwen38-27b-nvfp4"})
+      # K8. The shortest the hottest pod's capacity queue got in the last 3 minutes. It is above 0 only if some pod had
+      #     a request waiting for capacity at every point of those 3 minutes, so one request that waits for a long prefill
+      #     does not count. reason="capacity" leaves out requests parked for other reasons (a KV fetch in flight, the LoRA
+      #     budget). The target is an empty queue, so the trigger threshold is just under 1. metricType Value.
+      - record: llm:keda:worst_pod_queue_sustained
+        expr: min_over_time(max(vllm:num_requests_waiting_by_reason{model_name="qwen38-27b-nvfp4",reason="capacity"})[3m:15s])
+      # K9. Lagging safety net: p95 time to first token (queue + prefill), straight from vLLM. The second half drops the
+      #     answer when fewer than 0.2 first tokens arrive per second (60 in 5 minutes), because with a handful of
+      #     requests the p95 is decided by one long prompt. No traffic gives an empty result, which KEDA reads as 0.
+      - record: llm:keda:ttft_p95_seconds
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4"}[5m])))
+          and
+          sum(rate(vllm:time_to_first_token_seconds_count{model_name="qwen38-27b-nvfp4"}[5m])) > 0.2

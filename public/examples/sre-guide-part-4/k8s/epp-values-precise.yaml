@@ -1,0 +1,75 @@
+# OPTIONAL. Helm values for the llm-d router chart (oci://ghcr.io/llm-d/charts/llm-d-router-gateway, version v1.0.0):
+# precise prefix-cache routing for Qwen3.8-27B (hybrid model, vLLM attention block of 1,600 tokens). Use it instead of
+# epp-values.yaml, with the same release name (qwen38-27b-nvfp4) and namespace (llm), and turn on vllm.kvEvents in the
+# llm-serving chart so the vLLM pods publish the events the picker listens to.
+router:
+  modelServers:
+    matchLabels:
+      app: qwen38-27b-nvfp4     # the label on the vLLM pods
+    targetPorts:
+      - number: 8000
+  epp:
+    # The chart's default request (8 CPUs and 8 GiB) is sized for a pool of about a hundred pods, because the picker
+    # scrapes every pod many times a second. A pool of a few pods needs far less.
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+    replicas: 1                 # the KV index lives in this process; one replica (a restart rebuilds it from replay)
+    pluginsConfigFile: "precise-plugins.yaml"
+    pluginsCustomConfig:
+      precise-plugins.yaml: |
+        apiVersion: llm-d.ai/v1
+        kind: EndpointPickerConfig
+        plugins:
+        - type: token-producer              # tokenizes every prompt by calling vLLM's /v1/*/render on a Ready pod
+          parameters:
+            modelName: qwen38-27b-nvfp4     # the served model name, not the S3 path
+            vllm:
+              endpointDiscovery:
+                attemptTimeout: 2s          # cap one render attempt so the retry on another pod still fits
+        - type: endpoint-notification-source
+        - type: precise-prefix-cache-producer
+          parameters:
+            tokenProcessorConfig:
+              blockSizeTokens: 1600         # MUST equal the attention block size vLLM logs at startup
+              hashAlgorithm: xxh64          # the router's own key hash; it does not have to match vLLM's
+            speculativeIndexing: true       # seed the index for 2 s after a pick, until vLLM confirms with an event
+            indexerConfig:
+              kvBlockIndexConfig:
+                enableMetrics: true
+            kvEventsConfig:
+              engineType: vllm
+              topicFilter: "kv@"
+              concurrency: 8
+              discoverPods: true            # the picker dials every Ready pod of the pool
+              podDiscoveryConfig:
+                socketPort: 5556            # vLLM's PUB socket (--kv-events-config endpoint)
+                replaySocketPort: 5559      # vLLM's replay ROUTER socket (replay_endpoint)
+        - type: queue-scorer
+        - type: kv-cache-utilization-scorer
+        - type: prefix-cache-scorer
+          parameters:
+            prefixMatchInfoProducerName: precise-prefix-cache-producer   # without this line the scorer silently uses the approximate index
+        - type: max-score-picker
+        dataLayer:
+          sources:
+          - pluginRef: endpoint-notification-source
+            extractors:
+            - pluginRef: precise-prefix-cache-producer
+        schedulingProfiles:
+        - name: default
+          plugins:
+          - pluginRef: queue-scorer
+            weight: 2
+          - pluginRef: kv-cache-utilization-scorer
+            weight: 3
+          - pluginRef: prefix-cache-scorer
+            weight: 1
+          - pluginRef: max-score-picker
+  monitoring:
+    prometheus:
+      auth:
+        enabled: true             # the default: /metrics needs a bearer token (see the metrics section)

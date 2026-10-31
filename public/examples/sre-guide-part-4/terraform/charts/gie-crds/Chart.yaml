@@ -1,8 +1,0 @@
-# The Gateway API Inference Extension CRDs (v1.6.2), as a local chart
-# because the release manifest is plain YAML, not a Helm chart.
-apiVersion: v2
-name: gie-crds
-description: CRDs for the Gateway API Inference Extension
-type: application
-version: 1.6.2
-appVersion: "1.6.2"

@@ -1,0 +1,8 @@
+# One node is enough: the three fake model servers, the gateway and the picker are all small.
+# The node image is pinned so that the run is the same for everyone. Use Kubernetes 1.33 or newer: the Envoy Gateway
+# CRDs use a CEL function (format.dns1123Label) that Kubernetes 1.31 does not have, and one CRD fails to install there.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.33.1

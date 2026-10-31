@@ -6,8 +6,8 @@ Installs one streamed vLLM model on an EKS + Karpenter GPU pool:
 - vLLM `Deployment` + `ServiceAccount`: weights streamed from S3 (`runai_streamer`), one replica per GPU node
 - optional KV tiering (`tiering.enabled=true`): CPU-RAM + NVMe offload, the `kv-guard` sidecar and its ConfigMap
 - Envoy AI Gateway: `GatewayClass`, `EnvoyProxy`, `Gateway`, `AIGatewayRoute` (namespace `ai-gateway`)
-- KEDA `ScaledObject`: autoscaling on queue depth and KV cache utilization
-- Prometheus recording rules + the EPP `metrics-reader` ServiceAccount/ClusterRole/ClusterRoleBinding/Secret (namespace `monitoring`)
+- KEDA `ScaledObject`: five triggers (KV forecast, worst-pod KV cache, batch saturation, sustained queue, time to first token)
+- Observability: a `PodMonitor` for the vLLM pods, a `ServiceMonitor` for the picker, 34 Prometheus recording rules, and the EPP `metrics-reader` ServiceAccount/ClusterRole/ClusterRoleBinding/Secret (namespace `monitoring`)
 
 The vLLM pod reads the S3 weights prefix through an IAM role bound by an EKS Pod Identity
 association created on the Terraform side, so the chart has nothing to annotate.
@@ -19,8 +19,7 @@ terraform -chdir=../../terraform output -raw chart_values_yaml > terraform-value
 helm upgrade -i llm-serving . --namespace llm --create-namespace -f terraform-values.yaml
 ```
 
-The values file supplies `karpenter.nodeRole`, `karpenter.discoveryTag`, `model.s3Uri`, `model.awsRegion`
-and `observability.createNamespace` (false, because the Prometheus release already created the namespace);
+The values file supplies `karpenter.nodeRole`, `karpenter.discoveryTag`, `model.s3Uri`, `model.awsRegion`;
 everything else keeps its default.
 
 ## Value blocks
@@ -29,11 +28,11 @@ everything else keeps its default.
 |---|---|
 | `model` | the model name (every derived name), the S3 weights URL, the bucket region |
 | `karpenter` | the `g7e` NodePool + EC2NodeClass and the AWS-side inputs |
-| `vllm` | serve image and flags (context length, KV dtype, memory, spec decoding) |
+| `vllm` | serve image and flags (context length, KV dtype, memory, spec decoding), and the optional KV events switch for precise prefix routing |
 | `tiering` | KV offload: CPU GiB, NVMe GiB, guard budget (off by default) |
-| `routing` | the AI gateway objects and their namespace; also creates the `ai-gateway` namespace |
-| `autoscaling` | ScaledObject bounds and thresholds (replicas, queue/KV thresholds, cron floor) |
-| `observability` | Prometheus rules + metrics-reader and their namespace; set `observability.createNamespace=false` when the namespace already exists, as with the Terraform install |
+| `routing` | the AI gateway objects and their namespace; the NLB scheme of the gateway Service; also creates the `ai-gateway` namespace |
+| `autoscaling` | ScaledObject bounds and thresholds (replicas, early-warning triggers) |
+| `observability` | Prometheus rules + metrics-reader + Pod/ServiceMonitors and their namespace (the Prometheus install creates it) |
 
 ## Enabling KV tiering
 

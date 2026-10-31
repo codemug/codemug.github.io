@@ -1,0 +1,53 @@
+# Three FAKE model servers: a stock python image running fake_vllm.py, which is mounted from the ConfigMap "fake-vllm".
+# No GPU, no model, nothing to build. The pod label (app=qwen38-27b-nvfp4) and the container port (8000, named http)
+# are the ones the real vLLM Deployment has, so the InferencePool and the picker find these pods the same way.
+# The ConfigMap is created from the .py file by the README, so the script lives in one place only.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qwen38-27b-nvfp4
+  namespace: llm
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: qwen38-27b-nvfp4
+  template:
+    metadata:
+      labels:
+        app: qwen38-27b-nvfp4
+    spec:
+      containers:
+        - name: fake-vllm
+          image: docker.io/library/python:3.12-slim
+          command: ["python", "-u", "/app/fake_vllm.py"]
+          env:
+            - name: NAME                # the pod name, returned in the x-served-by response header
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MODEL
+              value: qwen38-27b-nvfp4
+            - name: MAX_RUNNING         # request slots per fake pod: more requests than this wait
+              value: "4"
+            - name: DECODE_MS           # fake decode time, in milliseconds, that a request holds its slot
+              value: "400"
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 2
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          volumeMounts:
+            - name: app
+              mountPath: /app
+      volumes:
+        - name: app
+          configMap:
+            name: fake-vllm

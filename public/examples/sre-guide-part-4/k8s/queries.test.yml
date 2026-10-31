@@ -374,3 +374,261 @@ tests:
         exp_samples:
           - labels: '{}'
             value: 1
+
+  # ---------------------------------------------------------------------------------------------------------------
+  # Leading signals (K6 to K9). Every block below has its own series, evaluated at 20 minutes unless it says otherwise.
+  # The "ceil(...)" expressions are not rules: they replay the HPA arithmetic with 2 ready replicas so the numbers in
+  # the article can be checked (Value: ceil(ready x metric / threshold); AverageValue: ceil(total / threshold)).
+  # ---------------------------------------------------------------------------------------------------------------
+
+  # K6, forecast that crosses. The hottest pod climbs 0.006 per 15 s (0.0004 per second) to 0.55 at minute 20, so ten
+  # minutes later the straight line reads 0.55 + 0.0004 x 600 = 0.79. That is above 0.77 (0.7 plus the HPA's 10% tolerance).
+  # 2 x 0.79 / 0.7 = 2.26, so the HPA asks for 3 replicas. The second pod is cooler and does not matter.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0.07+0.006x80'
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0.05x80'
+    promql_expr_test:
+      - expr: round(llm:keda:worst_pod_kv_cache_forecast, 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 0.79
+      - expr: ceil(2 * llm:keda:worst_pod_kv_cache_forecast / 0.7)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 3
+
+  # K6, forecast that does not cross. A slow climb to 0.38 reads 0.38 + 0.0000667 x 600 = 0.42 ten minutes out.
+  # 2 x 0.42 / 0.7 = 1.2, so the HPA asks for 2 replicas: no change.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0.30+0.001x80'
+    promql_expr_test:
+      - expr: round(llm:keda:worst_pod_kv_cache_forecast, 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 0.42
+      - expr: ceil(2 * llm:keda:worst_pod_kv_cache_forecast / 0.7)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 2
+
+  # K6, a cache that is high but falling. It was 0.90 and is 0.50 now, so the line reads 0.50 - 0.2 = 0.30 and the
+  # forecast stays quiet, while the level trigger (K5) still reports 0.50.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0.90-0.005x80'
+    promql_expr_test:
+      - expr: round(llm:keda:worst_pod_kv_cache_forecast, 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 0.3
+      - expr: round(llm:keda:worst_pod_kv_cache_utilization, 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 0.5
+
+  # K6, a climb so steep that the line passes 1.0 (0.74 now, 0.74 + 0.000533 x 600 = 1.06 later). clamp holds it at 1.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0.10+0.008x80'
+    promql_expr_test:
+      - expr: round(llm:keda:worst_pod_kv_cache_forecast, 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 1
+
+  # K6, a new pod with an empty cache. pod-a sits at 0.30. pod-b appears at minute 15 and climbs from 0 to 0.25 in five
+  # minutes, as a fresh pod does when the router sends it the new requests. Fit first and max second, the way the
+  # per-pod form below would, that climb reads 0.25 + 0.000833 x 600 = 0.75 and fakes a trend. K6 takes the max
+  # first, so the forecast stays at the hottest pod's own 0.30.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0.30x80'
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '_x60 0+0.0125x20'
+    promql_expr_test:
+      - expr: round(llm:keda:worst_pod_kv_cache_forecast, 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 0.3
+      - expr: round(max(predict_linear(vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4"}[15m], 600)), 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 0.75
+
+  # K6, a series that is only 5 minutes old (first install, a Prometheus restart). It climbs 0.002 per second, so the
+  # bare forecast clamps to 1 and would ask for a scale-out with no real traffic history. The history guard (20 points
+  # of 30 s = 10 minutes) drops the answer: the rule returns nothing, which KEDA reads as 0.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '_x60 0.05+0.03x20'
+    promql_expr_test:
+      - expr: llm:keda:worst_pod_kv_cache_forecast
+        eval_time: 20m
+        exp_samples: []
+      - expr: round(clamp(predict_linear(max(vllm:kv_cache_usage_perc{model_name="qwen38-27b-nvfp4"})[15m:30s], 600), 0, 1), 0.000001)
+        eval_time: 20m
+        exp_samples:
+          - labels: '{}'
+            value: 1
+
+  # K7, batch saturation. 2 pods run 20 and 30 requests (total 50); at minute 10 pod-a grows to 40 and a third pod joins
+  # with 40 (total 110). With a threshold of 32 per pod: ceil(50 / 32) = 2 replicas, then ceil(110 / 32) = 4.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:num_requests_running{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '20x40 40x40'
+      - series: 'vllm:num_requests_running{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '30x80'
+      - series: 'vllm:num_requests_running{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-c"}'
+        values: '_x40 40x40'
+    promql_expr_test:
+      - expr: round(llm:keda:vllm_running_total, 0.000001)
+        eval_time: 5m
+        exp_samples:
+          - labels: '{}'
+            value: 50
+      - expr: ceil(llm:keda:vllm_running_total / 32)
+        eval_time: 5m
+        exp_samples:
+          - labels: '{}'
+            value: 2
+      - expr: round(llm:keda:vllm_running_total, 0.000001)
+        eval_time: 15m
+        exp_samples:
+          - labels: '{}'
+            value: 110
+      - expr: ceil(llm:keda:vllm_running_total / 32)
+        eval_time: 15m
+        exp_samples:
+          - labels: '{}'
+            value: 4
+
+  # K8, sustained queue. pod-a has 1 request waiting for capacity from minute 10 on. pod-b has a 1-minute burst of 4
+  # (minute 5 to 6). pod-a also has 5 deferred requests the whole time, which must never count.
+  # Minute 6: the burst is inside the 3-minute window but the queue also emptied inside it, so the answer is 0.
+  # Minute 11: the window still includes the empty queue before minute 10, so 0.
+  # Minute 14: the queue never emptied during the last 3 minutes, so 1. With 2 replicas, 2 x 1 / 0.8 = 2.5 asks for 3.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:num_requests_waiting_by_reason{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",reason="capacity"}'
+        values: '0x40 1x40'
+      - series: 'vllm:num_requests_waiting_by_reason{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",reason="deferred"}'
+        values: '5x80'
+      - series: 'vllm:num_requests_waiting_by_reason{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",reason="capacity"}'
+        values: '0x20 4x4 0x56'
+    promql_expr_test:
+      - expr: round(llm:keda:worst_pod_queue_sustained, 0.000001)
+        eval_time: 6m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+      - expr: round(llm:keda:worst_pod_queue_sustained, 0.000001)
+        eval_time: 11m
+        exp_samples:
+          - labels: '{}'
+            value: 0
+      - expr: round(llm:keda:worst_pod_queue_sustained, 0.000001)
+        eval_time: 14m
+        exp_samples:
+          - labels: '{}'
+            value: 1
+      - expr: ceil(2 * llm:keda:worst_pod_queue_sustained / 0.8)
+        eval_time: 14m
+        exp_samples:
+          - labels: '{}'
+            value: 3
+
+  # K9, TTFT p95. Two pods together add 50/80/90/100/100 first tokens per step to the le=1/5/10/20/+Inf buckets
+  # (6.7 first tokens per second). The 95th of 100 sits halfway through the (10, 20] bucket: 10 + 10 x 5/10 = 15 s.
+  # With a threshold of 10 s and 2 replicas: ceil(2 x 15 / 10) = 3.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="1"}'
+        values: '0+25x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="5"}'
+        values: '0+40x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="10"}'
+        values: '0+45x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="20"}'
+        values: '0+50x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="+Inf"}'
+        values: '0+50x80'
+      - series: 'vllm:time_to_first_token_seconds_count{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+50x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="1"}'
+        values: '0+25x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="5"}'
+        values: '0+40x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="10"}'
+        values: '0+45x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="20"}'
+        values: '0+50x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b",le="+Inf"}'
+        values: '0+50x80'
+      - series: 'vllm:time_to_first_token_seconds_count{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-b"}'
+        values: '0+50x80'
+    promql_expr_test:
+      - expr: round(llm:keda:ttft_p95_seconds, 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 15
+      - expr: ceil(2 * llm:keda:ttft_p95_seconds / 10)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 3
+
+  # K9, too little traffic. One first token every 15 s (0.067 per second) and it is slow, so the bare p95 reads 19.5 s
+  # (10 + 10 x 0.95). The traffic guard (0.2 per second) drops the answer: the rule returns nothing.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="10"}'
+        values: '0x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="20"}'
+        values: '0+1x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="+Inf"}'
+        values: '0+1x80'
+      - series: 'vllm:time_to_first_token_seconds_count{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '0+1x80'
+    promql_expr_test:
+      - expr: llm:keda:ttft_p95_seconds
+        eval_time: 10m
+        exp_samples: []
+      - expr: round(histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4"}[5m]))), 0.000001)
+        eval_time: 10m
+        exp_samples:
+          - labels: '{}'
+            value: 19.5
+
+  # K9, an idle pool: the counters are flat, so the quantile is NaN and the rate is 0. The rule returns nothing.
+  - interval: 15s
+    input_series:
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="1"}'
+        values: '5x80'
+      - series: 'vllm:time_to_first_token_seconds_bucket{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a",le="+Inf"}'
+        values: '5x80'
+      - series: 'vllm:time_to_first_token_seconds_count{model_name="qwen38-27b-nvfp4",engine="0",pod="pod-a"}'
+        values: '5x80'
+    promql_expr_test:
+      - expr: llm:keda:ttft_p95_seconds
+        eval_time: 10m
+        exp_samples: []

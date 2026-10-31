@@ -73,11 +73,16 @@ spec:
             # KV tiers: {{ .Values.tiering.cpuGiB }} GiB of CPU RAM, then the local NVMe
             - '--kv-transfer-config={"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":{{ mul .Values.tiering.cpuGiB 1073741824 }},"secondary_tiers":[{"type":"fs","root_dir":"/kv-nvme/kv-offload","n_read_threads":16,"n_write_threads":16}]}}'
 {{- end }}
+{{- if .Values.vllm.kvEvents.enabled }}
+            # precise prefix-cache routing: serve /v1/*/render for the picker and publish KV events on a ZMQ PUB socket the picker dials
+            - --enable-scale-out
+            - '--kv-events-config={"enable_kv_cache_events":true,"publisher":"zmq","endpoint":"tcp://*:{{ .Values.vllm.kvEvents.zmqPort }}","replay_endpoint":"tcp://*:{{ .Values.vllm.kvEvents.replayPort }}","topic":"kv@$(POD_IP):8000@{{ include "llm-serving.modelName" . }}"}'
+{{- end }}
             # OpenAI API behaviour for a thinking + tool-calling model
             - --reasoning-parser=qwen3
             - --tool-call-parser=qwen3_coder
             - --enable-auto-tool-choice
-            - --disable-access-log-for-endpoints=/health,/metrics,/v1/models
+            - --disable-access-log-for-endpoints=/health,/metrics,/v1/models{{ if .Values.vllm.kvEvents.enabled }},/v1/completions/render,/v1/chat/completions/render{{ end }}
           env:
             - name: AWS_REGION                         # region of the models bucket
               value: {{ .Values.model.awsRegion }}
@@ -87,9 +92,21 @@ spec:
               value: "1"
             - name: DO_NOT_TRACK
               value: "1"
+{{- if .Values.vllm.kvEvents.enabled }}
+            - name: POD_IP                             # expanded into the --kv-events-config topic by Kubernetes
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+{{- end }}
           ports:
             - name: http
               containerPort: 8000
+{{- if .Values.vllm.kvEvents.enabled }}
+            - name: kv-events
+              containerPort: {{ .Values.vllm.kvEvents.zmqPort }}
+            - name: kv-replay
+              containerPort: {{ .Values.vllm.kvEvents.replayPort }}
+{{- end }}
           resources:
             requests:
               cpu: "6"

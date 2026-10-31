@@ -3,6 +3,7 @@
 # --metrics-endpoint-auth=true) validates the bearer token with a TokenReview and then a SubjectAccessReview for
 # "get" on the non-resource URL /metrics, so the ServiceAccount needs that one rule.
 # The Secret below carries NO token in this file: Kubernetes fills the token in when it sees the annotation + type.
+# The monitoring namespace is created by the Prometheus install, which comes first.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -38,11 +39,4 @@ metadata:
   annotations:
     kubernetes.io/service-account.name: metrics-reader
 type: kubernetes.io/service-account-token
-{{- end }}
-{{- if .Values.observability.createNamespace }}
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ .Values.observability.namespace }}
 {{- end }}

@@ -8,6 +8,14 @@ router:
     targetPorts:
       - number: 8000
   epp:
+    # The chart's default request (8 CPUs and 8 GiB) is sized for a pool of about a hundred pods, because the picker
+    # scrapes every pod many times a second. A pool of a few pods needs far less.
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
     pluginsConfigFile: "balanced-plugins.yaml"
     pluginsCustomConfig:
       balanced-plugins.yaml: |
