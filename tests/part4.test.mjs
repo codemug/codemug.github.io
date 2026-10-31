@@ -26,8 +26,8 @@ test('Part 4 keeps the style contract (no em/en dashes, no curly quotes) in the 
 });
 
 test('every code block that comes from an example file was resolved from a real file', () => {
-  assert.ok(!/^@@(raw|chart|values|tf)\b/m.test(mdx), 'an unresolved include marker');
-  const fromFiles = [...mdx.matchAll(/```[a-z]*\n# ((?:k8s|helm\/llm-serving|terraform)\/[^\n]+)\n/g)].map((m) => m[1].replace(/ \(.*\)$/, ''));
+  assert.ok(!/^@@(raw|chart|values|tf|plat|hl|diff)\b/m.test(mdx) && !/^@@@/m.test(mdx), 'an unresolved include marker');
+  const fromFiles = [...mdx.matchAll(/```[a-z]*\n# ((?:k8s|helm\/llm-serving|terraform|platform)\/[^\n]+)\n/g)].map((m) => m[1].replace(/ \(.*\)$/, ''));
   assert.ok(fromFiles.length >= 15, `only ${fromFiles.length} included code blocks`);
   for (const f of fromFiles) assert.ok(existsSync(`${examplesDir}/${f}`), f);
 });
@@ -82,8 +82,11 @@ test('the post links the examples and the raw manifests, the Helm chart and the 
     'helm/llm-serving/Chart.yaml', 'helm/llm-serving/values.yaml', 'helm/llm-serving/values.schema.json',
     'helm/llm-serving/templates/_helpers.tpl', 'helm/llm-serving/templates/nodepool.yaml', 'helm/llm-serving/templates/deployment.yaml',
     'helm/llm-serving/templates/scaledobject.yaml', 'helm/llm-serving/templates/prometheusrule.yaml',
-    'terraform/versions.tf', 'terraform/variables.tf', 'terraform/eks.tf', 'terraform/karpenter.tf', 'terraform/addons.tf',
-    'terraform/s3.tf', 'terraform/pod_identity.tf', 'terraform/outputs.tf']) {
+    'k8s/podmonitors.yaml', 'k8s/epp-values.yaml', 'k8s/epp-values-precise.yaml', 'k8s/gateway.yaml', 'k8s/aigatewayroute.yaml',
+    'platform/README.md', 'platform/kube-prometheus-stack-values.yaml', 'platform/envoy-gateway-values.yaml', 'platform/envoy-gateway-values-addon.yaml',
+    'simulation/README.md', 'simulation/traffic.py', 'simulation/fake_vllm.py',
+    'terraform/versions.tf', 'terraform/variables.tf', 'terraform/eks.tf', 'terraform/karpenter.tf', 'terraform/lb_controller.tf',
+    'terraform/checks.tf', 'terraform/s3.tf', 'terraform/pod_identity.tf', 'terraform/outputs.tf']) {
     assert.ok(existsSync(`${examplesDir}/${f}`), f);
   }
 });

@@ -3,8 +3,8 @@
   <p class="statement reveal">Prefix hits land on block boundaries.</p>
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d203-prefix-grid-t d203-prefix-grid-d">
-      <title id="d203-prefix-grid-t">A 3,000 token prompt on a 1,600 token block grid: a 1,000 token shared prefix gets 0 hit tokens, a 1,700 token one gets 1,600</title>
-      <desc id="d203-prefix-grid-d">The prompt of 3,000 tokens covers block 0 (tokens 0 to 1,599, whole) and 1,400 tokens of block 1. Step one: a shared prefix of 1,000 tokens never fills block 0, so it gets 0 hit tokens and is recomputed. Step two: a shared prefix of 1,700 tokens fills block 0, so 1,600 tokens are hits and the other 100 are recomputed. Step three: the rule, hit tokens = floor(shared / 1,600) x 1,600. Block size 1,600 is computed for fp8 KV with MTP 3.</desc>
+      <title id="d203-prefix-grid-t">A 4,500 token prompt on a 1,600 token block grid, with MTP on: a 1,700 token shared prefix gets 0 hit tokens, a 3,400 token one gets 1,600</title>
+      <desc id="d203-prefix-grid-d">The prompt of 4,500 tokens covers blocks 0 and 1 whole (tokens 0 to 3,199) and 1,300 tokens of block 2. Step one: a shared prefix of 1,700 tokens fills block 0, but with MTP on vLLM recomputes the last matched block, so it gets 0 hit tokens. Step two: a shared prefix of 3,400 tokens fills blocks 0 and 1, the last one is recomputed, so 1,600 tokens are hits and 1,800 are recomputed. Step three: the rule, hit tokens = (floor(shared / 1,600) minus 1) x 1,600. Block size 1,600 is the value a running pod logs for fp8 KV with MTP 3.</desc>
       <g id="d203-prefix-grid-g"></g>
     </svg>
   </div>
@@ -45,10 +45,10 @@
       function n(v) { return v.toLocaleString('en-US'); }
 
       // ---- numbers: L2 NOTES.md Diagram idea 4, NOTES-3.md (block 1600 tokens, as logged by a running pod), RULINGS R1
-      var BLOCK = 1600, PROMPT = 3000, SHARED_A = 1000, SHARED_B = 1700;
-      var X0 = 40, PX = 1040 / (2 * BLOCK);           // 0.325 px per token, two blocks wide
+      var BLOCK = 1600, PROMPT = 4500, SHARED_A = 1700, SHARED_B = 3400;
+      var X0 = 40, PX = 760 / (3 * BLOCK);            // 0.158 px per token, three blocks wide
       function xt(t) { return X0 + t * PX; }
-      function hits(shared) { return Math.floor(shared / BLOCK) * BLOCK; }
+      function hits(shared) { return Math.max(0, Math.floor(shared / BLOCK) - 1) * BLOCK; }   // MTP on: the last matched block is recomputed
       function clamp(v) { return Math.max(0, Math.min(1, v)); }
 
       var g = document.getElementById(ID + '-g');
@@ -57,17 +57,21 @@
       el('text', { 'class': 'hd', x: 40, y: 40 }, g, n(PROMPT) + ' token prompt, block size ' + n(BLOCK) + ' tokens');
       var GY = 58, GH = 72;
       el('rect', { 'class': 'blk', x: xt(0), y: GY, width: BLOCK * PX, height: GH }, g);
-      el('rect', { 'class': 'blk', x: xt(BLOCK), y: GY, width: (PROMPT - BLOCK) * PX, height: GH }, g);
-      el('rect', { 'class': 'free', x: xt(PROMPT), y: GY, width: (2 * BLOCK - PROMPT) * PX, height: GH }, g);
+      el('rect', { 'class': 'blk', x: xt(BLOCK), y: GY, width: BLOCK * PX, height: GH }, g);
+      el('rect', { 'class': 'blk', x: xt(2 * BLOCK), y: GY, width: (PROMPT - 2 * BLOCK) * PX, height: GH }, g);
+      el('rect', { 'class': 'free', x: xt(PROMPT), y: GY, width: (3 * BLOCK - PROMPT) * PX, height: GH }, g);
       el('text', { 'class': 'bl', x: xt(BLOCK / 2), y: GY + 32 }, g, 'block 0');
-      el('text', { 'class': 'bs', x: xt(BLOCK / 2), y: GY + 58 }, g, 'tokens 0 to ' + n(BLOCK - 1));
-      el('text', { 'class': 'bl', x: xt(BLOCK + (PROMPT - BLOCK) / 2), y: GY + 32 }, g, 'block 1');
-      el('text', { 'class': 'bs', x: xt(BLOCK + (PROMPT - BLOCK) / 2), y: GY + 58 }, g, n(PROMPT - BLOCK) + ' of ' + n(BLOCK) + ' tokens used');
-      [[0, 'start', '0'], [BLOCK, 'middle', n(BLOCK)], [PROMPT, 'middle', n(PROMPT)]].forEach(function (d) {
+      el('text', { 'class': 'bs', x: xt(BLOCK / 2), y: GY + 58 }, g, '0 to ' + n(BLOCK - 1));
+      el('text', { 'class': 'bl', x: xt(BLOCK + BLOCK / 2), y: GY + 32 }, g, 'block 1');
+      el('text', { 'class': 'bs', x: xt(BLOCK + BLOCK / 2), y: GY + 58 }, g, n(BLOCK) + ' to ' + n(2 * BLOCK - 1));
+      el('text', { 'class': 'bl', x: xt(2 * BLOCK + (PROMPT - 2 * BLOCK) / 2), y: GY + 32 }, g, 'block 2');
+      el('text', { 'class': 'bs', x: xt(2 * BLOCK + (PROMPT - 2 * BLOCK) / 2), y: GY + 58 }, g, n(PROMPT - 2 * BLOCK) + ' used');
+      [[0, 'start', '0'], [BLOCK, 'middle', n(BLOCK)], [2 * BLOCK, 'middle', n(2 * BLOCK)], [PROMPT, 'middle', n(PROMPT)]].forEach(function (d) {
         el('line', { 'class': 'tick', x1: xt(d[0]), x2: xt(d[0]), y1: GY + GH, y2: GY + GH + 12 }, g);
         el('text', { 'class': 'tl', x: xt(d[0]), y: GY + GH + 34, 'text-anchor': d[1] }, g, d[2]);
       });
       el('line', { 'class': 'guide', x1: xt(BLOCK), x2: xt(BLOCK), y1: GY + GH + 44, y2: 410 }, g);
+      el('line', { 'class': 'guide', x1: xt(2 * BLOCK), x2: xt(2 * BLOCK), y1: GY + GH + 44, y2: 410 }, g);
 
       // ---- one scenario row: label, track, hit/miss bar, result text
       var TX = 610;
@@ -82,8 +86,8 @@
       }
       var A = row(206, 'A: shared prefix of ' + n(SHARED_A) + ' tokens');
       var B = row(326, 'B: shared prefix of ' + n(SHARED_B) + ' tokens');
-      A.why.textContent = n(SHARED_A) + ' < ' + n(BLOCK) + ': block 0 never fills';
-      B.why.textContent = 'block 0 is whole, ' + n(SHARED_B - BLOCK) + ' recomputed';
+      A.why.textContent = 'one block, and it is recomputed';
+      B.why.textContent = 'two blocks, the last is recomputed';
 
       // ---- legend and rule
       var leg = el('g', {}, g);
@@ -91,7 +95,7 @@
       el('text', { 'class': 'lgt', x: 76, y: 457 }, leg, 'hit: reused from cache');
       el('rect', { 'class': 'miss', x: 400, y: 438, width: 24, height: 24, rx: 3 }, leg);
       el('text', { 'class': 'lgt', x: 436, y: 457 }, leg, 'shared, but recomputed');
-      var rule = el('text', { 'class': 'rule', x: 40, y: 494 }, g, 'hit tokens = floor(shared / ' + n(BLOCK) + ') x ' + n(BLOCK));
+      var rule = el('text', { 'class': 'rule', x: 40, y: 494 }, g, 'hit tokens = (floor(shared / ' + n(BLOCK) + ') - 1) x ' + n(BLOCK));
 
       // ---- state: s[0] = A bar, s[1] = B bar, s[2] = rule
       var s = [0, 0, 0], cancel = null;

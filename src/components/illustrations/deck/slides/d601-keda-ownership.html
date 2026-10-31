@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d601-keda-ownership-t d601-keda-ownership-d">
       <title id="d601-keda-ownership-t">Two controllers, one replica ladder: KEDA owns the 0 to 1 step and the HPA owns 1 to N</title>
-      <desc id="d601-keda-ownership-d">A vertical replica ladder with rungs 0 to 8 and a pod icon on the current rung. At step 0 the replica count is 1 (minReplicaCount 1), labelled replicas. A bracket marks the 0 to 1 rung as owned by KEDA (pollingInterval 30s, activationThreshold). A second bracket marks 1 to N as owned by the HPA (sync period 15s, desired equals the max over triggers), with two trigger bars, waiting requests and KV cache, feeding a max box. On a burst the pod climbs to rung 8 (scale up, stabilization 0s); when the burst ends it descends toward the floor (scale down, stabilization 300s) with a 300s countdown ring.</desc>
+      <desc id="d601-keda-ownership-d">A vertical replica ladder with rungs 0 to 8 and a pod icon on the current rung. At step 0 the replica count is 1 (minReplicaCount 1), labelled replicas. A bracket marks the 0 to 1 rung as owned by KEDA (pollingInterval 30s, activationThreshold). A second bracket marks 1 to N as owned by the HPA (sync period 15s, desired equals the max over triggers), with two trigger bars, a KV cache forecast and the queue, feeding a max box (the real object has five triggers). On a burst the pod climbs to rung 8 (scale up, stabilization 120s); when the burst ends it descends toward the floor (scale down, stabilization 1800s, one pod every 10 minutes) with a 30 minute countdown ring.</desc>
       <defs>
         <marker id="d601-keda-ownership-ah" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto"><path d="M0,0 L13,7 L0,14 z" fill="var(--color-text-muted)"/></marker>
       </defs>
@@ -91,10 +91,10 @@
       // ---- two trigger bars feeding a max box
       var gT = el('g', {}, g);
       var TX0 = 500, TW = 300;
-      el('text', { 'class': 'barlab', x: 255, y: 210 }, gT, 'waiting requests');
+      el('text', { 'class': 'barlab', x: 255, y: 210 }, gT, 'queue (3 min)');
       el('rect', { 'class': 'btrack', x: TX0, y: 195, width: TW, height: 25, rx: 8 }, gT);
       el('rect', { 'class': 'bfill', x: TX0, y: 195, width: (0.82 * TW).toFixed(1), height: 25, rx: 8 }, gT);
-      el('text', { 'class': 'barlab', x: 255, y: 265 }, gT, 'KV cache');
+      el('text', { 'class': 'barlab', x: 255, y: 265 }, gT, 'KV forecast');
       el('rect', { 'class': 'btrack', x: TX0, y: 250, width: TW, height: 25, rx: 8 }, gT);
       el('rect', { 'class': 'bfill', x: TX0, y: 250, width: (0.55 * TW).toFixed(1), height: 25, rx: 8 }, gT);
       el('path', { 'class': 'arr', d: 'M' + (TX0 + TW) + ' 207 H852', 'marker-end': 'url(#' + ID + '-ah)' }, gT);
@@ -105,17 +105,17 @@
       // ---- scale up behaviour (burst: pod climbs fast)
       var gU = el('g', {}, g);
       var tU = el('text', { 'class': 'beh', x: 560, y: 400 }, gU, 'scale up: stabilization ');
-      el('tspan', { 'class': 'val' }, tU, '0s');
+      el('tspan', { 'class': 'val' }, tU, '120s');
 
-      // ---- scale down behaviour (burst ends: pod descends, 300s window) + countdown ring
+      // ---- scale down behaviour (burst ends: pod descends, 1800s window) + countdown ring
       var gD = el('g', {}, g);
-      var RCX = 1040, RCY = 432, RR = 34;
+      var RCX = 1066, RCY = 432, RR = 34;
       el('circle', { 'class': 'ringtrack', cx: RCX, cy: RCY, r: RR }, gD);
       var circ = 2 * Math.PI * RR;
       el('circle', { 'class': 'ringarc', cx: RCX, cy: RCY, r: RR, 'stroke-dasharray': (0.75 * circ).toFixed(1) + ' ' + (0.25 * circ).toFixed(1), transform: 'rotate(-90 ' + RCX + ' ' + RCY + ')' }, gD);
-      el('text', { 'class': 'ringt', x: RCX, y: RCY, dy: '.35em' }, gD, '300s');
+      el('text', { 'class': 'ringt', x: RCX, y: RCY, dy: '.35em' }, gD, '30m');
       var tD = el('text', { 'class': 'beh', x: 560, y: 440 }, gD, 'scale down: stabilization ');
-      el('tspan', { 'class': 'val' }, tD, '300s');
+      el('tspan', { 'class': 'val' }, tD, '1800s');
 
       // ---- state: pod rung per step (1, 1, 1, 8, 2), block opacities
       var POD_Y = [rungY(1), rungY(1), rungY(1), rungY(8), rungY(2)];

@@ -701,7 +701,7 @@
       "d203-prefix-grid"
     ],
     "captions": {
-      "d203-prefix-grid": "Prefix cache hits land on whole 1,600 token blocks, so a 1,000 token shared prefix gets 0 hit tokens and a 1,700 token one gets 1,600. (Block size as logged by a running pod.)"
+      "d203-prefix-grid": "Prefix cache hits land on whole 1,600 token blocks, and with MTP on vLLM recomputes the last matched block, so a 1,700 token shared prefix gets 0 hit tokens and a 3,400 token one gets 1,600. (Block size as logged by a running pod; the recompute rule is from the vLLM v0.32.0 source.)"
     },
     "dwell": 4500
   },
@@ -791,7 +791,7 @@
       "d601-keda-ownership"
     ],
     "captions": {
-      "d601-keda-ownership": "KEDA owns the 0 to 1 replica step on a 30s poll and the HPA owns 1 to N on a 15s sync, choosing the max over triggers. A burst climbs the pod to 8 with 0s stabilization, and the 300s window slows the scale down. (Illustrative.)"
+      "d601-keda-ownership": "KEDA owns the 0 to 1 replica step on a 30s poll and the HPA owns 1 to N on a 15s sync, choosing the max over triggers. A burst climbs the pod to 8 after a 120s scale-up window, and a 1800s window slows the scale down to one pod at a time. (Illustrative.)"
     },
     "dwell": 4500
   },
@@ -809,7 +809,7 @@
       "d602-scale-out-chain"
     ],
     "captions": {
-      "d602-scale-out-chain": "From a rising metric to served traffic: the HPA adds a replica on a 15s sync loop (30s at 0 to 1 on the KEDA poll), then the pod is Pending, Karpenter launches a node, image and weights load, and readiness passes. Only the HPA hop has sourced times; the other duration hops are equal question-mark bars, not measured here. A floor of replicas keeps the node and model-load hops out of the hot path. (Illustrative.)"
+      "d602-scale-out-chain": "From a rising metric to served traffic: the HPA adds a replica on a 15s sync loop (30s at 0 to 1 on the KEDA poll), then the pod is Pending, Karpenter launches a node, the image is pulled and the weights load, and readiness passes. The drawing gives every hop the same width on purpose: on my pod, startup took 407 seconds from the first log line to the API server, while the node launch and the image pull come before that line. Early-warning triggers start the chain before users feel the load. (Illustrative.)"
     },
     "dwell": 4500
   },
@@ -818,7 +818,7 @@
       "d701-tier-ladder"
     ],
     "captions": {
-      "d701-tier-ladder": "Each prompt chunk is written through to CPU RAM and NVMe as it completes, so eviction drops only one copy and a hit loads from the nearest tier that has it, and the NVMe tier needs a cleanup sidecar because vLLM never deletes its files. The CPU and NVMe token counts use 32 KiB per token at fp8, the GPU pool is the measured 59.26 GiB counted in blocks because it also holds state, and the CPU and NVMe sizes are examples. (Measured GPU pool, example tier sizes.)"
+      "d701-tier-ladder": "Each prompt chunk is written through to CPU RAM and NVMe as it completes, so eviction drops only one copy and a hit loads from the nearest tier that has it, and the NVMe tier needs a cleanup sidecar because vLLM never deletes its files. The CPU and NVMe token counts use 34 KiB per token at fp8, the GPU pool is the measured 59.26 GiB counted in blocks because it also holds state, and the CPU and NVMe sizes are examples. (Measured GPU pool, example tier sizes.)"
     },
     "dwell": 4500
   },

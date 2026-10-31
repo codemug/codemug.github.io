@@ -4,7 +4,7 @@
   <div class="stage reveal">
     <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d702-prefix-hit-tiers-t d702-prefix-hit-tiers-d">
       <title id="d702-prefix-hit-tiers-t">The same shared prefix served four ways: from the GPU, from CPU RAM, from NVMe through CPU RAM, and recomputed after a miss</title>
-      <desc id="d702-prefix-hit-tiers-d">Four lanes, each with an NVMe slot, a CPU RAM slot and a GPU slot, for one toy prefix of 8 chunks of 1,600 tokens (12,800 tokens, 400 MiB of attention KV at 32 KiB per token). Lane one, hit in GPU: the copy is already there, no bytes move, only the new tokens are prefilled. Lane two, hit in CPU: the 8 chunks are copied up to the GPU, 400 MiB, then only the new tokens are prefilled. Lane three, hit on NVMe: the chunks are staged through CPU RAM and then copied to the GPU, 400 MiB over 2 hops, then only the new tokens are prefilled. Lane four, miss: no tier has a copy, nothing is moved and everything is prefilled. A prefix shorter than one 1,600-token chunk never hits an external tier. No timings are shown.</desc>
+      <desc id="d702-prefix-hit-tiers-d">Four lanes, each with an NVMe slot, a CPU RAM slot and a GPU slot, for one toy prefix of 8 chunks of 1,600 tokens (12,800 tokens, 425 MiB of attention KV at 34 KiB per token). Lane one, hit in GPU: the copy is already there, no bytes move, only the new tokens are prefilled. Lane two, hit in CPU: the 8 chunks are copied up to the GPU, 400 MiB, then only the new tokens are prefilled. Lane three, hit on NVMe: the chunks are staged through CPU RAM and then copied to the GPU, 400 MiB over 2 hops, then only the new tokens are prefilled. Lane four, miss: no tier has a copy, nothing is moved and everything is prefilled. A prefix shorter than one 1,600-token chunk never hits an external tier. No timings are shown.</desc>
       <g id="d702-prefix-hit-tiers-g"></g>
     </svg>
   </div>
@@ -41,10 +41,10 @@
       function ramp(x, a, b) { return Math.max(0, Math.min(1, (x - a) / (b - a))); }
       function fmt(n) { return n.toLocaleString('en-US'); }
 
-      // ---- numbers: chunk 1,600 tokens (RULINGS R1, L2 NOTES-3, computed); 32 KiB per token (L6 NOTES-2 F10)
-      var CHUNK = 1600, NCH = 8, BPT = 32768;            // BPT = 2 x 4 x 256 x 16 x 1 byte (fp8)
+      // ---- numbers: chunk 1,600 tokens (RULINGS R1, L2 NOTES-3, computed); 34 KiB per token (17 attention layers)
+      var CHUNK = 1600, NCH = 8, BPT = 34816;            // BPT = 2 x 4 x 256 x 17 x 1 byte (fp8)
       var PREFIX = NCH * CHUNK;                          // 12,800 tokens (toy prefix length)
-      var MIB = PREFIX * BPT / 1048576;                  // 400 MiB of attention KV, state snapshots extra
+      var MIB = PREFIX * BPT / 1048576;                  // 425 MiB of attention KV, state snapshots extra
 
       var CW = 14, STEP = 17, SLOT_Y = 18, SLOT_H = 46, CELL_Y = 9, CELL_H = 28;
       var SLOTS = { nvme: { x: 240, w: 150 }, cpu: { x: 440, w: 150 }, gpu: { x: 640, w: 170 } };
