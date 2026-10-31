@@ -5,12 +5,12 @@ a plain Helm install of an upstream chart, and this folder holds the values file
 point where it is needed. In order:
 
 ```sh
-# Prometheus (section 6): creates the monitoring namespace
+# Prometheus (part 5, section 2): creates the monitoring namespace
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm upgrade -i kube-prometheus-stack prometheus-community/kube-prometheus-stack --version 92.16.1 \
   --namespace monitoring --create-namespace -f kube-prometheus-stack-values.yaml
 
-# Gateway API Inference Extension CRDs, then the gateway stack, in this order (section 5)
+# Gateway API Inference Extension CRDs, then the gateway stack, in this order (part 5, section 1)
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/v1.6.2/manifests.yaml
 helm template eg-crds oci://docker.io/envoyproxy/gateway-crds-helm --version v1.9.3 \
   --set crds.gatewayAPI.enabled=true --set crds.envoyGateway.enabled=true | kubectl apply --server-side --force-conflicts -f -
@@ -22,7 +22,7 @@ helm upgrade -i eg oci://docker.io/envoyproxy/gateway-helm --version v1.9.3 \
   --namespace envoy-gateway-system --create-namespace --set crds.enabled=false \
   -f envoy-gateway-values.yaml -f envoy-gateway-values-addon.yaml
 
-# KEDA (section 7)
+# KEDA (part 5, section 3)
 helm repo add kedacore https://kedacore.github.io/charts
 helm upgrade -i keda kedacore/keda --version 2.21.0 --namespace keda --create-namespace
 ```

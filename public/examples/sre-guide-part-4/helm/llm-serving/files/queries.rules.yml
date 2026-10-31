@@ -1,4 +1,4 @@
-# Part 4, section 5: dashboard + autoscaling queries as Prometheus recording rules.
+# Part 5, section 2: dashboard + autoscaling queries as Prometheus recording rules.
 # Targets: vLLM v0.32.0 metric names (vllm:*), llm-d router v1.0.0 EPP names (llm_d_epp_*).
 # Each `expr` is also the exact text to paste into a Grafana panel (swap [5m] for [$__rate_interval])
 # or into a KEDA trigger `query:` field. Placeholders: model_name="qwen38-27b-nvfp4", name="qwen38-27b-nvfp4",

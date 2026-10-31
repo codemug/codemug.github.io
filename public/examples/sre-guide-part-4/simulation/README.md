@@ -1,6 +1,6 @@
 # Run the routing simulation yourself
 
-In section 5 we put a gateway and an endpoint picker in front of the model servers. Here we do the same on a laptop, so you can watch it work. We start a small Kubernetes cluster, install the real gateway and the real picker, and put three fake model servers behind them. Then we send traffic and count which server answered each request.
+In part 5, section 1 we put a gateway and an endpoint picker in front of the model servers. Here we do the same on a laptop, so you can watch it work. We start a small Kubernetes cluster, install the real gateway and the real picker, and put three fake model servers behind them. Then we send traffic and count which server answered each request.
 
 ## What this simulates, and what it does not
 

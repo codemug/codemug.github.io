@@ -1,6 +1,6 @@
-# Examples for "An SRE's guide to deploying Large Language Models, Part 4"
+# Examples for "An SRE's guide to deploying Large Language Models", parts 4 and 5
 
-Everything from the post, as code. Names are placeholders: the cluster is `example-cluster`, the AWS account is
+Everything from [part 4](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-4/) and [part 5](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-5/), as code. Part 4 deploys the model (`terraform/`, the model layer of `helm/llm-serving/`, `k8s/nodepool.yaml`, `k8s/ec2nodeclass.yaml` and `k8s/vllm-deployment.yaml`). Part 5 adds routing, observability, autoscaling and tiering (the rest of `k8s/`, `platform/` and `simulation/`, and the other layers of the chart). Names are placeholders: the cluster is `example-cluster`, the AWS account is
 `111111111111`, the weights bucket is `example-cluster-models-us-east-1` (Terraform builds it as
 `<cluster>-models-<region>`, and S3 bucket names are global, so give your cluster a name that is yours). Every object
 that belongs to the model is called `qwen38-27b-nvfp4`: that one string is the Deployment, the pod label, the served
@@ -14,7 +14,7 @@ model name, the InferencePool and the route match, and the route only works if i
 | [`platform/`](platform) | The values files for the community charts (Envoy Gateway, Prometheus) and the install order |
 | [`simulation/`](simulation) | A local, GPU-free kit that runs the real gateway and picker in front of fake model servers |
 
-The order is in the post: `terraform apply` (the `region` variable is the only thing that changes between regions),
+The order is in the posts: `terraform apply` (the `region` variable is the only thing that changes between regions),
 upload the weights to the bucket, install the chart with only the model switched on and test the pod, install the gateway
 stack and the llm-d router, turn routing on and test through the gateway, install Prometheus and switch the observability
 layer on, then KEDA and the autoscaler. `platform/README.md` lists every install command in order.
