@@ -25,7 +25,22 @@ Since we're using AWS, our first step is to pick an appropriate region to deploy
 
 The machine decides which regions we can even use, so let's start there. Part 3 ended its AWS section on the [g7e family](https://aws.amazon.com/ec2/instance-types/g7e/): an NVIDIA RTX PRO 6000 Blackwell with 96 GB of GDDR7 per GPU, 1,597 GB/s of memory bandwidth and native support for [NVFP4](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/). A 27B model quantized to NVFP4 is exactly what it's made for, so that's our machine. The family comes in six sizes. What changes along the ladder is how many GPUs you get and how much host (CPU, RAM and network) comes with them.
 
-A quick word on NVFP4, because the name looks like a typo for FP4. FP4 on its own is just a 4-bit floating-point number. It can only represent a handful of values, so used naively it is too coarse for model weights. What makes 4-bit usable is the scaling. The MXFP4 format shares one power-of-two scale across every 32 values. NVFP4, NVIDIA's format, uses smaller groups, one scale for every 16 values, stores that scale as an FP8 number with a much finer step than a power of two, and adds one more FP32 scale for the whole tensor. Smaller groups and finer scales mean each value is rounded against a range that fits it better, so less accuracy is lost. The price is a little extra memory for the scales, 4.5 bits per value instead of 4. Blackwell GPUs multiply NVFP4 natively in their tensor cores, so the format is a speed-up and not just a smaller download. That's why we want an NVFP4 checkpoint here.
+A quick word on NVFP4, because the name looks like a typo for FP4. FP4 on its own is just a 4-bit floating-point number, and a 4-bit number has only 16 possible bit patterns. They stand for 0, 0.5, 1, 1.5, 2, 3, 4 and 6, each with a plus or minus sign. Model weights are small decimals like 0.52 or -0.31, so they don't fit that grid directly. What makes 4-bit usable is a scale. We store a group of weights together with one scale, divide every weight in the group by it, round each result to the nearest value on the grid, and multiply by the scale again when the weight is used.
+
+Let's try it on four weights: 0.90, 0.52, -0.31 and 0.07. A real group has 16 or 32 weights, but four is enough to see the effect. The largest weight should land near the top of the grid, so the ideal scale is 0.90 divided by 6, which is 0.15. MXFP4, the standard 4-bit format, shares one scale across 32 weights, and that scale has to be a power of two. The choices near 0.15 are 0.125 and 0.25, and neither is 0.15. NVFP4, NVIDIA's format, shares one scale across 16 weights and stores it as an FP8 number, which can be 0.15. Here's what each one does to our four weights, with a scale of 0.25 for MXFP4 and 0.15 for NVFP4:
+
+| | 0.90 | 0.52 | -0.31 | 0.07 |
+|---|---|---|---|---|
+| MXFP4: divide by 0.25 and round to the grid | 4 | 2 | -1 | 0.5 |
+| MXFP4: multiply by 0.25 again | 1.00 | 0.50 | -0.25 | 0.125 |
+| MXFP4: how far off | 0.10 | 0.02 | 0.06 | 0.055 |
+| NVFP4: divide by 0.15 and round to the grid | 6 | 3 | -2 | 0.5 |
+| NVFP4: multiply by 0.15 again | 0.90 | 0.45 | -0.30 | 0.075 |
+| NVFP4: how far off | 0.00 | 0.07 | 0.01 | 0.005 |
+
+Every weight comes back a little off, because the grid is coarse, but the MXFP4 errors add up to 0.235 and the NVFP4 errors to 0.085. A scale of 0.125 would not rescue MXFP4: its errors add up to 0.238. That's the whole idea. A scale that fits the group puts the 16 grid values where the weights are. Smaller groups help in the same way, because one unusually large weight spoils the fit for fewer neighbours in a group of 16 than in a group of 32. NVFP4 also keeps one more FP32 scale for the whole tensor, so that the FP8 scales have a comfortable range to work in.
+
+The price is a little extra memory for the scales: 4 bits per weight plus one 8-bit scale for every 16 weights is 4.5 bits per weight, against 4.25 for MXFP4's one scale per 32. Blackwell GPUs also multiply NVFP4 natively in their tensor cores, so the format is a speed-up and not just a smaller download. That's why we want an NVFP4 checkpoint here.
 
 <DeckFig name="p4-g7e-size-ladder" />
 
