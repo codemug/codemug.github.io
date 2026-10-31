@@ -1,0 +1,50 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: ai-gateway
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-gateway
+---
+# per-Gateway Envoy settings. On EKS the proxy's Service becomes a Network Load Balancer: the AWS Load Balancer Controller
+# provisions it because of the loadBalancerClass, registers the pod IPs directly as targets, and the scheme decides whether
+# it is reachable from the internet (internal is the default, and the safe one for an endpoint with no authentication).
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: llm-gateway-proxy
+  namespace: ai-gateway
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: LoadBalancer
+        loadBalancerClass: service.k8s.aws/nlb
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+          service.beta.kubernetes.io/aws-load-balancer-scheme: internal
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: llm-gateway
+  namespace: ai-gateway
+spec:
+  gatewayClassName: ai-gateway
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: llm-gateway-proxy
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All   # let AIGatewayRoutes in the model namespace (llm) attach

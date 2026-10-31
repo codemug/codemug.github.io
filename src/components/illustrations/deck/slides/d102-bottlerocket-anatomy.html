@@ -1,0 +1,116 @@
+<section class="slide" id="d102-bottlerocket-anatomy" data-steps="7">
+  <p class="kicker reveal">bottlerocket</p>
+  <p class="statement reveal">A node you cannot log in to, by design.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d102-bottlerocket-anatomy-t d102-bottlerocket-anatomy-d">
+      <title id="d102-bottlerocket-anatomy-t">A Bottlerocket node built bottom to top: read-only verified root, tmpfs /etc, writable /local, SELinux enforcing, no shell, NVIDIA stack</title>
+      <desc id="d102-bottlerocket-anatomy-d">A node box filled bottom to top, one layer per step. Bottom: the read-only root filesystem, verified by dm-verity. Next: /etc as tmpfs, configured through the settings API. Next: /local, the writable filesystem that survives reboots and OS updates. Next: SELinux in enforcing mode. Next: no shell or SSH, admin and control containers, API over a unix socket. Top: the NVIDIA stack baked into the aws-k8s-nvidia variant (driver, container toolkit, device plugin, MIG manager, fabric manager). The last step labels what an SRE gives up: no ad hoc shell, changes go through settings, the API or a new AMI.</desc>
+      <g id="d102-bottlerocket-anatomy-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d102-bottlerocket-anatomy svg.diagram{width:100%;height:100%;max-width:none;}
+    #d102-bottlerocket-anatomy text{font-family:var(--font-mono);}
+    #d102-bottlerocket-anatomy .nbox{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;}
+    #d102-bottlerocket-anatomy .ghost{font-size:20px;text-anchor:middle;fill:var(--color-text-dim);}
+    #d102-bottlerocket-anatomy .layer{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2;}
+    #d102-bottlerocket-anatomy .ltxt{font-size:20px;text-anchor:middle;fill:var(--color-text-soft);}
+    #d102-bottlerocket-anatomy .lhead{font-size:20px;text-anchor:middle;fill:var(--color-text);}
+    #d102-bottlerocket-anatomy .chip{fill:color-mix(in oklab,var(--color-accent) 30%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #d102-bottlerocket-anatomy .chipt{font-size:20px;text-anchor:middle;fill:var(--color-text-soft);}
+    #d102-bottlerocket-anatomy .sre{font-size:20px;text-anchor:middle;fill:var(--color-accent);}
+    #d102-bottlerocket-anatomy .cap{font-size:24px;text-anchor:middle;fill:var(--color-text-muted);}
+    #d102-bottlerocket-anatomy [data-from]{opacity:0;transition:opacity .5s;}
+    #d102-bottlerocket-anatomy [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd102-bottlerocket-anatomy';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // y-bands (each text layer in its own band, >=12 units clear of the next):
+      //   25..40   SRE banner (baseline 40, step 7)
+      //   58..428  node box (x 100..1020)
+      //   74..170  L6 NVIDIA layer: header baseline 96, chip rows 110..132 (128) and 140..162 (158)
+      //   176..218 L5 no shell or SSH (baseline 204)
+      //   224..266 L4 SELinux (baseline 252)
+      //   272..314 L3 /local (baseline 300)
+      //   320..362 L2 /etc tmpfs (baseline 348)
+      //   368..410 L1 read-only root (baseline 396)
+      //   453..468 caption (baseline 468)
+      var BX = 100, BW = 920, CX = 560; // node box x 100..1020, centre 560
+
+      var g = document.getElementById(ID + '-g');
+
+      // the node box, present from step 0
+      el('rect', { 'class': 'nbox', x: BX, y: 58, width: BW, height: 370, rx: 14 }, g);
+      el('g', { 'data-from': '0', 'data-until': '1' }, g).appendChild(
+        el('text', { 'class': 'ghost', x: CX, y: 250 }, null, 'Bottlerocket'));
+
+      // layers, bottom to top: L1..L6 reveal at steps 1..6
+      var LAYERS = [
+        { y: 368, from: '1', text: 'read-only root filesystem, verified by dm-verity' },
+        { y: 320, from: '2', text: '/etc: tmpfs; set via the settings API' },
+        { y: 272, from: '3', text: '/local: writable; survives reboot and OS updates' },
+        { y: 224, from: '4', text: 'SELinux: enforcing' },
+        { y: 176, from: '5', text: 'no shell or SSH: admin via containers; API over a unix socket' }
+      ];
+      LAYERS.forEach(function (l) {
+        var ly = el('g', { 'data-from': l.from }, g);
+        el('rect', { 'class': 'layer', x: BX + 16, y: l.y, width: BW - 32, height: 42, rx: 8 }, ly);
+        el('text', { 'class': 'ltxt', x: CX, y: l.y + 28 }, ly, l.text);
+      });
+
+      // L6 (step 6): the NVIDIA stack baked into the aws-k8s-nvidia variant
+      var l6 = el('g', { 'data-from': '6' }, g);
+      el('rect', { 'class': 'layer', x: BX + 16, y: 74, width: BW - 32, height: 96, rx: 8 }, l6);
+      el('text', { 'class': 'lhead', x: CX, y: 96 }, l6, 'NVIDIA stack, baked into the aws-k8s-nvidia variant');
+      var CHIPS1 = [
+        { text: 'driver', w: 104, x: 272 },
+        { text: 'container toolkit', w: 236, x: 398 },
+        { text: 'device plugin', w: 188, x: 658 }
+      ];
+      CHIPS1.forEach(function (c) {
+        el('rect', { 'class': 'chip', x: c.x, y: 110, width: c.w, height: 22, rx: 6 }, l6);
+        el('text', { 'class': 'chipt', x: c.x + c.w / 2, y: 128 }, l6, c.text);
+      });
+      var CHIPS2 = [
+        { text: 'MIG manager', w: 164, x: 366 },
+        { text: 'fabric manager', w: 200, x: 554 }
+      ];
+      CHIPS2.forEach(function (c) {
+        el('rect', { 'class': 'chip', x: c.x, y: 140, width: c.w, height: 22, rx: 6 }, l6);
+        el('text', { 'class': 'chipt', x: c.x + c.w / 2, y: 158 }, l6, c.text);
+      });
+
+      // step 7: what an SRE gives up
+      var sre = el('g', { 'data-from': '7' }, g);
+      el('text', { 'class': 'sre', x: CX, y: 40 }, sre, 'SRE gives up: no ad hoc shell');
+
+      // one caption per state (each adds something the on-diagram text does not say)
+      el('g', { 'data-from': '0', 'data-until': '1' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'the stack builds bottom to top, one layer per step'));
+      el('g', { 'data-from': '1', 'data-until': '2' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'dm-verity verifies every block; corruption restarts the kernel'));
+      el('g', { 'data-from': '2', 'data-until': '3' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'configuration is a settings value, not a file edit'));
+      el('g', { 'data-from': '3', 'data-until': '4' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'the only writable filesystem, with bind mounts for /var and /opt'));
+      el('g', { 'data-from': '4', 'data-until': '5' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'SELinux labels gate the API socket'));
+      el('g', { 'data-from': '5', 'data-until': '6' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'admin and control containers hold the socket; apiclient is the CLI'));
+      el('g', { 'data-from': '6', 'data-until': '7' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'the GPU operator must skip driver, toolkit and plugin'));
+      el('g', { 'data-from': '7' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'every change goes through settings, the API or a new AMI'));
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

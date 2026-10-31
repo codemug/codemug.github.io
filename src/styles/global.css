@@ -291,6 +291,15 @@ html[data-theme="light"] {
   padding: 0;
   font-size: inherit;
 }
+/* lines marked by src/lib/hl.mjs, e.g. the fields that changed between two versions of a manifest */
+.prose pre .line-hl {
+  display: inline-block;
+  width: calc(100% + 2.3em);
+  margin: 0 -1.15em;
+  padding: 0 1.15em;
+  background: color-mix(in oklab, var(--color-accent) 24%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
 .prose hr {
   border: 0;
   border-top: 1px solid var(--color-hairline);

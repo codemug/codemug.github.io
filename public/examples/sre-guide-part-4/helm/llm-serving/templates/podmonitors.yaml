@@ -1,0 +1,42 @@
+{{- if .Values.observability.enabled }}
+# Two scrape targets for the Prometheus Operator (kube-prometheus-stack), so the metrics that the recording rules and the
+# autoscaler read actually exist. Both objects are picked up without special labels because the stack is installed with
+# podMonitorSelectorNilUsesHelmValues and serviceMonitorSelectorNilUsesHelmValues set to false.
+# The vLLM pods expose /metrics on the container port named "http" (8000).
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ .Values.model.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.model.name }}
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 10s
+---
+# The endpoint picker's metrics Service (port http-metrics, 9090) needs the bearer token from epp-metrics-reader.yaml.
+# A ServiceMonitor can only read a Secret from its own namespace, so it lives in monitoring and looks into llm.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.model.name }}-epp
+  namespace: {{ .Values.observability.namespace }}
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.model.name }}-epp
+  endpoints:
+    - port: http-metrics
+      interval: 10s
+      authorization:
+        type: Bearer
+        credentials:
+          name: metrics-reader-token
+          key: token
+{{- end }}

@@ -1,0 +1,127 @@
+<section class="slide" id="d002-regions-quota" data-steps="3">
+  <p class="kicker reveal">regions and quota</p>
+  <p class="statement reveal">Thirteen regions offer g7e, and the quota counts vCPUs.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d002-regions-quota-t d002-regions-quota-d">
+      <title id="d002-regions-quota-t">Where g7e runs: 13 of the 39 AWS Regions, and the on-demand G and VT quota measured in vCPUs</title>
+      <desc id="d002-regions-quota-d">Three rows of small labelled dots, one row per geography (americas, asia pacific, europe), with the 13 g7e Regions named: us-east-1, us-east-2, us-west-2, ap-south-1, ap-southeast-3, ap-southeast-5, ap-southeast-7, ap-northeast-1, ap-northeast-2, eu-north-1, eu-central-1, eu-west-2, eu-south-2. The remaining 26 Regions are an unlabelled dim dot row. Step 1 lights the 13 g7e dots and names three well-known absentees: us-west-1 (N. California), ap-southeast-1 (Singapore), eu-west-1 (Ireland). Step 2 dims the map and shows the quota: Running On-Demand G and VT instances is measured in vCPUs with a default of 0; a bar of 80 vCPU, divided into ten 8 vCPU cells, equals 10 x g7e.2xlarge (80 / 8 = 10), and a bar of 192 vCPU equals exactly one g7e.48xlarge.</desc>
+      <g id="d002-regions-quota-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d002-regions-quota svg.diagram{width:100%;height:100%;max-width:none;}
+    #d002-regions-quota text{font-family:var(--font-mono);}
+    #d002-regions-quota .legend{font-size:20px;text-anchor:middle;fill:var(--color-text-faint);}
+    #d002-regions-quota .rlabel{font-size:20px;text-anchor:middle;fill:var(--color-text-muted);}
+    #d002-regions-quota .dotdim{fill:var(--color-text-dim);}
+    #d002-regions-quota .dotlit{fill:var(--color-accent);}
+    #d002-regions-quota .blockdot{fill:var(--color-text-dim);}
+    #d002-regions-quota .blocklab{font-size:20px;fill:var(--color-text-muted);}
+    /* amber = the absentees are the warning in this slide; the single non-token colour used */
+    #d002-regions-quota .absrow{font-size:20px;text-anchor:middle;fill:#f59e0b;}
+    #d002-regions-quota .qname{font-size:20px;fill:var(--color-text);}
+    #d002-regions-quota .qbar{fill:color-mix(in oklab,var(--color-accent) 30%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #d002-regions-quota .qdiv{stroke:var(--color-border-strong);stroke-width:1.5;}
+    #d002-regions-quota .qlab{font-size:20px;fill:var(--color-text-soft);}
+    #d002-regions-quota .qinner{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #d002-regions-quota .cap{font-size:24px;text-anchor:middle;fill:var(--color-text-muted);}
+    #d002-regions-quota .regions{transition:opacity .5s;}
+    #d002-regions-quota .regions.dimmed{opacity:.35;}
+    #d002-regions-quota [data-from]{opacity:0;transition:opacity .5s;}
+    #d002-regions-quota [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd002-regions-quota';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // y-bands (each text layer in its own band, >=12 units clear of the next):
+      //   25..40   legend (baseline 40)
+      //   69..84   americas row: codes (baseline 84), dots cy 114 (107..121)
+      //   149..164 asia pacific row: codes (baseline 164), dots cy 194 (187..201)
+      //   229..244 europe row: codes (baseline 244), dots cy 274 (267..281)
+      //   285..304 dim "26 other Regions" dot row (cy 300) + inline label (baseline 300)
+      //   323..338 absentee callout row (baseline 338, step 1)
+      //   355..370 quota name (baseline 370, step 2)
+      //   382..404 quota bar A + right label (baseline 402, step 2)
+      //   418..440 quota bar B + inner/right labels (baseline 436, step 2)
+      //   453..468 caption (baseline 468)
+      // dot x pitch is 180 so a 14-char code (168px at 20px mono) keeps 12 units
+      // of clearance from its neighbour
+      var G7E = [
+        { code: 'us-east-1', x: 110, y: 114 },
+        { code: 'us-east-2', x: 290, y: 114 },
+        { code: 'us-west-2', x: 470, y: 114 },
+        { code: 'ap-south-1', x: 110, y: 194 },
+        { code: 'ap-southeast-3', x: 290, y: 194 },
+        { code: 'ap-southeast-5', x: 470, y: 194 },
+        { code: 'ap-southeast-7', x: 650, y: 194 },
+        { code: 'ap-northeast-1', x: 830, y: 194 },
+        { code: 'ap-northeast-2', x: 1010, y: 194 },
+        { code: 'eu-north-1', x: 110, y: 274 },
+        { code: 'eu-central-1', x: 290, y: 274 },
+        { code: 'eu-west-2', x: 470, y: 274 },
+        { code: 'eu-south-2', x: 650, y: 274 }
+      ];
+      // vCPU scale: 4 px per vCPU, so 80 vCPU = 320 px and 192 vCPU = 768 px
+      var PX = 4, BAX = 40;
+
+      var g = document.getElementById(ID + '-g');
+
+      // region map (dims in step 2 when the quota bars take over)
+      var regions = el('g', { 'class': 'regions' }, g);
+      el('text', { 'class': 'legend', x: 560, y: 40 }, regions, '39 AWS Regions, grouped by geography: americas, asia pacific, europe');
+      G7E.forEach(function (r) {
+        el('text', { 'class': 'rlabel', x: r.x, y: r.y - 30 }, regions, r.code);
+      });
+      // the 13 g7e dots: dim in step 0, lit from step 1
+      var dotDim = el('g', { 'data-from': '0', 'data-until': '1' }, regions);
+      var dotLit = el('g', { 'data-from': '1' }, regions);
+      G7E.forEach(function (r) {
+        el('circle', { 'class': 'dotdim', cx: r.x, cy: r.y, r: 7 }, dotDim);
+        el('circle', { 'class': 'dotlit', cx: r.x, cy: r.y, r: 7 }, dotLit);
+      });
+      // the 26 non-g7e Regions: unlabelled dim dots (the notes do not list all 39 codes)
+      for (var i = 0; i < 26; i++) {
+        el('circle', { 'class': 'blockdot', cx: 60 + i * 30, cy: 300, r: 4 }, regions);
+      }
+      el('text', { 'class': 'blocklab', x: 830, y: 300 }, regions, '26 other Regions');
+      // the three well-known absentees (step 1)
+      var absG = el('g', { 'data-from': '1' }, regions);
+      el('text', { 'class': 'absrow', x: 560, y: 338 }, absG, 'us-west-1 (N. California), ap-southeast-1 (Singapore), eu-west-1 (Ireland)');
+
+      // quota (step 2): same vCPU scale on both bars
+      var quota = el('g', { 'data-from': '2' }, g);
+      el('text', { 'class': 'qname', x: BAX, y: 370 }, quota, 'Running On-Demand G and VT instances (vCPU, default 0)');
+      // bar A: 80 vCPU = ten 8 vCPU cells (one g7e.2xlarge each)
+      el('rect', { 'class': 'qbar', x: BAX, y: 382, width: 80 * PX, height: 22, rx: 4 }, quota);
+      for (var k = 1; k < 10; k++) {
+        el('line', { 'class': 'qdiv', x1: BAX + k * 8 * PX, y1: 382, x2: BAX + k * 8 * PX, y2: 404 }, quota);
+      }
+      el('text', { 'class': 'qlab', x: BAX + 80 * PX + 12, y: 402 }, quota, '80 / 8 = 10 x g7e.2xlarge');
+      // bar B: 192 vCPU = exactly one g7e.48xlarge
+      el('rect', { 'class': 'qbar', x: BAX, y: 418, width: 192 * PX, height: 22, rx: 4 }, quota);
+      el('text', { 'class': 'qinner', x: BAX + 192 * PX / 2, y: 436 }, quota, 'g7e.48xlarge (192 vCPU)');
+      el('text', { 'class': 'qlab', x: BAX + 192 * PX + 12, y: 436 }, quota, '192 vCPU: exactly 1');
+
+      // one caption per state
+      el('g', { 'data-from': '0', 'data-until': '1' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'each dot is one AWS Region; the dim row holds the other 26'));
+      el('g', { 'data-from': '1', 'data-until': '2' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, 'these 13 Regions are the only g7e Regions on the EC2 page'));
+      el('g', { 'data-from': '2' }, g).appendChild(el('text', { 'class': 'cap', x: 560, y: 468 }, null, '0 vCPU by default, adjustable per Region; EC2 raises quotas with usage'));
+
+      Deck.slide(ID, {
+        enter: function () { regions.classList.remove('dimmed'); },
+        step: function (n, prev, c) { regions.classList.toggle('dimmed', n >= 2); }
+      });
+    })();
+  </script>
+</section>

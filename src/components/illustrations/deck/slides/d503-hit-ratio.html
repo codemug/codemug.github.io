@@ -1,0 +1,185 @@
+<section class="slide" id="d503-hit-ratio" data-steps="4">
+  <p class="kicker reveal">metrics arithmetic</p>
+  <p class="statement reveal">Sum, then divide. Quantiles live inside buckets.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d503-hit-ratio-t d503-hit-ratio-d">
+      <title id="d503-hit-ratio-t">Prefix cache hit ratio arithmetic and reading a histogram quantile</title>
+      <desc id="d503-hit-ratio-d">Left: four vLLM prefix cache token counters with toy values. 1,200,000 queried tokens, 840,000 local hits (70%), 360,000 connector queries (the local misses only), 90,000 connector hits (25% of what it was asked). Cached 930,000 = 840,000 + 90,000, served share 930,000 / 1,200,000 = 77.5%, computed 270,000. The trap: pod A 1,500 / 1,050 = 70% and pod B 3,000 / 1,500 = 50% on 1:2 traffic; sum then divide gives 56.7%, not the 60% mean of ratios. Right: cumulative histogram buckets 10, 60, 90, 100, 100 at le 0.1, 0.5, 1, 5, +Inf of vllm:time_to_first_token_seconds. The p50 rank 50 lands in the 0.1 to 0.5 bucket and interpolates to 0.42s; the p95 rank 95 lands in the 1 to 5 bucket and interpolates to 3.0s. The answer is an interpolation inside a bucket, so the bucket edges set the resolution.</desc>
+      <g id="d503-hit-ratio-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d503-hit-ratio svg.diagram{width:100%;height:100%;max-width:none;}
+    #d503-hit-ratio text{font-family:var(--font-mono);}
+    #d503-hit-ratio .ph{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #d503-hit-ratio .sub{font-size:20px;fill:var(--color-text-muted);}
+    #d503-hit-ratio .cname{font-size:18px;fill:var(--color-text-soft);}
+    #d503-hit-ratio .cval{font-size:24px;fill:var(--color-text);}
+    #d503-hit-ratio .cann{font-size:20px;fill:var(--color-text-muted);}
+    #d503-hit-ratio .line{font-size:22px;fill:var(--color-text-soft);}
+    #d503-hit-ratio .hl{fill:var(--color-accent);font-weight:600;}
+    #d503-hit-ratio .miss{fill:var(--color-text-faint);}
+    #d503-hit-ratio .bar{fill:color-mix(in oklab,var(--color-accent) 14%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #d503-hit-ratio .clab{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d503-hit-ratio .lelab{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #d503-hit-ratio .axis{stroke:var(--color-border-strong);stroke-width:3;stroke-linecap:round;}
+    #d503-hit-ratio .rank50{stroke:var(--color-text-soft);stroke-width:2.5;stroke-dasharray:7 6;fill:none;}
+    #d503-hit-ratio .rank95{stroke:var(--color-accent);stroke-width:2.5;stroke-dasharray:7 6;fill:none;}
+    #d503-hit-ratio .dot50{fill:var(--color-text-soft);}
+    #d503-hit-ratio .dot95{fill:var(--color-accent);}
+    #d503-hit-ratio .fml{font-size:20px;fill:var(--color-text-soft);}
+    #d503-hit-ratio .fml .q{font-weight:600;}
+    #d503-hit-ratio .f50 .q{fill:var(--color-text-soft);}
+    #d503-hit-ratio .f95 .q{fill:var(--color-accent);}
+    #d503-hit-ratio .f95 .ans{fill:var(--color-accent);font-weight:600;}
+    #d503-hit-ratio .cap{font-size:20px;fill:var(--color-accent);text-anchor:middle;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd503-hit-ratio';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // ---- left panel: prefix cache hit rate (toy numbers, real counter names)
+      el('text', { 'class': 'ph', x: 20, y: 40 }, g, 'prefix cache hit rate');
+      el('text', { 'class': 'sub', x: 20, y: 70 }, g, 'token counters (vLLM v0.32.0)');
+      var NAMES = [
+        'vllm:prefix_cache_queries_total',
+        'vllm:prefix_cache_hits_total',
+        'vllm:external_prefix_cache_queries_total',
+        'vllm:external_prefix_cache_hits_total'
+      ];
+      var VALS = ['1,200,000 queried', '840,000 local hits (70%)', '360,000 local misses only', '90,000 (25% of what it was asked)'];
+      NAMES.forEach(function (n, i) {
+        el('text', { 'class': 'cname', x: 20, y: 97 + i * 52 }, g, n);
+      });
+      var gCVal = el('g', {}, g);
+      VALS.forEach(function (v, i) {
+        el('text', { 'class': 'cval', x: 34, y: 121 + i * 52 }, gCVal, v);
+      });
+      var gDer = el('g', {}, g);
+      el('text', { 'class': 'line', x: 20, y: 308 }, gDer, 'cached = 840,000 + 90,000 = 930,000');
+      var d2 = el('text', { 'class': 'line', x: 20, y: 338 }, gDer, '930,000 / 1,200,000 = ');
+      el('tspan', { 'class': 'hl' }, d2, '77.5%');
+      el('tspan', {}, d2, ' from cache');
+      el('text', { 'class': 'line', x: 20, y: 368 }, gDer, 'computed 270,000');
+      var gPods = el('g', {}, g);
+      el('text', { 'class': 'line', x: 20, y: 398 }, gPods, 'pod A: 1,500 / 1,050 = 70%');
+      el('text', { 'class': 'line', x: 20, y: 428 }, gPods, 'pod B: 3,000 / 1,500 = 50% (1:2 traffic)');
+      var gRes = el('g', {}, g);
+      var r1 = el('text', { 'class': 'line', x: 20, y: 458 }, gRes, 'sum first, then divide = ');
+      el('tspan', { 'class': 'hl' }, r1, '56.7%');
+      el('tspan', { 'class': 'miss' }, r1, ', not 60%');
+
+      // ---- right panel: reading a histogram_quantile (toy buckets)
+      el('text', { 'class': 'ph', x: 600, y: 52 }, g, 'reading a histogram_quantile');
+      el('text', { 'class': 'sub', x: 600, y: 80 }, g, 'vllm:time_to_first_token_seconds_bucket');
+      el('line', { 'class': 'axis', x1: 620, y1: 370, x2: 1080, y2: 370 }, g);
+      // cumulative bars: counts 10, 60, 90, 100, 100 at le 0.1, 0.5, 1, 5, +Inf; scale 2.6px per count
+      var BARS = [
+        { x: 630, h: 26, lab: '10', le: '0.1', ly: 334 },
+        { x: 720, h: 156, lab: '60', le: '0.5', ly: 204 },
+        { x: 810, h: 234, lab: '90', le: '1', ly: 114 },
+        { x: 900, h: 260, lab: '100', le: '5', ly: 100 },
+        { x: 990, h: 260, lab: '100', le: '+Inf', ly: 100 }
+      ];
+      var gBars = el('g', {}, g);
+      var barRects = [], barLabs = [];
+      BARS.forEach(function (b) {
+        barRects.push(el('rect', { 'class': 'bar', x: b.x, y: 370, width: 80, height: 0 }, gBars));
+        barLabs.push(el('text', { 'class': 'clab', x: b.x + 40, y: b.ly }, gBars, b.lab));
+      });
+      var gLe = el('g', {}, g);
+      BARS.forEach(function (b) {
+        el('text', { 'class': 'lelab', x: b.x + 40, y: 398 }, gLe, b.le);
+      });
+      // p50: rank 50 lands in (0.1, 0.5], value = 0.1 + 0.4 x (50-10)/(60-10) = 0.42s
+      var gP50 = el('g', {}, g);
+      el('line', { 'class': 'rank50', x1: 616, y1: 240, x2: 785, y2: 240 }, gP50);
+      el('circle', { 'class': 'dot50', cx: 785, cy: 240, r: 6 }, gP50);
+      var f50 = el('text', { 'class': 'fml f50', x: 600, y: 428 }, gP50, '');
+      el('tspan', { 'class': 'q' }, f50, 'p50: ');
+      el('tspan', {}, f50, '0.1 + 0.4 x (50-10)/(60-10) = 0.42s');
+      // p95: rank 95 lands in (1, 5], value = 1 + 4 x (95-90)/(100-90) = 3.0s
+      var gP95 = el('g', {}, g);
+      el('line', { 'class': 'rank95', x1: 616, y1: 123, x2: 941, y2: 123 }, gP95);
+      el('circle', { 'class': 'dot95', cx: 941, cy: 123, r: 6 }, gP95);
+      var f95 = el('text', { 'class': 'fml f95', x: 600, y: 456 }, gP95, '');
+      el('tspan', { 'class': 'q' }, f95, 'p95: ');
+      el('tspan', {}, f95, '1 + 4 x (95-90)/(100-90) = ');
+      el('tspan', { 'class': 'ans' }, f95, '3.0s');
+
+      // ---- takeaway caption (full width)
+      var gCap = el('g', {}, g);
+      el('text', { 'class': 'cap', x: 560, y: 493 }, gCap, 'the answer is an interpolation inside a bucket; the edges set the resolution');
+
+      // ---- state
+      function targets(n) {
+        return {
+          cv: n >= 1 ? 1 : 0, bar: n >= 1 ? 1 : 0,
+          der: n >= 2 ? 1 : 0, p50: n >= 2 ? 1 : 0,
+          pods: n >= 3 ? 1 : 0, p95: n >= 3 ? 1 : 0,
+          res: n >= 4 ? 1 : 0, cap: n >= 4 ? 1 : 0
+        };
+      }
+      var S = { cv: 0, bar: 0, der: 0, p50: 0, pods: 0, p95: 0, res: 0, cap: 0 };
+      function setOp(elm, v) { elm.style.opacity = v.toFixed(3); }
+      function draw() {
+        setOp(gCVal, S.cv);
+        barRects.forEach(function (r, i) {
+          var h = BARS[i].h * S.bar;
+          r.setAttribute('y', (370 - h).toFixed(2));
+          r.setAttribute('height', h.toFixed(2));
+        });
+        setOp(gBars, S.bar);
+        setOp(gLe, S.bar);
+        setOp(gDer, S.der);
+        setOp(gP50, S.p50);
+        setOp(gPods, S.pods);
+        setOp(gP95, S.p95);
+        setOp(gRes, S.res);
+        setOp(gCap, S.cap);
+      }
+      draw();
+
+      var cancel = null;
+      Deck.slide(ID, {
+        enter: function () {
+          S = { cv: 0, bar: 0, der: 0, p50: 0, pods: 0, p95: 0, res: 0, cap: 0 };
+          draw();
+        },
+        leave: function () { if (cancel) { cancel(); cancel = null; } },
+        step: function (n, prev, c) {
+          var t = targets(n);
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) {
+            S = { cv: t.cv, bar: t.bar, der: t.der, p50: t.p50, pods: t.pods, p95: t.p95, res: t.res, cap: t.cap };
+            draw();
+            return;
+          }
+          var f = { cv: S.cv, bar: S.bar, der: S.der, p50: S.p50, pods: S.pods, p95: S.p95, res: S.res, cap: S.cap };
+          cancel = Deck.tween(600, function (k) {
+            S.cv = Deck.lerp(f.cv, t.cv, k);
+            S.bar = Deck.lerp(f.bar, t.bar, k);
+            S.der = Deck.lerp(f.der, t.der, k);
+            S.p50 = Deck.lerp(f.p50, t.p50, k);
+            S.pods = Deck.lerp(f.pods, t.pods, k);
+            S.p95 = Deck.lerp(f.p95, t.p95, k);
+            S.res = Deck.lerp(f.res, t.res, k);
+            S.cap = Deck.lerp(f.cap, t.cap, k);
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

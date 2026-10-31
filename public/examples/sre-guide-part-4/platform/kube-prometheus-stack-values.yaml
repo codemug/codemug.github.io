@@ -1,0 +1,11 @@
+# Values for the kube-prometheus-stack chart (version 92.16.1), installed as the release "kube-prometheus-stack" in the
+# namespace "monitoring". That release name makes the Prometheus Service kube-prometheus-stack-prometheus, which the
+# KEDA triggers in the llm-serving chart query on port 9090.
+prometheus:
+  prometheusSpec:
+    # By default the stack only loads PodMonitors, ServiceMonitors and PrometheusRules that carry the labels of its own
+    # Helm release. With these three set to false it loads all of them, including the ones our chart creates in the
+    # llm namespace.
+    podMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false

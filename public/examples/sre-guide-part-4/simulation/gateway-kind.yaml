@@ -1,0 +1,47 @@
+# The post's gateway.yaml with ONE change, for kind: the Envoy Service is a plain ClusterIP Service.
+# gateway.yaml asks for a Network Load Balancer through the AWS Load Balancer Controller (loadBalancerClass and annotations).
+# kind has no such controller, so a LoadBalancer Service would wait for an address forever and the Gateway would never
+# be Programmed. We reach the gateway with kubectl port-forward instead. Everything else is unchanged.
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: ai-gateway
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ai-gateway
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: llm-gateway-proxy
+  namespace: ai-gateway
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: ClusterIP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: llm-gateway
+  namespace: ai-gateway
+spec:
+  gatewayClassName: ai-gateway
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: llm-gateway-proxy
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All   # let AIGatewayRoutes in the model namespace (llm) attach

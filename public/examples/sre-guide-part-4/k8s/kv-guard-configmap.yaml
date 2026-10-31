@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kv-guard
+  namespace: llm
+data:
+  guard.sh: |
+    #!/bin/sh
+    # Keep $ROOT under $BUDGET_GIB GiB by deleting the oldest block files (FIFO by mtime).
+    # First in first out by modification time; a hot but old prefix is simply written again on its next miss.
+    # GUARD_ONCE=1 runs a single pass (used by the test).
+    BUDGET_KIB=${BUDGET_KIB:-$((BUDGET_GIB * 1024 * 1024))}
+    while :; do
+      used=$(du -sk "$ROOT" 2>/dev/null | cut -f1)
+      if [ "${used:-0}" -gt "$BUDGET_KIB" ]; then
+        find "$ROOT" -type f -name '*.bin' -exec stat -c '%Y %n' {} + \
+          | sort -n | head -n "${BATCH:-200}" | cut -d' ' -f2- | xargs -r rm -f
+        sleep 1
+        continue
+      fi
+      [ -n "$GUARD_ONCE" ] && exit 0
+      sleep "${INTERVAL:-30}"
+    done

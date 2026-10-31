@@ -1,0 +1,166 @@
+<section class="slide" id="d702-prefix-hit-tiers" data-steps="4">
+  <p class="kicker reveal">kv cache offloading</p>
+  <p class="statement reveal">A hit comes from the nearest tier with a copy.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d702-prefix-hit-tiers-t d702-prefix-hit-tiers-d">
+      <title id="d702-prefix-hit-tiers-t">The same shared prefix served four ways: from the GPU, from CPU RAM, from NVMe through CPU RAM, and recomputed after a miss</title>
+      <desc id="d702-prefix-hit-tiers-d">Four lanes, each with an NVMe slot, a CPU RAM slot and a GPU slot, for one toy prefix of 8 chunks of 1,600 tokens (12,800 tokens, 425 MiB of attention KV at 34 KiB per token). Lane one, hit in GPU: the copy is already there, no bytes move, only the new tokens are prefilled. Lane two, hit in CPU: the 8 chunks are copied up to the GPU, 400 MiB, then only the new tokens are prefilled. Lane three, hit on NVMe: the chunks are staged through CPU RAM and then copied to the GPU, 400 MiB over 2 hops, then only the new tokens are prefilled. Lane four, miss: no tier has a copy, nothing is moved and everything is prefilled. A prefix shorter than one 1,600-token chunk never hits an external tier. No timings are shown.</desc>
+      <g id="d702-prefix-hit-tiers-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d702-prefix-hit-tiers svg.diagram{width:100%;height:100%;max-width:none;}
+    #d702-prefix-hit-tiers text{font-family:var(--font-mono);}
+    #d702-prefix-hit-tiers .lane{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;}
+    #d702-prefix-hit-tiers .hd{font-size:22px;font-weight:700;text-anchor:middle;fill:var(--color-text-muted);}
+    #d702-prefix-hit-tiers .ln{font-size:24px;font-weight:700;fill:var(--color-text);}
+    #d702-prefix-hit-tiers .ls{font-size:20px;fill:var(--color-text-muted);}
+    #d702-prefix-hit-tiers .slot{fill:none;stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d702-prefix-hit-tiers .cell{fill:var(--color-accent);}
+    #d702-prefix-hit-tiers .new{fill:var(--color-text-dim);}
+    #d702-prefix-hit-tiers .arr{stroke:var(--color-accent);stroke-width:3;stroke-linecap:round;fill:none;}
+    #d702-prefix-hit-tiers .arrh{fill:var(--color-accent);}
+    #d702-prefix-hit-tiers .rv{font-size:22px;font-weight:600;fill:var(--color-accent);}
+    #d702-prefix-hit-tiers .rs{font-size:20px;fill:var(--color-text-muted);}
+    #d702-prefix-hit-tiers .ft{font-size:22px;fill:var(--color-text-muted);}
+    #d702-prefix-hit-tiers .ftr{font-size:22px;fill:var(--color-accent);}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd702-prefix-hit-tiers';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function ramp(x, a, b) { return Math.max(0, Math.min(1, (x - a) / (b - a))); }
+      function fmt(n) { return n.toLocaleString('en-US'); }
+
+      // ---- numbers: chunk 1,600 tokens (RULINGS R1, L2 NOTES-3, computed); 34 KiB per token (17 attention layers)
+      var CHUNK = 1600, NCH = 8, BPT = 34816;            // BPT = 2 x 4 x 256 x 17 x 1 byte (fp8)
+      var PREFIX = NCH * CHUNK;                          // 12,800 tokens (toy prefix length)
+      var MIB = PREFIX * BPT / 1048576;                  // 425 MiB of attention KV, state snapshots extra
+
+      var CW = 14, STEP = 17, SLOT_Y = 18, SLOT_H = 46, CELL_Y = 9, CELL_H = 28;
+      var SLOTS = { nvme: { x: 240, w: 150 }, cpu: { x: 440, w: 150 }, gpu: { x: 640, w: 170 } };
+      function cx(slot, i) { var s = SLOTS[slot]; var n = slot === 'gpu' ? 9 : 8; return s.x + (s.w - (n * STEP - 3)) / 2 + i * STEP; }
+
+      var g = document.getElementById(ID + '-g');
+      el('text', { 'class': 'hd', x: SLOTS.nvme.x + SLOTS.nvme.w / 2, y: 30 }, g, 'NVMe');
+      el('text', { 'class': 'hd', x: SLOTS.cpu.x + SLOTS.cpu.w / 2, y: 30 }, g, 'CPU RAM');
+      el('text', { 'class': 'hd', x: SLOTS.gpu.x + SLOTS.gpu.w / 2, y: 30 }, g, 'GPU');
+      el('text', { 'class': 'hd', x: 965, y: 30 }, g, 'moved / computed');
+
+      var LANES = [
+        { y: 44,  name: 'hit in GPU',  sub: 'not evicted yet',  src: 'gpu',  r1: 'no bytes moved',                 r2: 'prefills new tokens' },
+        { y: 134, name: 'hit in CPU',  sub: 'GPU evicted',     src: 'cpu',  r1: fmt(MIB) + ' MiB by DMA',           r2: 'prefills new tokens' },
+        { y: 224, name: 'hit on NVMe', sub: 'GPU+CPU evicted',  src: 'nvme', r1: fmt(MIB) + ' MiB, 2 hops',       r2: 'prefills new tokens' },
+        { y: 314, name: 'miss',        sub: 'no copy left', src: null,   r1: 'no bytes moved',                 r2: 'prefills everything' }
+      ];
+
+      function mkCells(lane, slot, n, cls, parent) {
+        var out = [];
+        for (var i = 0; i < n; i++) out.push(el('rect', { 'class': cls, x: cx(slot, i), y: lane.y + SLOT_Y + CELL_Y, width: CW, height: CELL_H, rx: 3 }, parent));
+        return out;
+      }
+      function mkNew(lane) { return el('rect', { 'class': 'new', x: cx('gpu', NCH), y: lane.y + SLOT_Y + CELL_Y, width: CW, height: CELL_H, rx: 3 }, g); }
+      function mkArrow(lane, x0, x1, parent) {
+        var y = lane.y + SLOT_Y + SLOT_H / 2, a = el('g', {}, parent);
+        el('line', { 'class': 'arr', x1: x0 + 6, y1: y, x2: x1 - 14, y2: y }, a);
+        el('polygon', { 'class': 'arrh', points: (x1 - 4) + ',' + y + ' ' + (x1 - 18) + ',' + (y - 8) + ' ' + (x1 - 18) + ',' + (y + 8) }, a);
+        return a;
+      }
+
+      LANES.forEach(function (L) {
+        el('rect', { 'class': 'lane', x: 20, y: L.y, width: 1080, height: 82, rx: 14 }, g);
+        el('text', { 'class': 'ln', x: 40, y: L.y + 34 }, g, L.name);
+        el('text', { 'class': 'ls', x: 40, y: L.y + 62 }, g, L.sub);
+        ['nvme', 'cpu', 'gpu'].forEach(function (k) {
+          el('rect', { 'class': 'slot', x: SLOTS[k].x, y: L.y + SLOT_Y, width: SLOTS[k].w, height: SLOT_H, rx: 8 }, g);
+        });
+        L.r1t = el('text', { 'class': 'rv', x: 840, y: L.y + 34 }, g, L.r1);
+        L.r2t = el('text', { 'class': 'rs', x: 840, y: L.y + 62 }, g, L.r2);
+        // the copy that already exists (visible from step 0)
+        if (L.src) L.srcCells = mkCells(L, L.src, NCH, 'cell', g);
+      });
+      var L1 = LANES[0], L2 = LANES[1], L3 = LANES[2], L4 = LANES[3];
+      // lane 1: one grey "new tokens" cell in the GPU slot
+      L1.newCell = mkNew(L1);
+      // lane 2: copy cells fly CPU -> GPU, then the grey cell
+      L2.arrow = mkArrow(L2, 590, 640, g);
+      L2.fly = mkCells(L2, 'gpu', NCH, 'cell', g);
+      L2.newCell = mkNew(L2);
+      // lane 3: NVMe -> CPU, then CPU -> GPU, then the grey cell
+      L3.arrow1 = mkArrow(L3, 390, 440, g);
+      L3.arrow2 = mkArrow(L3, 590, 640, g);
+      L3.fly1 = mkCells(L3, 'cpu', NCH, 'cell', g);
+      L3.fly2 = mkCells(L3, 'gpu', NCH, 'cell', g);
+      L3.newCell = mkNew(L3);
+      // lane 4: nine grey cells computed in place
+      L4.all = mkCells(L4, 'gpu', 9, 'new', g);
+
+      // ---- footer
+      el('rect', { 'class': 'cell', x: 40, y: 416, width: CW, height: 22, rx: 3 }, g);
+      el('text', { 'class': 'ft', x: 66, y: 435 }, g, 'reused KV chunk of ' + fmt(CHUNK) + ' tokens');
+      el('rect', { 'class': 'new', x: 520, y: 416, width: CW, height: 22, rx: 3 }, g);
+      el('text', { 'class': 'ft', x: 546, y: 435 }, g, 'prefilled now');
+      el('text', { 'class': 'ft', x: 40, y: 468 }, g, 'toy prefix: ' + NCH + ' chunks = ' + fmt(PREFIX) + ' tokens = ' + fmt(MIB) + ' MiB of attention KV');
+      var rule = el('text', { 'class': 'ftr', x: 40, y: 494 }, g, 'a prefix under ' + fmt(CHUNK) + ' tokens never hits an external tier');
+
+      // ---- state: s[0..3] = lane 1..4 served
+      var s = [0, 0, 0, 0], cancel = null;
+      function setFly(cells, slotFrom, slotTo, p0, dur, stag, pr) {
+        cells.forEach(function (c, i) {
+          var t = ramp(pr, p0 + i * stag, p0 + dur + i * stag);
+          c.setAttribute('opacity', t > 0 ? '1' : '0');
+          c.setAttribute('x', (cx(slotFrom, i) + (cx(slotTo, i) - cx(slotFrom, i)) * t).toFixed(1));
+        });
+      }
+      function draw() {
+        // lane 1
+        L1.newCell.setAttribute('opacity', ramp(s[0], 0, 0.6).toFixed(3));
+        L1.r1t.setAttribute('opacity', ramp(s[0], 0.3, 0.8).toFixed(3));
+        L1.r2t.setAttribute('opacity', ramp(s[0], 0.3, 0.8).toFixed(3));
+        // lane 2
+        L2.arrow.setAttribute('opacity', ramp(s[1], 0, 0.12).toFixed(3));
+        setFly(L2.fly, 'cpu', 'gpu', 0, 0.45, 0.04, s[1]);
+        L2.newCell.setAttribute('opacity', ramp(s[1], 0.75, 1).toFixed(3));
+        L2.r1t.setAttribute('opacity', ramp(s[1], 0.7, 1).toFixed(3));
+        L2.r2t.setAttribute('opacity', ramp(s[1], 0.7, 1).toFixed(3));
+        // lane 3
+        L3.arrow1.setAttribute('opacity', ramp(s[2], 0, 0.1).toFixed(3));
+        L3.arrow2.setAttribute('opacity', ramp(s[2], 0.3, 0.4).toFixed(3));
+        setFly(L3.fly1, 'nvme', 'cpu', 0, 0.3, 0.03, s[2]);
+        setFly(L3.fly2, 'cpu', 'gpu', 0.35, 0.3, 0.03, s[2]);
+        L3.newCell.setAttribute('opacity', ramp(s[2], 0.85, 1).toFixed(3));
+        L3.r1t.setAttribute('opacity', ramp(s[2], 0.8, 1).toFixed(3));
+        L3.r2t.setAttribute('opacity', ramp(s[2], 0.8, 1).toFixed(3));
+        // lane 4
+        L4.all.forEach(function (c, i) { c.setAttribute('opacity', ramp(s[3], i * 0.07, i * 0.07 + 0.25).toFixed(3)); });
+        L4.r1t.setAttribute('opacity', ramp(s[3], 0.7, 1).toFixed(3));
+        L4.r2t.setAttribute('opacity', ramp(s[3], 0.7, 1).toFixed(3));
+        rule.setAttribute('opacity', ramp(s[3], 0.5, 1).toFixed(3));
+      }
+      draw();
+
+      Deck.slide(ID, {
+        enter: function () { s = [0, 0, 0, 0]; draw(); },
+        step: function (n, prev, c) {
+          var t = [n >= 1 ? 1 : 0, n >= 2 ? 1 : 0, n >= 3 ? 1 : 0, n >= 4 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s = t; draw(); return; }
+          var f = s.slice();
+          cancel = Deck.tween(1600, function (k) {
+            s = f.map(function (v, i) { return Deck.lerp(v, t[i], k); });
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

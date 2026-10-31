@@ -1,0 +1,1148 @@
+---
+title: "An SRE's guide to deploying Large Language Models, Part 4: deploying the model"
+description: "Taking Qwen3.8-27B from an empty AWS account to a vLLM pod that serves requests, as code: Terraform for AWS, EKS with Karpenter and Bottlerocket GPU nodes, vLLM streaming weights from S3, and a Helm chart for the model."
+pubDate: 2026-10-30
+tags: ["llms", "sre", "kubernetes", "inference"]
+draft: false
+---
+
+import DeckRuntime from "../../components/illustrations/deck/DeckRuntime.astro";
+import DeckFig from "../../components/illustrations/deck/DeckFig.astro";
+
+<DeckRuntime />
+
+[Part 1](/blog/sre-guide-deploying-llms-part-1/) was about what an LLM is, [part 2](/blog/sre-guide-deploying-llms-part-2/) was about how it becomes an assistant and what it costs to serve, and [part 3](/blog/sre-guide-deploying-llms-part-3/) was about the chips and the engines you can run it on. Now it's time to combine what we learned in all three and use it to build a scalable deployment of Qwen3.8-27B on AWS using [Kubernetes](https://kubernetes.io/). There's a lot to cover, so I've split it in two. This part is the foundation, and [part 5](/blog/sre-guide-deploying-llms-part-5/) builds the routing, the observability and the autoscaling on top of it.
+
+In this part we provision the infrastructure and deploy the model. First we pick a region and a machine. Then we create the cluster and the node layer that turns a pending pod into a ready GPU node, go through how [vLLM](https://docs.vllm.ai/) loads and serves the model, and finally deploy it and talk to the pod directly. By the end we have one pod, on one GPU, answering requests, which covers the journey of loading the model and serving it from pods running on GPUs. Part 5 puts a smart router in front of it and makes it scale.
+
+Everything is infrastructure as code, split between two tools. [Terraform](https://developer.hashicorp.com/terraform) creates everything that lives in AWS: the network, the cluster, the storage bucket for the weights, the permissions, [Karpenter](https://karpenter.sh/docs/) and the AWS Load Balancer Controller. [Helm](https://helm.sh/) installs everything that runs in Kubernetes. In this part that's a chart of our own for the model, with the GPU nodes it asks for and the vLLM pods. In part 5 it's also the upstream charts for the gateway, [Prometheus](https://prometheus.io/) and [KEDA](https://keda.sh/), each with a values file, and the other layers of the same chart: the routing, the autoscaler and the alert rules. Each tool does what it's good at. Terraform is built for cloud resources and for the order they have to be created in. Helm is built for packaging Kubernetes objects and configuring them from a values file, and unlike Terraform's Kubernetes provider it doesn't need a custom resource definition to exist before it can plan.
+
+For every Kubernetes resource we use, we'll first look at the plain YAML and go through what its important fields mean, and then turn it into a template in the chart. All of the code for both parts is in the [examples folder](https://github.com/codemug/codemug.github.io/tree/main/public/examples/sre-guide-part-4) of this blog's repository, so you can follow along or run it yourself.
+
+## 1. Pick a region and a machine
+
+Since we're using AWS, our first step is to pick an appropriate region to deploy this workload in, and for that we need to look at what is available where. Don't worry about getting it perfect. Because we're using IaC, if you change your mind later you can apply the same code in a different region.
+
+The machine decides which regions we can even use, so let's start there. Part 3 ended its AWS section on the [g7e family](https://aws.amazon.com/ec2/instance-types/g7e/): an NVIDIA RTX PRO 6000 Blackwell with 96 GB of GDDR7 per GPU, 1,597 GB/s of memory bandwidth and native support for [NVFP4](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/). A 27B model quantized to NVFP4 is exactly what it's made for, so that's our machine. The family comes in six sizes. What changes along the ladder is how many GPUs you get and how much host (CPU, RAM and network) comes with them.
+
+A quick word on NVFP4, because the name looks like a typo for FP4. FP4 on its own is just a 4-bit floating-point number, and a 4-bit number has only 16 possible bit patterns. They stand for 0, 0.5, 1, 1.5, 2, 3, 4 and 6, each with a plus or minus sign. Model weights are small decimals like 0.52 or -0.31, so they don't fit that grid directly. What makes 4-bit usable is a scale. We store a group of weights together with one scale, divide every weight in the group by it, round each result to the nearest value on the grid, and multiply by the scale again when the weight is used.
+
+Let's try it on four weights: 0.90, 0.52, -0.31 and 0.07. A real group has 16 or 32 weights, but four is enough to see the effect. The largest weight should land near the top of the grid, so the ideal scale is 0.90 divided by 6, which is 0.15. MXFP4, the standard 4-bit format, shares one scale across 32 weights, and that scale has to be a power of two. The choices near 0.15 are 0.125 and 0.25, and neither is 0.15. NVFP4, NVIDIA's format, shares one scale across 16 weights and stores it as an FP8 number, which can be 0.15. Here's what each one does to our four weights, with a scale of 0.25 for MXFP4 and 0.15 for NVFP4:
+
+| | 0.90 | 0.52 | -0.31 | 0.07 |
+|---|---|---|---|---|
+| MXFP4: divide by 0.25 and round to the grid | 4 | 2 | -1 | 0.5 |
+| MXFP4: multiply by 0.25 again | 1.00 | 0.50 | -0.25 | 0.125 |
+| MXFP4: how far off | 0.10 | 0.02 | 0.06 | 0.055 |
+| NVFP4: divide by 0.15 and round to the grid | 6 | 3 | -2 | 0.5 |
+| NVFP4: multiply by 0.15 again | 0.90 | 0.45 | -0.30 | 0.075 |
+| NVFP4: how far off | 0.00 | 0.07 | 0.01 | 0.005 |
+
+Every weight comes back a little off, because the grid is coarse, but the MXFP4 errors add up to 0.235 and the NVFP4 errors to 0.085. A scale of 0.125 would not rescue MXFP4: its errors add up to 0.238. That's the whole idea. A scale that fits the group puts the 16 grid values where the weights are. Smaller groups help in the same way, because one unusually large weight spoils the fit for fewer neighbours in a group of 16 than in a group of 32. NVFP4 also keeps one more FP32 scale for the whole tensor, so that the FP8 scales have a comfortable range to work in.
+
+The price is a little extra memory for the scales: 4 bits per weight plus one 8-bit scale for every 16 weights is 4.5 bits per weight, against 4.25 for MXFP4's one scale per 32. Blackwell GPUs also multiply NVFP4 natively in their tensor cores, so the format is a speed-up and not just a smaller download. That's why we want an NVFP4 checkpoint here.
+
+<DeckFig name="p4-g7e-size-ladder" />
+
+| Size | GPUs | vCPU | RAM | Network | Local NVMe |
+|---|---|---|---|---|---|
+| g7e.2xlarge | 1 | 8 | 64 GiB | 50 Gbps | 1 x 1.9 TB |
+| g7e.4xlarge | 1 | 16 | 128 GiB | 50 Gbps | 1 x 1.9 TB |
+| g7e.8xlarge | 1 | 32 | 256 GiB | 100 Gbps | 1 x 1.9 TB |
+| g7e.12xlarge | 2 | 48 | 512 GiB | 400 Gbps | 1 x 3.8 TB |
+| g7e.24xlarge | 4 | 96 | 1,024 GiB | 800 Gbps | 2 x 3.8 TB |
+| g7e.48xlarge | 8 | 192 | 2,048 GiB | 1,600 Gbps | 4 x 3.8 TB |
+
+Source: the [EC2 accelerated computing instance specifications](https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html) and the g7e product page, read at the time of this deployment.
+
+We'll use the smallest size, `g7e.2xlarge`, with one GPU per node. There are three reasons:
+
+- The NVFP4 checkpoint we're using weighs about 20 GiB, so the model fits on one card and still leaves most of the 96 GB for the [KV cache](/blog/sre-guide-deploying-llms-part-2/#kv-caching-and-prefilldecode).
+- A model that fits on one card gains nothing from a second one on the same node. The RTX PRO 6000 has no [NVLink](/blog/sre-guide-deploying-llms-part-3/#nvidia), as part 3 pointed out, so splitting the model across GPUs would pay the PCIe cost on every layer for no benefit.
+- One GPU per node makes the pod the unit of failure and the unit of scaling. If a node dies we lose exactly one replica, and adding capacity means adding exactly one GPU.
+
+The host around the GPU is small, 8 vCPUs and 64 GiB, but vLLM doesn't need much of it. Our pod will ask for 6 vCPUs, and whatever is left on the node stays available to any other pod that tolerates the GPU [taint](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/).
+
+Now, where can we get it? At the time of this deployment, the AWS [instance types by Region](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-instance-regions.html) page lists g7e in 13 of its 39 Regions: us-east-1, us-east-2, us-west-2, ap-south-1, ap-northeast-1, ap-northeast-2, ap-southeast-3, ap-southeast-5, ap-southeast-7, eu-central-1, eu-west-2, eu-south-2 and eu-north-1. That page lists Regions and not Availability Zones, and AWS warns that a type supported in a Region might not be supported in every zone. So the second check is the zone, and it's one read-only call:
+
+```bash
+aws ec2 describe-instance-type-offerings \
+  --location-type availability-zone \
+  --filters Name=instance-type,Values=g7e.2xlarge \
+  --region us-east-1 \
+  --query 'InstanceTypeOfferings[].Location' --output text
+```
+
+We don't want to rely on remembering to run that. In our Terraform the region is one variable, and the same check runs as a guard before anything gets created: if the region you pick has no `g7e.2xlarge`, Terraform stops with a clear message.
+
+```hcl
+# terraform/variables.tf (lines 1 to 10)
+# The only value that changes when you re-apply this in another region.
+variable "region" {
+  description = "AWS region to deploy into"
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z]{2}(-[a-z]+)-[0-9]+$", var.region))
+    error_message = "region must be an AWS region name such as us-east-1."
+  }
+}
+```
+
+```hcl
+# terraform/checks.tf
+# Fails the plan in a region that does not offer g7e.2xlarge, the GPU
+# instance the NodePool requests. The IaC form of "does this machine
+# exist in this region".
+
+data "aws_ec2_instance_type_offerings" "g7e" {
+  location_type = "availability-zone"
+
+  filter {
+    name   = "instance-type"
+    values = ["g7e.2xlarge"]
+  }
+
+  lifecycle {
+    postcondition {
+      condition     = length(self.locations) > 0
+      error_message = "g7e.2xlarge is not offered in ${var.region}. Pick a region from the list in section 1."
+    }
+  }
+}
+```
+
+The third check is quota, and it's the one that stops people on launch day. [EC2 quotas](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-instance-quotas.html) for GPU instances are counted in vCPUs. The quota that covers g7e is called `Running On-Demand G and VT instances`, and there's a separate `All G and VT Spot Instance Requests` quota for spot. Both default to 0. A `g7e.2xlarge` is 8 vCPUs, so ten of them need 80 vCPUs of quota, and a quota of 192 vCPUs buys you exactly one `g7e.48xlarge`. So ask before you need it:
+
+```bash
+# current value, in vCPUs (L-DB2E81BA is the on-demand G and VT quota, L-3819A6DF the spot one)
+aws service-quotas get-service-quota --service-code ec2 \
+  --quota-code L-DB2E81BA --region us-east-1 --query Quota.Value
+
+# ask for 80 vCPUs: ten g7e.2xlarge
+aws service-quotas request-service-quota-increase --service-code ec2 \
+  --quota-code L-DB2E81BA --desired-value 80 --region us-east-1
+```
+
+<DeckFig name="p4-regions-quota" />
+
+Terraform can send the same request for us. It's off by default, because it should be a deliberate decision, and you turn it on by setting `gpu_quota_vcpus`.
+
+```hcl
+# terraform/quota.tf
+# Optional quota request. A new account in a new region cannot launch
+# g7e until the On-Demand G and VT vCPU quota (L-DB2E81BA) is raised;
+# gpu_quota_vcpus requests it here, 0 leaves the account default.
+
+resource "aws_servicequotas_service_quota" "gpu_vcpus" {
+  count = var.gpu_quota_vcpus > 0 ? 1 : 0
+
+  service_code = "ec2"
+  quota_code   = "L-DB2E81BA"
+  value        = var.gpu_quota_vcpus
+}
+```
+
+The last decision is how we buy the capacity. [Capacity Blocks for ML](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html) are the product people mention first, but g7e isn't on their supported list, which today covers the P4, P5 and P6 families and Trainium. For a g7e fleet, the way to guarantee capacity is an [On-Demand Capacity Reservation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html), which works for the G family. [Spot](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances.html) is the cheap overflow, with a two-minute interruption notice. We treat it as overflow and not as the floor, because a replacement pod needs a new node, a pulled image and loaded weights before it serves anything. Karpenter, which we meet in the next section, understands all three and tries them in that order: reserved, then spot, then on-demand. Prices move, so we won't quote any here: part 3 has the approximate ones, and the pricing page has the real ones.
+
+That's the first gate: a GPU of the right kind has to exist in a zone we can reach, under a quota that is larger than zero. Next comes the node layer.
+
+## 2. The node layer: EKS, Karpenter and Bottlerocket
+
+Next we need a Kubernetes cluster that can give us a GPU node whenever a pod asks for one. Three pieces do that. [EKS](https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html) is the Kubernetes control plane, Karpenter creates the nodes, and [Bottlerocket](https://bottlerocket.dev/) is the operating system those nodes run. We'll do it in two steps. First Terraform creates the cluster and the AWS side of Karpenter. Then we describe the GPU nodes we want as Kubernetes YAML and turn that into templates in our chart.
+
+### The network and the cluster, with Terraform
+
+Everything starts with a network, so that's the first Terraform file. It cuts three public and three private subnets, one per Availability Zone, out of a single /16, and adds a NAT gateway so the private nodes can pull images and reach [S3](https://aws.amazon.com/s3/). The tags matter more than they look. `karpenter.sh/discovery` on the private subnets is how Karpenter finds where to put nodes, and the `elb` and `internal-elb` role tags tell the AWS Load Balancer Controller which subnets a load balancer may use. Nodes only ever land on the private subnets.
+
+```hcl
+# terraform/vpc.tf
+# VPC: three public /24 subnets (NAT egress) and three private /20 subnets
+# (all node groups), cut out of vpc_cidr (a /16). The private blocks start
+# at index 1 so they skip the /20 that contains the public /24s.
+
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+locals {
+  # Sorted so the same three AZs are picked on every plan.
+  azs = slice(sort(data.aws_availability_zones.available.names), 0, 3)
+
+  public_subnets  = [for i in range(3) : cidrsubnet(var.vpc_cidr, 24, i)]
+  private_subnets = [for i in range(3) : cidrsubnet(var.vpc_cidr, 20, 1 + i)]
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "6.7.3"
+
+  name = "${var.cluster_name}-vpc"
+
+  cidr = var.vpc_cidr
+  azs  = local.azs
+
+  public_subnets  = local.public_subnets
+  private_subnets = local.private_subnets
+
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  # One NAT gateway total, so private subnets can egress for image pulls
+  # and S3 access.
+  enable_nat_gateway = var.enable_nat_gateway
+  single_nat_gateway = var.enable_nat_gateway
+
+  # Subnet role tags: LoadBalancer services use the elb subnets,
+  # in-cluster (internal) LoadBalancers the internal-elb ones.
+  # karpenter.sh/discovery is private-only so Karpenter never places
+  # nodes where public IPs apply.
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = "1"
+  }
+
+  private_subnet_tags = {
+    "karpenter.sh/discovery"          = var.cluster_name
+    "kubernetes.io/role/internal-elb" = "1"
+  }
+}
+```
+
+The cluster takes the VPC and its private subnets as inputs (`module.vpc.vpc_id` and `module.vpc.private_subnets`), which is why the network comes first.
+
+EKS supports Kubernetes 1.34 to 1.37 in standard support, and so do Karpenter v1.15 and Bottlerocket. [Envoy Gateway](https://gateway.envoyproxy.io/) v1.9 is tested on 1.33 to 1.36 and KEDA v2.21 on 1.34 to 1.36, and we install both in part 5, so we deploy 1.36, the newest version every component in this series lists. When those two add 1.37, changing the `kubernetes_version` variable is the only edit you should need. The cluster itself is a thin layer on top of the community EKS module: the control plane, the core add-ons, and one small [managed node group](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html) called `system`.
+
+```hcl
+# terraform/eks.tf
+# EKS cluster. Both API endpoints are enabled: private for in-cluster
+# access, public (restricted to var.api_allowed_cidrs) so `aws eks
+# update-kubeconfig` works from your machine.
+
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "21.29.0"
+
+  name               = var.cluster_name
+  kubernetes_version = var.kubernetes_version
+
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+
+  create_iam_role = true
+
+  endpoint_private_access      = true
+  endpoint_public_access       = true
+  endpoint_public_access_cidrs = var.api_allowed_cidrs
+
+  # The deploying identity keeps admin permissions so that
+  # `aws eks update-kubeconfig` works.
+  enable_cluster_creator_admin_permissions = true
+
+  # The addons that ship with the cluster. Empty object = the module's
+  # (most recent) addon version.
+  addons = {
+    vpc-cni                  = {}
+    kube-proxy               = {}
+    coredns                  = {}
+    "eks-pod-identity-agent" = {}
+  }
+
+  # The initial node group. Some pods have to be running before Karpenter can
+  # launch a single node: Karpenter itself (its chart refuses to run on a node it
+  # created) and CoreDNS, which every pod needs. The other CPU-only controllers
+  # (the AWS Load Balancer Controller, Envoy Gateway, KEDA, Prometheus, the
+  # endpoint picker) run here too, so the GPU nodes only carry vLLM. Two
+  # m5.xlarge nodes fit all of that, and no taint is needed because the GPU
+  # taint already keeps other pods off the GPU nodes. Bottlerocket x86; the
+  # module picks the newest EKS-optimized Bottlerocket AMI for this version.
+  eks_managed_node_groups = {
+    system = {
+      ami_type       = "BOTTLEROCKET_x86_64"
+      instance_types = [var.system_instance_type]
+
+      min_size     = var.system_node_group_min_size
+      max_size     = var.system_node_group_max_size
+      desired_size = var.system_node_group_desired_size
+    }
+  }
+
+  # Karpenter discovers node-group capacity through this tag on the
+  # node security group.
+  node_security_group_tags = {
+    "karpenter.sh/discovery" = var.cluster_name
+  }
+
+  tags = var.tags
+}
+```
+
+Two settings are worth a look. The API endpoint is public but restricted to `api_allowed_cidrs`, which defaults to everywhere so the example works out of the box. Narrow it before you use the cluster for anything real. And the `system` group takes the newest Bottlerocket [AMI](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) for the Kubernetes version, while the GPU nodes use the release pinned in the node class below.
+
+That `system` node group is the initial node group, and it's needed for two reasons. Some pods have to be running before Karpenter can launch a single node: Karpenter itself, whose chart refuses to schedule onto a node it created, and CoreDNS, which every pod needs to resolve names. We run the other CPU-only controllers there too (the AWS Load Balancer Controller, the gateway, KEDA, Prometheus and the [endpoint picker](https://gateway-api-inference-extension.sigs.k8s.io/concepts/api-overview/), all of which we meet later), so the GPU nodes only carry vLLM. Two `m5.xlarge` nodes fit all of that, and no taint is needed because the GPU taint already keeps other pods off the GPU nodes.
+
+You could look at moving these off EC2. Fargate can host CoreDNS and the Karpenter controller, but it has no EKS [Pod Identity](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html), no DaemonSets, no GPUs and no EBS volumes. EKS Auto Mode removes the node group entirely, because AWS runs the Karpenter-based autoscaler for you, but it replaces exactly the things this post is about: the open-source [`NodePool`](https://karpenter.sh/docs/concepts/nodepools/) and [`EC2NodeClass`](https://karpenter.sh/docs/concepts/nodeclasses/), the pinned Bottlerocket release and the local NVMe settings. So we keep a small node group.
+
+The module also has a Karpenter submodule, which creates the AWS side of Karpenter for us: the IAM role that the new nodes run with, a queue that receives Spot interruption and instance-health events, and the identity the controller uses to call EC2. Terraform then installs Karpenter itself with Helm.
+
+```hcl
+# terraform/karpenter.tf
+# Karpenter, the AWS side: the node IAM role + instance profile for the
+# nodes Karpenter provisions, the SQS interruption queue (the two-minute
+# Spot notice), and the controller identity via EKS Pod Identity. The
+# association points at a service account the chart release below
+# creates; EKS Pod Identity associations are eventually consistent.
+
+module "karpenter" {
+  source  = "terraform-aws-modules/eks/aws//modules/karpenter"
+  version = "21.29.0"
+
+  cluster_name = var.cluster_name
+  region       = var.region
+
+  namespace       = "karpenter"
+  service_account = "karpenter"
+
+  # The Pod Identity association is created by default in the submodule.
+  enable_spot_termination = true
+  tags                    = var.tags
+
+  # The access entry and the association need a running cluster.
+  depends_on = [module.eks]
+}
+
+resource "helm_release" "karpenter" {
+  name             = "karpenter"
+  repository       = "oci://public.ecr.aws/karpenter"
+  chart            = "karpenter"
+  version          = "1.15.1"
+  namespace        = "karpenter"
+  create_namespace = true
+
+  # serviceAccount.name is pinned to the association above. The
+  # EC2NodeClass in the model chart uses the node role from output
+  # node_role_name.
+  values = [yamlencode({
+    serviceAccount = {
+      name = "karpenter"
+    }
+    settings = {
+      clusterName       = var.cluster_name
+      interruptionQueue = module.karpenter.queue_name
+    }
+  })]
+}
+```
+
+### How Karpenter works
+
+Karpenter is a node autoscaler that starts from pending pods and not from node groups. There's no pre-defined pool of identical instances to grow or shrink. It watches for pods the scheduler has marked unschedulable, looks at what they ask for, and launches an instance of whatever shape fits. When a node is no longer needed it removes it again. Karpenter launches the node; the [kube-scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/) still places the pod on it.
+
+Two objects configure it, and both are cluster-scoped. A `NodePool` says what Karpenter is allowed to launch, and an `EC2NodeClass` says how those nodes are built.
+
+### The NodePool
+
+Here's the raw YAML for our GPU pool:
+
+```yaml
+# k8s/nodepool.yaml
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: g7e
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: g7e
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["g7e"]
+        - key: karpenter.k8s.aws/instance-gpu-manufacturer
+          operator: In
+          values: ["nvidia"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        # priority is reserved, then spot, then on-demand; Karpenter only falls back to types listed here.
+        # "reserved" has no effect until the EC2NodeClass selects a capacity reservation.
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["reserved", "spot", "on-demand"]
+      # keep non-GPU pods off these expensive nodes
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
+      # a maximum lifetime, not a schedule: drift or emptiness can remove a node earlier
+      expireAfter: 720h
+  limits:
+    nodes: 10
+  disruption:
+    # never repack a running model server to save money: only a node with no pods left is a candidate
+    consolidationPolicy: WhenEmpty
+    # and only after it has stayed empty for 30 minutes
+    consolidateAfter: 30m
+```
+
+The requirements pin the pool to g7e and NVIDIA GPUs. The `capacity-type` line is the priority order from section 1: reserved, then spot, then on-demand. Karpenter only falls back to types that are listed, and `reserved` has no effect until the node class selects a capacity reservation. The taint keeps everything that doesn't ask for a GPU off these expensive nodes. `limits.nodes` is the safety catch: ten nodes is the most this pool can ever cost us. And `expireAfter` is a maximum lifetime, not a schedule: [drift](https://karpenter.sh/docs/concepts/disruption/#drift) or emptiness can remove a node earlier.
+
+The disruption block is the part to think about for LLM serving. Karpenter's default policy is `WhenEmptyOrUnderutilized` with a `consolidateAfter` of `0s`, which means it repacks pods onto fewer or cheaper nodes whenever it can. That's free for a stateless web pod, but for a vLLM pod it means a new node and a model reload. We don't want these nodes disrupted, so we use `WhenEmpty`, which only looks at nodes that have no pods left. Then `consolidateAfter: 30m` makes a node stay empty for half an hour first, so a scale-in followed by a scale-out a few minutes later reuses the node instead of paying for a new launch, an image pull and a model load.
+
+Two other things can still replace a node, and neither depends on that policy. Drift replaces a node that no longer matches its `NodePool` or the node class it was built from, and a new AMI is the usual cause. Expiry removes it at `expireAfter`, which defaults to 720 hours. [Disruption budgets](https://karpenter.sh/docs/concepts/disruption/#nodepool-disruption-budgets), which default to 10 percent of nodes at a time, limit drift and consolidation but don't block expiration.
+
+### The EC2NodeClass
+
+The second object says how those nodes are built:
+
+```yaml
+# k8s/ec2nodeclass.yaml
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: g7e
+spec:
+  # Bottlerocket; for GPU instance types Karpenter resolves this to the aws-k8s-nvidia variant.
+  # Pin a version: "latest" would drift every node whenever a new AMI is published.
+  amiSelectorTerms:
+    - alias: bottlerocket@v1.68.0
+  role: example-karpenter-node-role
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: example-cluster
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: example-cluster
+  # format the local NVMe as RAID0 and make it the node's ephemeral storage
+  # (automatic on Bottlerocket v1.22.0 and later)
+  instanceStorePolicy: RAID0
+  # uncomment to use an On-Demand Capacity Reservation first (Beta in Karpenter v1.15)
+  # capacityReservationSelectorTerms:
+  #   - id: cr-11111111111111111
+  tags:
+    karpenter.sh/discovery: example-cluster
+```
+
+Four lines carry most of the weight:
+
+- The AMI alias is pinned to a Bottlerocket release. If we used `latest`, every node would drift, and be replaced, whenever AWS published a new image. There's no separate switch for the NVIDIA variant: Karpenter resolves the alias to several image parameters and picks the `aws-k8s-nvidia` one for instance types that report a GPU count, which every g7e size does.
+- `role` is the IAM role the nodes run with. It's the one Terraform just created.
+- The subnet and security group selector terms are required: the schema rejects an `EC2NodeClass` without them, which is easy to miss when you copy a trimmed example. They match the `karpenter.sh/discovery` tag that Terraform put on our subnets and security group.
+- `instanceStorePolicy: RAID0` formats the local NVMe drive and makes it the node's ephemeral storage, so an [`emptyDir`](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) lands on a fast, large, local disk. We'll use that in part 5.
+
+### Turning them into templates
+
+Now let's do the same thing as a Helm template. Look at what changed from the raw YAML: the node role and the discovery tag are no longer written into the object, because they belong to the cluster and not to the model. Terraform prints them as an output, and the chart reads them from its values.
+
+```yaml
+# helm/llm-serving/values.yaml (karpenter)
+# Karpenter GPU pool: NodePool + EC2NodeClass, and the AWS-side inputs from `terraform output chart_values_yaml`.
+karpenter:
+  enabled: true
+  poolName: g7e
+  nodeRole: example-karpenter-node-role
+  discoveryTag: example-cluster
+  amiAlias: bottlerocket@v1.68.0
+  instanceStorePolicy: RAID0
+```
+
+```yaml
+# helm/llm-serving/templates/nodepool.yaml
+{{- if .Values.karpenter.enabled }}
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: {{ .Values.karpenter.poolName }}
+spec:
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: {{ .Values.karpenter.poolName }}
+      requirements:
+        - key: karpenter.k8s.aws/instance-family
+          operator: In
+          values: ["g7e"]
+        - key: karpenter.k8s.aws/instance-gpu-manufacturer
+          operator: In
+          values: ["nvidia"]
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        # priority is reserved, then spot, then on-demand; Karpenter only falls back to types listed here.
+        # "reserved" has no effect until the EC2NodeClass selects a capacity reservation.
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["reserved", "spot", "on-demand"]
+      # keep non-GPU pods off these expensive nodes
+      taints:
+        - key: nvidia.com/gpu
+          value: "true"
+          effect: NoSchedule
+      # a maximum lifetime, not a schedule: drift or emptiness can remove a node earlier
+      expireAfter: 720h
+  limits:
+    nodes: 10
+  disruption:
+    # never repack a running model server to save money: only a node with no pods left is a candidate
+    consolidationPolicy: WhenEmpty
+    # and only after it has stayed empty for 30 minutes
+    consolidateAfter: 30m
+{{- end }}
+```
+
+```yaml
+# helm/llm-serving/templates/ec2nodeclass.yaml
+{{- if .Values.karpenter.enabled }}
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: {{ .Values.karpenter.poolName }}
+spec:
+  # Bottlerocket; for GPU instance types Karpenter resolves this to the aws-k8s-nvidia variant.
+  # Pin a version: "latest" would drift every node whenever a new AMI is published.
+  amiSelectorTerms:
+    - alias: {{ .Values.karpenter.amiAlias }}
+  role: {{ .Values.karpenter.nodeRole }}
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ .Values.karpenter.discoveryTag }}
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ .Values.karpenter.discoveryTag }}
+  # format the local NVMe as RAID0 and make it the node's ephemeral storage
+  # (automatic on Bottlerocket v1.22.0 and later)
+  instanceStorePolicy: {{ .Values.karpenter.instanceStorePolicy }}
+  # uncomment to use an On-Demand Capacity Reservation first (Beta in Karpenter v1.15)
+  # capacityReservationSelectorTerms:
+  #   - id: cr-11111111111111111
+  tags:
+    karpenter.sh/discovery: {{ .Values.karpenter.discoveryTag }}
+{{- end }}
+```
+
+The `karpenter.enabled` switch lets you leave the nodes to something else if your cluster already has a GPU pool. Everything else in the chart follows the same pattern: the raw YAML is what we reason about, and the template only replaces the values that change between clusters.
+
+### Why Bottlerocket
+
+Bottlerocket is an operating system built for running containers and nothing else, and for GPU inference nodes it removes more work than it adds. The root filesystem is read-only and verified with [dm-verity](https://docs.kernel.org/admin-guide/device-mapper/verity.html), `/etc` is a tmpfs, [SELinux](https://www.redhat.com/en/topics/linux/what-is-selinux) is enforcing, and there's no shell, no SSH server and no package manager on the node. You configure it through a settings API that you set from user data as TOML, and when you have to get in, you use an admin container. Updates are image-based: the new OS image is written to a second partition and the node reboots into it, so a node is either on the old image or on the new one and never in between.
+
+<DeckFig name="p4-bottlerocket-anatomy" />
+
+For GPU nodes in particular, the nice part is that the EKS-optimised `aws-k8s-nvidia` variant ships the whole NVIDIA stack inside the image: the [driver](https://docs.nvidia.com/datacenter/tesla/index.html), the [container toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html), the Kubernetes [device plugin](https://github.com/NVIDIA/k8s-device-plugin), the [MIG manager](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/gpu-operator-mig.html) and the [fabric manager](https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/index.html). In order, they let the operating system use the GPU, let a container see it, tell the [kubelet](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/) how many GPUs the node has so that a pod can ask for `nvidia.com/gpu: 1`, split a GPU into slices, and run the NVLink and NVSwitch fabric of multi-GPU HGX systems, which is not a concern on a g7e. There's nothing to install on the node and nothing to keep in step with the kernel. If you use the NVIDIA [GPU operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html) on top, the AWS documentation says to disable the operator's installation of the driver, the toolkit and the device plugin, because they're already there.
+
+The trade-off is the same property seen from the other side. The driver version is whatever the AMI carries, so changing it means changing the AMI, which means drift and node replacement, and you can't SSH in to poke at a misbehaving node. For a fleet of identical, replaceable inference nodes, that's the right trade: the nodes are cattle and the interesting state is in the pod. For a pet node you like to tinker with, it would be the wrong one.
+
+Two smaller notes on the GPU plumbing. AWS now recommends the [NVIDIA DRA driver](https://github.com/kubernetes-sigs/dra-driver-nvidia-gpu) for new deployments on Kubernetes 1.34 and later, but dynamic [DRA](https://kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/) provisioning in Karpenter v1.15 is alpha and off by default, so we use the device plugin that already ships in the AMI, and our pod asks for `nvidia.com/gpu: 1`. And [MIG](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/latest/index.html), which splits one GPU into isolated slices, exists on g7e but with fewer slices than the seven of an H100, so on a 96 GB card the biggest practical split is four 24 GB slices. A 27B model doesn't fit in one, which is why we don't use it.
+
+That's the node layer. Karpenter turns a pending pod into a Ready GPU node on its own, and Bottlerocket makes sure the node arrives with the driver and the device plugin already in place. The next thing the pod needs is its weights.
+
+## 3. The model server: vLLM and the Run:ai Model Streamer
+
+We have a GPU node, so now we need the pod that runs on it: a vLLM server with the right flags, loading its weights from S3. First we go through the `vllm serve` command flag by flag, including the memory arithmetic that decides how many requests one pod holds. Then we put the command in a Deployment and turn that into a template. Finally we create the bucket, the identity that reads it, and the [Run:ai Model Streamer](https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer/) that loads the weights.
+
+Part 3 introduced vLLM and its [PagedAttention](https://arxiv.org/abs/2309.06180), and told you to treat it as the default engine. Everything it does is driven by flags. Most defaults suit somebody else's workload, and a handful decide whether your pod starts, how many requests it holds, and what the metrics are called.
+
+First the checkpoint. NVIDIA publishes an official NVFP4 build, [`nvidia/Qwen3.8-27B-NVFP4`](https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4). It isn't pure FP4: the MLP layers and the output head are NVFP4, while the attention and linear-attention projections stay in FP8, the usual recipe for keeping accuracy. It weighs about 20.4 GiB. Part 2 made the point that a quantization format is only useful if a kernel speaks it, and the RTX PRO 6000 in a g7e is a Blackwell part with native FP4, so here the format is a speed-up and not just a memory saving. vLLM detects the quantization from the checkpoint's own config, so there's no `--quantization` flag below.
+
+```bash
+vllm serve s3://example-cluster-models-us-east-1/models/nvidia/Qwen3.8-27B-NVFP4/ \
+  --served-model-name qwen38-27b-nvfp4 --host 0.0.0.0 --port 8000 \
+  --load-format runai_streamer --model-loader-extra-config '{"concurrency":16}' \
+  --tensor-parallel-size 1 --max-model-len 262144 --kv-cache-dtype fp8 --gpu-memory-utilization 0.90 \
+  --max-num-seqs 64 --max-num-batched-tokens 8192 \
+  --enable-prefix-caching --enable-chunked-prefill --async-scheduling \
+  --speculative-config '{"method":"mtp","num_speculative_tokens":3}' \
+  --reasoning-parser qwen3 --tool-call-parser qwen3_coder --enable-auto-tool-choice \
+  --disable-access-log-for-endpoints /health,/metrics,/v1/models
+```
+
+Several of these flags are redundant at this version, and we keep them anyway: an explicit flag documents intent, and an explicit `--async-scheduling` turns a silent fallback into a startup error. We'll point out the redundant ones as we go.
+
+### The simple flags
+
+The first argument of the command is the model, and here it's an S3 prefix with a trailing slash instead of a [Hugging Face](https://huggingface.co/docs/hub/index) name. Everything after it is a flag. Most flags are one-liners, so let's get them out of the way first. For each one, the table says what it is and what it does here, then what happens if you change it or leave it out. The flags that decide memory, scheduling and [speculative decoding](https://docs.vllm.ai/en/latest/features/speculative_decoding/) come after the table, with more room.
+
+| Flag | What it does | If you change it or leave it out |
+|---|---|---|
+| `--served-model-name qwen38-27b-nvfp4` | The name clients put in the `model` field of a request. It also shows up in every response and becomes the `model_name` label on every vLLM metric. Our name, `qwen38-27b-nvfp4`, is what the gateway matches on in part 5. | We never leave this one out. Without it the name defaults to the S3 URL, and your dashboards fill with bucket paths. A request that names any other model gets a 404. |
+| `--host 0.0.0.0` | The address the HTTP server listens on. `0.0.0.0` means every network interface of the pod, which is what the kubelet's probes and the Service need to reach it. | Redundant: left out, vLLM listens on all interfaces anyway. Set it to `127.0.0.1` and nothing outside the container can connect, probes included. |
+| `--port 8000` | The port the HTTP server listens on. Here it's 8000, and the probes, the Service and the metrics scrape all point at it. | 8000 is the default, so this is redundant. If you change it, change the container port, the probes and the Service to match. |
+| `--load-format runai_streamer` | Which loader reads the weights. This one is the Run:ai Model Streamer, which reads safetensors files from S3 with many threads. We come back to it at the end of this section. | Redundant at v0.32.0: for an `s3://` path vLLM switches to it by itself. Any other loader with an S3 path stops the server at startup with an error. |
+| `--model-loader-extra-config '{"concurrency":16}'` | Settings passed to the loader. The streamer's loader accepts exactly three keys, `distributed`, `concurrency` and `memory_limit`, and rejects anything else. We set `concurrency`, the number of S3 clients that read in parallel. | 16 is the value from the vLLM documentation's own example. Up means more parallel reads and a faster load, until the network is the limit (the streamer's documentation says one client aims for about 10 Gbit/s). Down means a slower load. Left out, the streamer's own default applies, which is 8 in release 0.17.1. |
+| `--tensor-parallel-size 1` | How many GPUs one copy of the model is split across, layer by layer (tensor parallelism). The 20.4 GiB checkpoint fits on one GPU, so one. | 1 is the default. Asking for more GPUs than the pod has stops startup with `World size (2) is larger than the number of available GPUs (1)`, taking 2 as the example. |
+| `--max-model-len 262144` | The longest request vLLM accepts, prompt and generated tokens together. 262,144 tokens is the model's native context, so it's also the default. | Lower it and longer requests are refused with an error that names the limit. The size of the KV pool doesn't change, only vLLM's worst-case accounting does. If the pool can't hold even one request of that length, startup fails with `To serve at least one request with the model's max seq len ...`. |
+| `--kv-cache-dtype fp8` | The number format of the keys and values the KV cache stores. fp8 uses 8 bits per value instead of 16, which halves the bytes per cached token in the attention layers. | The default, `auto`, uses the model's own 16-bit type, so every token needs twice the attention memory and the pool holds fewer requests. fp8 stores the values at lower precision. |
+| `--enable-prefix-caching` | Prefix caching keeps the KV blocks of finished requests, looked up by their content, so a new request that starts with the same tokens (a shared system prompt, say) skips computing them again. The routing in part 5 depends on it. | On by default for this model, so redundant. Off, every request recomputes its whole prompt, and cache-aware routing has nothing to hit. |
+| `--enable-chunked-prefill` | Prefill is the pass that reads a prompt. Chunked prefill cuts a long prompt into pieces of at most 8,192 tokens that take turns with the other requests' decode steps, so one 100,000-token prompt doesn't freeze everyone else's output. | On by default, so redundant. Turning it off isn't supported for this model (vLLM warns that it may crash the engine or produce incorrect output), and startup fails unless `--max-num-batched-tokens` is at least `--max-model-len`, which here would mean 262,144. |
+| `--async-scheduling` | The engine has a CPU part that decides which requests run next and a GPU part that runs them. Async scheduling lets the CPU prepare the next step while the GPU runs the current one, so the GPU isn't idle between steps. | On by default too. Set explicitly, an incompatible setting fails at startup; unset, vLLM would quietly switch it off with a warning. `--no-async-scheduling` brings the idle gaps back. |
+| `--reasoning-parser qwen3` | Qwen3.8 thinks first and answers after, and the chat template opens every assistant turn with `<think>`, as part 2 showed. The parser splits the thinking from the answer: the answer stays in `message.content` and the thinking goes into a separate `reasoning` field. | Left out, your clients get the thinking and the answer together in `message.content`, a wall of thinking before the answer. |
+| `--tool-call-parser qwen3_coder` | A model calls a tool by writing text in a format of its own, and Qwen3.8's template uses the XML-ish Qwen3-Coder format. The parser reads that text and turns it back into the structured `tool_calls` that agent frameworks expect. | It has to match the model's tool-call format, so it can't be swapped for another model's parser. Left out, vLLM can't read tool calls at all, and with `--enable-auto-tool-choice` set it refuses to start. |
+| `--enable-auto-tool-choice` | In an OpenAI-style request, `tool_choice: "auto"` means the model decides whether to call one of the tools listed in the request, and it's what a request gets whenever it lists `tools` and doesn't say otherwise. This flag switches that mode on and hands the work to the parser above. | Left out, every request that sends `tools` without a `tool_choice` gets a 400 error: `"auto" tool choice requires --enable-auto-tool-choice and --tool-call-parser to be set`. Set without `--tool-call-parser`, the server refuses to start: `--enable-auto-tool-choice requires --tool-call-parser`. |
+| `--disable-access-log-for-endpoints /health,/metrics,/v1/models` | Every HTTP request writes one access-log line. This is a comma-separated list of paths to leave out: the health probe, the metrics scrape and the model list. A pod that's probed every few seconds and scraped continuously would otherwise fill most of its log with them. | Left out, those lines come back. Paths are matched exactly and everything else is still logged, so don't list a path your real clients use. |
+
+### Memory: the utilization fraction and the KV pool
+
+`--gpu-memory-utilization 0.90` is the fraction of the card's memory that vLLM may use. vLLM claims that fraction at startup, in three moves: it loads the weights, runs a profiling pass, and then allocates the whole KV cache pool in one go. So by the time the pod is ready the card looks about 90 percent full, and it stays that way with no traffic at all. A flat GPU memory graph tells you nothing about load, so watch KV cache usage instead. The default is 0.92, and we leave a little more outside the budget for the driver and for fragmentation. Raising it by 0.01 buys about a gigabyte of pool, and raising it too far stops the pod at startup when the card doesn't have that much free. Lowering it shrinks the pool by the same amount, which means fewer requests.
+
+Two flags from the table feed straight into the arithmetic that follows. `--kv-cache-dtype fp8` sets how many bytes a cached token costs, and `--max-model-len 262144` is the worst case every request is measured against.
+
+Let's do the arithmetic once, because it's where Qwen3.8 differs from the dense models in parts 1 and 2. I read the numbers below off the startup log of a production pod that serves this model on a g7e.2xlarge with the same memory flags. That pod runs vLLM v0.28.0 and a different quantised build of the model, with 22.13 GiB of weights once loaded. The pool on your pod will differ a little, but the structure is the same. Our pin is v0.32.0, and some lines are worded a little differently there, so check your own log.
+
+<DeckFig name="p4-memory-budget" />
+
+These are the startup lines that carry the numbers, in the order the log prints them, with the prefix and timestamp exactly as the pod wrote them:
+
+```text
+(EngineCore pid=206) INFO 10-28 15:28:25 [gpu_model_runner.py:5515] Model loading took 22.13 GiB memory and 198.244322 seconds
+(EngineCore pid=206) INFO 10-28 15:28:25 [interface.py:911] Setting attention block size to 1600 tokens to ensure that attention page size is >= mamba page size.
+(EngineCore pid=206) WARNING 10-28 15:30:22 [kv_cache_utils.py:1227] Add 3 padding layers, may waste at most 6.25% KV cache memory
+(EngineCore pid=206) INFO 10-28 15:30:30 [gpu_worker.py:578] Available KV cache memory: 59.26 GiB
+(EngineCore pid=206) INFO 10-28 15:30:30 [kv_cache_utils.py:1869] GPU KV cache size: 1,672,449 tokens, Maximum concurrency for 262,144 tokens per request: 6.38x
+(EngineCore pid=206) INFO 10-28 15:30:51 [gpu_worker.py:741] CUDA graph pool memory: 0.89 GiB (actual), 1.15 GiB (estimated), difference: 0.26 GiB (29.3%).
+(EngineCore pid=206) INFO 10-28 15:30:51 [gpu_worker.py:804] Free memory on device (94.43/94.97 GiB) on startup. Desired GPU memory utilization is (0.9, 85.47 GiB). Actual usage is 23.27 GiB for consumed memory (weights + non-torch), 2.94 GiB for peak activation, and 0.89 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=62522614477` (58.23 GiB) to fit into requested memory, or `--kv-cache-memory=72134694400` (67.18 GiB) to fully utilize gpu memory. Current kv cache memory in use is 59.26 GiB.
+```
+
+We'll point back to these lines as we go.
+
+**Step 1: the budget.** The last line starts with `Free memory on device (94.43/94.97 GiB)`. 94.97 GiB is the total physical VRAM that PyTorch can see on the card, and 94.43 GiB of it was free when vLLM started. The budget is the total times the fraction: at 0.90, vLLM may use 85.47 GiB, which is the `Desired GPU memory utilization is (0.9, 85.47 GiB)` part of the same line. Three things come off that budget before the KV cache gets anything.
+
+- **The weights, 22.13 GiB.** That's the first line of the block: `Model loading took 22.13 GiB`.
+- **Non-torch memory, 1.14 GiB.** The last line lumps weights and non-torch together as `23.27 GiB for consumed memory (weights + non-torch)`, and 23.27 minus 22.13 is 1.14.
+- **Activations, 2.94 GiB.** The same line calls it `2.94 GiB for peak activation`.
+
+Both of those last two need a closer look. PyTorch hands out most of the card through its own allocator, and the weights live there. Non-torch memory is what the process holds outside that allocator: the CUDA context, which is the driver's working space for the process, and the libraries that allocate for themselves, such as NCCL and the attention backends (vLLM's own code comments name those two). A process can't run without it, and PyTorch can't give it back. vLLM can't work it out from the model, because it depends on the GPU, the driver and the library versions, so it measures it: it compares the card's free memory before and after the profiling pass, which counts everything the process added, torch or not. If it only subtracted weights and activations, the pool would come out too big by this amount, and the pod would run out of memory later.
+
+Activations are the temporary tensors a forward pass creates as it moves through the layers: each layer's output, the attention scores, the wide middle step of each MLP. They exist only while a step runs, and they grow with the number of tokens in the step. The weights and the KV cache are permanent, but activations are scratch space, and that scratch space has to be free whenever a step runs. vLLM can't know how big it gets without running the model, so before it allocates the pool it runs one dummy forward pass at the largest batch the scheduler will ever build, which is `--max-num-batched-tokens 8192` tokens, and records the peak. If the pool took that room, the first large prefill would ask for memory that isn't there and fail with an out-of-memory error.
+
+The 2.94 GiB in the log holds two things: about 1.79 GiB of activations from the profiling pass, and the 1.15 GiB that vLLM sets aside for the [CUDA graphs](https://pytorch.org/blog/accelerating-pytorch-with-cuda-graphs/) it captures later. The `CUDA graph pool memory` line shows that reservation next to what the capture really used, 0.89 GiB.
+
+What's left is the KV cache pool: 85.47 minus 23.27 minus 2.94 is 59.26 GiB, which the log prints as `Available KV cache memory`. vLLM allocates it, then captures the graphs, which take 0.89 GiB of the 1.15 GiB it reserved, so the budget holds with a little to spare. The 10 percent outside the budget, 9.50 GiB, is the room we leave for the driver and for fragmentation.
+
+**Step 2: two kinds of memory per request.** A dense model needs one kind: a key and a value for every token in every layer, which grows with the request. Qwen3.8-27B is a hybrid and needs two.
+
+- **Attention memory grows with the request.** Only 16 of its 64 layers are full attention. Each stores 2 KiB per token at fp8 (a key and a value, 4 heads of 256 dimensions, one byte each), so the 16 layers cost 32 KiB per token, the figure part 2 computed. The multi-token prediction ([MTP](https://docs.vllm.ai/en/latest/features/speculative_decoding/mtp/)) head we enable below is a 17th attention layer, which makes it 34 KiB per token.
+- **State memory is fixed per request.** The other 48 layers are [linear attention](https://arxiv.org/abs/2412.06464), which keeps no entry per token. Each layer keeps one fixed-size summary of everything it has read so far, called a recurrent state, and all 48 together are about 150 MiB whether the request is 100 or 100,000 tokens long.
+
+vLLM keeps both kinds in one pool of equal-sized blocks, so one block size has to suit both. A state is far bigger than an ordinary 16-token attention block, so vLLM stretches the attention block until it's at least as big as a state. That's what the `Setting attention block size to 1600 tokens` line in the block above says. One block is then 1,600 tokens times 34 KiB, which is 53.125 MiB. In the attention group a block holds 1,600 tokens of keys and values. In a state group it holds one copy of the state, and the 48 linear layers fall into three such groups, so one full copy of the state is three blocks. The `Add 3 padding layers` warning explains the three groups: the 17 attention layers set the group size, so vLLM splits the 48 linear layers into groups of 17, which takes 3 padding layers to fill (3 of 48 is the 6.25 percent in the message). With [prefix caching](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching/) and three speculative tokens, vLLM reserves five copies per request (two, plus one per speculative token), which is 3 times 5 = 15 state blocks, about 797 MiB.
+
+<DeckFig name="p4-kv-block" />
+
+**Step 3: what fits.** A request needs one attention block per 1,600 tokens, rounded up, plus the 15 state blocks. An 8,192-token request is 6 + 15 = 21 blocks, about 1.1 GiB. The pool holds 59.26 GiB divided by 53.125 MiB, which is 1,142 blocks, so it holds 54 such requests. The same arithmetic for other lengths:
+
+| Request length | Attention blocks | State blocks | Blocks in total | Requests the pool holds |
+|---|---|---|---|---|
+| 2,048 tokens | 2 | 15 | 17 | 67 (`--max-num-seqs` caps it at 64) |
+| 8,192 tokens | 6 | 15 | 21 | 54 |
+| 65,536 tokens | 41 | 15 | 56 | 20 |
+| 262,144 tokens | 164 | 15 | 179 | 6.38 |
+
+The last row is the one the log confirms: `Maximum concurrency for 262,144 tokens per request: 6.38x` is exactly 1,142 divided by 179. The same line starts with `GPU KV cache size: 1,672,449 tokens`, which isn't a capacity. It's that 6.38 multiplied by 262,144, so don't read it as the number of tokens that fit.
+
+Two things follow that you can feel in production. A short request is mostly state: at 2,048 tokens, 15 of its 17 blocks are state, so memory doesn't limit short requests and `--max-num-seqs` does. And prefix caching works on whole blocks, so a prefix hit always lands on a multiple of 1,600 tokens. With MTP on there's one more rule: vLLM recomputes the last block it matched, so a hit needs two whole blocks to reuse one.
+
+<DeckFig name="p4-prefix-grid" />
+
+A shared system prompt of 1,700 tokens never hits at all: it fills one block, and that block gets recomputed. One of 3,400 tokens fills two blocks and hits for the first 1,600. On this setup, a shared prompt under 3,200 tokens gets nothing from the cache. I got that rule from reading the vLLM v0.32.0 source, so check `vllm:prefix_cache_hits_total` against `vllm:prefix_cache_queries_total` on your own traffic. Keep it in mind when the routing and metrics sections talk about prefix reuse.
+
+To read the same numbers on your own pod, find these lines in its log: `Available KV cache memory` for step 1, `Setting attention block size to N tokens` for step 2, and `GPU KV cache size` with `Maximum concurrency` for step 3. The checkpoint in this post has different weights from the one in my pod, so expect a different pool size. The block size doesn't depend on the weights, so it should read 1,600 with these flags, and if it doesn't, trust the log.
+
+### Scheduler: the batch and the token budget
+
+`--max-num-seqs 64` is the most requests vLLM works on together in one step. Two terms first. A sequence is one request in flight: its prompt plus whatever the model has generated for it so far. A step is one pass of the model, and the batch is the set of requests that share it, each getting its next token (or its next chunk of prompt). So yes, this flag is the maximum batch, and requests that are still reading their prompt count against it as well as the ones already generating. Above the cap, extra requests wait in the queue until a running one finishes, even if the card has memory to spare.
+
+Why 64 and not the default? The server default on a card this size is 1,024, and the flag does more than set a limit. vLLM also sizes things from it ahead of time: the per-request buffers in the model runner, the batch sizes it captures CUDA graphs for, and the sampler's warm-up, which runs one row of logits per request. The profiling pass from step 1 includes that sampler run, so a larger cap raises the activation peak, and the KV pool pays for it. Now look at the table in step 3. At 2,048 tokens the pool holds 67 requests, and only slightly more for much shorter ones, so no traffic mix can fill a batch of 1,024 on this pod. That preparation would be startup time and memory spent on concurrency the pool can't deliver. A cap of 64 sits just under what the pool holds for short requests, so the cap limits short requests, and for contexts above about 3,200 tokens the pool does. That's why the autoscaling section uses KV cache usage and queue depth and not batch size.
+
+`--max-num-batched-tokens 8192` is the token budget of one step: the most tokens, added up over every request in the batch, that one pass of the model processes. A decoding request adds one token (plus its draft tokens) and a request reading its prompt adds a chunk, so the budget is the size of one prefill chunk and the room that decode and draft tokens share with it. 8,192 is also the default for a GPU of this class. Larger makes long prefills faster, but it raises the activation peak from step 1, and that comes out of your KV pool. Smaller shrinks the peak and hands the pool the difference, at the price of more steps for every long prompt. It can't go below `--max-num-seqs`, or startup fails.
+
+### Speculative decoding with the model's own MTP head
+
+`--speculative-config '{"method":"mtp","num_speculative_tokens":3}'` turns on speculative decoding in its multi-token prediction form. Part 2 explained why decode is memory-bound: each step streams the whole model through memory to produce one token, so getting several tokens per step is the most direct lever on decode speed. Qwen3.8 ships a small extra head in the same checkpoint that guesses the next few tokens, here three. The main model checks all of them in one forward pass, and every guess it accepts is a decode step you didn't pay for. No separate draft model is needed. One thing to remember: `num_speculative_tokens` is mandatory for this checkpoint, because the layer count vLLM looks for is under `text_config`, where the automatic lookup doesn't find it, and omitting it fails at startup.
+
+Leave the whole flag out and nothing speculates: one token per step, and none of the costs below. Raise the number and each step can yield more tokens, but every request holds one more copy of the state for each extra token, which is three more blocks. Lower it and the memory bill shrinks along with the speedup.
+
+The costs belong on the budget sheet. The head adds 0.79 GiB of weights and one more attention layer to the KV group, and each request holds three more copies of the state, nine more blocks. At 16,384 tokens of context that cuts the pool's concurrency by about 40 percent, from about 74 to about 44 requests, in exchange for faster decode. vLLM publishes `vllm:spec_decode_num_accepted_tokens` and `vllm:spec_decode_num_draft_tokens`, and the ratio of the two is the acceptance rate to watch.
+
+### Flags we leave out
+
+Three flags aren't in the command on purpose, and each one is a decision you may want to make differently.
+
+| Flag | What it does | Why we leave it out, and what changes if you set it |
+|---|---|---|
+| `--trust-remote-code` | Some models ship their own Python code (a custom config or model class) in the checkpoint, because the Hugging Face library doesn't know the architecture yet. This flag lets the loader run that code. | The Qwen3.8 architecture is natively supported, and with the flag, Python files from the bucket would run inside the pod. If a model does need it, vLLM's startup error for a custom config says `Failed to load the model config` and points at this flag. Read the code first, then decide. |
+| `--shutdown-timeout` | The number of seconds vLLM lets in-flight requests finish after the pod gets SIGTERM, the signal Kubernetes sends when it stops a pod. | The default is 0, which aborts in-flight requests at once, so a rolling update cuts live responses. Set it to the longest response you want to finish, and keep `terminationGracePeriodSeconds` above it, or Kubernetes kills the pod first. A higher value makes every update slower. |
+| `--generation-config` | `generation_config.json` is a file in the checkpoint where the model's authors put default sampling settings (temperature, top-p and so on). This flag says where vLLM reads it from. | The default, `auto`, reads the file from the bucket, so a client that sends no temperature gets the model author's. `vllm` ignores the file and uses vLLM's own defaults, and a folder path reads the file from there. We keep `auto`. |
+
+### The pod around the command
+
+A Deployment keeps our vLLM pod running and replaces it when it dies. Here's the raw manifest, with the command from above inside the container spec:
+
+```yaml
+# k8s/vllm-deployment.yaml (lines 10 to 48)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qwen38-27b-nvfp4
+  namespace: llm
+  labels:
+    app: qwen38-27b-nvfp4
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # One pod owns one whole GPU node, so never surge: a surge pod would need a second GPU node.
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: qwen38-27b-nvfp4
+  template:
+    metadata:
+      labels:
+        app: qwen38-27b-nvfp4
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: qwen38-27b-nvfp4
+      nodeSelector:
+        karpenter.sh/nodepool: g7e                      # label Karpenter puts on every node of the pool
+      tolerations:
+        - key: nvidia.com/gpu                           # the taint set on the g7e NodePool
+          operator: Exists
+          effect: NoSchedule
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:v0.32.0               # ENTRYPOINT is ["vllm","serve"], so args start with the model
+          imagePullPolicy: IfNotPresent
+```
+
+The container's `args` are the flags from the command above, in the same order, so we skip them here. After them come the environment, the resources, the probes and the volumes:
+
+```yaml
+# k8s/vllm-deployment.yaml (lines 76 to 128)
+          env:
+            - name: AWS_REGION                         # region of the models bucket
+              value: us-east-1
+            - name: HF_HUB_OFFLINE                     # weights and tokenizer come from S3, never the Hub
+              value: "1"
+            - name: VLLM_NO_USAGE_STATS
+              value: "1"
+            - name: DO_NOT_TRACK
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 8000
+          resources:
+            requests:
+              cpu: "6"
+              memory: 40Gi
+              nvidia.com/gpu: "1"
+            limits:
+              # The streamer buffers up to RUNAI_STREAMER_MEMORY_LIMIT (default 40 GB) of the checkpoint in host RAM
+              # while loading: size the memory limit for checkpoint (about 21 GiB) + steady state (about 10 GiB) + headroom.
+              memory: 48Gi
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+            - name: cache
+              mountPath: /root/.cache                   # torch.compile, Triton, FlashInfer caches and the streamer's config-only dir
+          startupProbe:                                 # 120 x 10 s = 20 min budget for stream + compile + CUDA graph capture
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:                                # /health returns 503 once the engine process is dead
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 8Gi
+        - name: cache
+          emptyDir:
+            sizeLimit: 20Gi
+```
+
+The fields to look at are the resources, the volumes and the [startup probe](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/). The pod asks for one `nvidia.com/gpu`, six CPUs, and 40 GiB of memory with a 48 GiB limit, which we explain in the host memory part below. A memory-backed `emptyDir` at `/dev/shm` is there because the pod default of 64 MiB is too small for vLLM's shared memory, and an ordinary `emptyDir` at `/root/.cache` holds the compile caches. The startup probe allows 120 tries at 10 seconds each, a 20 minute budget for streaming the weights, compiling and capturing the CUDA graphs. A vLLM pod doesn't answer `/health` until all of that is done, and going by the source, the probe gets connection refused until then. Twenty minutes is a budget, not a measurement: measure your own startup and set the number from that.
+
+Now let's turn it into a template. The flags are no longer written out by hand. The chart builds them from structured values, so changing the context length or the number of speculative tokens is a values change and not an edit to the template. Here are the values it reads:
+
+```yaml
+# helm/llm-serving/values.yaml (vllm)
+# vLLM serve image and flags, rendered into the container args.
+vllm:
+  image: vllm/vllm-openai:v0.32.0
+  maxModelLen: 262144
+  kvCacheDtype: fp8
+  gpuMemoryUtilization: "0.90"
+  maxNumSeqs: 64
+  maxNumBatchedTokens: 8192
+  tensorParallelSize: 1
+  speculativeTokens: 3
+  concurrency: 16
+  # When on, vLLM serves the render endpoints and publishes the KV cache events the endpoint picker listens to; the picker values must match, see epp-values-precise.yaml.
+  kvEvents:
+    enabled: false
+    zmqPort: 5556
+    replayPort: 5559
+```
+
+Every number we discussed has one value behind it: `vllm.maxModelLen`, `vllm.gpuMemoryUtilization`, `vllm.kvCacheDtype`, `vllm.maxNumSeqs`, `vllm.maxNumBatchedTokens`, `vllm.speculativeTokens` (the `num_speculative_tokens` in the speculative config) and `vllm.concurrency` (the streamer's `concurrency`). The image comes from `vllm.image`, the bucket path and its region from `model.s3Uri` and `model.awsRegion`, and the served name from `model.name`, the one place the name `qwen38-27b-nvfp4` lives. The CPU and memory requests stay in the template, because they differ between the plain and the tiered Deployment. Here's the template:
+
+```yaml
+# helm/llm-serving/templates/deployment.yaml (lines 42 to 80)
+      containers:
+        - name: vllm
+          image: {{ .Values.vllm.image }}               # ENTRYPOINT is ["vllm","serve"], so args start with the model
+          imagePullPolicy: IfNotPresent
+{{- if .Values.tiering.enabled }}
+          # the tiering spec can leave /dev/shm/vllm_offload_*.mmap behind after a non-graceful exit (vllm#57303)
+          command: ["/bin/sh", "-c", 'rm -f /dev/shm/vllm_offload_*.mmap; exec vllm serve "$@"', "vllm-serve"]
+{{- end }}
+          args:
+            # model = S3 prefix (trailing slash). Needs config.json, tokenizer files and *.safetensors in that prefix.
+            - {{ .Values.model.s3Uri }}
+            - --served-model-name={{ include "llm-serving.modelName" . }}
+            - --host=0.0.0.0
+            - --port=8000
+            # weights: Run:ai Model Streamer (preinstalled in the official image)
+            - --load-format=runai_streamer
+            - '--model-loader-extra-config={"concurrency":{{ .Values.vllm.concurrency }}}'
+            # parallelism, context, memory
+            - --tensor-parallel-size={{ .Values.vllm.tensorParallelSize }}
+            - --max-model-len={{ .Values.vllm.maxModelLen }}
+            - --kv-cache-dtype={{ .Values.vllm.kvCacheDtype }}
+            - --gpu-memory-utilization={{ .Values.vllm.gpuMemoryUtilization }}
+            # scheduler
+            - --max-num-seqs={{ .Values.vllm.maxNumSeqs }}
+            - --max-num-batched-tokens={{ .Values.vllm.maxNumBatchedTokens }}
+            - --enable-prefix-caching
+            - --enable-chunked-prefill
+            - --async-scheduling
+            # speculative decoding with the checkpoint's own MTP head
+            - '--speculative-config={"method":"mtp","num_speculative_tokens":{{ .Values.vllm.speculativeTokens }}}'
+{{- if .Values.tiering.enabled }}
+            # KV tiers: {{ .Values.tiering.cpuGiB }} GiB of CPU RAM, then the local NVMe
+            - '--kv-transfer-config={"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":{{ mul .Values.tiering.cpuGiB 1073741824 }},"secondary_tiers":[{"type":"fs","root_dir":"/kv-nvme/kv-offload","n_read_threads":16,"n_write_threads":16}]}}'
+{{- end }}
+{{- if .Values.vllm.kvEvents.enabled }}
+            # precise prefix-cache routing: serve /v1/*/render for the picker and publish KV events on a ZMQ PUB socket the picker dials
+            - --enable-scale-out
+            - '--kv-events-config={"enable_kv_cache_events":true,"publisher":"zmq","endpoint":"tcp://*:{{ .Values.vllm.kvEvents.zmqPort }}","replay_endpoint":"tcp://*:{{ .Values.vllm.kvEvents.replayPort }}","topic":"kv@$(POD_IP):8000@{{ include "llm-serving.modelName" . }}"}'
+{{- end }}
+```
+
+With the default values the template renders the manifest above, so the raw YAML is still what we reason about. The same template renders the tiered variant we meet in part 5 when `tiering.enabled` is on.
+
+The pod also needs a service account, because that's what its AWS identity attaches to. With EKS Pod Identity the link between the account and the IAM role lives on the AWS side, in an association that Terraform creates later in this section. With [IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) it would be an annotation on the service account instead. The template just creates the account:
+
+```yaml
+# helm/llm-serving/templates/serviceaccount.yaml
+# Nothing to annotate: the IAM role comes from an EKS Pod Identity association (terraform/pod_identity.tf).
+# With IRSA instead, add the annotation eks.amazonaws.com/role-arn: <role arn> here.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "llm-serving.modelName" . }}
+  namespace: {{ .Release.Namespace }}
+```
+
+### Streaming weights from S3
+
+The Run:ai Model Streamer is the reason the model argument can be an S3 prefix. Its job is to get tensors from object storage into GPU memory without a full copy to local disk in between. It reads [safetensors](https://huggingface.co/docs/safetensors/index) files with many threads, each tensor is read into a buffer in host memory, and the copy to the GPU for one tensor overlaps with the reads of the others. For S3 the transport is a native client, `concurrency` sets how many clients run, and the chunk size defaults to 8 MiB. Distributed streaming, where each rank reads a slice and broadcasts it, exists for tensor parallelism and is irrelevant to a one-GPU pod.
+
+<DeckFig name="p4-streamer-pipeline" />
+
+Here's how it compares with the alternatives. The default loader pulls from the Hugging Face Hub every time a pod starts, which puts egress, rate limits and a token in your startup path. The other common pattern is an [init container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/) that copies the whole checkpoint to local disk before vLLM loads the directory. It's the simplest to reason about and works with any version, but the phases are strictly sequential and you pay for the disk. The streamer overlaps the two and needs no disk for weights, at the price of IAM plumbing and an `s3://` path. Streaming makes sense when scale-out latency matters and the node has RAM to spare. The init container is the boring path, and a sound default on an older vLLM.
+
+### The bucket and the upload
+
+Terraform creates the bucket that holds the weights. Its name is built from the cluster name and the region, `<cluster>-models-<region>`, so the same code works in any region without a name clash (S3 bucket names are global, so give your cluster a name that is yours).
+
+```hcl
+# terraform/s3.tf
+# The weights bucket: versioned, encrypted, public access blocked.
+# The vLLM pods read it through the Pod Identity role in pod_identity.tf.
+# The name includes the region so the same configuration can be applied
+# in another region without renaming.
+
+locals {
+  models_bucket_name = coalesce(var.model_bucket_name, "${var.cluster_name}-models-${var.region}")
+}
+
+resource "aws_s3_bucket" "models" {
+  bucket = local.models_bucket_name
+}
+
+resource "aws_s3_bucket_versioning" "models" {
+  bucket = aws_s3_bucket.models.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "models" {
+  bucket = aws_s3_bucket.models.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "models" {
+  bucket = aws_s3_bucket.models.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+```
+
+Terraform stops at the bucket. Getting the weights in is a separate step, run once per model, and it isn't Terraform. First the layout, which matters more than anything else here. The model argument is the prefix, and the safetensors files must sit directly under it, because the streamer doesn't recurse for weights. vLLM also downloads every non-weight file under the prefix to a local directory before the weights stream: `config.json`, `generation_config.json`, the tokenizer files and the chat template. If tokenizer files are missing, v0.32.0 doesn't fail early. The server dies after it has loaded the weights and captured the graphs, the most expensive possible moment to find out.
+
+```
+s3://example-cluster-models-us-east-1/models/nvidia/Qwen3.8-27B-NVFP4/
+  config.json  generation_config.json  hf_quant_config.json
+  tokenizer.json  tokenizer_config.json  vocab.json  merges.txt  chat_template.jinja
+  preprocessor_config.json  processor_config.json  video_preprocessor_config.json
+  model.safetensors.index.json
+  model-00001-of-00003.safetensors  model-00002-of-00003.safetensors  model-00003-of-00003.safetensors
+```
+
+So download the repository at a pinned revision, and fail if any file in that listing is missing before you upload. Then sync the directory. The `--exclude` matters: the Hugging Face downloader leaves a `.cache` directory behind, and vLLM's file download is recursive, so it would pull that in too.
+
+```bash
+# Not Terraform: run once per model, from the directory that holds the downloaded checkpoint
+aws s3 sync ./Qwen3.8-27B-NVFP4 s3://example-cluster-models-us-east-1/models/nvidia/Qwen3.8-27B-NVFP4/ \
+  --exclude ".cache/*"
+```
+
+### The identity that reads the bucket
+
+Credentials need no Kubernetes secret. The native client falls back to the standard AWS credential provider chain, which includes the web-identity token that IRSA injects and the container credentials that EKS Pod Identity provides. Both work. Terraform sets up Pod Identity, and IRSA is the alternative. Either way the role needs `s3:GetObject` on the objects and `s3:ListBucket` on the bucket, and nothing else.
+
+```hcl
+# terraform/pod_identity.tf
+# IAM identity for the vLLM pods, via EKS Pod Identity (the alternative
+# is IRSA: an OIDC provider, STS conditions and a service account
+# annotation). The role can only list the bucket and read its objects.
+# The service account (namespace llm, name = the model name) is created
+# by the llm-serving Helm chart after this apply.
+
+# The trust policy is the one the AWS documentation gives for EKS Pod
+# Identity (https://docs.aws.amazon.com/eks/latest/userguide/pod-identity.html):
+# a Service principal, not the Federated principal IRSA uses.
+data "aws_iam_policy_document" "vllm_assume" {
+  statement {
+    sid     = "Pods"
+    actions = ["sts:AssumeRole", "sts:TagSession"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "vllm" {
+  name               = "${var.cluster_name}-vllm-${var.model_name}"
+  assume_role_policy = data.aws_iam_policy_document.vllm_assume.json
+}
+
+data "aws_iam_policy_document" "vllm_s3_read" {
+  statement {
+    sid       = "ListBucket"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.models.arn]
+  }
+
+  statement {
+    sid       = "ReadObjects"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.models.arn}/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "vllm_s3_read" {
+  name   = "vllm-s3-read"
+  role   = aws_iam_role.vllm.id
+  policy = data.aws_iam_policy_document.vllm_s3_read.json
+}
+
+resource "aws_eks_pod_identity_association" "vllm" {
+  cluster_name    = var.cluster_name
+  namespace       = "llm"
+  service_account = var.model_name
+  role_arn        = aws_iam_role.vllm.arn
+}
+```
+
+This file creates the role the pod assumes, with read access to our bucket, and the Pod Identity association that binds it to the vLLM service account in our namespace. That role is the only credential in the pod. The streamer's own documentation lists only environment keys and profiles, so the provider chain behavior comes from the AWS documentation and the client's source. Test the identity once on your cluster before you rely on it.
+
+### Host memory while loading
+
+Now host memory, the number that's easiest to miss. With the default `memory_limit` of 40 GB, the streamer can hold the whole checkpoint in RAM while it loads, 20.4 GiB here, on top of per-tensor copies and the vLLM process itself, which in steady state is around 10 GiB. That's why the pod asks for 40 GiB and may use 48. A `g7e.2xlarge` with 64 GiB of RAM has room, but this is the number that makes a bigger checkpoint a different instance. You can trade speed for memory by setting `memory_limit`, which caps that buffer, so measure the load time at the value you pick.
+
+With MTP on, the draft head's loader reads the safetensors under the same prefix a second time, so expect about twice the S3 reads while the pod loads.
+
+That's the third gate. The node exists and has its driver, and the pod now has to pull about 20 GiB through one role, into a buffer, onto a GPU, and then compile. Everything between a Ready node and a Ready pod happens in this section, so it's where most of the measuring belongs.
+
+## 4. Deploy the model and test it
+
+We have the pieces now: a cluster that can create GPU nodes, and a chart that describes the vLLM pod. Before we put any routing in front of it, let's deploy it and talk to the pod directly. If something is wrong, it's much easier to find it here, with nothing between you and vLLM, than later behind a gateway and a picker. First we create the AWS side, then install the chart with only the model switched on, then watch the pod come up, and finally send it a request.
+
+All the commands in this section run from the examples folder of the repository.
+
+### Create the AWS side
+
+Terraform does the first part. It needs to know the region, and nothing else:
+
+```bash
+terraform -chdir=terraform init
+terraform -chdir=terraform apply -var region=us-east-1
+aws eks update-kubeconfig --name example-cluster --region us-east-1
+```
+
+The apply creates the network, the cluster, the initial node group, Karpenter, the AWS Load Balancer Controller, the weights bucket and the role the pod will use to read it. When it finishes, the cluster is empty of models and has no GPU nodes yet, which is what we want: Karpenter creates the first one when a pod asks for it. The last command points `kubectl` at the new cluster.
+
+Now the weights. The bucket is named after your cluster and region, and Terraform prints it, so the upload from section 3 becomes:
+
+```bash
+BUCKET=$(terraform -chdir=terraform output -raw models_bucket_name)
+aws s3 sync ./Qwen3.8-27B-NVFP4 s3://$BUCKET/models/nvidia/Qwen3.8-27B-NVFP4/ --exclude ".cache/*"
+```
+
+Check that the quota from section 1 is in place before the next step. A pod that can't get a GPU node waits forever, and the reason is easy to miss.
+
+### Install the chart, model only
+
+Terraform also prints the values our chart needs from AWS: the node role, the discovery tag, the bucket path and the region. We save them to a file and install the chart. The chart has a switch for each layer, and for now only the model layer is on. Routing, autoscaling and observability come back in part 5.
+
+```bash
+terraform -chdir=terraform output -raw chart_values_yaml > terraform-values.yaml
+helm upgrade -i llm-serving ./helm/llm-serving --namespace llm --create-namespace \
+  -f terraform-values.yaml \
+  --set routing.enabled=false --set autoscaling.enabled=false --set observability.enabled=false
+```
+
+That creates the Karpenter `NodePool` and `EC2NodeClass`, the service account and the vLLM Deployment, and nothing else.
+
+### Watch it come up
+
+The pod goes through a few states, and each one tells you which part of the stack is working. Watch the pod and the node claims side by side:
+
+```bash
+kubectl get pods -n llm -w
+kubectl get nodeclaims -w
+```
+
+- **Pending.** No GPU node exists yet. Karpenter sees the pending pod and creates a `NodeClaim`. This is the pod asking for a GPU and the node layer answering.
+- **ContainerCreating.** The node has joined and the pod is scheduled on it. The kubelet is pulling the vLLM image, which is large.
+- **Running, but 0/1 Ready.** The container has started and the startup probe is waiting. Everything that follows happens inside this state: streaming about 20 GiB of weights from S3, compiling the model, profiling memory and capturing the CUDA graphs. Follow it with `kubectl logs -n llm deploy/qwen38-27b-nvfp4 -f`.
+- **Running, 1/1 Ready.** The probe passed and the pod serves requests.
+
+Here is what a healthy startup looks like in the log, with the lines that matter, taken from the pod we used for the numbers in section 3. That pod loaded its weights from local disk and not from S3, so its load took a different time than yours will:
+
+```text
+(EngineCore pid=206) INFO 10-28 15:28:25 [gpu_model_runner.py:5515] Model loading took 22.13 GiB memory and 198.244322 seconds
+(EngineCore pid=206) INFO 10-28 15:29:24 [monitor.py:53] torch.compile took 48.71 s in total
+(EngineCore pid=206) INFO 10-28 15:30:18 [monitor.py:53] torch.compile took 7.94 s in total
+(EngineCore pid=206) INFO 10-28 15:30:30 [gpu_worker.py:578] Available KV cache memory: 59.26 GiB
+(EngineCore pid=206) INFO 10-28 15:30:51 [gpu_model_runner.py:7048] Graph capturing finished in 10 secs, took 0.89 GiB
+(EngineCore pid=206) INFO 10-28 15:30:52 [core.py:347] init engine (profile, create kv cache, warmup model) took 146.55 s (compilation: 56.66 s)
+(APIServer pid=1) INFO:     Application startup complete.
+```
+
+On that pod, startup took 407 seconds from the first line of the log to `Application startup complete`, and 198 of those seconds were the weight load. The node launch and the image pull come before the first line, and you'll see them as the time your pod spends Pending and ContainerCreating. We'll come back to that number when we autoscale in part 5.
+
+### Talk to the pod
+
+When the pod is Ready, forward its port and ask it two questions. The first is which models it serves:
+
+```bash
+kubectl port-forward -n llm deploy/qwen38-27b-nvfp4 8000:8000 &
+
+curl -s http://localhost:8000/v1/models
+```
+
+The `id` in the answer must be `qwen38-27b-nvfp4`, the name we set with `--served-model-name`. That's the name the gateway will match on, so it's worth looking at it now. `max_model_len` should read 262144.
+
+The second is a chat completion. Keep `max_tokens` small for a first test, because a thinking model spends its first tokens on the `<think>` block:
+
+```bash
+curl -s http://localhost:8000/v1/chat/completions -H 'Content-Type: application/json' -d '{
+  "model": "qwen38-27b-nvfp4",
+  "messages": [{"role": "user", "content": "In one sentence, what is a KV cache?"}],
+  "max_tokens": 400
+}'
+```
+
+Look at three things in the answer: `model` echoes the served name, `choices[0].message.content` holds the answer, and `choices[0].message.reasoning` holds the thinking, which is what `--reasoning-parser qwen3` does for us. The `usage` block counts prompt and completion tokens. If you want to see the pod's own numbers while you're here, the metrics are on the same port:
+
+```bash
+curl -s http://localhost:8000/metrics | grep -E '^vllm:(num_requests_running|num_requests_waiting|kv_cache_usage_perc|prefix_cache_(queries|hits)_total)'
+```
+
+Those are the series we build the dashboards and the autoscaler on in part 5. A single request shows up as `num_requests_running` going to 1 and back to 0, and `kv_cache_usage_perc` moving by a fraction of a percent.
+
+### When it doesn't work
+
+Between `terraform apply` and a first answer there are two places to look: the node layer, where a pod waits for a machine, and the container, where vLLM starts, checks its arguments and loads the model. The two tables go by symptom, with what to check, the usual cause and the fix. Start with `kubectl describe pod -n llm <pod>` and read the events at the bottom. For a container that has crashed, `kubectl logs -n llm <pod> --previous` shows the last attempt.
+
+**The pod stays Pending, or sits in ContainerCreating.** This is the node layer.
+
+| What you see | Usual cause | What to check, and the fix |
+|---|---|---|
+| Pending, with the event `0/2 nodes are available` and reasons like `Insufficient nvidia.com/gpu` or `node(s) didn't match Pod's node affinity/selector` | Expected for the first minute. The two system nodes have no GPU and don't carry the pool's label, so nothing fits until Karpenter reacts to the pending pod. | **Check:** `kubectl get nodeclaims -w`. **Fix:** Wait. If no `NodeClaim` appears within a minute, read `kubectl logs -n karpenter deploy/karpenter`. |
+| No `NodeClaim`, and the Karpenter log says `all available instance types exceed limits for nodepool` | The pool reached the `limits.nodes` safety catch from section 2. | **Check:** `kubectl get nodepool -o yaml`, the `limits` block. **Fix:** Remove idle nodes or raise the limit on purpose. |
+| No `NodeClaim`, and the log says `no instance type met the scheduling requirements or had enough resources` | The pod asks for something no instance in the pool can give: more ephemeral storage than the drive offers, or a size the region doesn't sell. | **Check:** The pod's requests against what a g7e.2xlarge offers. **Fix:** Compare the pod's `resources` with the instance, and the region with the quota check from section 1. |
+| A `NodeClaim` appears, disappears and appears again, and the log names an EC2 error such as `InsufficientInstanceCapacity`, `VcpuLimitExceeded` or `MaxSpotInstanceCountExceeded` | AWS can't give you the instance. The first is a shortage in the zone, the other two are your account's quotas. All three are on the list of errors Karpenter treats as "this offering can't be fulfilled" and routes around. | **Check:** `kubectl describe nodeclaim`, then the Karpenter log. **Fix:** For a quota, raise it in Service Quotas. For a shortage, wait, allow more zones, or use a capacity reservation. GPU capacity on AWS is scarce, so it isn't a bug. |
+| A `NodeClaim` is `Launched` but its node never registers, and Karpenter deletes it after its liveness timeout | The node started but couldn't join the cluster. The usual suspects are the node role not being allowed into the cluster, a subnet with no route out, or security groups that aren't the cluster's. | **Check:** The node's EC2 console log, and `kubectl describe nodeclaim`. **Fix:** Check the access entry for the node role and the subnet and security group tags (`karpenter.sh/discovery`) from section 2. |
+| ContainerCreating for several minutes | The vLLM image is large and the node is new, so every layer comes over the network. | **Check:** `kubectl describe pod`, the `Pulling image` event. **Fix:** Wait. `ErrImagePull` or `ImagePullBackOff` means a wrong image tag or no route to the registry. |
+
+**The container starts and then stops.** This is vLLM. Its argument checks run in the first seconds, so a typo fails fast and you see the cause in the first lines of `--previous`.
+
+| What you see in the log | Usual cause | Fix |
+|---|---|---|
+| `KeyError: "Reasoning parser 'qwen' not found. Available parsers: ...` followed by the list | A typo in `--reasoning-parser`. This model uses `qwen3`. | Use a name from the list the message prints. |
+| `TypeError: Error: --enable-auto-tool-choice requires --tool-call-parser` | The flag is set without its parser. | Set both flags, or neither. |
+| `Value error, User-specified max_model_len (400000) is greater than the derived max_model_len (max_position_embeddings=262144.0 ...` | `--max-model-len` is above what the model was trained for. | Keep it at or below 262144. The message mentions an override variable, but it is meant to be used "with extreme caution". |
+| `Value error, num_speculative_tokens must be provided with speculative model unless the draft model config contains an n_predict parameter` | The JSON in `--speculative-config` has no `num_speculative_tokens`. | Add it, as in section 3. |
+| `Invalid repository ID or local directory specified: '.../model_streamer/<hash>'` and a hint about `config.json` | vLLM found no `config.json` under the S3 prefix: a wrong prefix, a missing trailing slash, or an upload that went somewhere else. | `aws s3 ls s3://$BUCKET/models/nvidia/Qwen3.8-27B-NVFP4/` and compare with the layout in section 3. |
+| An S3 error from the streamer (access denied, no such bucket) while loading | The pod has no credentials, or the role can't read the bucket. | `kubectl describe pod` should list `AWS_CONTAINER_CREDENTIALS_FULL_URI` among the environment variables, which is what the Pod Identity agent injects. If it's missing, the association's namespace or service account doesn't match the pod's. If it's there, the role needs `s3:GetObject` and `s3:ListBucket`, as in section 3. |
+| The weights load, the graphs are captured, then the API server dies | Missing tokenizer files in the bucket. vLLM doesn't check for them up front, so you find out at the most expensive moment ([vllm#63474](https://github.com/vllm-project/vllm/issues/63474)). | Re-upload with the file listing from section 3, and check every name in it before you sync. |
+| `Free memory on device cuda:0 (...) on startup is less than desired GPU memory utilization (0.9, ...)` | Something else already holds GPU memory, or the fraction is too high for what is free. | Make sure the pod owns the whole card: one `nvidia.com/gpu` and no other GPU pod on the node. Or lower `--gpu-memory-utilization`. |
+| `No available memory for the cache blocks`, or `To serve at least one request with the model's max seq len (262144), (... GiB KV cache is needed, which is larger than the available KV cache memory (... GiB)` | After the weights and the profiling run there is too little left for even one full-length request. | Raise `--gpu-memory-utilization` a little, or lower `--max-model-len`. The second message prints the longest length that would fit. |
+| `OOMKilled` under `Last State` in `kubectl describe pod` | The container went over its memory limit on the host, usually while the weights streamed in. | See "Host memory while loading" in section 3, and check that the limit in the Deployment wasn't lowered. |
+| `Startup probe failed` events, then a restart, again and again | Startup took more than the probe's 20 minutes (120 checks, 10 seconds apart), or the process is stuck. | Read the log. A healthy start passes through the lines shown above. If the weight load is the slow part, check that the bucket is in the same region as the cluster. |
+
+When a pod is `Running` but `0/1` and the log is quiet, that's normal for a few minutes: the weights stream, then the model compiles, then the graphs are captured. The log above shows the timings I saw on my pod.
+
+### Where we are
+
+Once the pod answers on `/v1/models` and `/v1/chat/completions`, the model layer is done. One pod, one GPU, serving the model we chose. Here's what it took. Terraform created the network, the cluster, the node layer, the bucket and the identity. Karpenter created a GPU node because a pod asked for one. The chart described the vLLM pod, and vLLM streamed 20 GiB of weights from S3, profiled its memory and started serving.
+
+What's missing is everything that turns a pod into a service. Requests go straight to one pod, nothing decides which pod should get which request, we can't see how the pod is doing, and nothing adds a second pod when the first one is full. [Part 5](/blog/sre-guide-deploying-llms-part-5/) puts those pieces in: a gateway and an endpoint picker for routing and cache hits, Prometheus for observing it, KEDA for autoscaling it, and tiered KV caching to keep more prefixes around. It starts from the deployment we just made, so keep it running or re-create it with the commands above. A GPU node costs money for as long as it exists, so if you stop here for the day, uninstall the chart and check that `kubectl get nodeclaims` comes back empty.

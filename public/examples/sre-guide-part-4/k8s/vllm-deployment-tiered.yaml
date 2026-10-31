@@ -1,0 +1,159 @@
+# Qwen3.8-27B NVFP4 on one RTX PRO 6000 (g7e.2xlarge), vLLM v0.32.0, weights streamed from S3.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: qwen38-27b-nvfp4
+  namespace: llm
+  # Nothing to annotate: the IAM role comes from an EKS Pod Identity association (terraform/pod_identity.tf).
+  # With IRSA instead, add the annotation eks.amazonaws.com/role-arn: <role arn> here.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qwen38-27b-nvfp4
+  namespace: llm
+  labels:
+    app: qwen38-27b-nvfp4
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # One pod owns one whole GPU node, so never surge: a surge pod would need a second GPU node.
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: qwen38-27b-nvfp4
+  template:
+    metadata:
+      labels:
+        app: qwen38-27b-nvfp4
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: qwen38-27b-nvfp4
+      nodeSelector:
+        karpenter.sh/nodepool: g7e                      # label Karpenter puts on every node of the pool
+      tolerations:
+        - key: nvidia.com/gpu                           # the taint set on the g7e NodePool
+          operator: Exists
+          effect: NoSchedule
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:v0.32.0               # ENTRYPOINT is ["vllm","serve"], so args start with the model
+          imagePullPolicy: IfNotPresent
+          # the tiering spec can leave /dev/shm/vllm_offload_*.mmap behind after a non-graceful exit (vllm#57303)
+          command: ["/bin/sh", "-c", 'rm -f /dev/shm/vllm_offload_*.mmap; exec vllm serve "$@"', "vllm-serve"]
+          args:
+            # model = S3 prefix (trailing slash). Needs config.json, tokenizer files and *.safetensors in that prefix.
+            - s3://example-cluster-models-us-east-1/models/nvidia/Qwen3.8-27B-NVFP4/
+            - --served-model-name=qwen38-27b-nvfp4
+            - --host=0.0.0.0
+            - --port=8000
+            # weights: Run:ai Model Streamer (preinstalled in the official image)
+            - --load-format=runai_streamer
+            - '--model-loader-extra-config={"concurrency":16}'
+            # parallelism, context, memory
+            - --tensor-parallel-size=1
+            - --max-model-len=262144
+            - --kv-cache-dtype=fp8
+            - --gpu-memory-utilization=0.90
+            # scheduler
+            - --max-num-seqs=64
+            - --max-num-batched-tokens=8192
+            - --enable-prefix-caching
+            - --enable-chunked-prefill
+            - --async-scheduling
+            # speculative decoding with the checkpoint's own MTP head
+            - '--speculative-config={"method":"mtp","num_speculative_tokens":3}'
+            # KV tiers: 16 GiB of CPU RAM, then the local NVMe
+            - '--kv-transfer-config={"kv_connector":"OffloadingConnector","kv_role":"kv_both","kv_connector_extra_config":{"spec_name":"TieringOffloadingSpec","cpu_bytes_to_use":17179869184,"secondary_tiers":[{"type":"fs","root_dir":"/kv-nvme/kv-offload","n_read_threads":16,"n_write_threads":16}]}}'
+            # OpenAI API behaviour for a thinking + tool-calling model
+            - --reasoning-parser=qwen3
+            - --tool-call-parser=qwen3_coder
+            - --enable-auto-tool-choice
+            - --disable-access-log-for-endpoints=/health,/metrics,/v1/models
+          env:
+            - name: AWS_REGION                         # region of the models bucket
+              value: us-east-1
+            - name: HF_HUB_OFFLINE                     # weights and tokenizer come from S3, never the Hub
+              value: "1"
+            - name: VLLM_NO_USAGE_STATS
+              value: "1"
+            - name: DO_NOT_TRACK
+              value: "1"
+          ports:
+            - name: http
+              containerPort: 8000
+          resources:
+            requests:
+              cpu: "6"
+              memory: 52Gi
+              ephemeral-storage: 1050Gi   # fails closed: a node without instance store cannot satisfy it
+              nvidia.com/gpu: "1"
+            limits:
+              # The streamer buffers up to RUNAI_STREAMER_MEMORY_LIMIT (default 40 GB) of the checkpoint in host RAM
+              # while loading: size the memory limit for checkpoint (about 21 GiB) + steady state (about 10 GiB) + headroom.
+              memory: 52Gi
+              ephemeral-storage: 1100Gi
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+            - name: kv-nvme
+              mountPath: /kv-nvme
+            - name: cache
+              mountPath: /root/.cache                   # torch.compile, Triton, FlashInfer caches and the streamer's config-only dir
+          startupProbe:                                 # 120 x 10 s = 20 min budget for stream + compile + CUDA graph capture
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:                                # /health returns 503 once the engine process is dead
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
+        - name: kv-guard                 # keeps the NVMe tier under a byte budget, oldest files first
+          image: busybox:1.37
+          command: ["/bin/sh", "/guard/guard.sh"]
+          env:
+            - name: ROOT
+              value: /kv-nvme/kv-offload
+            - name: BUDGET_GIB
+              value: "800"
+          resources:
+            requests: { cpu: 50m, memory: 32Mi, ephemeral-storage: 64Mi }
+            limits: { cpu: 200m, memory: 64Mi, ephemeral-storage: 64Mi }
+          volumeMounts:
+            - name: kv-nvme
+              mountPath: /kv-nvme
+            - name: guard
+              mountPath: /guard
+              readOnly: true
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 20Gi             # the 16 GiB CPU tier plus slack
+        - name: cache
+          emptyDir:
+            sizeLimit: 20Gi
+        - name: kv-nvme
+          emptyDir:
+            sizeLimit: 1000Gi           # lands on the NVMe because the EC2NodeClass sets instanceStorePolicy: RAID0
+        - name: guard
+          configMap:
+            name: kv-guard

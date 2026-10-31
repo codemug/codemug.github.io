@@ -650,5 +650,185 @@
       "t708-kernel-speaks-format": "A 4-bit format packs two values into each byte alongside a scale factor. Kernels like Marlin and Machete unpack those bytes, attach the scale, and feed the values into tensor cores so the format can run fast. (Toy bytes.)",
       "t709-native-support": "Quantization only speeds up inference if the GPU can multiply that format directly in silicon. Whether a chip natively executes FP8 or FP4 depends on its generation, leading directly to the hardware choices in Part 3. (Illustrative.)"
     }
+  },
+  "p4-g7e-size-ladder": {
+    "slides": [
+      "d001-g7e-size-ladder"
+    ],
+    "captions": {
+      "d001-g7e-size-ladder": "The g7e family scales from one to eight 96 GB GDDR7 GPUs, and the article picks g7e.2xlarge for one GPU per node. (Real g7e specs, from the AWS docs at the time of this deployment.)"
+    },
+    "dwell": 4500
+  },
+  "p4-regions-quota": {
+    "slides": [
+      "d002-regions-quota"
+    ],
+    "captions": {
+      "d002-regions-quota": "g7e is offered in 13 of the 39 AWS Regions, and the on-demand G and VT quota is measured in vCPU: 80 vCPU allows 10 g7e.2xlarges. (Real AWS docs at the time of this deployment; quota example is arithmetic.)"
+    },
+    "dwell": 4500
+  },
+  "p4-bottlerocket-anatomy": {
+    "slides": [
+      "d102-bottlerocket-anatomy"
+    ],
+    "captions": {
+      "d102-bottlerocket-anatomy": "A Bottlerocket node stacks a read-only verified root, tmpfs /etc, writable /local and SELinux over an admin API, with the NVIDIA stack baked in. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p4-memory-budget": {
+    "slides": [
+      "d201-memory-budget"
+    ],
+    "captions": {
+      "d201-memory-budget": "At 0.90 utilization a 94.97 GiB card gives vLLM 85.47 GiB, and after 22.13 GiB of weights and 4.08 GiB of other memory, 59.26 GiB is left as the KV cache pool. (Measured on a running pod, vLLM v0.28.0.)"
+    },
+    "dwell": 4500
+  },
+  "p4-kv-block": {
+    "slides": [
+      "d202-kv-block"
+    ],
+    "captions": {
+      "d202-kv-block": "The 17 layer groups share one 53.125 MiB block size: an attention block holds 1,600 tokens of K and V, a state block holds one state copy. An 8,192 token request therefore needs 6 + 15 = 21 blocks. (Computed for fp8 KV and MTP 3; the block size and pool match a running pod's log.)"
+    },
+    "dwell": 4500
+  },
+  "p4-prefix-grid": {
+    "slides": [
+      "d203-prefix-grid"
+    ],
+    "captions": {
+      "d203-prefix-grid": "Prefix cache hits land on whole 1,600 token blocks, and with MTP on vLLM recomputes the last matched block, so a 1,700 token shared prefix gets 0 hit tokens and a 3,400 token one gets 1,600. (Block size as logged by a running pod; the recompute rule is from the vLLM v0.32.0 source.)"
+    },
+    "dwell": 4500
+  },
+  "p4-streamer-pipeline": {
+    "slides": [
+      "d204-streamer-pipeline"
+    ],
+    "captions": {
+      "d204-streamer-pipeline": "The Run:ai Model Streamer reads shards from S3 with concurrent clients into a CPU buffer while earlier tensors are already being copied to the GPU, where the default loader copies everything first. (Illustrative timing, not a benchmark.)"
+    },
+    "dwell": 4500
+  },
+  "p5-round-robin-vs-epp": {
+    "slides": [
+      "d301-round-robin-vs-epp"
+    ],
+    "captions": {
+      "d301-round-robin-vs-epp": "Round robin sends the next request to pod C whatever its state; the picker filters, scores every pod with the built-in weights 2/2/3, and sends the request straight to pod B. (Toy numbers.)"
+    },
+    "dwell": 4500
+  },
+  "p5-three-signals": {
+    "slides": [
+      "d302-three-signals"
+    ],
+    "captions": {
+      "d302-three-signals": "The picker scrapes load from vLLM every 50 ms, but prefix hits come from its own record of what it routed where; precise KV events are opt-in, so the default in llm-d v1.0.0 is A plus B. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p5-weights-exchange-rate": {
+    "slides": [
+      "d303-weights-exchange-rate"
+    ],
+    "captions": {
+      "d303-weights-exchange-rate": "With weights 2/2/3 the prefix-warm pod keeps winning until the 0.8 filter drops it; with 2/3/1 an idle pod takes over at KV 0.43, and one queued request moves the stock break-even to 0.60. (Simulated.)"
+    },
+    "dwell": 4500
+  },
+  "p5-control-and-data-plane": {
+    "slides": [
+      "d401-control-and-data-plane"
+    ],
+    "captions": {
+      "d401-control-and-data-plane": "Envoy Gateway already watches the Gateway API kinds and programs the proxy pod; the AI Gateway adds a second controller, extension hooks on gRPC port 1063, and an ai-gateway-extproc container (2/2 becomes 3/3). The install order shown ran clean on kind, the docs order did not. (Validated on kind.)"
+    },
+    "dwell": 4500
+  },
+  "p5-request-path": {
+    "slides": [
+      "d402-request-path"
+    ],
+    "captions": {
+      "d402-request-path": "The model comes from the request body: the ai-gateway-extproc sidecar sets x-ai-eg-model (overwriting any client value), Envoy matches the route on it, and the endpoint picker chooses the pod. Token usage on the way back becomes four gen_ai histograms. (Validated on kind with test doubles.)"
+    },
+    "dwell": 4500
+  },
+  "p5-run-simulation": {
+    "slides": [
+      "d501-run-simulation"
+    ],
+    "captions": {
+      "d501-run-simulation": "With the built-in default weights (queue 2, KV 2, prefix 3) the shared system prompt keeps landing on pod A, until its queue reaches 5 and the filter sends request 8 to pod B. (Simulated: fake pods, not a GPU.)"
+    },
+    "dwell": 4500
+  },
+  "p5-metric-birthplaces": {
+    "slides": [
+      "d502-metric-birthplaces"
+    ],
+    "captions": {
+      "d502-metric-birthplaces": "Every metric is born at one stage of a request, and the picker turns the pod gauges into the pool averages that KEDA reads. (Illustrative: stage widths are not to scale.)"
+    },
+    "dwell": 4500
+  },
+  "p5-hit-ratio": {
+    "slides": [
+      "d503-hit-ratio"
+    ],
+    "captions": {
+      "d503-hit-ratio": "Four vLLM prefix cache counters with toy values: 1,200,000 queried, 840,000 local hits, 360,000 connector queries, 90,000 connector hits give a 77.5% cached share and 270,000 computed tokens, but pods at 70% and 50% on 1:2 traffic give 56.7% when you sum first then divide, not 60%. And a histogram quantile is an interpolation inside a bucket, so the bucket edges set the resolution. (Toy numbers.)"
+    },
+    "dwell": 4500
+  },
+  "p5-keda-ownership": {
+    "slides": [
+      "d601-keda-ownership"
+    ],
+    "captions": {
+      "d601-keda-ownership": "KEDA owns the 0 to 1 replica step on a 30s poll and the HPA owns 1 to N on a 15s sync, choosing the max over triggers. A burst climbs the pod to 8 after a 120s scale-up window, and a 1800s window slows the scale down to one pod at a time. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p5-value-vs-averagevalue": {
+    "slides": [
+      "d603-value-vs-averagevalue"
+    ],
+    "captions": {
+      "d603-value-vs-averagevalue": "4 replicas, EPP average queue 3, threshold 2: AverageValue computes ceil(3/2) = 2 and scales down, while Value computes ceil(4 x 3/2) = 6 and scales up. The default metricType is AverageValue, which drops the current-replica term, so per-pod triggers need metricType: Value. (Toy numbers.)"
+    },
+    "dwell": 4500
+  },
+  "p5-scale-out-chain": {
+    "slides": [
+      "d602-scale-out-chain"
+    ],
+    "captions": {
+      "d602-scale-out-chain": "From a rising metric to served traffic: the HPA adds a replica on a 15s sync loop (30s at 0 to 1 on the KEDA poll), then the pod is Pending, Karpenter launches a node, the image is pulled and the weights load, and readiness passes. The drawing gives every hop the same width on purpose: on my pod, startup took 407 seconds from the first log line to the API server, while the node launch and the image pull come before that line. Early-warning triggers start the chain before users feel the load. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p5-tier-ladder": {
+    "slides": [
+      "d701-tier-ladder"
+    ],
+    "captions": {
+      "d701-tier-ladder": "Each prompt chunk is written through to CPU RAM and NVMe as it completes, so eviction drops only one copy and a hit loads from the nearest tier that has it, and the NVMe tier needs a cleanup sidecar because vLLM never deletes its files. The CPU and NVMe token counts use 34 KiB per token at fp8, the GPU pool is the measured 59.26 GiB counted in blocks because it also holds state, and the CPU and NVMe sizes are examples. (Measured GPU pool, example tier sizes.)"
+    },
+    "dwell": 4500
+  },
+  "p5-prefix-hit-tiers": {
+    "slides": [
+      "d702-prefix-hit-tiers"
+    ],
+    "captions": {
+      "d702-prefix-hit-tiers": "The same shared prefix is loaded up from the nearest tier that still holds it, staged through CPU RAM when it sits on NVMe, and recomputed in full when no tier has it. The 12,800-token prefix is a toy length, the 1,600-token chunk is the block size a running pod logs, and no timings are shown because AWS publishes only IOPS for the g7e local NVMe, not MB/s. (Illustrative.)"
+    },
+    "dwell": 4500
   }
 }

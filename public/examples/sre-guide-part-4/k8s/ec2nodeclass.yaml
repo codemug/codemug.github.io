@@ -1,0 +1,24 @@
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: g7e
+spec:
+  # Bottlerocket; for GPU instance types Karpenter resolves this to the aws-k8s-nvidia variant.
+  # Pin a version: "latest" would drift every node whenever a new AMI is published.
+  amiSelectorTerms:
+    - alias: bottlerocket@v1.68.0
+  role: example-karpenter-node-role
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: example-cluster
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: example-cluster
+  # format the local NVMe as RAID0 and make it the node's ephemeral storage
+  # (automatic on Bottlerocket v1.22.0 and later)
+  instanceStorePolicy: RAID0
+  # uncomment to use an On-Demand Capacity Reservation first (Beta in Karpenter v1.15)
+  # capacityReservationSelectorTerms:
+  #   - id: cr-11111111111111111
+  tags:
+    karpenter.sh/discovery: example-cluster

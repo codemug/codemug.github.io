@@ -1,0 +1,177 @@
+<section class="slide" id="d202-kv-block" data-steps="3">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">One KV block, two meanings.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d202-kv-block-t d202-kv-block-d">
+      <title id="d202-kv-block-t">How vLLM turns the 64 layers of Qwen3.8-27B into one attention group and three state groups that share one block size</title>
+      <desc id="d202-kv-block-d">Step zero: 64 layers, 16 times (3 linear-attention layers plus 1 full-attention layer), plus 1 MTP layer. Step one: regrouped into 4 groups of 17 layers: one attention group (16 plus the MTP layer) and three state groups (17, 17 and 14 linear layers plus 3 padding layers). Step two: one block is 17 layers times 3,276,800 B, which is 53.125 MiB; in the attention group it holds 1,600 tokens at 2,048 B per layer, in a state group it holds one state copy of 3,268,608 B per layer. Step three: a request of 8,192 tokens needs ceil(8192 / 1600) = 6 attention blocks and 3 times (2 + 3) = 15 state blocks, 21 blocks in total, so 1,142 blocks serve 54.4 such requests. Computed for fp8 KV, MTP 3 and prefix caching on; the 1,600 token block and the 1,142 block pool match the startup log of a running pod.</desc>
+      <g id="d202-kv-block-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d202-kv-block svg.diagram{width:100%;height:100%;max-width:none;}
+    #d202-kv-block text{font-family:var(--font-mono);}
+    #d202-kv-block .hd{font-size:22px;font-weight:700;fill:var(--color-text);}
+    #d202-kv-block .rl{font-size:22px;fill:var(--color-text-muted);}
+    #d202-kv-block .ca{fill:var(--color-accent);}
+    #d202-kv-block .cg{fill:color-mix(in oklab,var(--color-text-muted) 30%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:1.5;}
+    #d202-kv-block .cm{fill:color-mix(in oklab,var(--color-accent) 22%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #d202-kv-block .cp{fill:none;stroke:var(--color-text-faint);stroke-width:1.5;stroke-dasharray:4 3;}
+    #d202-kv-block .lg{font-size:24px;fill:var(--color-text-muted);}
+    #d202-kv-block .ico-a{fill:color-mix(in oklab,var(--color-accent) 12%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #d202-kv-block .slot{stroke:var(--color-accent);stroke-width:2;opacity:.65;}
+    #d202-kv-block .ico-s{fill:color-mix(in oklab,var(--color-text-muted) 18%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:2.5;}
+    #d202-kv-block .snap{fill:var(--color-text-muted);}
+    #d202-kv-block .m1{font-size:24px;font-weight:700;fill:var(--color-text);}
+    #d202-kv-block .m1a{font-size:24px;font-weight:700;fill:var(--color-accent);}
+    #d202-kv-block .m2{font-size:22px;fill:var(--color-text-muted);}
+    #d202-kv-block .qa{fill:var(--color-accent);}
+    #d202-kv-block .qs{fill:color-mix(in oklab,var(--color-text-muted) 45%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:1.5;}
+    #d202-kv-block .ql{font-size:22px;fill:var(--color-text-soft);}
+    #d202-kv-block .sum1{font-size:22px;fill:var(--color-text-muted);}
+    #d202-kv-block .sum2{font-size:24px;font-weight:700;fill:var(--color-accent);}
+    #d202-kv-block .div{stroke:var(--color-border-strong);stroke-width:2;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd202-kv-block';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (key) { e.setAttribute(key, attrs[key]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+
+      // ---- numbers: L2 NOTES-3.md sections 2 and 3, examples/kv_budget.py (fp8 KV, MTP 3, prefix caching on)
+      var FULL = 16, LINEAR = 48;                          // config.json layer_types (+1 MTP layer)
+      var GROUP = 17;                                      // 16 attention + 1 MTP layers per group
+      var PAGE = 3276800;                                  // 1600 tokens x 2048 B
+      var TOK_B = 2048, BLOCK_TOK = PAGE / TOK_B;          // 1600 tokens per block
+      var STATE_B = 3268608;                               // GDN state page per linear layer, MTP 3
+      var BLOCK_B = GROUP * PAGE;                          // 55,705,600 B = 53.125 MiB
+      var CTX = 8192, ATT_BLOCKS = Math.ceil(CTX / BLOCK_TOK); // 6
+      var ST_BLOCKS = 2 + 3, ST_GROUPS = Math.ceil(LINEAR / GROUP); // (2 + 3) per group, 3 groups
+      var PER_REQ = ATT_BLOCKS + ST_GROUPS * ST_BLOCKS;    // 21
+      var POOL_BLOCKS = 1142;                              // d201: 59.26 GiB / 53.125 MiB, measured pool
+      function n(v) { return v.toLocaleString('en-US'); }
+
+      var g = document.getElementById(ID + '-g');
+
+      // ---- layer cells: 16 x (3 GDN + 1 attention), then the MTP layer
+      var kinds = [];
+      for (var i = 0; i < FULL; i++) { kinds.push('g', 'g', 'g', 'a'); }
+      kinds.push('m');
+      var SX = 40, SP = 15.5, SW = 13, SY = 215, SH = 56;
+      var RX = 40, RP = 22, RW = 19, RH = 34, TOP0 = 90, ROWP = 80;
+      function rowTop(r) { return TOP0 + ROWP * r; }
+      function rowCy(r) { return rowTop(r) + 47; }
+      var cells = [], lin = 0, att = 0;
+      kinds.forEach(function (kd, idx) {
+        var c = { kind: kd };
+        c.x0 = SX + idx * SP + (kd === 'm' ? 22 : 0); c.y0 = SY; c.w0 = SW; c.h0 = SH;
+        var row, col;
+        if (kd === 'g') { row = 1 + Math.floor(lin / GROUP); col = lin % GROUP; lin++; }
+        else { row = 0; col = att; att++; }
+        c.x1 = RX + col * RP; c.y1 = rowTop(row) + 30; c.w1 = RW; c.h1 = RH;
+        c.r = el('rect', { 'class': kd === 'a' ? 'ca' : kd === 'g' ? 'cg' : 'cm', rx: 3 }, g);
+        cells.push(c);
+      });
+      var pads = [];
+      for (var p = 0; p < 3; p++) {
+        pads.push(el('rect', { 'class': 'cp', x: RX + (14 + p) * RP, y: rowTop(3) + 30, width: RW, height: RH, rx: 3 }, g));
+      }
+
+      // ---- step 0 texts
+      var t0 = el('g', {}, g);
+      el('text', { 'class': 'hd', x: 40, y: 180 }, t0, '64 layers = 16 x (3 linear-attention + 1 full-attention)');
+      el('text', { 'class': 'rl', x: 1075, y: 304, 'text-anchor': 'end' }, t0, '+ 1 MTP layer');
+      [['cg', 'linear attention (GDN): 48 layers, fixed-size state'],
+       ['ca', 'full attention: 16 layers, KV grows with every token'],
+       ['cm', 'MTP head: one extra full-attention layer']].forEach(function (d, idx) {
+        var y = 362 + idx * 46;
+        el('rect', { 'class': d[0], x: 40, y: y - 20, width: 22, height: 26, rx: 3 }, t0);
+        el('text', { 'class': 'lg', x: 78, y: y }, t0, d[1]);
+      });
+
+      // ---- step 1 labels
+      var t1 = el('g', {}, g);
+      el('text', { 'class': 'hd', x: 40, y: 50 }, t1, 'regrouped: 17 per group');
+      ['attention: 16 + 1 MTP', 'state 1: 17 GDN', 'state 2: 17 GDN', 'state 3: 14 GDN + 3 padding'].forEach(function (txt, r) {
+        el('text', { 'class': 'rl', x: 40, y: rowTop(r) + 20 }, t1, txt);
+      });
+
+      // ---- step 2: one block per group
+      var t2 = el('g', {}, g);
+      el('text', { 'class': 'hd', x: 440, y: 50 }, t2, 'one block: ' + GROUP + ' layers x ' + n(PAGE) + ' B = ' + (BLOCK_B / Math.pow(2, 20)) + ' MiB');
+      var IX = 440, IW = 100, IH = 50;
+      for (var r = 0; r < 4; r++) {
+        var cy = rowCy(r);
+        if (r === 0) {
+          el('rect', { 'class': 'ico-a', x: IX, y: cy - IH / 2, width: IW, height: IH, rx: 6 }, t2);
+          for (var sl = 0; sl < 17; sl++) {
+            el('line', { 'class': 'slot', x1: IX + 8 + sl * 5.5, x2: IX + 8 + sl * 5.5, y1: cy - IH / 2 + 8, y2: cy + IH / 2 - 8 }, t2);
+          }
+          el('text', { 'class': 'm1a', x: 560, y: cy - 2 }, t2, n(BLOCK_TOK) + ' tokens');
+          el('text', { 'class': 'm2', x: 560, y: cy + 26 }, t2, 'x ' + n(TOK_B) + ' B per layer');
+        } else {
+          el('rect', { 'class': 'ico-s', x: IX, y: cy - IH / 2, width: IW, height: IH, rx: 6 }, t2);
+          el('rect', { 'class': 'snap', x: IX + IW / 2 - 15, y: cy - 15, width: 30, height: 30, rx: 4 }, t2);
+          el('text', { 'class': 'm1', x: 560, y: cy - 2 }, t2, '1 state copy');
+          el('text', { 'class': 'm2', x: 560, y: cy + 26 }, t2, n(STATE_B) + ' B per layer');
+        }
+      }
+
+      // ---- step 3: blocks per request
+      var t3 = el('g', {}, g);
+      var QX = 880, QS = 28, QP = 34;
+      for (r = 0; r < 4; r++) {
+        var cnt = r === 0 ? ATT_BLOCKS : ST_BLOCKS;
+        for (var q = 0; q < cnt; q++) {
+          el('rect', { 'class': r === 0 ? 'qa' : 'qs', x: QX + q * QP, y: rowCy(r) - 24, width: QS, height: QS, rx: 4 }, t3);
+        }
+        el('text', { 'class': 'ql', x: QX, y: rowCy(r) + 30 }, t3, cnt + ' blocks');
+      }
+      el('text', { 'class': 'hd', x: QX, y: 86 }, t3, 'per request');
+      el('text', { 'class': 'sum1', x: 40, y: 458 }, t3, 'attention: ceil(' + n(CTX) + ' / ' + n(BLOCK_TOK) + ') = ' + ATT_BLOCKS + ' (grows), state: ' + ST_GROUPS + ' x (2 + 3) = ' + (ST_GROUPS * ST_BLOCKS) + ' (fixed)');
+      el('text', { 'class': 'sum2', x: 40, y: 492 }, t3, PER_REQ + ' blocks per request at ' + n(CTX) + ' tokens, so ' + n(POOL_BLOCKS) + ' / ' + PER_REQ + ' = ' + (POOL_BLOCKS / PER_REQ).toFixed(1) + ' requests');
+      var divs = el('line', { 'class': 'div', x1: 420, x2: 420, y1: 80, y2: 430 }, g);
+
+      // ---- state: s[0..2] = regroup, block meaning, request count
+      var s = [0, 0, 0], cancel = null;
+      function draw() {
+        var u = s[0];
+        cells.forEach(function (c) {
+          c.r.setAttribute('x', Deck.lerp(c.x0, c.x1, u).toFixed(2));
+          c.r.setAttribute('y', Deck.lerp(c.y0, c.y1, u).toFixed(2));
+          c.r.setAttribute('width', Deck.lerp(c.w0, c.w1, u).toFixed(2));
+          c.r.setAttribute('height', Deck.lerp(c.h0, c.h1, u).toFixed(2));
+        });
+        pads.forEach(function (rc) { rc.setAttribute('opacity', u.toFixed(3)); });
+        t0.setAttribute('opacity', (1 - u).toFixed(3));
+        t1.setAttribute('opacity', u.toFixed(3));
+        t2.setAttribute('opacity', s[1].toFixed(3));
+        t3.setAttribute('opacity', s[2].toFixed(3));
+        divs.setAttribute('opacity', s[1].toFixed(3));
+      }
+      draw();
+
+      Deck.slide(ID, {
+        enter: function () { s = [0, 0, 0]; draw(); },
+        step: function (m, prev, c) {
+          var t = [m >= 1 ? 1 : 0, m >= 2 ? 1 : 0, m >= 3 ? 1 : 0];
+          if (cancel) { cancel(); cancel = null; }
+          if (c.instant) { s = t; draw(); return; }
+          var f = s.slice();
+          cancel = Deck.tween(900, function (kk) {
+            s = f.map(function (v, i) { return Deck.lerp(v, t[i], kk); });
+            draw();
+          });
+        }
+      });
+    })();
+  </script>
+</section>

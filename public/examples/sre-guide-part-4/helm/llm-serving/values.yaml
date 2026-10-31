@@ -1,0 +1,77 @@
+# The one value holding the model name; every derived name (Deployment, SA, route, ScaledObject, selectors) uses it.
+model:
+  name: qwen38-27b-nvfp4
+  s3Uri: s3://example-cluster-models-us-east-1/models/nvidia/Qwen3.8-27B-NVFP4/
+  awsRegion: us-east-1
+
+# Karpenter GPU pool: NodePool + EC2NodeClass, and the AWS-side inputs from `terraform output chart_values_yaml`.
+karpenter:
+  enabled: true
+  poolName: g7e
+  nodeRole: example-karpenter-node-role
+  discoveryTag: example-cluster
+  amiAlias: bottlerocket@v1.68.0
+  instanceStorePolicy: RAID0
+
+# vLLM serve image and flags, rendered into the container args.
+vllm:
+  image: vllm/vllm-openai:v0.32.0
+  maxModelLen: 262144
+  kvCacheDtype: fp8
+  gpuMemoryUtilization: "0.90"
+  maxNumSeqs: 64
+  maxNumBatchedTokens: 8192
+  tensorParallelSize: 1
+  speculativeTokens: 3
+  concurrency: 16
+  # When on, vLLM serves the render endpoints and publishes the KV cache events the endpoint picker listens to; the picker values must match, see epp-values-precise.yaml.
+  kvEvents:
+    enabled: false
+    zmqPort: 5556
+    replayPort: 5559
+
+# Optional KV tiering (CPU RAM, then local NVMe): kv-transfer-config, guard sidecar and its ConfigMap.
+tiering:
+  enabled: false
+  cpuGiB: 16
+  # sizeLimit of the kv-nvme emptyDir, i.e. the NVMe tier's capacity in GiB
+  nvmeGiB: 1000
+  # byte budget the guard sidecar enforces on the NVMe tier (the BUDGET_GIB env var)
+  guardBudgetGiB: 800
+
+# AI gateway routing (GatewayClass, EnvoyProxy, Gateway, AIGatewayRoute) in its own namespace.
+routing:
+  enabled: true
+  gateway:
+    namespace: ai-gateway
+    # Create the ai-gateway namespace; set false when it already exists.
+    createNamespace: true
+    # The NLB scheme of the gateway Service; internal is the safe default for an endpoint without authentication.
+    loadBalancerScheme: internal
+
+# KEDA ScaledObject autoscaling of the vLLM Deployment: the per-cluster bounds and thresholds.
+autoscaling:
+  enabled: true
+  # replica floor: scale-out is slow (node, image, weights), so never start from zero
+  minReplicas: 1
+  # replica ceiling
+  maxReplicas: 8
+  # replicas held when a Prometheus trigger fails 3 polls in a row
+  fallbackReplicas: 2
+  # Prometheus the triggers poll (the service the Prometheus stack creates in the observability namespace)
+  prometheusAddress: http://kube-prometheus-stack-prometheus.monitoring.svc:9090
+  # KV cache utilization (0 to 1) forecast 10 minutes ahead that pushes scale-out
+  kvForecastThreshold: "0.7"
+  # hottest pod's KV cache utilization (0 to 1) that pushes scale-out
+  kvCacheThreshold: "0.7"
+  # running requests per pod at which the batch is considered saturated; --max-num-seqs is 64, so 32 is half-full
+  runningPerPod: "32"
+  # lowest queue the busiest pod held over 3 minutes (just under 1) that pushes scale-out
+  queueThreshold: "0.8"
+  # p95 time to first token in seconds that pushes scale-out
+  ttftSeconds: "10"
+
+# Prometheus recording rules + the EPP metrics-reader ServiceAccount in its own namespace.
+observability:
+  enabled: true
+  namespace: monitoring
