@@ -9,30 +9,32 @@ const REMOVED_NAMES = [
   'tokenize', 'config', 'tokenloop', 'embeddings', 'training', 'attention', 'ffn', 'ffn-matrix',
   'ffn-relu', 'ffn-detector', 'nextword', 'temperature', 'whyattention', 'whyffn', 'forward', 'trainpass',
   'sft-base-vs-instruct', 'chat-template', 'rl-loop', 'rl-reward-source', 'dpo-chosen-rejected', 'cpu-vs-gpu', 'matmul-parallel', 'tensor-core',
-  'kernel-tiling', 'kv-cache', 'why-cache-kv', 'prefill-decode', 'bit-drop', 'moe-routing', 'moe-dense'
+  'kernel-tiling', 'kv-cache', 'why-cache-kv', 'prefill-decode', 'bit-drop', 'moe-routing', 'moe-dense',
+  // part 3 moved to the deck figures (p3-*)
+  'hw-three-levers', 'mem-bandwidth-ladder', 'interconnect', 'dedicated-vs-unified', 'apple-soc',
+  'radix-attention', 'paged-attention', 'mesh', 'engine-scorecard', 'vendor-scorecard'
 ];
 
 const KEPT_NAMES = [
   'primer-vram', 'primer-dilution', 'primer-split', 'primer-toolsearch', 'primer-surface',
-  'primer-workspace', 'primer-loop', 'primer-events', 'primer-approval', 'primer-harness',
-  'hw-three-levers', 'mem-bandwidth-ladder', 'interconnect', 'dedicated-vs-unified', 'apple-soc',
-  'radix-attention', 'paged-attention', 'mesh', 'engine-scorecard', 'vendor-scorecard'
+  'primer-workspace', 'primer-loop', 'primer-events', 'primer-approval', 'primer-harness'
 ];
 
 const REMOVED_CLASSES = [
   'tok', 'cfg', 'loop', 'emb', 'trn', 'attn', 'ffn', 'fmx',
   'frl', 'fdet', 'nw', 'temp', 'wa', 'wf', 'fwd', 'tp',
   'p2sft', 'p2tmpl', 'p2rl', 'p2rew', 'p2dpo', 'p2cg', 'p2mm', 'p2tc',
-  'p2kt', 'p2kv', 'p2wc', 'p2pd', 'p2bit', 'moer', 'moed'
+  'p2kt', 'p2kv', 'p2wc', 'p2pd', 'p2bit', 'moer', 'moed',
+  'hwl', 'mbl', 'dvu', 'tpx', 'asoc', 'mesh', 'pga', 'rdx', 'esc', 'vsc'
 ];
 
-test('none of the 31 removed figures appears in Fig.astro', () => {
+test('none of the 41 removed figures appears in Fig.astro', () => {
   for (const name of REMOVED_NAMES) {
     assert.ok(!fig.includes(`name === "${name}"`), `Fig.astro must not contain figure "${name}"`);
   }
 });
 
-test('all 20 kept figures appear in Fig.astro', () => {
+test('all 10 kept figures appear in Fig.astro', () => {
   for (const name of KEPT_NAMES) {
     assert.ok(fig.includes(`name === "${name}"`), `Fig.astro must contain figure "${name}"`);
   }
