@@ -1,0 +1,121 @@
+<section class="slide" id="h004-interconnect" data-steps="3">
+  <p class="kicker reveal">interconnect</p>
+  <p class="statement reveal">Splitting a model across GPUs puts the wire in the loop.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h004-interconnect-t h004-interconnect-d">
+      <title id="h004-interconnect-t">Tensor parallelism: a token split across three GPUs, partial results exchanged by all-reduce, and NVLink versus PCIe wire speed</title>
+      <desc id="h004-interconnect-d">Top: the tensor-parallel flow. A token in is broadcast to three GPUs; each holds a slice of the weights and produces a partial result; the partials are exchanged in an all-reduce so each GPU ends with the complete output, and the exchange runs after every block, twice per layer, at the speed of the wire. Steps: the token and the weight slices, then the partial results, then the all-reduce bus with the caption, then the bottom bars. Bottom, step 3: bars on a linear scale from zero, NVLink per GPU, in GB/s: A100 600, H100 900, Blackwell 1800; the PCIe bar is drawn at one fourteenth of the Blackwell bar, labelled about 14x slower, with no number of its own.</desc>
+      <g id="h004-interconnect-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h004-interconnect svg.diagram{width:100%;height:100%;max-width:none;}
+    #h004-interconnect text{font-family:var(--font-mono);}
+    #h004-interconnect .flow{stroke:var(--color-border-strong);stroke-width:2.5;fill:none;}
+    #h004-interconnect .arrow{fill:var(--color-border-strong);}
+    #h004-interconnect .box{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #h004-interconnect .boxlab{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #h004-interconnect .sub{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h004-interconnect .part{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h004-interconnect .bus{stroke:var(--color-accent);stroke-width:3;fill:none;}
+    #h004-interconnect .busarrow{fill:var(--color-accent);}
+    #h004-interconnect .buslab{font-size:20px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #h004-interconnect .cap{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h004-interconnect .unit{font-size:20px;fill:var(--color-text-soft);}
+    #h004-interconnect .axis{stroke:var(--color-border-strong);stroke-width:2;}
+    #h004-interconnect .name{font-size:20px;fill:var(--color-text);}
+    #h004-interconnect .val{font-size:20px;font-weight:600;fill:var(--color-accent);}
+    #h004-interconnect .bar-nv{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h004-interconnect .bar-pcie{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h004-interconnect .pcielab{font-size:20px;fill:var(--color-text-soft);}
+    #h004-interconnect [data-from]{opacity:0;transition:opacity .5s;}
+    #h004-interconnect [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h004-interconnect';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function downArrow(x, y, parent) {
+        el('polygon', { 'class': 'arrow', points: x + ', ' + (y + 2) + ' ' + (x - 5) + ', ' + (y - 9) + ' ' + (x + 5) + ', ' + (y - 9) }, parent);
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // the three GPU columns, spread across the full width: centers x 180 / 560 / 940
+      var CX = [180, 560, 940];
+
+      // step 0: the token in, broadcast to three GPUs that each hold a slice of the weights
+      el('rect', { 'class': 'box', x: 500, y: 30, width: 120, height: 36, rx: 8 }, g);
+      el('text', { 'class': 'boxlab', x: 560, y: 53 }, g, 'token in');
+      el('line', { 'class': 'flow', x1: 560, y1: 66, x2: 560, y2: 78 }, g);
+      el('line', { 'class': 'flow', x1: 180, y1: 78, x2: 940, y2: 78 }, g);
+      CX.forEach(function (x) {
+        el('line', { 'class': 'flow', x1: x, y1: 78, x2: x, y2: 90 }, g);
+        downArrow(x, 92, g);
+      });
+      CX.forEach(function (x, k) {
+        el('rect', { 'class': 'box', x: x - 100, y: 92, width: 200, height: 60, rx: 8 }, g);
+        el('text', { 'class': 'boxlab', x: x, y: 118 }, g, 'GPU ' + (k + 1));
+        el('text', { 'class': 'sub', x: x, y: 140 }, g, 'slice of weights');
+      });
+
+      // step 1: each GPU runs its slice on the token and produces a partial result
+      var gPart = el('g', { 'data-from': '1' }, g);
+      CX.forEach(function (x, k) {
+        el('line', { 'class': 'flow', x1: x, y1: 152, x2: x, y2: 166 }, gPart);
+        downArrow(x, 168, gPart);
+        el('rect', { 'class': 'part', x: x - 100, y: 168, width: 200, height: 30, rx: 6 }, gPart);
+        el('text', { 'class': 'boxlab', x: x, y: 188 }, gPart, 'partial ' + (k + 1));
+      });
+
+      // step 2: the all-reduce, a two-way bus under the partials
+      var gBus = el('g', { 'data-from': '2' }, g);
+      CX.forEach(function (x) {
+        el('line', { 'class': 'flow', x1: x, y1: 198, x2: x, y2: 222 }, gBus);
+      });
+      el('line', { 'class': 'bus', x1: 180, y1: 222, x2: 940, y2: 222 }, gBus);
+      el('polygon', { 'class': 'busarrow', points: '180, 222 194, 216 194, 228' }, gBus);
+      el('polygon', { 'class': 'busarrow', points: '940, 222 926, 216 926, 228' }, gBus);
+      el('text', { 'class': 'buslab', x: 560, y: 250 }, gBus, 'all-reduce: exchange the partials, each GPU ends with the complete output');
+      el('text', { 'class': 'cap', x: 560, y: 278 }, gBus, 'runs after every block, twice per layer, at the speed of the wire');
+
+      // step 3: the wire itself. Scale: 0.40 px per GB/s, so 1800 GB/s = 720 px;
+      // the PCIe bar is 720 / 14, the ratio drawn as a ratio, no number of its own
+      var gWire = el('g', { 'data-from': '3' }, g);
+      var PX = 0.40, X0 = 260, CY0 = 357, PITCH = 40, BAR_H = 30;
+      var ROWS = [
+        { name: 'A100',               v: 600, nv: true },
+        { name: 'H100',               v: 900, nv: true },
+        { name: 'Blackwell (NVLink)', v: 1800, nv: true },
+        { name: 'PCIe',               v: 1800 / 14, nv: false }
+      ];
+      el('text', { 'class': 'unit', x: X0, y: 325 }, gWire, 'NVLink per GPU, GB/s');
+      el('line', { 'class': 'axis', x1: X0, y1: 342, x2: X0, y2: CY0 + 3 * PITCH + 15 }, gWire);
+      ROWS.forEach(function (d, k) {
+        var cy = CY0 + k * PITCH;
+        var len = d.v * PX;
+        el('text', { 'class': 'name', x: 20, y: cy + 7 }, gWire, d.name);
+        el('rect', { 'class': d.nv ? 'bar-nv' : 'bar-pcie', x: X0, y: cy - BAR_H / 2, width: len, height: BAR_H, rx: 6 }, gWire);
+        if (d.nv) {
+          el('text', { 'class': 'val', x: X0 + len + 10, y: cy + 7 }, gWire, String(d.v));
+        } else {
+          el('text', { 'class': 'pcielab', x: X0 + len + 10, y: cy + 7 }, gWire, 'about 14x slower');
+        }
+      });
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

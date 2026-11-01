@@ -6,10 +6,10 @@ tags: ["llms", "sre", "hardware", "inference"]
 draft: false
 ---
 
-import AnimRuntime from "../../components/illustrations/anim/AnimRuntime.astro";
-import Fig from "../../components/illustrations/anim/Fig.astro";
+import DeckRuntime from "../../components/illustrations/deck/DeckRuntime.astro";
+import DeckFig from "../../components/illustrations/deck/DeckFig.astro";
 
-<AnimRuntime />
+<DeckRuntime />
 
 [Part 1](/blog/sre-guide-deploying-llms-part-1/) and [Part 2](/blog/sre-guide-deploying-llms-part-2/) were about the model: what it is, how it is trained into an assistant, and the mechanics of serving it. This part is about the metal underneath, the chips you actually run it on, and the software that drives them. It is the part most likely to read like a spec sheet, so the whole thing is built around a single trick for making spec sheets legible, and that trick comes straight out of where part 2 left off.
 
@@ -23,7 +23,7 @@ Hold onto that split, because it is the whole reason a GPU spec sheet looks more
 2. **Compute.** How fast the chip does the matrix multiplications, which is what governs prefill. Most of that speed comes from dedicated hardware built for exactly this, and from whether that hardware can multiply your quantized weights directly rather than converting them back up first.
 3. **Bandwidth.** How fast weights move from memory into the multiply units, which is what governs decode. This is the number that sets your tokens per second for a single stream.
 
-<Fig name="hw-three-levers" />
+<DeckFig name="p3-three-levers" />
 
 That is the entire lens. Capacity decides if the model fits, compute decides how fast prefill and the format tricks run, bandwidth decides how fast decode runs. There is a fourth thing that keeps coming up, interconnect, the speed at which chips talk to each other, but it is not really a separate lever. It is how you buy more capacity, compute, and bandwidth than a single chip has, by ganging several together, so it shows up inside each section below rather than as its own.
 
@@ -58,19 +58,17 @@ Two kinds of memory split the lineup. The datacenter chips use HBM, stacked righ
 
 Bandwidth, the decode lever, spans a wide range. Consumer memory runs from the A10G's 600 GB/s through the L40S's 864 to GDDR7's 1.8 TB/s on the newest workstation cards. Datacenter HBM starts where that ends: 3.35 TB/s on an H100, 4.8 on an H200, around 8 on a B200. Even the fastest workstation card moves weights roughly four and a half times slower than a B200, and since decode speed rides this number almost entirely, that is about the per-stream token-rate gap between the two.
 
-<Fig name="mem-bandwidth-ladder" />
+<DeckFig name="p3-mem-bandwidth-ladder" />
 
 #### Unified memory
 
 Everything above is dedicated memory: the GPU has its own HBM or GDDR, kept separate from the CPU's system RAM. NVIDIA sells the other kind too, in [DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/), a small Grace Blackwell box where the CPU and GPU share one 128 GB pool. That buys huge capacity for the size, enough to hold a two-hundred-billion-parameter model, but the pool is ordinary LPDDR at 273 GB/s, fifteen to thirty times slower than datacenter HBM. So it fits big models and decodes them slowly. You can cluster two Sparks over their built-in ConnectX-7 link to reach 256 GB, but that link is 200-gigabit Ethernet, a fraction of NVLink, so it stays a development-and-prototyping box rather than a serving cluster. Hold that capacity-versus-bandwidth shape, because it repeats on every unified-memory machine in the sections below.
 
-<Fig name="dedicated-vs-unified" />
-
 #### Interconnect
 
 When a model is too big to fit into the VRAM of a single GPU, it has to be split across several GPUs. This is called tensor parallelism. Rather than handing each GPU whole layers, you give every GPU a slice of every layer's weight matrices, so inference settles into a two-step rhythm. For each block, every GPU runs its own slice on the incoming token and produces a partial result, its share of the answer computed from its shard of the weights. Then the GPUs exchange those partials and add them together, an operation called an all-reduce, so each one ends up holding the complete output of the block, ready to feed the next. The catch is that this exchange happens after every single block, twice in every layer, and it runs at the speed of the wire between the GPUs. That is why the interconnect, and not the compute, is what makes or breaks splitting a model across chips.
 
-<Fig name="interconnect" />
+<DeckFig name="p3-interconnect" />
 
 NVIDIA's fast wire is [NVLink](https://www.nvidia.com/en-us/data-center/nvlink/), a direct GPU-to-GPU link that has climbed from 600 GB/s per GPU on the A100 to 900 on the H100 to 1.8 TB/s on Blackwell. On top of it, NVSwitch is a switch that lets every GPU in a box reach every other at that full rate no matter how many there are, which is how seventy-two Blackwell GPUs get wired into a single [rack](https://www.nvidia.com/en-us/data-center/gb200-nvl72/) that behaves like one enormous GPU. Without NVLink, chips fall back to PCIe, the ordinary bus to the CPU and roughly fourteen times slower, on which the after-every-block exchange spends more time talking than computing and tensor parallelism stops paying off. And here the tier split returns: the cheap cards, the L40S and the RTX PRO 6000, are PCIe-only, so they are excellent single-chip and poor at pooling.
 
@@ -84,7 +82,7 @@ The way it gets there is unified memory, the same idea as DGX Spark a moment ago
 
 Three kinds of compute share that pool, and it is worth naming them because Apple's branding makes them easy to confuse. There is the CPU; there is the GPU; and there is the Neural Engine, a separate block of sixteen cores that Apple built for running its own on-device models, the vision and Apple-Intelligence features. For a large language model the one that matters is the GPU, driven through Metal. The Neural Engine sounds like it should be the AI part, but it is tuned for Apple's fixed workloads and is awkward to aim at a general transformer, so the local inference tools do not touch it.
 
-<Fig name="apple-soc" />
+<DeckFig name="p3-memory-architecture" />
 
 For a long time that GPU was the weak spot: it could do the matmuls but had no dedicated matrix hardware, so it unpacked quantized weights back to 16-bit and multiplied them the slow way. The [M5](https://www.apple.com/newsroom/2025/10/apple-unleashes-m5-the-next-big-leap-in-ai-performance-for-apple-silicon/) fixed it, with the second thing that gets confused with the Neural Engine. Every GPU core now carries a Neural Accelerator, which despite the name is a completely different unit from the Neural Engine: a small matrix-multiply block, a tensor core, built inside the GPU itself. So the Neural Engine is a separate island Apple mostly keeps for its own features, while the Neural Accelerator is the tensor core in the GPU that finally makes Apple competitive at the operation a language model is made of. With it, the GPU multiplies 16-bit and 8-bit natively, which Apple markets as more than four times the AI throughput of the M4; 4-bit is still a storage format it unpacks before the math. Compute, in any case, is rarely what limits you here.
 
@@ -106,7 +104,7 @@ On compute and bandwidth the two are now roughly even per chip. Bandwidth was ne
 
 The honest weak spot is interconnect, and it is worth being precise about why. NVIDIA wires the GPUs in a server through NVSwitch, a switched fabric where every GPU talks to every other at full speed no matter how many there are, and it now stretches that to a coherent 72-GPU domain. AMD wires its eight GPUs in a direct all-to-all mesh instead, with no switch in the middle, so the collective bandwidth that tensor parallelism leans on thins as you add GPUs, and the whole scale-up domain stops at eight. For one big model spread across many chips, that gap is real and measurable. AMD's fix, a rack-scale 72-GPU system on the coming [MI400](https://newsroom.amd.com/news/aai-2026-mi400-instinct-update/) generation, lands in the second half of 2026 and finally answers NVIDIA's rack, though in its first year it runs over a repurposed Ethernet fabric rather than the open standard AMD is nominally building toward. Until that ships, "spread a huge model across a whole rack" is the one thing NVIDIA still does that AMD cannot match.
 
-<Fig name="mesh" />
+<DeckFig name="p3-switch-vs-mesh" />
 
 The last piece is software, and this is the part that genuinely changed. For years the reason not to buy AMD was [ROCm](https://rocm.docs.amd.com/), its answer to CUDA, which lagged badly enough that you would fight the tooling for weeks. As of 2026 that is largely over for inference specifically: both vLLM and SGLang treat AMD as a first-class target, AMD ships supported images and benchmarks, and independent testing puts a well-configured MI300-class card at something like ninety to ninety-five percent of an H100's inference throughput. The gaps that remain are real but narrow: there is no AMD equivalent of TensorRT-LLM, the hand-tuned FlashAttention-3 kernels are CUDA-only, and the training story still trails. For serving, though, the software is no longer the reason to say no. And since AMD is the cheapest way to rent a high-memory GPU in the cloud, the capacity advantage comes with a price advantage attached.
 
@@ -137,7 +135,11 @@ Rough on-demand prices to anchor the tiers (us-east-1, approximate and subject t
 | p5e.48xlarge | H200 | 8 | 141 GB | ~$85/hr |
 | p6-b200.48xlarge | B200 | 8 | 180 GB | ~$114/hr |
 
+<DeckFig name="p3-aws-ladder" />
+
 The thing that ties the p tier together, and that the g tier only has on its bigger sizes, is EFA. NVLink solves talking inside one box; EFA, the [Elastic Fabric Adapter](https://aws.amazon.com/hpc/efa/), solves talking between boxes. It is a network card that can read and write GPU memory directly, without bouncing through the host, which is exactly what multi-node tensor parallelism and disaggregated prefill-and-decode need in order to move activations and KV cache between machines without falling over. Its bandwidth climbs with the tier, from 400 gigabits on the old A100 nodes to over three terabits on the Blackwell ones and nearly thirty on a full UltraServer. The number to know for 2026 is that EFA is no longer a p-family privilege: [AWS's list of EFA instance types](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html#efa-instance-types) includes g4dn, g5, g6, g6e, and g7e, but only from the 8xlarge size up, so multi-node serving is available a tier down. The generations differ. On g4dn and g5 it is the first EFA generation, without RDMA read or write. On g6 and g6e it has both. On g7e it is the newest generation, and GPUDirect RDMA, the direct path between the adapter and GPU memory that the paragraph above describes, appears from the 12xlarge up. Every smaller size has no EFA at all and cannot span nodes, so a g7e.2xlarge, the size this series deploys on, has one instance as its ceiling.
+
+<DeckFig name="p3-efa-sizes" />
 
 Then there is the part only AWS has: its own chips. Inferentia and Trainium are AWS-designed accelerators, the current ones being Inferentia2 for inference and Trainium2 and Trainium3 for both training and serving, the newest of which multiplies in the same microscaling four-bit format Blackwell uses. The pitch is straightforward: for a model they support, they cost meaningfully less per token than the equivalent NVIDIA instance. The catch is equally straightforward, and is the reason most teams do not start here: you do not program them with CUDA. You go through the [Neuron SDK](https://awsdocs-neuron.readthedocs-hosted.com/), which compiles your model ahead of time, and not every model off the shelf just runs; the newest architectures lag, and you inherit a smaller ecosystem. So Trainium is a cost play for a stable, high-volume model where the up-front engineering pays for itself, not a default.
 
@@ -161,7 +163,7 @@ You have picked a chip. Now something has to actually run the model on it, and t
 
 **[vLLM](https://github.com/vllm-project/vllm) is the default, and you should treat it as the default.** Its signature trick is PagedAttention: instead of handing each request one big contiguous slab of KV cache, it chops the cache into small fixed-size blocks and hands them out on demand, the way an operating system pages memory. That one idea removes almost all the reserved-but-unused cache that used to go to waste, which lets it keep far more requests in flight at once and pack the GPU to 80-odd percent utilization instead of the 30 or 40 you get from naive batching. On top of that it has the widest reach of any engine by a distance: NVIDIA, AMD, Intel, Google TPU, AWS Trainium, even plain CPUs, and it reads basically every model architecture and every quantization format worth having. You install it with pip, point it at a model, and get an OpenAI-compatible endpoint with no build step. It is not the single fastest thing you can run on an NVIDIA GPU, but it is the one that is fast enough, runs your model, and runs on your hardware, which is why it became the industry default. If you do not have a specific reason to pick something else, pick this.
 
-<Fig name="paged-attention" />
+<DeckFig name="p3-paged-attention" />
 
 **[llama.cpp](https://github.com/ggml-org/llama.cpp) is for running models locally.** It is a different category from the other three: a single self-contained binary, no Python, no dependency tree, that will run a quantized model on almost anything, a CPU, a Raspberry Pi, and above all Apple Silicon through Metal. It authored the GGUF file format and the K-quant scheme you see everywhere (`Q4_K_M` and friends), and it can even split a model that does not fit in VRAM across GPU and CPU memory and run it anyway, slowly. If you have ever run a model on your own laptop you have almost certainly run llama.cpp, possibly without knowing it, because Ollama and LM Studio are friendly wrappers around its engine. What it is not built for is serving many users at once: it manages the KV cache in rigid per-request slots with none of vLLM's paging, so throughput falls apart the moment you have more than a handful of concurrent requests. Local and single-user it wins on sheer simplicity; as a multi-tenant server it is the wrong tool.
 
@@ -169,9 +171,9 @@ You have picked a chip. Now something has to actually run the model on it, and t
 
 **[SGLang](https://github.com/sgl-project/sglang) is for workloads where requests share a lot of text.** Its signature is RadixAttention: it keeps every request's KV cache in a shared tree keyed by the actual tokens, so any two requests that begin the same way, the same long system prompt, the same document in a RAG pipeline, the same history in a multi-turn agent, automatically reuse each other's already-computed cache instead of recomputing it. This is the prefix-caching idea from part 2 taken to its logical end, and on the workloads that suit it the effect is dramatic: cache-hit rates jump and time-to-first-token drops by multiples. It also enforces structured output, forcing the model to emit valid JSON against a schema, at almost no throughput cost, where other engines stall. On plain unique-prompt traffic it is roughly neck and neck with vLLM; on prefix-heavy, agentic, or structured traffic it pulls clearly ahead. If you are serving agents, RAG, or repeated schemas, this is the one to try.
 
-<Fig name="radix-attention" />
+<DeckFig name="p3-radix-attention" />
 
-<Fig name="engine-scorecard" />
+<DeckFig name="p3-engine-landscape" />
 
 The honest summary: the field has two general-purpose open servers, vLLM and SGLang, within a few percent of each other on raw throughput and differing mainly by workload shape; TensorRT-LLM sitting above them on NVIDIA alone when you pay the tuning tax; and llama.cpp off to the side, owning local. And the gaps close every month. Prefix caching, chunked prefill, continuous batching, FP8 and FP4 quantization, and even splitting prefill and decode across separate pools of GPUs are all showing up in every engine now. Pick by what you are actually serving, not by whichever benchmark screenshot is going around this week.
 
@@ -181,6 +183,8 @@ Put the three levers back in order and the whole landscape collapses into a shor
 
 As for who to buy from, the honest defaults. NVIDIA if you want the path of least resistance and the deepest software, which is most people. AMD if you want the same serving for less money and can live with a slightly rougher edge and a weaker multi-GPU story until its rack ships. Apple, DGX Spark, or a Strix Halo box if the job is running a big model on your own hardware rather than serving a crowd. Google's TPUs if you already live on Google Cloud and will work in its software. And AWS as the place you rent most of the above, starting on a g instance and moving to a p instance the day one box stops being enough. On top of any of them, vLLM until you have a specific reason to reach for something sharper.
 
-<Fig name="vendor-scorecard" />
+<DeckFig name="p3-how-to-pick" />
+
+<DeckFig name="p3-vendor-scorecard" />
 
 None of this is really about which chip is biggest. It is about reading a chip as three numbers and a wire, matching them to a model and a workload, and paying for exactly that and no more. Which, now that the model is demystified and the metal is demystified, is the whole job.

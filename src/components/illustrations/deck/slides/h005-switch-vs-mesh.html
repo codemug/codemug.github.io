@@ -1,0 +1,102 @@
+<section class="slide" id="h005-switch-vs-mesh" data-steps="2">
+  <p class="kicker reveal">switch vs mesh</p>
+  <p class="statement reveal">A switch scales to 72 GPUs, a direct mesh stops at 8.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h005-switch-vs-mesh-t h005-switch-vs-mesh-d">
+      <title id="h005-switch-vs-mesh-t">NVSwitch scales to a 72-GPU rack, a direct all-to-all mesh stops at 8 GPUs</title>
+      <desc id="h005-switch-vs-mesh-d">Two panels. Left, NVIDIA: GPUs wired through an NVSwitch in the middle, a schematic of the 72-GPU rack; every GPU reaches every other at full speed. Right, AMD: eight GPUs in a direct all-to-all mesh with no switch in the middle; the links are shared, so collective bandwidth thins as GPUs are added, and the scale-up domain stops at 8. Steps: the NVIDIA switch panel, then the AMD mesh panel, then the two limits, 72 GPUs in one rack and scale-up domain stops at 8, with the note that AMD's 72-GPU rack arrives with the MI400 generation in the second half of 2026.</desc>
+      <g id="h005-switch-vs-mesh-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h005-switch-vs-mesh svg.diagram{width:100%;height:100%;max-width:none;}
+    #h005-switch-vs-mesh text{font-family:var(--font-mono);}
+    #h005-switch-vs-mesh .panel{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;}
+    #h005-switch-vs-mesh .ptitle{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #h005-switch-vs-mesh .link{stroke:var(--color-border-strong);stroke-width:2;}
+    #h005-switch-vs-mesh .edge{stroke:var(--color-border-strong);stroke-width:1.5;}
+    #h005-switch-vs-mesh .box{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #h005-switch-vs-mesh .switch{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2.5;}
+    #h005-switch-vs-mesh .boxlab{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #h005-switch-vs-mesh .switchlab{font-size:20px;font-weight:600;fill:var(--color-text);text-anchor:middle;}
+    #h005-switch-vs-mesh .knock{fill:var(--color-surface-deep);}
+    #h005-switch-vs-mesh .noswitch{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h005-switch-vs-mesh .note{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h005-switch-vs-mesh .limit{font-size:26px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #h005-switch-vs-mesh [data-from]{opacity:0;transition:opacity .5s;}
+    #h005-switch-vs-mesh [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h005-switch-vs-mesh';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // left panel: NVIDIA, GPUs through an NVSwitch (y 30..280)
+      el('rect', { 'class': 'panel', x: 20, y: 30, width: 530, height: 250, rx: 10 }, g);
+      el('text', { 'class': 'ptitle', x: 40, y: 58 }, g, 'NVIDIA');
+      var LCX = [145, 285, 425];
+      var SW = { x: 285, y: 155 };
+      // links first; the opaque boxes cover the line ends
+      LCX.forEach(function (x) {
+        el('line', { 'class': 'link', x1: x, y1: 94, x2: SW.x, y2: SW.y }, g);
+        el('line', { 'class': 'link', x1: x, y1: 210, x2: SW.x, y2: SW.y }, g);
+      });
+      LCX.forEach(function (x) {
+        el('rect', { 'class': 'box', x: x - 45, y: 78, width: 90, height: 32, rx: 6 }, g);
+        el('text', { 'class': 'boxlab', x: x, y: 99 }, g, 'GPU');
+        el('rect', { 'class': 'box', x: x - 45, y: 194, width: 90, height: 32, rx: 6 }, g);
+        el('text', { 'class': 'boxlab', x: x, y: 215 }, g, 'GPU');
+      });
+      el('rect', { 'class': 'switch', x: SW.x - 70, y: SW.y - 29, width: 140, height: 58, rx: 8 }, g);
+      el('text', { 'class': 'switchlab', x: SW.x, y: SW.y + 7 }, g, 'NVSwitch');
+      el('text', { 'class': 'note', x: 285, y: 322 }, g, 'every GPU reaches every other at full speed');
+
+      // right panel: AMD, eight GPUs in a direct all-to-all mesh, no switch
+      var gMesh = el('g', { 'data-from': '1' }, g);
+      el('rect', { 'class': 'panel', x: 570, y: 30, width: 530, height: 250, rx: 10 }, gMesh);
+      el('text', { 'class': 'ptitle', x: 590, y: 58 }, gMesh, 'AMD');
+      // eight nodes on a circle, center (835, 164), radius 88
+      var C = { x: 835, y: 164 }, R = 88;
+      var NODES = [];
+      for (var i = 0; i < 8; i++) {
+        var a = (-90 + i * 45) * Math.PI / 180;
+        NODES.push({ x: C.x + R * Math.cos(a), y: C.y + R * Math.sin(a) });
+      }
+      for (var p = 0; p < 8; p++) {
+        for (var q = p + 1; q < 8; q++) {
+          el('line', { 'class': 'edge', x1: NODES[p].x, y1: NODES[p].y, x2: NODES[q].x, y2: NODES[q].y }, gMesh);
+        }
+      }
+      NODES.forEach(function (n) {
+        el('rect', { 'class': 'box', x: n.x - 24, y: n.y - 14, width: 48, height: 28, rx: 6 }, gMesh);
+        el('text', { 'class': 'boxlab', x: n.x, y: n.y + 7 }, gMesh, 'GPU');
+      });
+      // knock the edges out behind the middle label
+      el('rect', { 'class': 'knock', x: 765, y: 146, width: 140, height: 34 }, gMesh);
+      el('text', { 'class': 'noswitch', x: 835, y: 168 }, gMesh, 'no switch');
+      el('text', { 'class': 'note', x: 835, y: 322 }, gMesh, 'shared links thin as GPUs are added');
+
+      // step 2: the two limits and the MI400 note
+      var gLimits = el('g', { 'data-from': '2' }, g);
+      el('text', { 'class': 'limit', x: 285, y: 378 }, gLimits, '72 GPUs in one rack');
+      el('text', { 'class': 'limit', x: 835, y: 378 }, gLimits, 'scale-up domain stops at 8');
+      el('text', { 'class': 'note', x: 560, y: 434 }, gLimits, "AMD's 72-GPU rack arrives with the MI400, second half of 2026");
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

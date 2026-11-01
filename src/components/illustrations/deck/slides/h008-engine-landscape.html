@@ -1,0 +1,79 @@
+<section class="slide" id="h008-engine-landscape" data-steps="3">
+  <p class="kicker reveal">inference engines</p>
+  <p class="statement reveal">Four engines cover almost every situation.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h008-engine-landscape-t h008-engine-landscape-d">
+      <title id="h008-engine-landscape-t">Four inference engines, one card each: vLLM, SGLang, TensorRT-LLM and llama.cpp</title>
+      <desc id="h008-engine-landscape-d">A two by two grid of engine cards, one highlighted per step. Step 0: vLLM, the default, widest reach, easy to run, fast enough, packs the GPU to 80-odd percent utilization. Step 1: SGLang, like vLLM, ahead on shared-text workloads, plus structured output. Step 2: TensorRT-LLM, fastest on NVIDIA only, compiled ahead of time, you pay the tuning cost, half again the throughput on the same GPU. Step 3: llama.cpp, local, one binary, not for many users, and all four cards shown equally with their one-line roles.</desc>
+      <g id="h008-engine-landscape-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h008-engine-landscape svg.diagram{width:100%;height:100%;max-width:none;}
+    #h008-engine-landscape text{font-family:var(--font-mono);}
+    #h008-engine-landscape .card{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2;}
+    #h008-engine-landscape .hl{fill:color-mix(in oklab,var(--color-accent) 9%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:3;}
+    #h008-engine-landscape .name{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #h008-engine-landscape .role{font-size:20px;fill:var(--color-text-soft);}
+    #h008-engine-landscape [data-from]{opacity:0;transition:opacity .5s;}
+    #h008-engine-landscape [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h008-engine-landscape';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // 2x2 card grid; the card of the current step gets the accent
+      // highlight, earlier cards settle into the neutral card style. The
+      // last step shows all four equally, so there is no highlight rect
+      // for the fourth card.
+      var CW = 460, CH = 176;
+      var POS = [
+        { x: 80,  y: 64  },
+        { x: 580, y: 64  },
+        { x: 80,  y: 280 },
+        { x: 580, y: 280 }
+      ];
+      var ENGINES = [
+        { name: 'vLLM', role: ['the default: widest reach, easy', 'to run, fast enough, packs the', 'GPU to 80-odd percent utilization'] },
+        { name: 'SGLang', role: ['like vLLM, ahead on shared-text', 'workloads, plus structured output'] },
+        { name: 'TensorRT-LLM', role: ['fastest on NVIDIA only, compiled', 'ahead of time, you pay the tuning', 'cost: half again the throughput', '(same GPU)'] },
+        { name: 'llama.cpp', role: ['local, one binary,', 'not for many users'] }
+      ];
+
+      // base: the four card outlines; the per-step highlights for the first
+      // three cards (each on for its own step only)
+      POS.forEach(function (p, k) {
+        el('rect', { 'class': 'card', x: p.x, y: p.y, width: CW, height: CH, rx: 14 }, g);
+        if (k < 3) {
+          el('rect', { 'class': 'hl', x: p.x, y: p.y, width: CW, height: CH, rx: 14, 'data-from': String(k), 'data-until': String(k + 1) }, g);
+        }
+      });
+
+      ENGINES.forEach(function (eng, k) {
+        var p = POS[k];
+        var content = k === 0 ? g : el('g', { 'data-from': String(k) }, g);
+        el('text', { 'class': 'name', x: p.x + 24, y: p.y + 44 }, content, eng.name);
+        eng.role.forEach(function (line, i) {
+          el('text', { 'class': 'role', x: p.x + 24, y: p.y + 84 + i * 24 }, content, line);
+        });
+      });
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

@@ -1,0 +1,130 @@
+<section class="slide" id="h011-efa-sizes" data-steps="3">
+  <p class="kicker reveal">aws efa</p>
+  <p class="statement reveal">EFA reaches the g family only from the 8xlarge size up.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h011-efa-sizes-t h011-efa-sizes-d">
+      <title id="h011-efa-sizes-t">The g-family instance sizes with EFA, by family and EFA generation</title>
+      <desc id="h011-efa-sizes-d">A grid of g-family instance sizes: rows g4dn, g5, g6, g6e and g7e; columns xl to 48xl and metal, xl meaning xlarge. The filled cells are the sizes with EFA, all from 8xlarge up: g4dn 8xl, 12xl, 16xl and metal; g5, g6 and g6e 8xl, 12xl, 16xl, 24xl and 48xl; g7e 8xl, 12xl, 24xl and 48xl, with no 16xl. Step 1 colours the cells by EFA generation and names it in the cell: v1, no RDMA read or write, on g4dn and g5; v2, RDMA read and write, on g6 and g6e; v4, RDMA read and write, on g7e. Step 2 rings the GPUDirect RDMA cells, the adapter reading GPU memory directly, from g7e.12xlarge up. Step 3 marks the g7e.2xlarge, the part 4 machine, which has no EFA, so one instance is the ceiling.</desc>
+      <g id="h011-efa-sizes-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h011-efa-sizes svg.diagram{width:100%;height:100%;max-width:none;}
+    #h011-efa-sizes text{font-family:var(--font-mono);}
+    #h011-efa-sizes .gridc{fill:none;stroke:var(--color-hairline);stroke-width:1;}
+    #h011-efa-sizes .cell{fill:color-mix(in oklab,var(--color-accent) 10%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h011-efa-sizes .gen-v1{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));}
+    #h011-efa-sizes .gen-v2{fill:color-mix(in oklab,var(--color-accent) 35%,var(--color-surface-deep));}
+    #h011-efa-sizes .gen-v4{fill:color-mix(in oklab,var(--color-accent) 55%,var(--color-surface-deep));}
+    #h011-efa-sizes .vtxt{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #h011-efa-sizes .vtxt4{font-size:20px;font-weight:600;fill:var(--color-text);text-anchor:middle;}
+    #h011-efa-sizes .ring{fill:none;stroke:var(--color-accent);stroke-width:3;}
+    #h011-efa-sizes .mark{fill:none;stroke:var(--color-accent);stroke-width:2.5;stroke-dasharray:6 5;}
+    #h011-efa-sizes .markword{font-size:20px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #h011-efa-sizes .dashesw{fill:none;stroke:var(--color-accent);stroke-width:2.5;stroke-dasharray:6 5;}
+    #h011-efa-sizes .rlabel{font-size:24px;font-weight:600;fill:var(--color-text);}
+    #h011-efa-sizes .colhead{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h011-efa-sizes .note{font-size:20px;fill:var(--color-text-muted);text-anchor:end;}
+    #h011-efa-sizes .leg{font-size:20px;fill:var(--color-text-soft);}
+    #h011-efa-sizes .legsw{stroke:var(--color-border-strong);stroke-width:2;}
+    #h011-efa-sizes .marktxt{font-size:20px;font-weight:600;fill:var(--color-accent);}
+    #h011-efa-sizes .marksoft{font-size:20px;fill:var(--color-text-soft);}
+    #h011-efa-sizes [data-from]{opacity:0;transition:opacity .5s;}
+    #h011-efa-sizes [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h011-efa-sizes';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // grid: 5 family rows x 9 size columns. Column i centred at 168 + i*108,
+      // cells 96 wide 44 tall; row centres at pitch 62 from y 120.
+      var COLS = ['xl', '2xl', '4xl', '8xl', '12xl', '16xl', '24xl', '48xl', 'metal'];
+      var CX = COLS.map(function (n, i) { return 168 + i * 108; });
+      var RY = [120, 178, 236, 294, 352];
+      var ROWS = ['g4dn', 'g5', 'g6', 'g6e', 'g7e'];
+      var CW = 96, CH = 44;
+
+      // EFA sizes per family: [row, col, gen]. g4dn and g5 are v1 (no RDMA
+      // read or write), g6 and g6e v2, g7e v4 (both RDMA read and write).
+      // g7e has no 16xl. GPUDirect RDMA from g7e.12xlarge up.
+      var EFA = [
+        [0, 3, 1], [0, 4, 1], [0, 5, 1], [0, 8, 1],
+        [1, 3, 1], [1, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1],
+        [2, 3, 2], [2, 4, 2], [2, 5, 2], [2, 6, 2], [2, 7, 2],
+        [3, 3, 2], [3, 4, 2], [3, 5, 2], [3, 6, 2], [3, 7, 2],
+        [4, 3, 4], [4, 4, 4], [4, 6, 4], [4, 7, 4]
+      ];
+      var GDR = [[4, 4], [4, 6], [4, 7]]; // g7e 12xl / 24xl / 48xl
+
+      // base (step 0): the empty grid, headers, note, and the EFA cells filled
+      el('text', { 'class': 'note', x: 1080, y: 48 }, g, 'xl = xlarge');
+      COLS.forEach(function (name, i) {
+        el('text', { 'class': 'colhead', x: CX[i], y: 76 }, g, name);
+      });
+      ROWS.forEach(function (name, r) {
+        el('text', { 'class': 'rlabel', x: 20, y: RY[r] + 8 }, g, name);
+      });
+      ROWS.forEach(function (n, r) {
+        COLS.forEach(function (c, i) {
+          el('rect', { 'class': 'gridc', x: CX[i] - CW / 2, y: RY[r] - CH / 2, width: CW, height: CH, rx: 8 }, g);
+        });
+      });
+      EFA.forEach(function (c) {
+        el('rect', { 'class': 'cell', x: CX[c[1]] - CW / 2, y: RY[c[0]] - CH / 2, width: CW, height: CH, rx: 8 }, g);
+      });
+
+      // step 1: generation colour + the word in the cell, plus the legend
+      var g1 = el('g', { 'data-from': '1' }, g);
+      EFA.forEach(function (c) {
+        var gen = 'gen-v' + c[2];
+        el('rect', { 'class': gen, x: CX[c[1]] - CW / 2, y: RY[c[0]] - CH / 2, width: CW, height: CH, rx: 8 }, g1);
+        el('text', { 'class': c[2] === 4 ? 'vtxt4' : 'vtxt', x: CX[c[1]], y: RY[c[0]] + 7 }, g1, 'v' + c[2]);
+      });
+      var LEG = [
+        [1, 'v1: no RDMA read or write', 416, 50, 'gen-v1'],
+        [2, 'v2: RDMA read and write', 416, 412, 'gen-v2'],
+        [4, 'v4: RDMA read and write', 456, 50, 'gen-v4']
+      ];
+      LEG.forEach(function (l) {
+        el('rect', { 'class': 'legsw ' + l[4], x: l[3], y: l[2] - 12, width: 14, height: 14, rx: 3 }, g1);
+        el('text', { 'class': 'leg', x: l[3] + 22, y: l[2] }, g1, l[1]);
+      });
+
+      // step 2: the GPUDirect RDMA cells ringed (solid ring), with the legend entry
+      var g2 = el('g', { 'data-from': '2' }, g);
+      GDR.forEach(function (c) {
+        el('rect', { 'class': 'ring', x: CX[c[1]] - CW / 2 - 4, y: RY[c[0]] - CH / 2 - 4, width: CW + 8, height: CH + 8, rx: 10 }, g2);
+      });
+      el('rect', { 'class': 'ring', x: 388, y: 456 - 12, width: 14, height: 14, rx: 3 }, g2);
+      el('text', { 'class': 'leg', x: 410, y: 456 }, g2, 'ring: GPUDirect RDMA (reads GPU memory directly)');
+
+      // step 3: the g7e.2xlarge marker. Dashed accent outline (the solid ring
+      // means GPUDirect RDMA only) with "no EFA" inside the cell, the legend
+      // entry for the dashed style, and the marker sentence on its own line.
+      var g3 = el('g', { 'data-from': '3' }, g);
+      el('rect', { 'class': 'mark', x: CX[1] - CW / 2, y: RY[4] - CH / 2, width: CW, height: CH, rx: 8 }, g3);
+      el('text', { 'class': 'markword', x: CX[1], y: RY[4] + 7 }, g3, 'no EFA');
+      el('rect', { 'class': 'dashesw', x: 750, y: 416 - 12, width: 14, height: 14, rx: 3 }, g3);
+      el('text', { 'class': 'leg', x: 772, y: 416 }, g3, 'dashed: the part 4 machine');
+      el('text', { 'class': 'marktxt', x: 50, y: 496 }, g3, 'g7e.2xlarge:');
+      el('text', { 'class': 'marksoft', x: 214, y: 496 }, g3, 'the part 4 machine, no EFA, one instance is the ceiling');
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

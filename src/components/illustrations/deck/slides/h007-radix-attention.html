@@ -1,0 +1,107 @@
+<section class="slide" id="h007-radix-attention" data-steps="3">
+  <p class="kicker reveal">prefix caching</p>
+  <p class="statement reveal">Requests that start the same way share one cached prefix.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h007-radix-attention-t h007-radix-attention-d">
+      <title id="h007-radix-attention-t">RadixAttention: the shared prefix stored once, with each request tail hanging off it</title>
+      <desc id="h007-radix-attention-d">Request A is a row of six solid token blocks: the four prefix blocks and its two tail blocks, tagged A computed. Requests B and C below it show the same four prefix blocks as ghost blocks with dashed outlines, tagged B reused and C reused, and only their two tail blocks are solid. A spine with three branches joins the prefix to the three tails. Counts, toy numbers: A computed 6 of 6, B and C computed 2 of 6. The last step adds three examples of shared starts, the same long system prompt, the same document in a RAG pipeline, the same history in a multi-turn agent, and the effect on workloads that suit it: cache-hit rates jump and time-to-first-token drops.</desc>
+      <g id="h007-radix-attention-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h007-radix-attention svg.diagram{width:100%;height:100%;max-width:none;}
+    #h007-radix-attention text{font-family:var(--font-mono);}
+    #h007-radix-attention .blk{fill:color-mix(in oklab,var(--color-accent) 70%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h007-radix-attention .ghost{fill:none;stroke:var(--color-border-strong);stroke-width:2;stroke-dasharray:6 5;}
+    #h007-radix-attention .trunklabel{font-size:22px;fill:var(--color-text-soft);}
+    #h007-radix-attention .spine{stroke:var(--color-border-strong);stroke-width:2.5;stroke-linecap:round;}
+    #h007-radix-attention .tag{font-size:20px;font-weight:600;}
+    #h007-radix-attention .tag-comp{fill:var(--color-accent);}
+    #h007-radix-attention .tag-reuse{fill:var(--color-accent-muted);}
+    #h007-radix-attention .count{font-size:20px;fill:var(--color-text-soft);}
+    #h007-radix-attention .chip{fill:color-mix(in oklab,var(--color-accent) 12%,var(--color-surface-deep));stroke:var(--color-border);stroke-width:2;}
+    #h007-radix-attention .chipline{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h007-radix-attention .chiplabel{font-size:20px;fill:var(--color-text-soft);}
+    #h007-radix-attention .fact{font-size:20px;fill:var(--color-accent);}
+    #h007-radix-attention [data-from]{opacity:0;transition:opacity .5s;}
+    #h007-radix-attention [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h007-radix-attention';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // The prefix is 4 token blocks (the trunk, left), each tail is 2
+      // blocks. Rows A/B/C at y 100/200/300; the spine at x 318 branches
+      // into the three tails at x 338. Solid = computed, ghost = reused.
+      var PREFIX_X = [50, 114, 178, 242], TAIL_X = [338, 402];
+      var BW = 56, BH = 44, SPINE_X = 318, CY = [100, 200, 300];
+
+      function blocks(parent, y, solidPrefix) {
+        PREFIX_X.forEach(function (x, i) {
+          el('rect', { 'class': solidPrefix ? 'blk' : 'ghost', x: x, y: y - BH / 2, width: BW, height: BH, rx: 8 }, parent);
+        });
+        TAIL_X.forEach(function (x) {
+          el('rect', { 'class': 'blk', x: x, y: y - BH / 2, width: BW, height: BH, rx: 8 }, parent);
+        });
+      }
+
+      // base (step 0): the trunk label and request A end to end, solid
+      el('text', { 'class': 'trunklabel', x: 50, y: 48 }, g, 'the shared prefix, stored once');
+      el('line', { 'class': 'spine', x1: SPINE_X, y1: CY[0], x2: TAIL_X[0], y2: CY[0] }, g);
+      blocks(g, CY[0], true);
+      el('text', { 'class': 'tag tag-comp', x: 50, y: 146 }, g, 'A computed');
+      el('text', { 'class': 'count', x: 50, y: 400 }, g, 'A computed: 6 of 6');
+
+      // step 1: request B reuses the prefix (ghost), only its tail is solid
+      var gB = el('g', { 'data-from': '1' }, g);
+      el('line', { 'class': 'spine', x1: SPINE_X, y1: CY[0], x2: SPINE_X, y2: CY[1] }, gB);
+      el('line', { 'class': 'spine', x1: SPINE_X, y1: CY[1], x2: TAIL_X[0], y2: CY[1] }, gB);
+      blocks(gB, CY[1], false);
+      el('text', { 'class': 'tag tag-reuse', x: 50, y: 246 }, gB, 'B reused');
+      el('text', { 'class': 'count', x: 300, y: 400 }, gB, 'B computed: 2 of 6');
+
+      // step 2: request C does the same
+      var gC = el('g', { 'data-from': '2' }, g);
+      el('line', { 'class': 'spine', x1: SPINE_X, y1: CY[1], x2: SPINE_X, y2: CY[2] }, gC);
+      el('line', { 'class': 'spine', x1: SPINE_X, y1: CY[2], x2: TAIL_X[0], y2: CY[2] }, gC);
+      blocks(gC, CY[2], false);
+      el('text', { 'class': 'tag tag-reuse', x: 50, y: 346 }, gC, 'C reused');
+      el('text', { 'class': 'count', x: 550, y: 400 }, gC, 'C computed: 2 of 6');
+
+      // step 3: the three examples of shared starts (aligned with the
+      // tree, same top as request A), and the effect
+      var gE = el('g', { 'data-from': '3' }, g);
+      var CHIP_X = 478, CHIP_W = 260, CHIP_H = 64;
+      el('text', { 'class': 'chiplabel', x: CHIP_X, y: 52 }, gE, 'shared starts');
+      var EXAMPLES = [
+        ['the same long', 'system prompt'],
+        ['the same document', 'in a RAG pipeline'],
+        ['the same history in', 'a multi-turn agent']
+      ];
+      EXAMPLES.forEach(function (lines, k) {
+        var y = 78 + k * 84;
+        el('rect', { 'class': 'chip', x: CHIP_X, y: y, width: CHIP_W, height: CHIP_H, rx: 10 }, gE);
+        el('text', { 'class': 'chipline', x: CHIP_X + CHIP_W / 2, y: y + 27 }, gE, lines[0]);
+        el('text', { 'class': 'chipline', x: CHIP_X + CHIP_W / 2, y: y + 50 }, gE, lines[1]);
+      });
+      el('text', { 'class': 'fact', x: 50, y: 490 }, gE, 'on workloads that suit it, cache-hit rates jump and time-to-first-token drops');
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

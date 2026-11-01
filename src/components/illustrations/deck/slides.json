@@ -915,5 +915,89 @@
     "kicker": "kv cache offloading",
     "statement": "A hit comes from the nearest tier with a copy.",
     "notes": "SAY: The same shared prefix, four situations, depending on which copy survived. In the GPU lane nothing moves and only the new tokens are prefilled. In the CPU lane the GPU copy was evicted, so the chunks are copied up by DMA. In the NVMe lane both the GPU and CPU copies are gone, so the chunks are read into CPU RAM first and then copied to the GPU: two hops, and the scheduler is told to retry until they land. In the miss lane no tier has a copy and everything is prefilled again. The toy prefix is 8 chunks of 1,600 tokens, 12,800 tokens, which is 425 MiB of attention KV at 34 KiB per token. There are no timings on this slide on purpose: AWS publishes only IOPS for the g7e local NVMe, so measure it. And a prefix shorter than one 1,600-token chunk can never hit an external tier."
+  },
+  "h002-three-levers": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "the three levers",
+    "statement": "Three numbers decide whether a chip can serve a model.",
+    "notes": "SAY: the article sorts the hardware choice into three numbers. Walk the columns: capacity is the hard gate, and the toy picture shows a 27 GB model that does not fit a 16 GB card. Compute matters most for prefill, and only pays off when the chip multiplies the quantized format natively instead of converting it up. Bandwidth governs decode and sets tokens per second for one stream. The thin bar under the columns is interconnect, how you buy more of all three by ganging chips."
+  },
+  "h001-mem-bandwidth-ladder": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "memory bandwidth",
+    "statement": "Decode speed rides memory bandwidth.",
+    "notes": "SAY: this is the number that sets how fast one request decodes. Start on the GDDR rows: the part 4 machine (g7e) sits at 1.6 TB/s and the fastest workstation card at 1.8. Add the HBM datacenter rows: H100 3.35, H200 4.8, B200 8.0. The dashed dividers step the B200 bar off every 1.8 TB/s, so it reads as 4.4 workstation cards of bandwidth, and the per-stream decode gap follows that ratio almost entirely."
+  },
+  "h004-interconnect": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "interconnect",
+    "statement": "Splitting a model across GPUs puts the wire in the loop.",
+    "notes": "SAY: when a model is too big for one GPU you split it, tensor parallelism. A token goes in, each GPU holds a slice of every layer's weights and makes a partial result, the partials are exchanged in an all-reduce so each GPU ends with the complete output. That exchange happens after every block, twice per layer, at the speed of the wire. NVLink climbs from 600 GB/s per GPU on the A100 to 900 on the H100 to 1.8 TB/s on Blackwell; PCIe is about 14x slower, and the bar pair draws it at one fourteenth of the length."
+  },
+  "h003-memory-architecture": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "memory architecture",
+    "statement": "Dedicated memory is fast and small, unified memory is big and slower.",
+    "notes": "SAY: two shapes of memory. Dedicated: the GPU is wired to its own HBM or GDDR, the CPU has separate system RAM, two separate pools. Unified: the CPU, the GPU and on Apple the Neural Engine share one pool, and the DGX Spark example is a 128 GB pool at 273 GB/s. Then the ladder: Apple runs from around 120 GB/s on a base chip to 273 on a Pro, roughly 550 on a Max, and 1.2 TB/s on the M5 Ultra, still far behind a datacenter H200 at 4.8 TB/s. The shape to remember: capacity wins locally, bandwidth is the ceiling."
+  },
+  "h005-switch-vs-mesh": {
+    "steps": 2,
+    "tool": "none",
+    "kicker": "switch vs mesh",
+    "statement": "A switch scales to 72 GPUs, a direct mesh stops at 8.",
+    "notes": "SAY: two ways to wire many GPUs. NVIDIA puts a switch in the middle, NVSwitch, so every GPU reaches every other at full speed, all the way to a 72-GPU rack that behaves like one enormous GPU. AMD wires its eight GPUs in a direct all-to-all mesh with no switch in the middle, so the shared links thin the collective bandwidth as GPUs are added and the whole scale-up domain stops at 8. AMD's answer is a 72-GPU rack system on the MI400 generation, landing in the second half of 2026."
+  },
+  "h010-aws-ladder": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "aws instance families",
+    "statement": "The letter tells you the tier: g is cost, p is datacenter.",
+    "notes": "SAY: the single most useful thing about AWS is the meaning of the two instance letters, drawn here as two bar ladders of GPU memory per GPU on one scale from zero. Step 0: the g ladder, the cost-optimized tier, consumer-and-workstation GPUs with GDDR, no NVLink and PCIe only: g5 the A10G at 24 GB, g6e the L40S at 48 GB, and the current standout g7e, a Blackwell RTX PRO 6000 with 96 GB, native FP4 and 1.6 TB/s. Step 1: the p ladder, the datacenter tier, HBM, NVSwitch inside the box and the fast cross-node networking: p4d the A100 at 40 GB, p5 the H100 at 80 GB, p5e the H200 at 141 GB, p6 the B200 at 180 GB. Step 2: the price tags from the article table, written with their instance, us-east-1 on-demand per hour, approximate and subject to change: g5.48xlarge about $16, g6e.48xlarge about $30, g7e.8xlarge about $5 and g7e.48xlarge about $33, p4d.24xlarge about $33, p5.48xlarge about $55 to 70, p5e.48xlarge about $85, p6-b200.48xlarge about $114. Step 3: the g7e bar is the part 4 machine, and the box under the p column holds the UltraServers, which wire 72 Grace-Blackwell GPUs into a single NVLink domain with more than 13 TB of pooled HBM."
+  },
+  "h011-efa-sizes": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "aws efa",
+    "statement": "EFA reaches the g family only from the 8xlarge size up.",
+    "notes": "SAY: EFA is what lets serving span more than one box, and the number to know for 2026 is that it is no longer a p-family privilege. Step 0: the grid. Rows are the five g families, columns the sizes, xl meaning xlarge. The filled cells have EFA, and they all start at 8xlarge: g4dn goes 8, 12, 16 and metal, g5, g6 and g6e go 8, 12, 16, 24 and 48, and g7e goes 8, 12, 24 and 48, with no 16xl. Every smaller size has no EFA at all and cannot span nodes. Step 1: the generations. g4dn and g5 carry the first EFA generation, v1, without RDMA read or write; g6 and g6e are v2, with both; g7e is the newest, v4, also with both. Step 2: the ringed cells are GPUDirect RDMA, the adapter reading GPU memory directly, listed from g7e.12xlarge up, not on the 8xlarge. Step 3: the marked cell is the g7e.2xlarge, the size this series deploys on, no EFA, so one instance is the ceiling."
+  },
+  "h006-paged-attention": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "paged attention",
+    "statement": "Paging the KV cache wastes almost none of it.",
+    "notes": "SAY: naive batching hands each request one big contiguous slab of KV cache sized for its longest possible length, so most of it stays empty, the hatched part, and only a few requests fit. PagedAttention chops the cache into small fixed-size blocks and hands them out on demand, the way an operating system pages memory, so far more requests fit. The payoff: it packs the GPU to 80-odd percent utilization instead of the 30 or 40 percent of naive batching."
+  },
+  "h007-radix-attention": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "prefix caching",
+    "statement": "Requests that start the same way share one cached prefix.",
+    "notes": "SAY: RadixAttention keeps every request cache in one shared tree keyed by the actual tokens. Step 0: request A computes the prefix and its tail, and both get cached. Step 1: B starts the same way, so the prefix is a cache hit and only the tail of B is computed. Step 2: the same for C. Step 3: the shared starts this targets, the same long system prompt, the same document in a RAG pipeline, the same history in a multi-turn agent. On those workloads cache-hit rates jump and time-to-first-token drops."
+  },
+  "h008-engine-landscape": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "inference engines",
+    "statement": "Four engines cover almost every situation.",
+    "notes": "SAY: four engines cover almost every situation, and the useful way to tell them apart is not by benchmark charts, which change monthly, but by what each one is fundamentally for. Step 0: vLLM, the default, the widest reach of any engine, easy to run, fast enough, and it packs the GPU to 80-odd percent utilization. Step 1: SGLang, like vLLM, ahead on workloads where requests share a lot of text, and it enforces structured output at almost no throughput cost. Step 2: TensorRT-LLM, the fastest on NVIDIA only, compiled ahead of time into a tuned kernel graph, and you pay the tuning cost; tuned well it is half again the throughput on the same GPU. Step 3: llama.cpp, a single self-contained binary for local, not for many users at once. The card positions are a judgement, and the gaps between the four close every month."
+  },
+  "h012-how-to-pick": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "how to pick",
+    "statement": "Pick in this order: capacity, bandwidth, compute, then the wire.",
+    "notes": "SAY: put the three levers back in order and the whole landscape collapses into a short series of questions, and the order matters. Step 0: first, capacity, the hard gate. Does the model, its KV cache and a little room fit? Get it wrong and nothing else matters; if not, quantize down or accept the interconnect tax to spread it. Step 1: second, bandwidth. How fast do you need to decode, because that number is set almost entirely by memory bandwidth, and that is where the HBM versus GDDR versus unified choice bites. Step 2: third, compute and precision. Check that the chip natively multiplies the format you quantize to, or your quantization saves memory and buys no speed. Step 3: fourth, interconnect, and only if a model outgrows a single chip: NVLink and NVSwitch to spread one model wide, EFA-class networking across machines. And the honest defaults: NVIDIA for least resistance, AMD for the same serving for less money, Apple, DGX Spark or a Strix Halo box for local, Google's TPUs if you already live on Google Cloud, AWS as the place you rent most of the above, and vLLM on top until there is a reason for something sharper."
+  },
+  "h009-vendor-scorecard": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "vendors",
+    "statement": "Every vendor is a different answer to the same three numbers.",
+    "notes": "SAY: every vendor is a different answer to the same three numbers, and the ratings are the author's judgement, kept exactly. Walk the rows as they land. Step 0: NVIDIA, mid on raw per-chip capacity but strong on compute, bandwidth and interconnect, and you get it by buying or by cloud. Step 1: AMD, strong on capacity, compute and bandwidth, mid on interconnect until the rack ships, also buy or cloud. Step 2: Apple, strong on unified capacity, but mid compute, weak bandwidth and weak interconnect, and you just buy it. Step 3: Google, strong across the board with scale nobody else matches, but you get it GCP only. The word is always in the cell, so the scorecard reads without the colour."
   }
 }

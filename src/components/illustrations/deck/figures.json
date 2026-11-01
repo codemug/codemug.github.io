@@ -830,5 +830,113 @@
       "d702-prefix-hit-tiers": "The same shared prefix is loaded up from the nearest tier that still holds it, staged through CPU RAM when it sits on NVMe, and recomputed in full when no tier has it. The 12,800-token prefix is a toy length, the 1,600-token chunk is the block size a running pod logs, and no timings are shown because AWS publishes only IOPS for the g7e local NVMe, not MB/s. (Illustrative.)"
     },
     "dwell": 4500
+  },
+  "p3-three-levers": {
+    "slides": [
+      "h002-three-levers"
+    ],
+    "captions": {
+      "h002-three-levers": "Three numbers decide whether a chip can serve a model: capacity, compute and bandwidth, with interconnect the way to buy more of all three by ganging chips. (Toy numbers.)"
+    },
+    "dwell": 4500
+  },
+  "p3-mem-bandwidth-ladder": {
+    "slides": [
+      "h001-mem-bandwidth-ladder"
+    ],
+    "captions": {
+      "h001-mem-bandwidth-ladder": "Memory bandwidth, the number that sets how fast one request decodes, runs from 0.6 TB/s on an A10G to 8.0 TB/s on a B200: 4.4x the fastest workstation card. (Real vendor specs.)"
+    },
+    "dwell": 4500
+  },
+  "p3-interconnect": {
+    "slides": [
+      "h004-interconnect"
+    ],
+    "captions": {
+      "h004-interconnect": "Splitting a model across GPUs runs an all-reduce after every block at the speed of the wire: NVLink climbs from 600 GB/s per GPU on the A100 to 1.8 TB/s on Blackwell, and PCIe is about 14x slower. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p3-memory-architecture": {
+    "slides": [
+      "h003-memory-architecture"
+    ],
+    "captions": {
+      "h003-memory-architecture": "Dedicated memory is fast and small, unified memory is big and slower: an Apple M5 Ultra moves 1.2 TB/s and a DGX Spark pool 273 GB/s, beside a datacenter H200 at 4.8 TB/s. (Real vendor specs.)"
+    },
+    "dwell": 4500
+  },
+  "p3-switch-vs-mesh": {
+    "slides": [
+      "h005-switch-vs-mesh"
+    ],
+    "captions": {
+      "h005-switch-vs-mesh": "A switch scales to 72 GPUs, a direct mesh stops at 8: NVSwitch gives every GPU full speed to every other in a 72-GPU rack, AMD's all-to-all mesh stops at 8 until the MI400 rack lands in the second half of 2026. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p3-aws-ladder": {
+    "slides": [
+      "h010-aws-ladder"
+    ],
+    "captions": {
+      "h010-aws-ladder": "The g ladder on GDDR and PCIe, from g5.48xlarge about $16 to g7e.48xlarge about $33, and the p ladder on HBM and NVSwitch, from p4d.24xlarge about $33 to the UltraServers at more than 13 TB of pooled HBM. us-east-1, on-demand per hour. (Approximate prices.)"
+    },
+    "dwell": 4500
+  },
+  "p3-efa-sizes": {
+    "slides": [
+      "h011-efa-sizes"
+    ],
+    "captions": {
+      "h011-efa-sizes": "The g-family sizes with EFA, by family and generation: every family from 8xlarge up, g4dn and g5 on v1 without RDMA read or write, g6 and g6e on v2 and g7e on v4 with both, GPUDirect RDMA from g7e.12xlarge up, and the part 4 machine, g7e.2xlarge, with no EFA at all. (Real AWS specs.)"
+    },
+    "dwell": 4500
+  },
+  "p3-paged-attention": {
+    "slides": [
+      "h006-paged-attention"
+    ],
+    "captions": {
+      "h006-paged-attention": "PagedAttention chops the KV cache into small blocks handed out on demand: 80-odd percent GPU utilization instead of the 30 or 40 percent of naive batching. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p3-radix-attention": {
+    "slides": [
+      "h007-radix-attention"
+    ],
+    "captions": {
+      "h007-radix-attention": "One shared prefix of 4 tokens is stored once, and the tail of each request hangs off it, so requests that start the same way reuse the prefix and compute only their tail: A computed 6 of 6 tokens, B and C only 2 of 6. (Toy numbers.)"
+    },
+    "dwell": 4500
+  },
+  "p3-engine-landscape": {
+    "slides": [
+      "h008-engine-landscape"
+    ],
+    "captions": {
+      "h008-engine-landscape": "Four engines, one card each: vLLM the default that packs the GPU to 80-odd percent, SGLang ahead on shared-text workloads, TensorRT-LLM half again the throughput on the same GPU but NVIDIA only, and llama.cpp for local. Positions are a judgement. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p3-how-to-pick": {
+    "slides": [
+      "h012-how-to-pick"
+    ],
+    "captions": {
+      "h012-how-to-pick": "The four questions in order, capacity as the hard gate, then bandwidth for decode, then whether the chip natively multiplies the quantized format, then interconnect only if one chip is not enough, with the honest defaults on who to buy from. (Illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p3-vendor-scorecard": {
+    "slides": [
+      "h009-vendor-scorecard"
+    ],
+    "captions": {
+      "h009-vendor-scorecard": "NVIDIA, AMD, Apple and Google rated on capacity, compute, bandwidth and interconnect, with how to get each: the author's judgement, strong in accent, mid muted, weak dim, the word always in the cell. (Illustrative.)"
+    },
+    "dwell": 4500
   }
 }

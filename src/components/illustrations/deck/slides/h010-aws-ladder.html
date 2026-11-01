@@ -1,0 +1,106 @@
+<section class="slide" id="h010-aws-ladder" data-steps="3">
+  <p class="kicker reveal">aws instance families</p>
+  <p class="statement reveal">The letter tells you the tier: g is cost, p is datacenter.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h010-aws-ladder-t h010-aws-ladder-d">
+      <title id="h010-aws-ladder-t">Two bar ladders of GPU memory per GPU: the g family on GDDR and the p family on HBM, with us-east-1 price tags</title>
+      <desc id="h010-aws-ladder-d">Two columns of horizontal bars, bar length is the GPU memory per GPU in GB on one linear scale from zero, unit label GPU memory per GPU, GB under each column heading. Left column, g (GDDR, no NVLink, PCIe only), muted bars: g5 A10G 24 GB, g6e L40S 48 GB, g7e RTX PRO 6000 96 GB. Right column, p (HBM, NVSwitch, fast cross-node networking), accent bars: p4d A100 40 GB, p5 H100 80 GB, p5e H200 141 GB, p6 B200 180 GB. Steps: the g bars, the p bars, then a price tag at the end of each bar written with its instance, g5.48xlarge about $16 per hour, g6e.48xlarge about $30, g7e.8xlarge about $5 and g7e.48xlarge about $33, p4d.24xlarge about $33, p5.48xlarge about $55 to 70, p5e.48xlarge about $85, p6-b200.48xlarge about $114, with the footer us-east-1, on-demand, approximate close to the tags. The last step marks the g7e bar as the part 4 machine and adds a box under the p column that opens with the word UltraServers: 72 Grace-Blackwell GPUs, one NVLink domain, 13+ TB of pooled HBM.</desc>
+      <g id="h010-aws-ladder-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h010-aws-ladder svg.diagram{width:100%;height:100%;max-width:none;}
+    #h010-aws-ladder text{font-family:var(--font-mono);}
+    #h010-aws-ladder .head{font-size:20px;font-weight:600;fill:var(--color-text-soft);}
+    #h010-aws-ladder .unit{font-size:20px;fill:var(--color-text-soft);}
+    #h010-aws-ladder .name{font-size:21px;fill:var(--color-text);}
+    #h010-aws-ladder .mem{font-size:20px;fill:var(--color-text-muted);}
+    #h010-aws-ladder .bar-g{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h010-aws-ladder .bar-p{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h010-aws-ladder .axis{stroke:var(--color-border-strong);stroke-width:2;}
+    #h010-aws-ladder .price{font-size:20px;fill:var(--color-text-soft);}
+    #h010-aws-ladder .foot{font-size:20px;fill:var(--color-text-muted);}
+    #h010-aws-ladder .mark{font-size:20px;font-weight:600;fill:var(--color-accent);}
+    #h010-aws-ladder .g7ering{fill:none;stroke:var(--color-accent);stroke-width:3;}
+    #h010-aws-ladder .ubox{fill:var(--color-surface-deep);stroke:var(--color-accent);stroke-width:2;}
+    #h010-aws-ladder .uline{font-size:20px;fill:var(--color-text-soft);}
+    #h010-aws-ladder [data-from]{opacity:0;transition:opacity .5s;}
+    #h010-aws-ladder [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h010-aws-ladder';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // Scale: 2 px per GB on one linear scale from 0 for both columns, so the
+      // longest bar (p6, 180 GB) is 360 px and ends at x 1082, before the 1100
+      // limit. Column headings at y 35 with the unit label under each at y 75;
+      // row centres at pitch 84 from y 107; the price tag of each row sits 47
+      // below the centre (bar bottom + 20 + text top).
+      var S = 2.0, BAR_H = 24, G0 = 260, P0 = 722;
+      var GY = [107, 191, 275], PY = [107, 191, 275, 359];
+
+      // base: the column headings, the unit label under each, and the axes
+      el('text', { 'class': 'head', x: 20, y: 35 }, g, 'GDDR, no NVLink, PCIe only');
+      el('text', { 'class': 'unit', x: 20, y: 75 }, g, 'GPU memory per GPU, GB');
+      el('text', { 'class': 'head', x: 570, y: 35 }, g, 'HBM, NVSwitch, fast cross-node networking');
+      el('text', { 'class': 'unit', x: 570, y: 75 }, g, 'GPU memory per GPU, GB');
+      el('line', { 'class': 'axis', x1: G0, y1: 91, x2: G0, y2: 291 }, g);
+
+      function row(parent, cy, x0, name, mem, gbs, bars) {
+        el('text', { 'class': 'name', x: 20 + (bars === 'p' ? 580 : 0), y: cy - 5 }, parent, name);
+        el('text', { 'class': 'mem', x: 20 + (bars === 'p' ? 580 : 0), y: cy + 18 }, parent, mem);
+        el('rect', { 'class': 'bar-' + bars, x: x0, y: cy - BAR_H / 2, width: gbs * S, height: BAR_H, rx: 6 }, parent);
+      }
+
+      // step 0: the g ladder (muted bars)
+      row(g, GY[0], G0, 'g5 A10G', '24 GB', 24, 'g');
+      row(g, GY[1], G0, 'g6e L40S', '48 GB', 48, 'g');
+      row(g, GY[2], G0, 'g7e RTX PRO 6000', '96 GB', 96, 'g');
+
+      // step 1: the p ladder (accent bars)
+      var gP = el('g', { 'data-from': '1' }, g);
+      el('line', { 'class': 'axis', x1: P0, y1: 91, x2: P0, y2: 375 }, gP);
+      row(gP, PY[0], P0, 'p4d A100', '40 GB', 40, 'p');
+      row(gP, PY[1], P0, 'p5 H100', '80 GB', 80, 'p');
+      row(gP, PY[2], P0, 'p5e H200', '141 GB', 141, 'p');
+      row(gP, PY[3], P0, 'p6 B200', '180 GB', 180, 'p');
+
+      // step 2: a price tag at the end of each bar, written with its instance
+      var gT = el('g', { 'data-from': '2' }, g);
+      el('text', { 'class': 'price', x: G0, y: GY[0] + 47 }, gT, 'g5.48xlarge ~$16/hr');
+      el('text', { 'class': 'price', x: G0, y: GY[1] + 47 }, gT, 'g6e.48xlarge ~$30/hr');
+      el('text', { 'class': 'price', x: G0, y: GY[2] + 47 }, gT, 'g7e.8xlarge ~$5/hr');
+      el('text', { 'class': 'price', x: G0, y: GY[2] + 71 }, gT, 'g7e.48xlarge ~$33/hr');
+      el('text', { 'class': 'price', x: P0, y: PY[0] + 47 }, gT, 'p4d.24xlarge ~$33/hr');
+      el('text', { 'class': 'price', x: P0, y: PY[1] + 47 }, gT, 'p5.48xlarge ~$55-70/hr');
+      el('text', { 'class': 'price', x: P0, y: PY[2] + 47 }, gT, 'p5e.48xlarge ~$85/hr');
+      el('text', { 'class': 'price', x: P0, y: PY[3] + 47 }, gT, 'p6-b200.48xlarge ~$114/hr');
+      el('text', { 'class': 'foot', x: 20, y: PY[3] + 47 }, gT, 'us-east-1, on-demand, approximate');
+
+      // step 3: the part 4 machine on the g7e bar, and the UltraServers box
+      var gM = el('g', { 'data-from': '3' }, g);
+      el('rect', { 'class': 'g7ering', x: G0, y: GY[2] - BAR_H / 2, width: 96 * S, height: BAR_H, rx: 6 }, gM);
+      el('text', { 'class': 'mark', x: G0 + 8, y: GY[2] + 8 }, gM, 'part 4 machine');
+      el('rect', { 'class': 'ubox', x: 288, y: 431, width: 808, height: 69, rx: 10 }, gM);
+      el('text', { 'class': 'mark', x: 308, y: 460 }, gM, 'UltraServers');
+      el('text', { 'class': 'uline', x: 308, y: 482 }, gM, '72 Grace-Blackwell GPUs, one NVLink domain, 13+ TB of pooled HBM');
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

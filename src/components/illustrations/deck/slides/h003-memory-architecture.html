@@ -1,0 +1,118 @@
+<section class="slide" id="h003-memory-architecture" data-steps="3">
+  <p class="kicker reveal">memory architecture</p>
+  <p class="statement reveal">Dedicated memory is fast and small, unified memory is big and slower.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h003-memory-architecture-t h003-memory-architecture-d">
+      <title id="h003-memory-architecture-t">Dedicated memory versus unified memory, and memory bandwidth: the Apple chip ladder against a datacenter H200</title>
+      <desc id="h003-memory-architecture-d">Two panels. Left, dedicated: the GPU is wired to its own HBM or GDDR and the CPU to its own system RAM; a dashed wall marks the two separate pools. Right, unified: the CPU, the GPU and, on Apple, the Neural Engine share one pool, with the DGX Spark example, a 128 GB pool at 273 GB/s. Below: a linear bar chart from zero, memory bandwidth in GB/s, of the Apple ladder (base around 120, Pro 273, Max around 550, M5 Ultra 1200) and one datacenter reference, an H200 at 4800. Steps: the dedicated panel, then the unified panel, then the ladder bars with the unit label and the H200 reference bar, then the shape to remember: capacity wins locally, bandwidth is the ceiling.</desc>
+      <g id="h003-memory-architecture-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h003-memory-architecture svg.diagram{width:100%;height:100%;max-width:none;}
+    #h003-memory-architecture text{font-family:var(--font-mono);}
+    #h003-memory-architecture .panel{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;}
+    #h003-memory-architecture .ptitle{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #h003-memory-architecture .box{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #h003-memory-architecture .boxlab{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #h003-memory-architecture .mem{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h003-memory-architecture .memlab{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #h003-memory-architecture .pool{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h003-memory-architecture .wall{stroke:var(--color-border-strong);stroke-width:2.5;stroke-dasharray:5 5;}
+    #h003-memory-architecture .conn{stroke:var(--color-border-strong);stroke-width:2;}
+    #h003-memory-architecture .note{font-size:20px;fill:var(--color-text-soft);}
+    #h003-memory-architecture .num{fill:var(--color-accent);font-weight:600;}
+    #h003-memory-architecture .unit{font-size:20px;fill:var(--color-text-soft);}
+    #h003-memory-architecture .axis{stroke:var(--color-border-strong);stroke-width:2;}
+    #h003-memory-architecture .name{font-size:20px;fill:var(--color-text);}
+    #h003-memory-architecture .val{font-size:20px;fill:var(--color-text);}
+    #h003-memory-architecture .bar-uni{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h003-memory-architecture .bar-dc{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h003-memory-architecture .val-dc{font-weight:600;fill:var(--color-accent);}
+    #h003-memory-architecture .shape{font-size:20px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #h003-memory-architecture [data-from]{opacity:0;transition:opacity .5s;}
+    #h003-memory-architecture [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h003-memory-architecture';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // top panels y 30..200: dedicated (left, visible from step 0), unified (right)
+      el('rect', { 'class': 'panel', x: 20, y: 30, width: 530, height: 170, rx: 10 }, g);
+      el('text', { 'class': 'ptitle', x: 40, y: 62 }, g, 'dedicated');
+      el('rect', { 'class': 'box', x: 40, y: 80, width: 190, height: 42, rx: 8 }, g);
+      el('text', { 'class': 'boxlab', x: 135, y: 106 }, g, 'GPU');
+      el('rect', { 'class': 'mem', x: 40, y: 132, width: 190, height: 26, rx: 5 }, g);
+      el('text', { 'class': 'memlab', x: 135, y: 150 }, g, 'HBM or GDDR');
+      el('rect', { 'class': 'box', x: 330, y: 80, width: 190, height: 42, rx: 8 }, g);
+      el('text', { 'class': 'boxlab', x: 425, y: 106 }, g, 'CPU');
+      el('rect', { 'class': 'mem', x: 330, y: 132, width: 190, height: 26, rx: 5 }, g);
+      el('text', { 'class': 'memlab', x: 425, y: 150 }, g, 'system RAM');
+      el('line', { 'class': 'wall', x1: 280, y1: 66, x2: 280, y2: 174 }, g);
+      el('text', { 'class': 'note', x: 40, y: 186 }, g, 'two separate pools');
+
+      // step 1: unified, one pool shared by CPU, GPU and (on Apple) the Neural Engine
+      var gUni = el('g', { 'data-from': '1' }, g);
+      el('rect', { 'class': 'panel', x: 570, y: 30, width: 530, height: 170, rx: 10 }, gUni);
+      el('text', { 'class': 'ptitle', x: 590, y: 62 }, gUni, 'unified');
+      [
+        { x: 590, w: 140, t: 'CPU' },
+        { x: 755, w: 140, t: 'GPU' },
+        { x: 920, w: 170, t: 'Neural Engine' }
+      ].forEach(function (c) {
+        el('rect', { 'class': 'box', x: c.x, y: 80, width: c.w, height: 40, rx: 8 }, gUni);
+        el('text', { 'class': 'boxlab', x: c.x + c.w / 2, y: 105 }, gUni, c.t);
+        el('line', { 'class': 'conn', x1: c.x + c.w / 2, y1: 120, x2: c.x + c.w / 2, y2: 132 }, gUni);
+      });
+      el('rect', { 'class': 'pool', x: 590, y: 132, width: 500, height: 26, rx: 5 }, gUni);
+      el('text', { 'class': 'memlab', x: 840, y: 150 }, gUni, 'one shared pool');
+      var spark = el('text', { 'class': 'note', x: 590, y: 186 }, gUni);
+      el('tspan', {}, spark, 'DGX Spark: ');
+      el('tspan', { 'class': 'num' }, spark, '128 GB');
+      el('tspan', {}, spark, ' pool at ');
+      el('tspan', { 'class': 'num' }, spark, '273 GB/s');
+
+      // step 2: the bandwidth ladder, linear from 0. Scale: 0.125 px per GB/s,
+      // so 4800 GB/s (the H200 reference) is 600 px, ending at x 850
+      var gBar = el('g', { 'data-from': '2' }, g);
+      var PX = 0.125, X0 = 250, CY0 = 280, PITCH = 40, BAR_H = 30;
+      var ROWS = [
+        { name: 'Apple base',        v: 120,  dc: false },
+        { name: 'Apple Pro',         v: 273,  dc: false },
+        { name: 'Apple Max',         v: 550,  dc: false },
+        { name: 'M5 Ultra',          v: 1200, dc: false },
+        { name: 'H200 (datacenter)', v: 4800, dc: true }
+      ];
+      el('text', { 'class': 'unit', x: X0, y: 240 }, gBar, 'memory bandwidth, GB/s');
+      el('line', { 'class': 'axis', x1: X0, y1: 265, x2: X0, y2: CY0 + 4 * PITCH + 15 }, gBar);
+      ROWS.forEach(function (d, k) {
+        var cy = CY0 + k * PITCH;
+        var len = d.v * PX;
+        el('text', { 'class': 'name', x: 20, y: cy + 7 }, gBar, d.name);
+        el('rect', { 'class': d.dc ? 'bar-dc' : 'bar-uni', x: X0, y: cy - BAR_H / 2, width: len, height: BAR_H, rx: 6 }, gBar);
+        el('text', { 'class': 'val' + (d.dc ? ' val-dc' : ''), x: X0 + len + 10, y: cy + 7 }, gBar, String(d.v));
+      });
+
+      // step 3: the shape to remember
+      var gShape = el('g', { 'data-from': '3' }, g);
+      el('text', { 'class': 'shape', x: 560, y: 496 }, gShape, 'capacity wins locally, bandwidth is the ceiling');
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>
