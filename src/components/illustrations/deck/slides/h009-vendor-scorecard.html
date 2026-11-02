@@ -1,0 +1,91 @@
+<section class="slide" id="h009-vendor-scorecard" data-steps="3">
+  <p class="kicker reveal">vendors</p>
+  <p class="statement reveal">Every vendor is a different answer to the same three numbers.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h009-vendor-scorecard-t h009-vendor-scorecard-d">
+      <title id="h009-vendor-scorecard-t">Vendor scorecard: NVIDIA, AMD, Apple and Google rated on capacity, compute, bandwidth, interconnect and how to get them</title>
+      <desc id="h009-vendor-scorecard-d">A matrix with the vendors NVIDIA, AMD, Apple and Google as rows and the columns capacity, compute, bandwidth, interconnect, get it. NVIDIA: mid, strong, strong, strong, buy or cloud. AMD: strong, strong, strong, mid, buy or cloud. Apple: strong, mid, weak, weak, buy. Google: strong, strong, strong, strong, GCP only. Strong cells are accented, mid cells muted accent, weak cells dim, and the word is always in the cell. One row appears per step.</desc>
+      <g id="h009-vendor-scorecard-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h009-vendor-scorecard svg.diagram{width:100%;height:100%;max-width:none;}
+    #h009-vendor-scorecard text{font-family:var(--font-mono);}
+    #h009-vendor-scorecard .colhead{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h009-vendor-scorecard .vendor{font-size:24px;font-weight:600;fill:var(--color-text);}
+    #h009-vendor-scorecard .cell-strong{fill:color-mix(in oklab,var(--color-accent) 40%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h009-vendor-scorecard .txt-strong{font-size:20px;font-weight:600;fill:var(--color-text);text-anchor:middle;}
+    #h009-vendor-scorecard .cell-mid{fill:color-mix(in oklab,var(--color-accent-muted) 25%,var(--color-surface-deep));stroke:var(--color-accent-muted);stroke-width:2;}
+    #h009-vendor-scorecard .txt-mid{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h009-vendor-scorecard .cell-weak{fill:color-mix(in oklab,var(--color-text-dim) 12%,var(--color-surface-deep));stroke:var(--color-text-dim);stroke-width:2;}
+    #h009-vendor-scorecard .txt-weak{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h009-vendor-scorecard .cell-get{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #h009-vendor-scorecard .txt-get{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h009-vendor-scorecard .gridline{stroke:var(--color-hairline);stroke-width:1;}
+    #h009-vendor-scorecard [data-from]{opacity:0;transition:opacity .5s;}
+    #h009-vendor-scorecard [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h009-vendor-scorecard';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // matrix: 5 columns x 170, cells 150 wide; 4 rows, pitch 100.
+      var COLS = ['capacity', 'compute', 'bandwidth', 'interconnect', 'get it'];
+      var COL_X = [240, 410, 580, 750, 920], COL_C = COL_X.map(function (x) { return x + 85; });
+      var CELL_W = 150, CELL_H = 56;
+      var ROW_Y = [130, 230, 330, 430];
+      var VENDORS = [
+        { name: 'NVIDIA', cells: ['mid', 'strong', 'strong', 'strong', 'buy or cloud'] },
+        { name: 'AMD',    cells: ['strong', 'strong', 'strong', 'mid', 'buy or cloud'] },
+        { name: 'Apple',  cells: ['strong', 'mid', 'weak', 'weak', 'buy'] },
+        { name: 'Google', cells: ['strong', 'strong', 'strong', 'strong', 'GCP only'] }
+      ];
+
+      // base: column headers and the row guide lines
+      COLS.forEach(function (name, i) {
+        el('text', { 'class': 'colhead', x: COL_C[i], y: 70 }, g, name);
+      });
+      ROW_Y.forEach(function (y) {
+        el('line', { 'class': 'gridline', x1: 220, y1: y - CELL_H / 2 - 14, x2: 1090, y2: y - CELL_H / 2 - 14 }, g);
+      });
+
+      // one row per step: the vendor name plus its five rated cells
+      VENDORS.forEach(function (v, r) {
+        var y = ROW_Y[r];
+        var row = r === 0 ? g : el('g', { 'data-from': String(r) }, g);
+        el('text', { 'class': 'vendor', x: 50, y: y + 8 }, row, v.name);
+        v.cells.forEach(function (rating, i) {
+          var cx = COL_C[i];
+          var kind = (rating === 'strong' || rating === 'mid' || rating === 'weak') ? rating : 'get';
+          el('rect', {
+            'class': 'cell-' + kind,
+            x: cx - CELL_W / 2, y: y - CELL_H / 2, width: CELL_W, height: CELL_H, rx: 10
+          }, row);
+          if (rating === 'buy or cloud') {
+            el('text', { 'class': 'txt-' + kind, x: cx, y: y - 5 }, row, 'buy');
+            el('text', { 'class': 'txt-' + kind, x: cx, y: y + 19 }, row, 'or cloud');
+          } else {
+            el('text', { 'class': 'txt-' + kind, x: cx, y: y + 7 }, row, rating);
+          }
+        });
+      });
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

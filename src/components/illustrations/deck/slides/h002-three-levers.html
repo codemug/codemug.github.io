@@ -1,0 +1,136 @@
+<section class="slide" id="h002-three-levers" data-steps="3">
+  <p class="kicker reveal">the three levers</p>
+  <p class="statement reveal">Three numbers decide whether a chip can serve a model.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h002-three-levers-t h002-three-levers-d">
+      <title id="h002-three-levers-t">The three numbers that decide whether a chip can serve a model: capacity, compute and bandwidth, plus interconnect</title>
+      <desc id="h002-three-levers-d">Three columns. Capacity decides if the model fits: the weights, the KV cache and a little working room all have to fit at once in the memory wired to the multiply units; a toy picture shows a 27 GB model against a 16 GB card that does not fit. Compute governs prefill and matters most when the chip multiplies the quantized format natively: two vertical mini flows show the native 4-bit path, weights straight to multiply, versus no native 4-bit, weights, convert to 16-bit, multiply. Bandwidth governs decode: a memory box feeds the multiply units through a wide pipe, because decode re-reads the weights for every token. A thin bar below the columns: interconnect, how you buy more of all three by ganging chips. Steps reveal capacity, then compute, then bandwidth, then the interconnect bar.</desc>
+      <g id="h002-three-levers-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h002-three-levers svg.diagram{width:100%;height:100%;max-width:none;}
+    #h002-three-levers text{font-family:var(--font-mono);}
+    #h002-three-levers .card{fill:var(--color-surface-deep);stroke:var(--color-border);stroke-width:2.5;}
+    #h002-three-levers .ctitle{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #h002-three-levers .line{font-size:20px;fill:var(--color-text-soft);}
+    #h002-three-levers .toy-lab{font-size:20px;fill:var(--color-text);}
+    #h002-three-levers .toy-model{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h002-three-levers .toy-card{fill:color-mix(in oklab,var(--color-accent) 14%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h002-three-levers .toy-mark{stroke:var(--color-accent);stroke-width:2;stroke-dasharray:4 4;}
+    #h002-three-levers .toy-fit{font-size:20px;font-weight:600;fill:var(--color-accent);}
+    #h002-three-levers .flabm{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h002-three-levers .fbox{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;}
+    #h002-three-levers .fbox-warn{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h002-three-levers .ftxt{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #h002-three-levers .farrow{stroke:var(--color-border-strong);stroke-width:2;}
+    #h002-three-levers .fhead{fill:var(--color-border-strong);}
+    #h002-three-levers .pipe{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h002-three-levers .icbar{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #h002-three-levers .iclab{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h002-three-levers .icnum{font-weight:600;fill:var(--color-accent);}
+    #h002-three-levers [data-from]{opacity:0;transition:opacity .5s;}
+    #h002-three-levers [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h002-three-levers';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      function arrowD(x, y, parent) {
+        el('line', { 'class': 'farrow', x1: x, y1: y, x2: x, y2: y + 8 }, parent);
+        el('polygon', { 'class': 'fhead', points: (x - 4) + ', ' + (y + 8) + ' ' + (x + 4) + ', ' + (y + 8) + ' ' + x + ', ' + (y + 16) }, parent);
+      }
+      var g = document.getElementById(ID + '-g');
+
+      function drawCard(x, title, lines, group) {
+        el('rect', { 'class': 'card', x: x, y: 30, width: 340, height: 370, rx: 10 }, group);
+        el('text', { 'class': 'ctitle', x: x + 20, y: 75 }, group, title);
+        lines.forEach(function (t, k) {
+          el('text', { 'class': 'line', x: x + 20, y: 110 + k * 22 }, group, t);
+        });
+      }
+
+      // step 0: the capacity card, with the toy picture (27 GB model against a 16 GB card),
+      // 8 px per GB; every label keeps 20 units from the next element
+      drawCard(20, 'Capacity', [
+        'decides if the model fits',
+        'weights, KV cache and',
+        'working room all at once',
+        'must fit in that memory'
+      ], g);
+      el('text', { 'class': 'toy-lab', x: 40, y: 216 }, g, 'model, 27 GB');
+      el('rect', { 'class': 'toy-model', x: 40, y: 240, width: 216, height: 20, rx: 4 }, g);
+      el('line', { 'class': 'toy-mark', x1: 168, y1: 234, x2: 168, y2: 266 }, g);
+      el('text', { 'class': 'toy-fit', x: 40, y: 296 }, g, 'does not fit');
+      el('text', { 'class': 'toy-lab', x: 40, y: 336 }, g, 'card, 16 GB');
+      el('rect', { 'class': 'toy-card', x: 40, y: 360, width: 128, height: 20, rx: 4 }, g);
+
+      // step 1: the compute card, two vertical mini flows: the native 4-bit path
+      // (weights straight to multiply) versus no native 4-bit (convert to 16-bit first);
+      // every box keeps 20 units to the next, with a 16-unit arrow in the gap
+      var gComp = el('g', { 'data-from': '1' }, g);
+      drawCard(380, 'Compute', [
+        'governs prefill',
+        'multiply 4-bit natively'
+      ], gComp);
+      // native 4-bit lane, center x 470
+      el('text', { 'class': 'flabm', x: 470, y: 176 }, gComp, 'native 4-bit');
+      el('rect', { 'class': 'fbox', x: 422, y: 200, width: 96, height: 28, rx: 5 }, gComp);
+      el('text', { 'class': 'ftxt', x: 470, y: 217 }, gComp, 'weights');
+      arrowD(470, 228, gComp);
+      el('rect', { 'class': 'fbox', x: 416, y: 248, width: 108, height: 28, rx: 5 }, gComp);
+      el('text', { 'class': 'ftxt', x: 470, y: 265 }, gComp, 'multiply');
+      // no native 4-bit lane, center x 630
+      el('text', { 'class': 'flabm', x: 630, y: 176 }, gComp, 'no native');
+      el('text', { 'class': 'flabm', x: 630, y: 198 }, gComp, '4-bit');
+      el('rect', { 'class': 'fbox', x: 582, y: 222, width: 96, height: 28, rx: 5 }, gComp);
+      el('text', { 'class': 'ftxt', x: 630, y: 239 }, gComp, 'weights');
+      arrowD(630, 250, gComp);
+      el('rect', { 'class': 'fbox-warn', x: 564, y: 270, width: 132, height: 48, rx: 5 }, gComp);
+      el('text', { 'class': 'ftxt', x: 630, y: 288 }, gComp, 'convert to');
+      el('text', { 'class': 'ftxt', x: 630, y: 310 }, gComp, '16-bit');
+      arrowD(630, 318, gComp);
+      el('rect', { 'class': 'fbox', x: 576, y: 338, width: 108, height: 28, rx: 5 }, gComp);
+      el('text', { 'class': 'ftxt', x: 630, y: 355 }, gComp, 'multiply');
+
+      // step 2: the bandwidth card: memory feeds the multiply units through a wide pipe,
+      // because decode re-reads the weights for every token
+      var gBand = el('g', { 'data-from': '2' }, g);
+      drawCard(740, 'Bandwidth', [
+        'governs decode',
+        'sets tokens per second',
+        'for one stream'
+      ], gBand);
+      el('rect', { 'class': 'fbox', x: 865, y: 196, width: 90, height: 28, rx: 5 }, gBand);
+      el('text', { 'class': 'ftxt', x: 910, y: 213 }, gBand, 'memory');
+      el('rect', { 'class': 'pipe', x: 896, y: 224, width: 28, height: 52, rx: 4 }, gBand);
+      el('polygon', { 'class': 'fhead', points: '910, 284 902, 276 918, 276' }, gBand);
+      el('rect', { 'class': 'fbox', x: 823, y: 284, width: 174, height: 28, rx: 5 }, gBand);
+      el('text', { 'class': 'ftxt', x: 910, y: 301 }, gBand, 'multiply units');
+      el('text', { 'class': 'flabm', x: 910, y: 346 }, gBand, 'decode re-reads the');
+      el('text', { 'class': 'flabm', x: 910, y: 370 }, gBand, 'weights for every token');
+
+      // step 3: the interconnect bar
+      var gIc = el('g', { 'data-from': '3' }, g);
+      el('rect', { 'class': 'icbar', x: 20, y: 440, width: 1080, height: 35, rx: 8 }, gIc);
+      var ic = el('text', { 'class': 'iclab', x: 560, y: 462 }, gIc);
+      el('tspan', { 'class': 'icnum' }, ic, 'interconnect:');
+      el('tspan', {}, ic, ' how you buy more of all three, by ganging chips');
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

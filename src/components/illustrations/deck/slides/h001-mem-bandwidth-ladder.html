@@ -1,0 +1,116 @@
+<section class="slide" id="h001-mem-bandwidth-ladder" data-steps="3">
+  <p class="kicker reveal">memory bandwidth</p>
+  <p class="statement reveal">Decode speed rides memory bandwidth.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h001-mem-bandwidth-ladder-t h001-mem-bandwidth-ladder-d">
+      <title id="h001-mem-bandwidth-ladder-t">Memory bandwidth of seven GPUs, in terabytes per second: A10G 0.6, L40S 0.864, RTX PRO 6000 in the g7e instance 1.6, RTX PRO 6000 workstation card 1.8, H100 3.35, H200 4.8, B200 8.0</title>
+      <desc id="h001-mem-bandwidth-ladder-d">Horizontal bars, one per chip, sorted by bandwidth, values in TB/s (label above the bars). GDDR rows (muted tone): A10G 0.6, L40S 0.864, RTX PRO 6000 in the g7e instance 1.6 (the part 4 machine; the AWS g7e page lists 1,597 GB/s), RTX PRO 6000 workstation card 1.8. HBM rows (accent colour): H100 3.35, H200 4.8, B200 8.0. Dashed dividers on the B200 bar step it off every 1.8 TB/s, one workstation card of bandwidth, so the bar reads as 4.4 cards (8.0 / 1.8). Steps: the GDDR rows, then the HBM rows with a GDDR and an HBM family label, then the dividers and the 4.4 label, then the part 4 machine tag on the g7e row.</desc>
+      <g id="h001-mem-bandwidth-ladder-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h001-mem-bandwidth-ladder svg.diagram{width:100%;height:100%;max-width:none;}
+    #h001-mem-bandwidth-ladder text{font-family:var(--font-mono);}
+    #h001-mem-bandwidth-ladder .name{font-size:21px;fill:var(--color-text);}
+    #h001-mem-bandwidth-ladder .mem{font-size:20px;fill:var(--color-text-muted);}
+    #h001-mem-bandwidth-ladder .val{font-size:22px;fill:var(--color-text);}
+    #h001-mem-bandwidth-ladder .val-g7e{fill:var(--color-accent);font-weight:600;}
+    #h001-mem-bandwidth-ladder .bar-gddr{fill:color-mix(in oklab,var(--color-accent) 20%,var(--color-surface-deep));stroke:var(--color-border-strong);stroke-width:2;}
+    #h001-mem-bandwidth-ladder .bar-hbm{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h001-mem-bandwidth-ladder .g7e{stroke:var(--color-accent);stroke-width:3;}
+    #h001-mem-bandwidth-ladder .tag{font-size:20px;fill:var(--color-accent);}
+    #h001-mem-bandwidth-ladder .fam{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h001-mem-bandwidth-ladder .famline{stroke:var(--color-border);stroke-width:2;}
+    #h001-mem-bandwidth-ladder .axis{stroke:var(--color-border-strong);stroke-width:2;}
+    #h001-mem-bandwidth-ladder .unit{font-size:20px;fill:var(--color-text-soft);}
+    #h001-mem-bandwidth-ladder .div{stroke:var(--color-text-soft);stroke-width:1.5;stroke-dasharray:4 4;}
+    #h001-mem-bandwidth-ladder .ratiol{font-size:20px;font-weight:600;fill:var(--color-accent);text-anchor:middle;}
+    #h001-mem-bandwidth-ladder [data-from]{opacity:0;transition:opacity .5s;}
+    #h001-mem-bandwidth-ladder [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h001-mem-bandwidth-ladder';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // seven rows sorted by bandwidth. Scale: 78 px per TB/s from the free width, so the longest
+      // bar (8.0) is 624 px and ends at x 1030, leaving the value text before the 1100 limit.
+      var PX = 78, X0 = 406, CY0 = 60, PITCH = 60, BAR_H = 32;
+      var ROWS = [
+        { name: 'A10G',                       mem: 'GDDR6', v: 0.6,   fam: 'gddr' },
+        { name: 'L40S',                       mem: 'GDDR6', v: 0.864, fam: 'gddr' },
+        { name: 'RTX PRO 6000 (g7e)',         mem: 'GDDR7', v: 1.6,   fam: 'gddr', g7e: true },
+        { name: 'RTX PRO 6000 (workstation)', mem: 'GDDR7', v: 1.8,   fam: 'gddr' },
+        { name: 'H100',                       mem: 'HBM3',  v: 3.35,  fam: 'hbm' },
+        { name: 'H200',                       mem: 'HBM3e', v: 4.8,   fam: 'hbm' },
+        { name: 'B200',                       mem: 'HBM3e', v: 8.0,   fam: 'hbm', lab: '8.0' }
+      ];
+
+      el('line', { 'class': 'axis', x1: X0, y1: CY0 - 16, x2: X0, y2: CY0 + 6 * PITCH + 16 }, g);
+      el('text', { 'class': 'unit', x: X0, y: 35 }, g, 'memory bandwidth, TB/s');
+
+      // step 0: the GDDR rows only
+      ROWS.forEach(function (d, k) {
+        if (d.fam !== 'gddr') return;
+        var cy = CY0 + k * PITCH;
+        var len = d.v * PX;
+        el('text', { 'class': 'name', x: 20, y: cy - 5 }, g, d.name);
+        el('text', { 'class': 'mem', x: 20, y: cy + 18 }, g, d.mem);
+        el('rect', { 'class': 'bar-gddr' + (d.g7e ? ' g7e' : ''), x: X0, y: cy - BAR_H / 2, width: len, height: BAR_H, rx: 6 }, g);
+        el('text', { 'class': 'val' + (d.g7e ? ' val-g7e' : ''), x: X0 + len + 10, y: cy + 8 }, g, d.lab || String(d.v));
+      });
+
+      // step 1: the HBM rows appear, with a label for each memory family in the gutter
+      var gHbm = el('g', { 'data-from': '1' }, g);
+      ROWS.forEach(function (d, k) {
+        if (d.fam !== 'hbm') return;
+        var cy = CY0 + k * PITCH;
+        var len = d.v * PX;
+        el('text', { 'class': 'name', x: 20, y: cy - 5 }, gHbm, d.name);
+        el('text', { 'class': 'mem', x: 20, y: cy + 18 }, gHbm, d.mem);
+        el('rect', { 'class': 'bar-hbm', x: X0, y: cy - BAR_H / 2, width: len, height: BAR_H, rx: 6 }, gHbm);
+        el('text', { 'class': 'val', x: X0 + len + 10, y: cy + 8 }, gHbm, d.lab || String(d.v));
+      });
+      // family brackets: GDDR rows 0..3 (y 44..256), HBM rows 4..6 (y 284..436);
+      // leftmost tick at x 370 keeps 20 units clear of the longest row label (ends about x 349)
+      el('line', { 'class': 'famline', x1: 375, y1: 44, x2: 375, y2: 256 }, gHbm);
+      el('line', { 'class': 'famline', x1: 370, y1: 44, x2: 380, y2: 44 }, gHbm);
+      el('line', { 'class': 'famline', x1: 370, y1: 256, x2: 380, y2: 256 }, gHbm);
+      el('text', { 'class': 'fam', x: 388, y: 150, transform: 'rotate(-90 388 150)' }, gHbm, 'GDDR');
+      el('line', { 'class': 'famline', x1: 375, y1: 284, x2: 375, y2: 436 }, gHbm);
+      el('line', { 'class': 'famline', x1: 370, y1: 284, x2: 380, y2: 284 }, gHbm);
+      el('line', { 'class': 'famline', x1: 370, y1: 436, x2: 380, y2: 436 }, gHbm);
+      el('text', { 'class': 'fam', x: 388, y: 360, transform: 'rotate(-90 388 360)' }, gHbm, 'HBM');
+
+      // step 2: dividers on the B200 bar every 1.8 TB/s (one workstation card of bandwidth),
+      // so the bar reads as 4.4 cards: 8.0 / 1.8
+      var gRatio = el('g', { 'data-from': '2' }, g);
+      var yTop = CY0 + 6 * PITCH - 16; // B200 bar top (404)
+      var yBot = CY0 + 6 * PITCH + 16; // B200 bar bottom (436)
+      for (var k = 1; k <= 4; k++) {
+        el('line', { 'class': 'div', x1: X0 + 1.8 * PX * k, y1: yTop, x2: X0 + 1.8 * PX * k, y2: yBot }, gRatio);
+      }
+      el('text', { 'class': 'ratiol', x: X0 + 8.0 * PX / 2, y: 470 }, gRatio, 'one B200 = 4.4 workstation cards of bandwidth (1.8 TB/s each)');
+
+      // step 3: the part 4 machine tag on the g7e row (complete picture)
+      var gTag = el('g', { 'data-from': '3' }, g);
+      el('text', { 'class': 'tag', x: X0 + 1.6 * PX + 62, y: CY0 + 2 * PITCH + 8 }, gTag, 'part 4 machine');
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>

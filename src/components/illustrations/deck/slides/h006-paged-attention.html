@@ -1,0 +1,97 @@
+<section class="slide" id="h006-paged-attention" data-steps="3">
+  <p class="kicker reveal">paged attention</p>
+  <p class="statement reveal">Paging the KV cache wastes almost none of it.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="h006-paged-attention-t h006-paged-attention-d">
+      <title id="h006-paged-attention-t">Naive KV cache slabs versus PagedAttention blocks: three requests fit with most of each slab empty, versus seven requests with small blocks and 80-odd percent utilization</title>
+      <desc id="h006-paged-attention-d">Top, the naive way: three requests each get one contiguous slab of KV cache sized for the longest possible length, so most of each slab is reserved but unused, shown hatched; only three requests fit and the GPU sits at 30-40 percent utilization. Bottom, PagedAttention: small fixed-size blocks handed out on demand, the way an operating system pages memory; seven requests fit in the same space with almost no waste, 80-odd percent utilization. Slab fills and block counts are toy proportions. Steps: the naive slabs, then the empty parts highlighted with hatching and the caption, then the paged blocks, then the two utilization labels and the caption.</desc>
+      <g id="h006-paged-attention-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #h006-paged-attention svg.diagram{width:100%;height:100%;max-width:none;}
+    #h006-paged-attention text{font-family:var(--font-mono);}
+    #h006-paged-attention .band{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #h006-paged-attention .req{font-size:20px;fill:var(--color-text-soft);}
+    #h006-paged-attention .used{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:2;}
+    #h006-paged-attention .empty{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2;stroke-dasharray:4 4;}
+    #h006-paged-attention .hatch{stroke:var(--color-border-strong);stroke-width:1.5;}
+    #h006-paged-attention .block{fill:color-mix(in oklab,var(--color-accent) 50%,var(--color-surface-deep));stroke:var(--color-accent);stroke-width:1.5;}
+    #h006-paged-attention .pct{font-size:26px;font-weight:600;fill:var(--color-text);}
+    #h006-paged-attention .pct-good{fill:var(--color-accent);}
+    #h006-paged-attention .pctsub{font-size:20px;fill:var(--color-text-soft);}
+    #h006-paged-attention .cap{font-size:20px;fill:var(--color-text-soft);text-anchor:middle;}
+    #h006-paged-attention [data-from]{opacity:0;transition:opacity .5s;}
+    #h006-paged-attention [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'h006-paged-attention';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // top band: naive batching. Slabs x 190..930 (740 wide), one per request,
+      // sized for the longest possible length; the used fill is a toy proportion
+      var SLABS = [
+        { y: 56,  used: 207, req: 'req 1' },
+        { y: 100, used: 133, req: 'req 2' },
+        { y: 144, used: 259, req: 'req 3' }
+      ];
+      el('text', { 'class': 'band', x: 20, y: 40 }, g, 'naive');
+      SLABS.forEach(function (s) {
+        el('text', { 'class': 'req', x: 20, y: s.y + 23 }, g, s.req);
+        el('rect', { 'class': 'used', x: 190, y: s.y, width: s.used, height: 32, rx: 5 }, g);
+        el('rect', { 'class': 'empty', x: 190 + s.used, y: s.y, width: 740 - s.used, height: 32, rx: 5 }, g);
+      });
+
+      // step 1: highlight the empty part of each slab with 45-degree hatching
+      var gEmpty = el('g', { 'data-from': '1' }, g);
+      SLABS.forEach(function (s, k) {
+        var ex = 190 + s.used, ew = 740 - s.used, id = 'h006-c' + k;
+        var clip = el('clipPath', { id: id }, gEmpty);
+        el('rect', { x: ex, y: s.y, width: ew, height: 32 }, clip);
+        var gh = el('g', { 'clip-path': 'url(#' + id + ')' }, gEmpty);
+        for (var x = ex - 32; x <= ex + ew; x += 12) {
+          el('line', { 'class': 'hatch', x1: x, y1: s.y + 32, x2: x + 32, y2: s.y }, gh);
+        }
+      });
+      el('text', { 'class': 'cap', x: 560, y: 216 }, gEmpty, 'sized for the longest possible length: most of it is empty');
+
+      // step 2: PagedAttention, small fixed-size blocks handed out on demand,
+      // 7 requests in the same space (block 30 wide, pitch 34, 20 blocks per row)
+      var gPaged = el('g', { 'data-from': '2' }, g);
+      var BLOCKS = [20, 19, 20, 18, 20, 19, 16];
+      el('text', { 'class': 'band', x: 20, y: 256 }, gPaged, 'paged');
+      BLOCKS.forEach(function (n, i) {
+        var y = 280 + i * 26;
+        el('text', { 'class': 'req', x: 20, y: y + 16 }, gPaged, 'req ' + (i + 1));
+        for (var j = 0; j < n; j++) {
+          el('rect', { 'class': 'block', x: 190 + j * 34, y: y, width: 30, height: 22, rx: 3 }, gPaged);
+        }
+      });
+
+      // step 3: the utilization labels and the caption
+      var gPct = el('g', { 'data-from': '3' }, g);
+      el('text', { 'class': 'pct', x: 950, y: 72 }, gPct, '30-40 %');
+      el('text', { 'class': 'pctsub', x: 950, y: 96 }, gPct, 'utilization');
+      el('text', { 'class': 'pct pct-good', x: 950, y: 286 }, gPct, '80-odd %');
+      el('text', { 'class': 'pctsub', x: 950, y: 310 }, gPct, 'utilization');
+      el('text', { 'class': 'cap', x: 560, y: 494 }, gPct, 'small blocks handed out on demand: far more requests fit');
+
+      // reveals are all data-from driven; the slide still registers its hooks
+      Deck.slide(ID, {
+        enter: function () {},
+        step: function (n, prev, c) {}
+      });
+    })();
+  </script>
+</section>
