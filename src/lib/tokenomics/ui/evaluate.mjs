@@ -68,12 +68,15 @@ export function evaluate(state, data) {
       model, bits: s.bits, gpu, C: s.C, isl: workload.isl, osl: workload.osl,
       v: s.v, cachedShare: workload.cachedShare, ctx: workload.reserved, mtp: false, tf: 1,
     });
+    // The data's buy defaults with the reader's electricity price on top. Every
+    // buy cost below (card, sweep, accuracy band, crossover) goes through pickBuy.
+    const buyDefaults = { ...data.buyOptions.defaults, electricityUsdPerKwh: s.energyUsdPerKwh };
     // Cheapest server of the chosen GPU that holds a replica of d; ties go to
     // the smaller shape. Recomputed per d: the best shape changes with C.
     const pickBuy = (d) => {
       let best = null;
       for (const sv of data.buyOptions.servers.filter((x) => x.gpu === s.buyGpu && x.gpuCount >= d.g)) {
-        const c = calc.buyMonthly({ deployment: d, server: sv, defaults: data.buyOptions.defaults });
+        const c = calc.buyMonthly({ deployment: d, server: sv, defaults: buyDefaults });
         if (c.offered && (best === null || c.usdPerMonth < best.cost || (c.usdPerMonth === best.cost && sv.gpuCount < best.count))) best = { cost: c.usdPerMonth, count: sv.gpuCount, sv, res: c };
       }
       return best;

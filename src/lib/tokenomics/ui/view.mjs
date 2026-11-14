@@ -38,6 +38,12 @@ function emptyView() {
   };
 }
 
+// What a bought server's monthly figure is made of (the parts buyMonthly returns).
+function buyPartsNote(parts) {
+  return 'Of the monthly figure: hardware ' + fmtUsd(parts.amort) + ', electricity ' + fmtUsd(parts.energy)
+    + ', rack space ' + fmtUsd(parts.colo) + ', support ' + fmtUsd(parts.support) + '.';
+}
+
 // Scheduled price changes, the record note, and the applied long-context tier.
 function apiNotes(price, tierApplied) {
   const notes = [];
@@ -69,6 +75,7 @@ function selfView(result, state, data) {
       notes: [self.reason].concat(notes),
     };
   }
+  if (self.parts) notes.push(buyPartsNote(self.parts)); // buy only: rent has no parts
   let deployment;
   if (offer) {
     deployment = self.replicas + (self.replicas === 1 ? ' replica' : ' replicas') + ' of ' + self.g + ' GPU' + (self.g === 1 ? '' : 's') + ' each, on '
@@ -134,7 +141,7 @@ function assumptions(state, data, result) {
       ?? data.buyOptions.servers.filter((sv) => sv.gpu === state.buyGpu && (result.self.offered ? sv.gpuCount >= result.self.g : true)).sort((a, b) => a.gpuCount - b.gpuCount)[0];
     out.push(
       { key: 'as.amort', label: 'Amortisation years', value: String(d.amortYears) + ' years', basis: basis('amortYears') },
-      { key: 'as.energy', label: 'Energy price', value: fmtUsdSmall(d.electricityUsdPerKwh) + ' per kWh', basis: basis('electricityUsdPerKwh') },
+      { key: 'as.energy', label: 'Energy price', value: fmtUsdSmall(state.energyUsdPerKwh) + ' per kWh', basis: state.energyUsdPerKwh === d.electricityUsdPerKwh ? basis('electricityUsdPerKwh') : 'set in the controls' },
       { key: 'as.colo', label: 'Colocation price', value: fmtUsd(d.coloUsdPerKwMonth) + ' per kW per month', basis: basis('coloUsdPerKwMonth') },
       { key: 'as.pue', label: 'Power usage effectiveness', value: String(d.pue), basis: basis('pue') },
       { key: 'as.support', label: 'Support', value: String(d.supportPctPerYear) + ' percent per year', basis: basis('supportPctPerYear') },

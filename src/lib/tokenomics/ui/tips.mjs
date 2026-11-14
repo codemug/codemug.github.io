@@ -61,6 +61,7 @@ export const TIPS = {
   'term.1y': 'A 1-year commitment: a lower hourly price in return for paying for a year. On AWS p5.48xlarge it is 0.63 of the on-demand price, 37% off.',
   'term.3y': 'A 3-year commitment: a lower hourly price in return for paying for three years. On AWS p5.48xlarge it is 0.43 of the on-demand price, 57% off.',
   'buyGpu': 'Which GPU to buy servers with. The page picks the cheapest server of that GPU that fits the copies of the model you need. {gpuNow} {buyNow}',
+  'energy': 'The price per kWh of the electricity the servers use, {energyDefault} by default, which is the US commercial average from the US Energy Information Administration. The bill gets servers x the rated power of one server x the power usage effectiveness ({pue}) x {hoursPerMonth} hours x this price, so the page charges the full rated power for every hour of the month, whether or not the servers are busy. That is on the high side, because an idle server draws less than its rating; rack space is billed separately, in the assumptions table.',
 
   // API card
   'card.api': 'What the same tokens would cost on the API you picked, billed per token. The like-for-like option is the same model as yours; the Claude, OpenAI and Gemini options are different, larger models, so they compare tokens and not quality.',
@@ -78,7 +79,7 @@ export const TIPS = {
   'self.perReplica': "How many requests one replica serves at once while every stream still gets {v} tokens per second. Memory is reserved for the full window of every request, so a longer window means fewer requests per replica and more machines. The page's memory model is simpler than the serving engine's own and can differ by about one request per GPU: for Qwen3.8 27B on one RTX PRO 6000 at 4 bits and a 262,144-token window it says 7, while the vLLM startup log in part 4 of the series says 6.38.",
   'self.confidence': 'How far to trust the speed estimate. Calibrated means the speed constants were fitted on measured runs, and extrapolated means they were borrowed from other GPUs. Most measured runs landed inside x{bandLow} to x{bandHigh} of the estimate and some landed outside it, so read the band as typical, not as a limit.',
   'self.speedwarn': 'The speed you asked for is missed even when a replica serves one request alone, so the figure shows the cheapest case: one replica for every stream. Lower the speed per stream or pick a faster GPU.',
-  'self.notes': 'Warnings about this setup, such as a stream speed one GPU cannot reach, or a model size that is only an estimate.',
+  'self.notes': 'Notes about this setup, such as a stream speed one GPU cannot reach, or a model size that is only an estimate. For servers you buy, one note also splits the monthly figure into hardware, electricity, rack space and support.',
 
   // Assumptions table
   'assumptions': 'Every number the two bills are built from, and where each one comes from. Hover or focus a row to read what it means, and its last cell for what the basis means.',
@@ -94,7 +95,7 @@ export const TIPS = {
   'as.price': 'What the provider charges for the whole machine for one hour, including any add-on charge, as published.',
   'as.term': 'How the machine is paid for: on demand, or a 1-year or 3-year commitment.',
   'as.amort': 'The number of years a server price is spread over. Company filings give 5 to 6 years for servers and none gives a life for GPUs alone, so we pick {amortYears}.',
-  'as.energy': 'What electricity costs per kWh. The page charges the full power of the server for every hour of the month, times the power usage effectiveness. The default is a US average.',
+  'as.energy': 'What electricity costs per kWh. It starts at the US commercial average and you can change it in the controls. The page charges the full power of the server for every hour of the month, times the power usage effectiveness.',
   'as.colo': "What it costs to rent rack space and power in someone else's data centre, per kW of power you reserve each month. It is billed whether or not the servers are busy, and electricity is billed on top.",
   'as.pue': 'Power usage effectiveness: how much power the whole data centre uses for each unit the servers use. At {pue}, a server drawing 1 kW costs {pue} kW on the meter.',
   'as.support': 'Yearly maintenance and repair, as a share of the server price. Nobody publishes a figure for GPU servers, so {support}% is our pick between nearly free and 12%.',

@@ -145,7 +145,10 @@ export function mountControls(root, data, state, onChange) {
   field(rentBox, 'tk-term', 'Billing term', termSelect, 'term');
   const buyBox = el('div', { id: 'tk-buy-box' });
   const buyGpuSelect = el('select', { id: 'tk-buy-gpu' });
-  field(buyBox, 'tk-buy-gpu', 'GPU to buy', buyGpuSelect, 'buyGpu'); fs5.appendChild(rentBox); fs5.appendChild(buyBox);
+  field(buyBox, 'tk-buy-gpu', 'GPU to buy', buyGpuSelect, 'buyGpu');
+  const energyIn = num('tk-energy', { min: '0', max: '1', step: '0.01' });
+  field(buyBox, 'tk-energy', 'Electricity price (USD per kWh)', energyIn, 'energy', 'row');
+  fs5.appendChild(rentBox); fs5.appendChild(buyBox);
   // Says when the page moved to a bigger machine so the model fits (see autofit.mjs).
   const fitNote = el('p', { id: 'tk-fit-note', class: 'tk-fit-note', 'aria-live': 'polite' });
   fs5.appendChild(fitNote);
@@ -188,6 +191,8 @@ export function mountControls(root, data, state, onChange) {
       mode: modeRow.querySelector('input[value="buy"]').checked ? 'buy' : 'rent',
       buyGpu: buyGpuSelect.value, rentProvider: providerSelect.value,
       rentOfferId: rentOfferIdFor(data, providerSelect.value, machineSelect.value, termSelect.value),
+      // An empty field is not free power: NaN makes the state take its default.
+      energyUsdPerKwh: energyIn.value.trim() === '' ? NaN : Number(energyIn.value),
     };
   }
 
@@ -208,6 +213,7 @@ export function mountControls(root, data, state, onChange) {
     if (e.type === 'change' && e.target === sCached) sCached.value = current.split.cachedPct;
     if (e.type === 'change' && e.target === sOutput) sOutput.value = current.split.outputPct;
     if (e.type === 'change' && e.target === cNum) cNum.value = current.C;
+    if (e.type === 'change' && e.target === energyIn) energyIn.value = current.energyUsdPerKwh;
   };
   form.addEventListener('input', onEvent); form.addEventListener('change', onEvent);
 
@@ -242,6 +248,8 @@ export function mountControls(root, data, state, onChange) {
     modeRow.querySelectorAll('input').forEach((i) => { i.checked = i.value === s.mode; });
     rentBox.hidden = s.mode !== 'rent'; buyBox.hidden = s.mode !== 'buy';
     buyGpuSelect.value = s.buyGpu;
+    // Not while it has the focus: 0.3 is typed through 0 and 0.
+    if (document.activeElement !== energyIn) energyIn.value = s.energyUsdPerKwh;
     providerSelect.value = s.rentProvider;
     const offer = data.rentOffers.find((o) => o.id === s.rentOfferId) ?? data.rentOffers[0];
     setSelect(machineSelect, rentMachineOptions(data, s.rentProvider, g).map((m) => ({
