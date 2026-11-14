@@ -1,0 +1,727 @@
+{
+ "models": [
+  {
+   "id": "qwen3.8-27b",
+   "name": "Qwen3.8 27B",
+   "P": 26896000000.0,
+   "A": 26896000000.0,
+   "E": 1,
+   "k": 1,
+   "L": 64,
+   "kvFp8": 32768,
+   "kvBf16": 65536,
+   "S": 153944064,
+   "kvHeads": 4,
+   "mla": false,
+   "dpa": false,
+   "contextMax": 262144,
+   "checkpoints": {
+    "4": {
+     "repo": "nvidia/Qwen3.8-27B-NVFP4",
+     "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+     "sizeGb": 21.92,
+     "bitsPerWeight": 6.31,
+     "readGbNonrouted": 17.608,
+     "readGbRouted": 0.0,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "8": {
+     "repo": "Qwen/Qwen3.8-27B-FP8",
+     "format": "FP8 block 128x128 dynamic",
+     "sizeGb": 30.87,
+     "bitsPerWeight": 8.89,
+     "readGbNonrouted": 26.925,
+     "readGbRouted": 0.0,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "16": {
+     "repo": "Qwen/Qwen3.8-27B",
+     "format": "BF16",
+     "sizeGb": 55.56,
+     "bitsPerWeight": 16.0,
+     "readGbNonrouted": 51.249,
+     "readGbRouted": 0.0,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    }
+   }
+  },
+  {
+   "id": "qwen3.8-flash-next",
+   "name": "Qwen3.8 Flash Next",
+   "P": 125744000000.0,
+   "A": 7307000000.0,
+   "E": 512,
+   "k": 10,
+   "L": 48,
+   "kvFp8": 13824,
+   "kvBf16": 27648,
+   "S": 115458048,
+   "kvHeads": 2,
+   "mla": false,
+   "dpa": false,
+   "contextMax": 262144,
+   "checkpoints": {
+    "4": {
+     "repo": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+     "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+     "sizeGb": 132.68,
+     "bitsPerWeight": 5.9,
+     "readGbNonrouted": 8.624,
+     "readGbRouted": 67.948,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "8": {
+     "repo": "Qwen/Qwen3.8-Flash-Next-FP8",
+     "format": "FP8 block 128x128 dynamic",
+     "sizeGb": 185.52,
+     "bitsPerWeight": 8.25,
+     "readGbNonrouted": 8.624,
+     "readGbRouted": 120.811,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "16": {
+     "repo": "Qwen/Qwen3.8-Flash-Next",
+     "format": "BF16",
+     "sizeGb": 360.0,
+     "bitsPerWeight": 16.0,
+     "readGbNonrouted": 8.624,
+     "readGbRouted": 241.592,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    }
+   }
+  },
+  {
+   "id": "kimi-k3.1-pro",
+   "name": "Kimi K3.1 Pro",
+   "P": 2779663000000.0,
+   "A": 105543000000.0,
+   "E": 896,
+   "k": 16,
+   "L": 93,
+   "kvFp8": 16896,
+   "kvBf16": 33792,
+   "S": 449372160,
+   "kvHeads": 1,
+   "mla": true,
+   "dpa": false,
+   "contextMax": 1048576,
+   "checkpoints": {
+    "4": {
+     "repo": "moonshotai/Kimi-K3.1-Pro",
+     "format": "MXFP4 QAT routed experts (compressed-tensors mxfp4-pack-quantized)",
+     "sizeGb": 1561.29,
+     "bitsPerWeight": 4.49,
+     "readGbNonrouted": 111.518,
+     "readGbRouted": 1446.456,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "8": {
+     "repo": null,
+     "format": "no published 8-bit checkpoint",
+     "sizeGb": 2814.9,
+     "bitsPerWeight": 8.1,
+     "readGbNonrouted": 111.52,
+     "readGbRouted": 2756.78,
+     "estimated": true,
+     "note": "derived fallback"
+    },
+    "16": {
+     "repo": null,
+     "format": "no published 16-bit checkpoint",
+     "sizeGb": 5560.2,
+     "bitsPerWeight": 16.0,
+     "readGbNonrouted": 111.52,
+     "readGbRouted": 5445.48,
+     "estimated": true,
+     "note": "derived fallback"
+    }
+   }
+  },
+  {
+   "id": "deepseek-v4.1-flash",
+   "name": "DeepSeek V4.1 Flash",
+   "P": 551881000000.0,
+   "A": 16793000000.0,
+   "E": 384,
+   "k": 6,
+   "L": 40,
+   "kvFp8": 1600,
+   "kvBf16": 3200,
+   "S": 2621440,
+   "kvHeads": 1,
+   "mla": true,
+   "dpa": false,
+   "contextMax": 1048576,
+   "checkpoints": {
+    "4": {
+     "repo": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+     "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+     "sizeGb": 428.99,
+     "bitsPerWeight": 4.5,
+     "readGbNonrouted": 8.523,
+     "readGbRouted": 305.765,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "8": {
+     "repo": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+     "format": "FP8 per-tensor/channel (AMD Quark)",
+     "sizeGb": 769.01,
+     "bitsPerWeight": 8.06,
+     "readGbNonrouted": 8.526,
+     "readGbRouted": 544.179,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "16": {
+     "repo": null,
+     "format": "no published 16-bit checkpoint",
+     "sizeGb": 1526.4,
+     "bitsPerWeight": 16.0,
+     "readGbNonrouted": 15.28,
+     "readGbRouted": 1087.16,
+     "estimated": true,
+     "note": "derived fallback"
+    }
+   }
+  },
+  {
+   "id": "muse-spark-open",
+   "name": "Muse Spark Open",
+   "P": 819991000000.0,
+   "A": 46091000000.0,
+   "E": 256,
+   "k": 8,
+   "L": 62,
+   "kvFp8": 32768,
+   "kvBf16": 65536,
+   "S": 192937984,
+   "kvHeads": 16,
+   "mla": false,
+   "dpa": false,
+   "contextMax": 1048576,
+   "checkpoints": {
+    "4": {
+     "repo": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+     "format": "NVFP4 (ModelOpt)",
+     "sizeGb": 533.01,
+     "bitsPerWeight": 5.19,
+     "readGbNonrouted": 39.203,
+     "readGbRouted": 486.405,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "8": {
+     "repo": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+     "format": "FP8 PTPC (AMD Quark)",
+     "sizeGb": 832.75,
+     "bitsPerWeight": 8.1,
+     "readGbNonrouted": 25.687,
+     "readGbRouted": 799.644,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "16": {
+     "repo": "meta-models/Muse-Spark-Open-816B-A42B",
+     "format": "BF16",
+     "sizeGb": 1644.33,
+     "bitsPerWeight": 16.0,
+     "readGbNonrouted": 39.203,
+     "readGbRouted": 1597.728,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    }
+   }
+  },
+  {
+   "id": "nemotron-3.5-super-vl",
+   "name": "Nemotron 3.5 Super VL",
+   "P": 120669000000.0,
+   "A": 12770000000.0,
+   "E": 512,
+   "k": 22,
+   "L": 88,
+   "kvFp8": 4096,
+   "kvBf16": 8192,
+   "S": 170229760,
+   "kvHeads": 2,
+   "mla": false,
+   "dpa": false,
+   "contextMax": 1048576,
+   "checkpoints": {
+    "4": {
+     "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+     "format": "NVFP4 (ModelOpt MIXED_PRECISION, FP8 KV)",
+     "sizeGb": 75.01,
+     "bitsPerWeight": 4.82,
+     "readGbNonrouted": 7.04,
+     "readGbRouted": 63.418,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "8": {
+     "repo": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+     "format": "FP8 dynamic (compressed-tensors)",
+     "sizeGb": 128.77,
+     "bitsPerWeight": 8.28,
+     "readGbNonrouted": 10.112,
+     "readGbRouted": 112.895,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "16": {
+     "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16",
+     "format": "BF16",
+     "sizeGb": 248.91,
+     "bitsPerWeight": 16.0,
+     "readGbNonrouted": 14.778,
+     "readGbRouted": 225.486,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    }
+   }
+  },
+  {
+   "id": "gemma-4-31b",
+   "name": "Gemma 4 31B",
+   "P": 30697000000.0,
+   "A": 30697000000.0,
+   "E": 1,
+   "k": 1,
+   "L": 60,
+   "kvFp8": 40960,
+   "kvBf16": 81920,
+   "S": 419430400,
+   "kvHeads": 4,
+   "mla": false,
+   "dpa": false,
+   "contextMax": 262144,
+   "checkpoints": {
+    "4": {
+     "repo": "RedHatAI/gemma-4-31B-it-NVFP4",
+     "format": "NVFP4 (compressed-tensors)",
+     "sizeGb": 23.27,
+     "bitsPerWeight": 5.95,
+     "readGbNonrouted": 19.295,
+     "readGbRouted": 0.0,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "8": {
+     "repo": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+     "format": "FP8 dynamic (compressed-tensors)",
+     "sizeGb": 33.27,
+     "bitsPerWeight": 8.51,
+     "readGbNonrouted": 32.116,
+     "readGbRouted": 0.0,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    },
+    "16": {
+     "repo": "google/gemma-4-31B-it",
+     "format": "BF16",
+     "sizeGb": 62.55,
+     "bitsPerWeight": 16.0,
+     "readGbNonrouted": 61.395,
+     "readGbRouted": 0.0,
+     "estimated": false,
+     "note": "derived (sum of root .safetensors, bytes / 1e9)"
+    }
+   }
+  }
+ ],
+ "gpus": [
+  {
+   "id": "rtx6000pro",
+   "name": "RTX PRO 6000 Blackwell Server Edition",
+   "memGb": 96,
+   "bwTBs": 1.597,
+   "bits": {
+    "4": {
+     "mode": "tensor_core",
+     "peakTflops": 2000
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 1000
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 500
+    }
+   },
+   "constants": {
+    "etaBw": 0.6032,
+    "etaC": 0.2514,
+    "aUs": 40,
+    "bUs": 40,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "extrapolated",
+   "band": {
+    "low": 0.5,
+    "high": 2.0
+   }
+  },
+  {
+   "id": "l40s",
+   "name": "L40S",
+   "memGb": 48,
+   "bwTBs": 0.864,
+   "bits": {
+    "4": {
+     "mode": "weight_only",
+     "peakTflops": 362.05
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 733
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 362.05
+    }
+   },
+   "constants": {
+    "etaBw": 0.6032,
+    "etaC": 0.2514,
+    "aUs": 40,
+    "bUs": 40,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "extrapolated",
+   "band": {
+    "low": 0.5,
+    "high": 2.0
+   }
+  },
+  {
+   "id": "h100",
+   "name": "H100 SXM",
+   "memGb": 80,
+   "bwTBs": 3.35,
+   "bits": {
+    "4": {
+     "mode": "weight_only",
+     "peakTflops": 989.5
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 1979
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 989.5
+    }
+   },
+   "constants": {
+    "etaBw": 0.8246,
+    "etaC": 0.2514,
+    "aUs": 40,
+    "bUs": 40,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "calibrated",
+   "band": {
+    "low": 0.7,
+    "high": 1.4
+   }
+  },
+  {
+   "id": "h200",
+   "name": "H200 SXM",
+   "memGb": 141,
+   "bwTBs": 4.8,
+   "bits": {
+    "4": {
+     "mode": "weight_only",
+     "peakTflops": 989.5
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 1979
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 989.5
+    }
+   },
+   "constants": {
+    "etaBw": 0.7277,
+    "etaC": 0.5001,
+    "aUs": 80,
+    "bUs": 20,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "calibrated",
+   "band": {
+    "low": 0.7,
+    "high": 1.4
+   }
+  },
+  {
+   "id": "b200",
+   "name": "B200 (HGX)",
+   "memGb": 180,
+   "bwTBs": 7.7,
+   "bits": {
+    "4": {
+     "mode": "tensor_core",
+     "peakTflops": 9000
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 4500
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 2250
+    }
+   },
+   "constants": {
+    "etaBw": 0.6836,
+    "etaC": 0.2362,
+    "aUs": 40,
+    "bUs": 20,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "calibrated",
+   "band": {
+    "low": 0.7,
+    "high": 1.4
+   }
+  },
+  {
+   "id": "b300",
+   "name": "B300 (HGX)",
+   "memGb": 270,
+   "bwTBs": 7.7,
+   "bits": {
+    "4": {
+     "mode": "tensor_core",
+     "peakTflops": 14000
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 4500
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 2250
+    }
+   },
+   "constants": {
+    "etaBw": 0.6836,
+    "etaC": 0.2362,
+    "aUs": 40,
+    "bUs": 20,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "extrapolated",
+   "band": {
+    "low": 0.5,
+    "high": 2.0
+   }
+  },
+  {
+   "id": "gb200",
+   "name": "GB200 (NVL72, per GPU)",
+   "memGb": 186,
+   "bwTBs": 8.0,
+   "bits": {
+    "4": {
+     "mode": "tensor_core",
+     "peakTflops": 10000
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 5000
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 2500
+    }
+   },
+   "constants": {
+    "etaBw": 0.6836,
+    "etaC": 0.2362,
+    "aUs": 40,
+    "bUs": 20,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "extrapolated",
+   "band": {
+    "low": 0.5,
+    "high": 2.0
+   }
+  },
+  {
+   "id": "mi300x",
+   "name": "MI300X",
+   "memGb": 192,
+   "bwTBs": 5.3,
+   "bits": {
+    "4": {
+     "mode": "weight_only",
+     "peakTflops": 1307.4
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 2614.9
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 1307.4
+    }
+   },
+   "constants": {
+    "etaBw": 0.5001,
+    "etaC": 0.1728,
+    "aUs": 40,
+    "bUs": 60,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "calibrated",
+   "band": {
+    "low": 0.5,
+    "high": 2.0
+   }
+  },
+  {
+   "id": "mi355x",
+   "name": "MI355X",
+   "memGb": 288,
+   "bwTBs": 8.0,
+   "bits": {
+    "4": {
+     "mode": "tensor_core",
+     "peakTflops": 10100
+    },
+    "8": {
+     "mode": "tensor_core",
+     "peakTflops": 5000
+    },
+    "16": {
+     "mode": "tensor_core",
+     "peakTflops": 2500
+    }
+   },
+   "constants": {
+    "etaBw": 0.6836,
+    "etaC": 0.1048,
+    "aUs": 80,
+    "bUs": 40,
+    "memFrac": 0.9,
+    "mtpA": 1.721,
+    "mtpB": -0.0907
+   },
+   "confidence": "calibrated",
+   "band": {
+    "low": 0.7,
+    "high": 1.4
+   }
+  }
+ ],
+ "prices": {
+  "plain": {
+   "id": "x:plain",
+   "input": 2.0,
+   "cachedInput": 0.2,
+   "output": 10.0,
+   "tiers": []
+  },
+  "tiered": {
+   "id": "x:tiered",
+   "input": 10.0,
+   "cachedInput": 1.0,
+   "output": 50.0,
+   "tiers": [
+    {
+     "aboveInputTokens": 272000,
+     "input": 20.0,
+     "cachedInput": 2.0,
+     "output": 75.0
+    }
+   ]
+  },
+  "nocache": {
+   "id": "x:nocache",
+   "input": 1.0,
+   "cachedInput": null,
+   "output": 4.0,
+   "tiers": []
+  }
+ },
+ "offers": {
+  "b200x8": {
+   "id": "x:b200x8",
+   "gpu": "b200",
+   "gpuCount": 8,
+   "pricePerHour": 60.0,
+   "addonPerHour": null
+  },
+  "h100x4": {
+   "id": "x:h100x4",
+   "gpu": "h100",
+   "gpuCount": 4,
+   "pricePerHour": 16.0,
+   "addonPerHour": 0.5
+  },
+  "rtx1": {
+   "id": "x:rtx1",
+   "gpu": "rtx6000pro",
+   "gpuCount": 1,
+   "pricePerHour": 3.0,
+   "addonPerHour": null
+  }
+ },
+ "servers": {
+  "dgxb200": {
+   "id": "x:dgxb200",
+   "gpu": "b200",
+   "gpuCount": 8,
+   "priceUsd": 562154.09,
+   "powerKw": 14.3
+  },
+  "rtx4": {
+   "id": "x:rtx4",
+   "gpu": "rtx6000pro",
+   "gpuCount": 4,
+   "priceUsd": 118074,
+   "powerKw": 3.705
+  }
+ },
+ "buyDefaults": {
+  "amortYears": 5,
+  "residualPct": 0,
+  "pue": 1.3,
+  "electricityUsdPerKwh": 0.14,
+  "coloUsdPerKwMonth": 200,
+  "coloIncludesEnergy": false,
+  "supportPctPerYear": 5,
+  "hoursPerMonth": 730
+ }
+}

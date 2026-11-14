@@ -1,0 +1,80 @@
+<section class="slide" id="d601-api-line" data-steps="3">
+  <p class="kicker reveal">API pricing</p>
+  <p class="statement reveal">Ten times the requests, ten times the bill.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d601-api-line-t d601-api-line-d">
+      <title id="d601-api-line-t">The API bill grows in a straight line with usage</title>
+      <desc id="d601-api-line-d">A chart of monthly cost against requests a month for requests of 10,000 input tokens, 8,000 of them cached, and 1,000 output tokens on Claude Sonnet 5.5. Each request costs $0.0148. 100,000 requests cost $1,480, 500,000 requests cost $7,400 and 1,000,000 requests cost $14,800, all on one straight line through zero.</desc>
+      <g id="d601-api-line-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d601-api-line svg.diagram{width:100%;height:100%;max-width:none;}
+    #d601-api-line text{font-family:var(--font-mono);}
+    #d601-api-line .grid{stroke:var(--color-hairline);stroke-width:1.5;}
+    #d601-api-line .axis{stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d601-api-line .tick{font-size:20px;fill:var(--color-text-soft);}
+    #d601-api-line .xt{text-anchor:middle;}
+    #d601-api-line .yt{text-anchor:end;}
+    #d601-api-line .axt{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d601-api-line .line{fill:none;stroke:var(--color-accent);stroke-width:4;stroke-linecap:round;}
+    #d601-api-line .dot{fill:var(--color-accent);stroke:var(--color-bg);stroke-width:3;}
+    #d601-api-line .val{font-size:22px;fill:var(--color-text);text-anchor:middle;}
+    #d601-api-line .note{font-size:22px;fill:var(--color-text-muted);}
+    #d601-api-line .guide{stroke:var(--color-accent-muted);stroke-width:2;stroke-dasharray:6 6;fill:none;}
+    #d601-api-line [data-from]{opacity:0;transition:opacity .5s;}
+    #d601-api-line [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd601-api-line';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      // plot box: x 150..1060 for 0..1,000,000 requests a month, y 420..70 for $0..$15,000
+      var X0 = 150, X1 = 1060, Y0 = 420, Y1 = 70, XMAX = 1000000, YMAX = 15000;
+      function px(r) { return X0 + (r / XMAX) * (X1 - X0); }
+      function py(d) { return Y0 - (d / YMAX) * (Y0 - Y1); }
+      var PRICE = 0.0148; // dollars per request: 2,000 x $2.00 + 8,000 x $0.10 + 1,000 x $10.00 per million tokens
+      var g = document.getElementById(ID + '-g');
+
+      [0, 5000, 10000, 15000].forEach(function (d) {
+        el('line', { 'class': 'grid', x1: X0, y1: py(d), x2: X1, y2: py(d) }, g);
+        el('text', { 'class': 'tick yt', x: X0 - 14, y: py(d) + 7 }, g, '$' + d.toLocaleString('en-US'));
+      });
+      [[0, '0'], [250000, '250k'], [500000, '500k'], [750000, '750k'], [1000000, '1M']].forEach(function (t) {
+        el('text', { 'class': 'tick xt', x: px(t[0]), y: Y0 + 34 }, g, t[1]);
+      });
+      el('line', { 'class': 'axis', x1: X0, y1: Y0, x2: X1, y2: Y0 }, g);
+      el('line', { 'class': 'axis', x1: X0, y1: Y0, x2: X0, y2: Y1 - 10 }, g);
+      el('text', { 'class': 'axt', x: (X0 + X1) / 2, y: 492 }, g, 'requests a month');
+      el('text', { 'class': 'axt', x: 36, y: (Y0 + Y1) / 2, transform: 'rotate(-90 36 ' + ((Y0 + Y1) / 2) + ')' }, g, 'monthly bill');
+
+      var POINTS = [100000, 500000, 1000000];
+      // the line grows with the points: segment k runs from the previous point (or zero) to point k
+      var prevR = 0;
+      POINTS.forEach(function (r, k) {
+        var seg = el('g', { 'data-from': String(k) }, g);
+        el('line', { 'class': 'line', x1: px(prevR), y1: py(prevR * PRICE), x2: px(r), y2: py(r * PRICE) }, seg);
+        el('line', { 'class': 'guide', x1: px(r), y1: py(r * PRICE), x2: px(r), y2: Y0 }, seg);
+        el('circle', { 'class': 'dot', cx: px(r), cy: py(r * PRICE), r: 9 }, seg);
+        var label = '$' + Math.round(r * PRICE).toLocaleString('en-US');
+        var tx = k === 2 ? px(r) - 70 : px(r);
+        el('text', { 'class': 'val', x: tx, y: py(r * PRICE) - 22 }, seg, label);
+        prevR = r;
+      });
+      // step 3: the slope, said in numbers
+      el('text', { 'class': 'note', x: 200, y: 112, 'data-from': '3' }, g, 'each request costs $0.0148');
+      el('text', { 'class': 'note', x: 200, y: 144, 'data-from': '3' }, g, '$14.80 per 1,000 requests, at any volume');
+
+      Deck.slide(ID, { enter: function () {}, step: function (n, prev, c) {} });
+    })();
+  </script>
+</section>

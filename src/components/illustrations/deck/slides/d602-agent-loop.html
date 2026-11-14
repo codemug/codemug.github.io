@@ -1,0 +1,112 @@
+<section class="slide" id="d602-agent-loop" data-steps="2">
+  <p class="kicker reveal">agent loops</p>
+  <p class="statement reveal">Every turn resends the whole conversation, until the agent compacts it.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d602-agent-loop-t d602-agent-loop-d">
+      <title id="d602-agent-loop-t">An agent loop resends its context on every call, so input grows each turn until the agent compacts it</title>
+      <desc id="d602-agent-loop-d">A loop of two boxes, model call and tool runs, with an arrow each way. Below it, bars show the input tokens sent on turns 1, 10, 20, 30, 40 and 50 of the 50-turn example: 20,000, 74,000, 134,000, 194,000, 254,000 and 314,000. A dashed line marks a compaction threshold. After it, the bars for turns 40 and 50 drop back to short bars labelled after compaction, because one extra model call has summarised the conversation.</desc>
+      <g id="d602-agent-loop-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d602-agent-loop svg.diagram{width:100%;height:100%;max-width:none;}
+    #d602-agent-loop text{font-family:var(--font-mono);}
+    #d602-agent-loop .box{fill:var(--color-surface-deep);stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d602-agent-loop .boxl{font-size:22px;text-anchor:middle;fill:var(--color-text);}
+    #d602-agent-loop .arrow{fill:none;stroke:var(--color-text-soft);stroke-width:3;}
+    #d602-agent-loop .head{fill:var(--color-text-soft);}
+    #d602-agent-loop .msg{font-size:22px;fill:var(--color-accent);}
+    #d602-agent-loop .base{stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d602-agent-loop .bar{fill:color-mix(in oklab, var(--color-accent) 55%, var(--color-surface-deep));}
+    #d602-agent-loop .ghost{fill:none;stroke:var(--color-text-muted);stroke-width:2.5;stroke-dasharray:6 6;}
+    #d602-agent-loop .bar2{fill:var(--color-accent);}
+    #d602-agent-loop .val{font-size:20px;text-anchor:middle;fill:var(--color-text);paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #d602-agent-loop .cat{font-size:20px;text-anchor:middle;fill:var(--color-text-soft);}
+    #d602-agent-loop .thr{stroke:var(--color-text-muted);stroke-width:2.5;stroke-dasharray:8 6;}
+    #d602-agent-loop .thrl{font-size:20px;fill:var(--color-text-muted);}
+    #d602-agent-loop .tag{font-size:20px;text-anchor:middle;fill:var(--color-accent);paint-order:stroke;stroke:var(--color-bg);stroke-width:7px;stroke-linejoin:round;}
+    #d602-agent-loop .cap{font-size:20px;text-anchor:middle;fill:var(--color-text-muted);}
+    #d602-agent-loop [data-from]{opacity:0;transition:opacity .5s;}
+    #d602-agent-loop [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd602-agent-loop';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // y-bands: 36..104 loop boxes and return arrow (to 126), 168..202 bar labels, 210..410 bars,
+      // 440 turn labels, 490 caption. Scale: 314,000 tokens = 200 units, so 0.637 units per 1,000 tokens.
+      var BASE = 410, K = 200 / 314;
+      function h(tok) { return tok / 1000 * K; }
+
+      // the loop: model call, tool runs, one arrow each way
+      el('rect', { 'class': 'box', x: 60, y: 40, width: 250, height: 64, rx: 10 }, g);
+      el('text', { 'class': 'boxl', x: 185, y: 80 }, g, 'model call');
+      el('rect', { 'class': 'box', x: 430, y: 40, width: 250, height: 64, rx: 10 }, g);
+      el('text', { 'class': 'boxl', x: 555, y: 80 }, g, 'tool runs');
+      el('line', { 'class': 'arrow', x1: 312, y1: 72, x2: 410, y2: 72 }, g);
+      el('polygon', { 'class': 'head', points: '428,72 410,63 410,81' }, g);
+      el('path', { 'class': 'arrow', d: 'M 555 106 V 130 H 185 V 124' }, g);
+      el('polygon', { 'class': 'head', points: '185,106 176,124 194,124' }, g);
+      el('text', { 'class': 'msg', x: 730, y: 66 }, g, 'each call sends');
+      el('text', { 'class': 'msg', x: 730, y: 98 }, g, 'the whole conversation');
+
+      el('line', { 'class': 'base', x1: 90, y1: BASE, x2: 1060, y2: BASE }, g);
+
+      // step 1: the bars of the 50-turn example (20,000 tokens at the start, 6,000 more each turn)
+      var TURNS = [1, 10, 20, 30, 40, 50];
+      var BW = 90, X0 = 130, PITCH = 164;
+      var grow = el('g', { 'data-from': '1' }, g);
+      TURNS.forEach(function (t, k) {
+        var tok = 20000 + (t - 1) * 6000;
+        var cx = X0 + k * PITCH + BW / 2;
+        var late = t >= 40;
+        // from step 2 the two late bars become dashed outlines: compaction replaced them
+        if (late) {
+          var before = el('g', { 'data-from': '1', 'data-until': '2' }, g);
+          el('rect', { 'class': 'bar', x: cx - BW / 2, y: BASE - h(tok), width: BW, height: h(tok), rx: 4 }, before);
+          var after = el('g', { 'data-from': '2' }, g);
+          el('rect', { 'class': 'ghost', x: cx - BW / 2, y: BASE - h(tok), width: BW, height: h(tok), rx: 4 }, after);
+        } else {
+          el('rect', { 'class': 'bar', x: cx - BW / 2, y: BASE - h(tok), width: BW, height: h(tok), rx: 4 }, grow);
+        }
+        var vg = el('g', { 'data-from': '1' + (late ? '' : '') }, g);
+        if (late) vg.setAttribute('data-until', '2');
+        el('text', { 'class': 'val', x: cx, y: BASE - h(tok) - 10 }, vg, tok.toLocaleString('en-US'));
+        el('text', { 'class': 'cat', x: cx, y: 440 }, g, 'turn ' + t);
+      });
+
+      // step 2: threshold line, then short bars (illustrative sizes) where compaction restarted the context
+      var THR = BASE - h(200000);
+      var comp = el('g', { 'data-from': '2' }, g);
+      el('line', { 'class': 'thr', x1: 100, y1: THR, x2: 1060, y2: THR }, comp);
+      el('text', { 'class': 'thrl', x: 100, y: THR - 10 }, comp, 'compaction threshold');
+      [40, 50].forEach(function (t, i) {
+        var cx = X0 + TURNS.indexOf(t) * PITCH + BW / 2;
+        var tok = i === 0 ? 70000 : 100000;
+        el('rect', { 'class': 'bar2', x: cx - BW / 2, y: BASE - h(tok), width: BW, height: h(tok), rx: 4 }, comp);
+        el('text', { 'class': 'tag', x: cx, y: BASE - h(tok) - 10 }, comp, 'summary');
+      });
+
+      // one caption per state
+      var c0 = el('g', { 'data-from': '0', 'data-until': '1' }, g);
+      el('text', { 'class': 'cap', x: 560, y: 490 }, c0, 'the API keeps nothing between calls: each one carries the whole conversation');
+      var c1 = el('g', { 'data-from': '1', 'data-until': '2' }, g);
+      el('text', { 'class': 'cap', x: 560, y: 490 }, c1, 'each turn sends more than the last: 20,000 tokens on turn 1, 314,000 on turn 50');
+      var c2 = el('g', { 'data-from': '2' }, g);
+      el('text', { 'class': 'cap', x: 560, y: 490 }, c2, 'compaction: one more call writes a summary, and the context starts small again');
+
+      Deck.slide(ID, { enter: function () {}, step: function (n, prev, c) {} });
+    })();
+  </script>
+</section>

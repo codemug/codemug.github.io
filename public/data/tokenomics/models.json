@@ -1,0 +1,401 @@
+[
+  {
+    "id": "qwen3.8-27b",
+    "name": "Qwen3.8 27B",
+    "hfRepo": "Qwen/Qwen3.8-27B",
+    "license": "apache-2.0",
+    "contextMax": 262144,
+    "P": 26896000000,
+    "A": 26896000000,
+    "E": 1,
+    "k": 1,
+    "L": 64,
+    "kvFp8": 32768,
+    "kvBf16": 65536,
+    "S": 153944064,
+    "kvHeads": 4,
+    "mla": false,
+    "dpa": false,
+    "checkpoints": {
+      "4": {
+        "repo": "nvidia/Qwen3.8-27B-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+        "sizeGb": 21.92,
+        "bitsPerWeight": 6.31,
+        "readGbNonrouted": 17.608,
+        "readGbRouted": 0,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "8": {
+        "repo": "Qwen/Qwen3.8-27B-FP8",
+        "format": "FP8 block 128x128 dynamic",
+        "sizeGb": 30.87,
+        "bitsPerWeight": 8.89,
+        "readGbNonrouted": 26.925,
+        "readGbRouted": 0,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "16": {
+        "repo": "Qwen/Qwen3.8-27B",
+        "format": "BF16",
+        "sizeGb": 55.56,
+        "bitsPerWeight": 16,
+        "readGbNonrouted": 51.249,
+        "readGbRouted": 0,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      }
+    },
+    "sourceUrls": [
+      "https://huggingface.co/Qwen/Qwen3.8-27B/resolve/main/config.json",
+      "https://huggingface.co/Qwen/Qwen3.8-27B/resolve/main/README.md",
+      "https://huggingface.co/api/models/Qwen/Qwen3.8-27B?blobs=true",
+      "https://recipes.vllm.ai/Qwen/Qwen3.8-27B.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "qwen3.8-flash-next",
+    "name": "Qwen3.8 Flash Next",
+    "hfRepo": "Qwen/Qwen3.8-Flash-Next",
+    "license": "other: qwen-community-1.0",
+    "contextMax": 262144,
+    "P": 125744000000,
+    "A": 7307000000,
+    "E": 512,
+    "k": 10,
+    "L": 48,
+    "kvFp8": 13824,
+    "kvBf16": 27648,
+    "S": 115458048,
+    "kvHeads": 2,
+    "mla": false,
+    "dpa": false,
+    "checkpoints": {
+      "4": {
+        "repo": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+        "sizeGb": 132.68,
+        "bitsPerWeight": 5.9,
+        "readGbNonrouted": 8.624,
+        "readGbRouted": 67.948,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "8": {
+        "repo": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "format": "FP8 block 128x128 dynamic",
+        "sizeGb": 185.52,
+        "bitsPerWeight": 8.25,
+        "readGbNonrouted": 8.624,
+        "readGbRouted": 120.811,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "16": {
+        "repo": "Qwen/Qwen3.8-Flash-Next",
+        "format": "BF16",
+        "sizeGb": 360,
+        "bitsPerWeight": 16,
+        "readGbNonrouted": 8.624,
+        "readGbRouted": 241.592,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      }
+    },
+    "sourceUrls": [
+      "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/main/config.json",
+      "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/main/README.md",
+      "https://huggingface.co/api/models/Qwen/Qwen3.8-Flash-Next?blobs=true",
+      "https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "kimi-k3.1-pro",
+    "name": "Kimi K3.1 Pro",
+    "hfRepo": "moonshotai/Kimi-K3.1-Pro",
+    "license": "other: kimi-k3.1-pro",
+    "contextMax": 1048576,
+    "P": 2779663000000,
+    "A": 105543000000,
+    "E": 896,
+    "k": 16,
+    "L": 93,
+    "kvFp8": 16896,
+    "kvBf16": 33792,
+    "S": 449372160,
+    "kvHeads": 1,
+    "mla": true,
+    "dpa": false,
+    "checkpoints": {
+      "4": {
+        "repo": "moonshotai/Kimi-K3.1-Pro",
+        "format": "MXFP4 QAT routed experts (compressed-tensors mxfp4-pack-quantized)",
+        "sizeGb": 1561.29,
+        "bitsPerWeight": 4.49,
+        "readGbNonrouted": 111.518,
+        "readGbRouted": 1446.456,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "8": {
+        "repo": null,
+        "format": "no published 8-bit checkpoint",
+        "sizeGb": 2814.9,
+        "bitsPerWeight": 8.1,
+        "readGbNonrouted": 111.52,
+        "readGbRouted": 2756.78,
+        "estimated": true,
+        "note": "derived fallback"
+      },
+      "16": {
+        "repo": null,
+        "format": "no published 16-bit checkpoint",
+        "sizeGb": 5560.2,
+        "bitsPerWeight": 16,
+        "readGbNonrouted": 111.52,
+        "readGbRouted": 5445.48,
+        "estimated": true,
+        "note": "derived fallback"
+      }
+    },
+    "sourceUrls": [
+      "https://huggingface.co/moonshotai/Kimi-K3.1-Pro/resolve/main/config.json",
+      "https://huggingface.co/moonshotai/Kimi-K3.1-Pro/resolve/main/README.md",
+      "https://huggingface.co/api/models/moonshotai/Kimi-K3.1-Pro?blobs=true",
+      "https://recipes.vllm.ai/moonshotai/Kimi-K3.1-Pro.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "deepseek-v4.1-flash",
+    "name": "DeepSeek V4.1 Flash",
+    "hfRepo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "license": "mit",
+    "contextMax": 1048576,
+    "P": 551881000000,
+    "A": 16793000000,
+    "E": 384,
+    "k": 6,
+    "L": 40,
+    "kvFp8": 1600,
+    "kvBf16": 3200,
+    "S": 2621440,
+    "kvHeads": 1,
+    "mla": true,
+    "dpa": false,
+    "checkpoints": {
+      "4": {
+        "repo": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+        "sizeGb": 428.99,
+        "bitsPerWeight": 4.5,
+        "readGbNonrouted": 8.523,
+        "readGbRouted": 305.765,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "8": {
+        "repo": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "format": "FP8 per-tensor/channel (AMD Quark)",
+        "sizeGb": 769.01,
+        "bitsPerWeight": 8.06,
+        "readGbNonrouted": 8.526,
+        "readGbRouted": 544.179,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "16": {
+        "repo": null,
+        "format": "no published 16-bit checkpoint",
+        "sizeGb": 1526.4,
+        "bitsPerWeight": 16,
+        "readGbNonrouted": 15.28,
+        "readGbRouted": 1087.16,
+        "estimated": true,
+        "note": "derived fallback"
+      }
+    },
+    "sourceUrls": [
+      "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/resolve/main/config.json",
+      "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/resolve/main/README.md",
+      "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V4.1-Flash-1017?blobs=true",
+      "https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "muse-spark-open",
+    "name": "Muse Spark Open",
+    "hfRepo": "meta-models/Muse-Spark-Open-816B-A42B",
+    "license": "other: muse-model-license (gated, manual)",
+    "contextMax": 1048576,
+    "P": 819991000000,
+    "A": 46091000000,
+    "E": 256,
+    "k": 8,
+    "L": 62,
+    "kvFp8": 32768,
+    "kvBf16": 65536,
+    "S": 192937984,
+    "kvHeads": 16,
+    "mla": false,
+    "dpa": false,
+    "checkpoints": {
+      "4": {
+        "repo": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        "format": "NVFP4 (ModelOpt)",
+        "sizeGb": 533.01,
+        "bitsPerWeight": 5.19,
+        "readGbNonrouted": 39.203,
+        "readGbRouted": 486.405,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "8": {
+        "repo": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "format": "FP8 PTPC (AMD Quark)",
+        "sizeGb": 832.75,
+        "bitsPerWeight": 8.1,
+        "readGbNonrouted": 25.687,
+        "readGbRouted": 799.644,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "16": {
+        "repo": "meta-models/Muse-Spark-Open-816B-A42B",
+        "format": "BF16",
+        "sizeGb": 1644.33,
+        "bitsPerWeight": 16,
+        "readGbNonrouted": 39.203,
+        "readGbRouted": 1597.728,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      }
+    },
+    "sourceUrls": [
+      "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/resolve/main/config.json",
+      "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/resolve/main/README.md",
+      "https://huggingface.co/api/models/meta-models/Muse-Spark-Open-816B-A42B?blobs=true",
+      "https://recipes.vllm.ai/meta-models/Muse-Spark-Open-816B-A42B.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "nemotron-3.5-super-vl",
+    "name": "Nemotron 3.5 Super VL",
+    "hfRepo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16",
+    "license": "other: openmdw-1.1",
+    "contextMax": 1048576,
+    "P": 120669000000,
+    "A": 12770000000,
+    "E": 512,
+    "k": 22,
+    "L": 88,
+    "kvFp8": 4096,
+    "kvBf16": 8192,
+    "S": 170229760,
+    "kvHeads": 2,
+    "mla": false,
+    "dpa": false,
+    "checkpoints": {
+      "4": {
+        "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION, FP8 KV)",
+        "sizeGb": 75.01,
+        "bitsPerWeight": 4.82,
+        "readGbNonrouted": 7.04,
+        "readGbRouted": 63.418,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "8": {
+        "repo": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "format": "FP8 dynamic (compressed-tensors)",
+        "sizeGb": 128.77,
+        "bitsPerWeight": 8.28,
+        "readGbNonrouted": 10.112,
+        "readGbRouted": 112.895,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "16": {
+        "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16",
+        "format": "BF16",
+        "sizeGb": 248.91,
+        "bitsPerWeight": 16,
+        "readGbNonrouted": 14.778,
+        "readGbRouted": 225.486,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      }
+    },
+    "sourceUrls": [
+      "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16/resolve/main/config.json",
+      "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16/resolve/main/README.md",
+      "https://huggingface.co/api/models/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16?blobs=true",
+      "https://recipes.vllm.ai/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "gemma-4-31b",
+    "name": "Gemma 4 31B",
+    "hfRepo": "google/gemma-4-31B-it",
+    "license": "apache-2.0",
+    "contextMax": 262144,
+    "P": 30697000000,
+    "A": 30697000000,
+    "E": 1,
+    "k": 1,
+    "L": 60,
+    "kvFp8": 40960,
+    "kvBf16": 81920,
+    "S": 419430400,
+    "kvHeads": 4,
+    "mla": false,
+    "dpa": false,
+    "checkpoints": {
+      "4": {
+        "repo": "RedHatAI/gemma-4-31B-it-NVFP4",
+        "format": "NVFP4 (compressed-tensors)",
+        "sizeGb": 23.27,
+        "bitsPerWeight": 5.95,
+        "readGbNonrouted": 19.295,
+        "readGbRouted": 0,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "8": {
+        "repo": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "format": "FP8 dynamic (compressed-tensors)",
+        "sizeGb": 33.27,
+        "bitsPerWeight": 8.51,
+        "readGbNonrouted": 32.116,
+        "readGbRouted": 0,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      },
+      "16": {
+        "repo": "google/gemma-4-31B-it",
+        "format": "BF16",
+        "sizeGb": 62.55,
+        "bitsPerWeight": 16,
+        "readGbNonrouted": 61.395,
+        "readGbRouted": 0,
+        "estimated": false,
+        "note": "derived (sum of root .safetensors, bytes / 1e9)"
+      }
+    },
+    "sourceUrls": [
+      "https://huggingface.co/google/gemma-4-31B-it/resolve/main/config.json",
+      "https://huggingface.co/google/gemma-4-31B-it/resolve/main/README.md",
+      "https://huggingface.co/api/models/google/gemma-4-31B-it?blobs=true",
+      "https://recipes.vllm.ai/Google/gemma-4-31B-it.json"
+    ],
+    "captured": "2026-11-09"
+  }
+]

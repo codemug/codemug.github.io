@@ -1,0 +1,686 @@
+[
+  {
+    "id": "OpenAI:gpt-6-astra",
+    "provider": "OpenAI",
+    "model": "GPT-6 Astra",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 10,
+    "cachedInput": 1,
+    "output": 50,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 20,
+        "cachedInput": 2,
+        "output": 75
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-6.1-sol",
+    "provider": "OpenAI",
+    "model": "GPT-6.1 Sol",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 2,
+    "cachedInput": 0.1,
+    "output": 10,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 4,
+        "cachedInput": 0.2,
+        "output": 15
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-6.1-terra",
+    "provider": "OpenAI",
+    "model": "GPT-6.1 Terra",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 1,
+    "cachedInput": 0.05,
+    "output": 5,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 2,
+        "cachedInput": 0.1,
+        "output": 7.5
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-6-luna",
+    "provider": "OpenAI",
+    "model": "GPT-6 Luna",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 0.1,
+    "cachedInput": 0.01,
+    "output": 0.5,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 0.2,
+        "cachedInput": 0.02,
+        "output": 0.75
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-5.6-sol",
+    "provider": "OpenAI",
+    "model": "GPT-5.6 Sol",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 4,
+    "cachedInput": 0.4,
+    "output": 20,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 8,
+        "cachedInput": 0.8,
+        "output": 30
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Promotional price in force; the earlier price was higher and the price after the promotion has not been published; Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "Anthropic:claude-fable-5-1",
+    "provider": "Anthropic",
+    "model": "Claude Fable 5.1",
+    "group": "claude",
+    "linkedModelId": null,
+    "input": 10,
+    "cachedInput": 0.25,
+    "output": 50,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1000000,
+    "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "Anthropic:claude-opus-5-5",
+    "provider": "Anthropic",
+    "model": "Claude Opus 5.5",
+    "group": "claude",
+    "linkedModelId": null,
+    "input": 4,
+    "cachedInput": 0.2,
+    "output": 20,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1000000,
+    "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "Anthropic:claude-sonnet-5-5",
+    "provider": "Anthropic",
+    "model": "Claude Sonnet 5.5",
+    "group": "claude",
+    "linkedModelId": null,
+    "input": 2,
+    "cachedInput": 0.1,
+    "output": 10,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1000000,
+    "sourceUrl": "https://platform.claude.com/docs/en/about-claude/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "Google:gemini-4-argon",
+    "provider": "Google",
+    "model": "Gemini 4 Argon",
+    "group": "gemini",
+    "linkedModelId": null,
+    "input": 2,
+    "cachedInput": 0.1,
+    "output": 10,
+    "tiers": [],
+    "scheduled": [
+      {
+        "effective": "2026-12-01",
+        "input": 4,
+        "cachedInput": 0.2,
+        "output": 20,
+        "note": "price changes on 2026-12-01"
+      }
+    ],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://aistudio.google.com/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "promo price in force until 2026-11-30"
+  },
+  {
+    "id": "Google:gemini-3.8-flash",
+    "provider": "Google",
+    "model": "Gemini 3.8 Flash",
+    "group": "gemini",
+    "linkedModelId": null,
+    "input": 0.75,
+    "cachedInput": 0.075,
+    "output": 3.75,
+    "tiers": [],
+    "scheduled": [
+      {
+        "effective": "2027-01-01",
+        "input": 1.5,
+        "cachedInput": 0.15,
+        "output": 7.5,
+        "note": "price changes on 2027-01-01"
+      }
+    ],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://aistudio.google.com/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "intro price in force until 2026-12-31"
+  },
+  {
+    "id": "Google:gemini-3.5-flash-lite",
+    "provider": "Google",
+    "model": "Gemini 3.5 Flash-Lite",
+    "group": "gemini",
+    "linkedModelId": null,
+    "input": 0.3,
+    "cachedInput": 0.03,
+    "output": 2.5,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://aistudio.google.com/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "OpenAI:gpt-6-sol",
+    "provider": "OpenAI",
+    "model": "GPT-6 Sol",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 2,
+    "cachedInput": 0.2,
+    "output": 10,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 4,
+        "cachedInput": 0.4,
+        "output": 15
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/models/gpt-6-sol.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-5.6-terra",
+    "provider": "OpenAI",
+    "model": "GPT-5.6 Terra",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 2,
+    "cachedInput": 0.2,
+    "output": 12,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 4,
+        "cachedInput": 0.4,
+        "output": 18
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-5.6-luna",
+    "provider": "OpenAI",
+    "model": "GPT-5.6 Luna",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 0.2,
+    "cachedInput": 0.02,
+    "output": 1.2,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 0.4,
+        "cachedInput": 0.04,
+        "output": 1.8
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-5.5",
+    "provider": "OpenAI",
+    "model": "GPT-5.5",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 5,
+    "cachedInput": 0.5,
+    "output": 30,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 10,
+        "cachedInput": 1,
+        "output": 45
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-5.5-pro",
+    "provider": "OpenAI",
+    "model": "GPT-5.5 Pro",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 30,
+    "cachedInput": null,
+    "output": 180,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 60,
+        "cachedInput": null,
+        "output": 270
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "OpenAI:gpt-5.4",
+    "provider": "OpenAI",
+    "model": "GPT-5.4",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 2.5,
+    "cachedInput": 0.25,
+    "output": 15,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 5,
+        "cachedInput": 0.5,
+        "output": 22.5
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "OpenAI:gpt-5.4-pro",
+    "provider": "OpenAI",
+    "model": "GPT-5.4 Pro",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 30,
+    "cachedInput": null,
+    "output": 180,
+    "tiers": [
+      {
+        "aboveInputTokens": 272000,
+        "input": 60,
+        "cachedInput": null,
+        "output": 270
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1050000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "OpenAI:gpt-5.4-mini",
+    "provider": "OpenAI",
+    "model": "GPT-5.4 Mini",
+    "group": "openai",
+    "linkedModelId": null,
+    "input": 0.75,
+    "cachedInput": 0.075,
+    "output": 4.5,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 400000,
+    "sourceUrl": "https://developers.openai.com/api/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "Google:gemini-3.6-flash",
+    "provider": "Google",
+    "model": "Gemini 3.6 Flash",
+    "group": "gemini",
+    "linkedModelId": null,
+    "input": 0.75,
+    "cachedInput": 0.075,
+    "output": 3.75,
+    "tiers": [],
+    "scheduled": [
+      {
+        "effective": "2027-01-01",
+        "input": 1.5,
+        "cachedInput": 0.15,
+        "output": 7.5,
+        "note": "price changes on 2027-01-01"
+      }
+    ],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://aistudio.google.com/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "intro price in force until 2026-12-31"
+  },
+  {
+    "id": "Google:gemini-3.1-pro-preview",
+    "provider": "Google",
+    "model": "Gemini 3.1 Pro Preview",
+    "group": "gemini",
+    "linkedModelId": null,
+    "input": 2,
+    "cachedInput": 0.2,
+    "output": 12,
+    "tiers": [
+      {
+        "aboveInputTokens": 200000,
+        "input": 4,
+        "cachedInput": 0.4,
+        "output": 18
+      }
+    ],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://aistudio.google.com/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Cached tokens in the long-context tier are priced with the same multiplier as input tokens (derived, not published)"
+  },
+  {
+    "id": "Google:gemini-3-flash-preview",
+    "provider": "Google",
+    "model": "Gemini 3 Flash Preview",
+    "group": "gemini",
+    "linkedModelId": null,
+    "input": 0.5,
+    "cachedInput": 0.05,
+    "output": 3,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://aistudio.google.com/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "Google:gemini-2.5-flash-lite",
+    "provider": "Google",
+    "model": "Gemini 2.5 Flash-Lite",
+    "group": "gemini",
+    "linkedModelId": null,
+    "input": 0.1,
+    "cachedInput": 0.01,
+    "output": 0.4,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://aistudio.google.com/docs/pricing.md",
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": null
+  },
+  {
+    "id": "ref:qwen3.8-27b",
+    "provider": "Maker API",
+    "model": "Qwen3.8 27B",
+    "group": "open_weight_reference",
+    "linkedModelId": "qwen3.8-27b",
+    "input": 0.5,
+    "cachedInput": 0.1,
+    "output": 3,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1000000,
+    "sourceUrl": "https://www.qwencloud.com/models/qwen3.8-27b",
+    "sourceUrls": [
+      "https://www.qwencloud.com/models/qwen3.8-27b"
+    ],
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Qwen Cloud (Alibaba)"
+  },
+  {
+    "id": "ref:qwen3.8-flash-next",
+    "provider": "Maker API",
+    "model": "Qwen3.8 Flash Next",
+    "group": "open_weight_reference",
+    "linkedModelId": "qwen3.8-flash-next",
+    "input": 0.15,
+    "cachedInput": 0.016,
+    "output": 0.47,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1000000,
+    "sourceUrl": "https://www.qwencloud.com/models/qwen3.8-flash",
+    "sourceUrls": [
+      "https://www.qwencloud.com/models/qwen3.8-flash"
+    ],
+    "sourceKind": "primary",
+    "captured": "2026-11-09",
+    "note": "Qwen Cloud (Alibaba)"
+  },
+  {
+    "id": "ref:kimi-k3.1-pro",
+    "provider": "Maker API",
+    "model": "Kimi K3.1 Pro",
+    "group": "open_weight_reference",
+    "linkedModelId": "kimi-k3.1-pro",
+    "input": 2,
+    "cachedInput": 0.2,
+    "output": 10,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1048576,
+    "sourceUrl": "https://web.archive.org/web/20261108113533/https://platform.kimi.ai/docs/pricing/chat",
+    "sourceUrls": [
+      "https://web.archive.org/web/20261108113533/https://platform.kimi.ai/docs/pricing/chat"
+    ],
+    "sourceKind": "primary_archive",
+    "captured": "2026-11-09",
+    "note": "Moonshot (first-party)"
+  },
+  {
+    "id": "ref:deepseek-v4.1-flash",
+    "provider": "Maker API",
+    "model": "DeepSeek V4.1 Flash",
+    "group": "open_weight_reference",
+    "linkedModelId": "deepseek-v4.1-flash",
+    "input": 0.3,
+    "cachedInput": 0.006,
+    "output": 1.2,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": 1000000,
+    "sourceUrl": "https://web.archive.org/web/20261108211936/https://api-docs.deepseek.com/quick_start/pricing.md",
+    "sourceUrls": [
+      "https://web.archive.org/web/20261108211936/https://api-docs.deepseek.com/quick_start/pricing.md"
+    ],
+    "sourceKind": "primary_archive",
+    "captured": "2026-11-09",
+    "note": "DeepSeek (first-party)"
+  },
+  {
+    "id": "ref:muse-spark-open",
+    "provider": "Median of 3 hosts",
+    "model": "Muse Spark Open",
+    "group": "open_weight_reference",
+    "linkedModelId": "muse-spark-open",
+    "input": 1.25,
+    "cachedInput": 0.15,
+    "output": 4.25,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": null,
+    "sourceUrl": "https://www.baseten.co/pricing",
+    "sourceUrls": [
+      "https://www.baseten.co/pricing",
+      "https://web.archive.org/web/20261109064901/https://www.together.ai/pricing",
+      "https://web.archive.org/web/20261107131757/https://fireworks.ai/pricing"
+    ],
+    "sourceKind": "derived",
+    "captured": "2026-11-09",
+    "note": "Baseten, Together AI, Fireworks AI"
+  },
+  {
+    "id": "ref:nemotron-3.5-super-vl",
+    "provider": "Median of 3 hosts",
+    "model": "Nemotron 3.5 Super VL",
+    "group": "open_weight_reference",
+    "linkedModelId": "nemotron-3.5-super-vl",
+    "input": 0.15,
+    "cachedInput": 0.02,
+    "output": 0.5,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": null,
+    "sourceUrl": "https://www.baseten.co/pricing",
+    "sourceUrls": [
+      "https://www.baseten.co/pricing",
+      "https://web.archive.org/web/20261109064901/https://www.together.ai/pricing",
+      "https://web.archive.org/web/20261104115446/https://deepinfra.com/pricing"
+    ],
+    "sourceKind": "derived",
+    "captured": "2026-11-09",
+    "note": "Baseten, Together AI, DeepInfra"
+  },
+  {
+    "id": "ref:gemma-4-31b",
+    "provider": "Median of 5 hosts",
+    "model": "Gemma 4 31B",
+    "group": "open_weight_reference",
+    "linkedModelId": "gemma-4-31b",
+    "input": 0.15,
+    "cachedInput": 0.06,
+    "output": 0.4,
+    "tiers": [],
+    "scheduled": [],
+    "deprecated": null,
+    "contextWindow": null,
+    "sourceUrl": "https://www.parasail.io/pricing",
+    "sourceUrls": [
+      "https://www.parasail.io/pricing",
+      "https://cloud.sambanova.ai/plans/pricing",
+      "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonBedrock/current/us-east-1/index.json",
+      "https://web.archive.org/web/20261104115446/https://deepinfra.com/pricing",
+      "https://web.archive.org/web/20261104115522/https://novita.ai/pricing"
+    ],
+    "sourceKind": "derived",
+    "captured": "2026-11-09",
+    "note": "Parasail, SambaNova, AWS Bedrock, DeepInfra, Novita AI"
+  }
+]

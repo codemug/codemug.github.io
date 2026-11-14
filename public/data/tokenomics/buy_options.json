@@ -1,0 +1,153 @@
+{
+  "servers": [
+    {
+      "id": "rtx6000pro-1",
+      "gpu": "rtx6000pro",
+      "gpuCount": 1,
+      "system": "Thinkmate GPX GE95-1202-41 + 1x RTX PRO 6000 Server",
+      "priceUsd": 62061,
+      "powerKw": 1.905,
+      "powerKind": "derived",
+      "priceKind": "list",
+      "sourceUrl": "https://www.thinkmate.com/system/gpx-ge95-1202-41",
+      "note": "derived: chassis 1,305 W plus 600 W per card, from the configurator's component watts"
+    },
+    {
+      "id": "rtx6000pro-2",
+      "gpu": "rtx6000pro",
+      "gpuCount": 2,
+      "system": "Thinkmate GPX GE95-1202-41 + 2x RTX PRO 6000 Server",
+      "priceUsd": 80732,
+      "powerKw": 2.505,
+      "powerKind": "derived",
+      "priceKind": "list",
+      "sourceUrl": "https://www.thinkmate.com/system/gpx-ge95-1202-41",
+      "note": "derived: chassis 1,305 W plus 600 W per card, from the configurator's component watts"
+    },
+    {
+      "id": "rtx6000pro-4",
+      "gpu": "rtx6000pro",
+      "gpuCount": 4,
+      "system": "Thinkmate GPX GE95-1202-41 + 4x RTX PRO 6000 Server",
+      "priceUsd": 118074,
+      "powerKw": 3.705,
+      "powerKind": "derived",
+      "priceKind": "list",
+      "sourceUrl": "https://www.thinkmate.com/system/gpx-ge95-1202-41",
+      "note": "derived: 43,390 + 4 x 18,671 USD; power derived 1305 + 4 x 600 W; chassis PSUs 4x 2000W"
+    },
+    {
+      "id": "rtx6000pro-8",
+      "gpu": "rtx6000pro",
+      "gpuCount": 8,
+      "system": "Thinkmate GPX GXS6-2404-81 + 8x RTX PRO 6000 Server",
+      "priceUsd": 187769,
+      "powerKw": 6.5,
+      "powerKind": "measured",
+      "priceKind": "list",
+      "sourceUrl": "https://www.thinkmate.com/system/gpx-gxs6-2404-81",
+      "note": "default config already has 1 GPU at $57,072; derived: 57,072 + 7 x 18,671 USD"
+    },
+    {
+      "id": "b200-8",
+      "gpu": "b200",
+      "gpuCount": 8,
+      "system": "NVIDIA DGX B200",
+      "priceUsd": 562154.09,
+      "powerKw": 14.3,
+      "powerKind": "published",
+      "priceKind": "list",
+      "sourceUrl": "https://www.broadberry.com/xeon-scalable-processor-gen4-rackmount-servers/nvidia-dgx-b200",
+      "note": "price from the page's view_item analytics data (value 562154.094 USD); config and power from https://www.nvidia.com/en-us/data-center/dgx-b200/ (primary_archive, Wayback 20261024165214)"
+    },
+    {
+      "id": "b300-8",
+      "gpu": "b300",
+      "gpuCount": 8,
+      "system": "NVIDIA DGX B300",
+      "priceUsd": 646878.46,
+      "powerKw": 14,
+      "powerKind": "published",
+      "priceKind": "list",
+      "sourceUrl": "https://www.broadberry.com/xeon-6-rackmount-servers/nvidia-dgx-b300",
+      "note": "price from the page's view_item analytics data (value 646878.4605 USD); config and power from https://www.nvidia.com/en-us/data-center/dgx-b300/ (primary_archive, Wayback 20261024170333)"
+    }
+  ],
+  "defaults": {
+    "amortYears": 5,
+    "residualPct": 0,
+    "pue": 1.3,
+    "electricityUsdPerKwh": 0.14,
+    "coloUsdPerKwMonth": 200,
+    "coloIncludesEnergy": false,
+    "supportPctPerYear": 5,
+    "hoursPerMonth": 730,
+    "basis": {
+      "electricityUsdPerKwh": {
+        "kind": "published",
+        "note": "US commercial average 0.1404 USD per kWh (EIA, 2026-01 to 2026-08), rounded to 0.14",
+        "sourceUrl": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b"
+      },
+      "coloUsdPerKwMonth": {
+        "kind": "aggregator",
+        "note": "wholesale 250 to 500 kW North America 196 USD per kW per month (QuoteColo, H1 2026), rounded to 200",
+        "sourceUrl": "https://www.quotecolo.com/gpu-colocation-hosting/"
+      },
+      "pue": {
+        "kind": "recommendation",
+        "note": "Uptime 2026 survey (n=644): 1.52 industry average, 1.3 or better for new builds; 1.3 chosen",
+        "sourceUrl": "https://datacenter.uptimeinstitute.com/rs/711-RIA-145/images/UptimeInstitute.GlobalDataCenterSurvey.2026.pdf?version=0"
+      },
+      "amortYears": {
+        "kind": "recommendation",
+        "note": "SEC filings of seven cloud and neocloud operators state 5 to 6 years for servers and network equipment; none states a GPU-only life; 5 chosen",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1769628/000176962826000104/crwv-20251231.htm"
+      },
+      "residualPct": {
+        "kind": "recommendation",
+        "note": "resale evidence is two brokers that disagree (54 to 58 percent against 75 to 85 percent at 24 months for an H100); 0 chosen",
+        "sourceUrl": "https://serverbuyback.com/resources/gpu-resale-value-index/"
+      },
+      "supportPctPerYear": {
+        "kind": "recommendation",
+        "note": "midpoint between a 3-year onsite add-on of 0.2 percent (Thinkmate) and OEM maintenance contracts of 6 to 12 percent (a reseller blog citing Gartner); there is no published GPU-server figure; 5 chosen",
+        "sourceUrl": "https://www.thinkmate.com/system/gpx-gxs6-2808-8hgx-b2"
+      },
+      "hoursPerMonth": {
+        "kind": "arithmetic",
+        "note": "365 x 24 / 12 = 730",
+        "sourceUrl": null
+      }
+    },
+    "sources": {
+      "electricityUsdPerKwh": "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_b",
+      "coloUsdPerKwMonth": "https://www.quotecolo.com/gpu-colocation-hosting/"
+    }
+  },
+  "ranges": {
+    "amortYears": {
+      "low": 3,
+      "high": 6
+    },
+    "residualPct": {
+      "low": 0,
+      "high": 20
+    },
+    "electricityUsdPerKwh": {
+      "low": 0.07,
+      "high": 0.27
+    },
+    "coloUsdPerKwMonth": {
+      "low": 110,
+      "high": 470
+    },
+    "pue": {
+      "low": 1.1,
+      "high": 1.52
+    },
+    "supportPctPerYear": {
+      "low": 0,
+      "high": 12
+    }
+  }
+}

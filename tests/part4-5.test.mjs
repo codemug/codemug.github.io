@@ -98,9 +98,19 @@ for (const post of POSTS) {
   });
 }
 
-test('the slides on disk are exactly the slides of part 4 and part 5, with no orphan and none missing', () => {
+// part 6 (tokenomics) adds three figures, named p6-*, with their own slides
+const part6FigureNames = Object.keys(figures).filter((n) => n.startsWith('p6-'));
+const part6SlideIds = [...new Set(part6FigureNames.flatMap((n) => figures[n].slides.map(slideId)))];
+
+test('the slides on disk are exactly the slides of parts 4, 5 and 6, with no orphan and none missing', () => {
   const onDisk = readdirSync(`${DECK}/slides`).filter((f) => /^d\d/.test(f)).map((f) => f.slice(0, -5)).sort();
-  assert.deepEqual(onDisk, [...allSlideIds].sort());
+  assert.deepEqual(onDisk, [...allSlideIds, ...part6SlideIds].sort());
+});
+
+test('part 6 figures keep the style contract in their captions and slides', () => {
+  assert.equal(part6FigureNames.length, 3);
+  for (const n of part6FigureNames) for (const c of Object.values(figures[n].captions)) assert.ok(!/[—–‘’“”]/.test(c), `caption in ${n}`);
+  for (const id of part6SlideIds) assert.ok(!/[—–‘’“”]/.test(readFileSync(`${DECK}/slides/${id}.html`, 'utf8')), `slide ${id}`);
 });
 
 test('the manifests and values use one served-model name', () => {

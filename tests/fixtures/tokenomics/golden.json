@@ -1,0 +1,6417 @@
+{
+ "cases": [
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "g": 1,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 1,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 1.0,
+    "bMax": 213.9349247118939,
+    "queued": 0.0,
+    "tMemMs": 18.583011315978737,
+    "tDecMs": 0.1069848846459825,
+    "tPreMs": 0.85587907716786,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 21.998890393146596,
+    "userTokS": 45.4568381463246,
+    "outTokSPerGpu": 45.4568381463246,
+    "outTokSReplica": 45.4568381463246
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "g": 1,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 1,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 1.0,
+    "bMax": 213.9349247118939,
+    "queued": 0.0,
+    "tMemMs": 18.583011315978737,
+    "tDecMs": 0.1069848846459825,
+    "tPreMs": 0.42793953858393,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 12.533963308868486,
+    "userTokS": 79.78322381815524,
+    "outTokSPerGpu": 79.78322381815524,
+    "outTokSReplica": 79.78322381815524
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "g": 1,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 16,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 16,
+    "bMax": 213.9349247118939,
+    "queued": 0.0,
+    "tMemMs": 23.148643494350317,
+    "tDecMs": 1.71175815433572,
+    "tPreMs": 13.69406523468576,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 39.40270872903608,
+    "userTokS": 25.378965869498572,
+    "outTokSPerGpu": 406.06345391197715,
+    "outTokSReplica": 406.06345391197715
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "g": 1,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 16,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 16,
+    "bMax": 213.9349247118939,
+    "queued": 0.0,
+    "tMemMs": 23.148643494350317,
+    "tDecMs": 1.71175815433572,
+    "tPreMs": 6.84703261734288,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 23.96972177270888,
+    "userTokS": 41.719299434612815,
+    "outTokSPerGpu": 667.508790953805,
+    "outTokSReplica": 667.508790953805
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "g": 1,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 64,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 64,
+    "bMax": 213.9349247118939,
+    "queued": 0.0,
+    "tMemMs": 37.758666465139385,
+    "tDecMs": 6.84703261734288,
+    "tPreMs": 54.77626093874304,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 95.09492740388242,
+    "userTokS": 10.51580801731779,
+    "outTokSPerGpu": 673.0117131083385,
+    "outTokSReplica": 673.0117131083385
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "g": 1,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 64,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 64,
+    "bMax": 213.9349247118939,
+    "queued": 0.0,
+    "tMemMs": 37.758666465139385,
+    "tDecMs": 6.84703261734288,
+    "tPreMs": 27.38813046937152,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 57.5346676873818,
+    "userTokS": 17.380825164986828,
+    "outTokSPerGpu": 1112.372810559157,
+    "outTokSReplica": 1112.372810559157
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "h100",
+    "g": 1,
+    "isl": 2000,
+    "osl": 300,
+    "conc": 32,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 32,
+    "bMax": 179.36381655919547,
+    "queued": 0.0,
+    "tMemMs": 12.346338323420492,
+    "tDecMs": 3.459844677788216,
+    "tPreMs": 23.065631185254773,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 37.971969508675265,
+    "userTokS": 26.33521550077973,
+    "outTokSPerGpu": 842.7268960249513,
+    "outTokSReplica": 842.7268960249513
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "h100",
+    "g": 1,
+    "isl": 2000,
+    "osl": 300,
+    "conc": 32,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 32,
+    "bMax": 179.36381655919547,
+    "queued": 0.0,
+    "tMemMs": 12.346338323420492,
+    "tDecMs": 3.459844677788216,
+    "tPreMs": 11.532815592627387,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 20.859293030412523,
+    "userTokS": 47.94026329377585,
+    "outTokSPerGpu": 1534.0884254008272,
+    "outTokSReplica": 1534.0884254008272
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "h200",
+    "g": 1,
+    "isl": 1000,
+    "osl": 1000,
+    "conc": 8,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 8,
+    "bMax": 325.0409112328307,
+    "queued": 0.0,
+    "tMemMs": 15.137238477394531,
+    "tDecMs": 0.8696310257907993,
+    "tPreMs": 0.8696310257907993,
+    "t0Ms": 5.119999999999999,
+    "tpotMs": 21.12686950318533,
+    "userTokS": 47.33308926101089,
+    "outTokSPerGpu": 378.6647140880871,
+    "outTokSReplica": 378.6647140880871
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "h200",
+    "g": 1,
+    "isl": 1000,
+    "osl": 1000,
+    "conc": 8,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 8,
+    "bMax": 325.0409112328307,
+    "queued": 0.0,
+    "tMemMs": 15.137238477394531,
+    "tDecMs": 0.8696310257907993,
+    "tPreMs": 0.43481551289539966,
+    "t0Ms": 5.119999999999999,
+    "tpotMs": 14.28121608826691,
+    "userTokS": 70.02204810986474,
+    "outTokSPerGpu": 560.1763848789179,
+    "outTokSReplica": 560.1763848789179
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 1,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 1.0,
+    "bMax": 14397.032020489713,
+    "queued": 0.0,
+    "tMemMs": 0.3172091117356166,
+    "tDecMs": 0.001974903565716436,
+    "tPreMs": 0.015799228525731488,
+    "t0Ms": 4.0,
+    "tpotMs": 4.3330083402613475,
+    "userTokS": 230.7865393907099,
+    "outTokSPerGpu": 28.848317423838736,
+    "outTokSReplica": 230.7865393907099
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 1,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 1.0,
+    "bMax": 14397.032020489713,
+    "queued": 0.0,
+    "tMemMs": 0.3172091117356166,
+    "tDecMs": 0.001974903565716436,
+    "tPreMs": 0.007899614262865744,
+    "t0Ms": 4.0,
+    "tpotMs": 2.513136970365184,
+    "userTokS": 397.90907212458455,
+    "outTokSPerGpu": 49.73863401557307,
+    "outTokSReplica": 397.90907212458455
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 64,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 64,
+    "bMax": 14397.032020489713,
+    "queued": 0.0,
+    "tMemMs": 4.899986786307061,
+    "tDecMs": 0.1263938282058519,
+    "tPreMs": 1.0111506256468152,
+    "t0Ms": 4.0,
+    "tpotMs": 9.911137411953877,
+    "userTokS": 100.89659324003463,
+    "outTokSPerGpu": 807.1727459202771,
+    "outTokSReplica": 6457.3819673622165
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 64,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 64,
+    "bMax": 14397.032020489713,
+    "queued": 0.0,
+    "tMemMs": 4.899986786307061,
+    "tDecMs": 0.1263938282058519,
+    "tPreMs": 0.5055753128234076,
+    "t0Ms": 4.0,
+    "tpotMs": 7.992489887092512,
+    "userTokS": 125.11745577744827,
+    "outTokSPerGpu": 1000.9396462195862,
+    "outTokSReplica": 8007.517169756689
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 512,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 512,
+    "bMax": 14397.032020489713,
+    "queued": 0.0,
+    "tMemMs": 8.154562803822548,
+    "tDecMs": 1.0111506256468152,
+    "tPreMs": 8.089205005174522,
+    "t0Ms": 4.0,
+    "tpotMs": 20.24376780899707,
+    "userTokS": 49.39791887731312,
+    "outTokSPerGpu": 3161.4668081480395,
+    "outTokSReplica": 25291.734465184316
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 512,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 512,
+    "bMax": 14397.032020489713,
+    "queued": 0.0,
+    "tMemMs": 8.154562803822548,
+    "tDecMs": 1.0111506256468152,
+    "tPreMs": 4.044602502587261,
+    "t0Ms": 4.0,
+    "tpotMs": 16.19916530640981,
+    "userTokS": 61.731575737690164,
+    "outTokSPerGpu": 3950.8208472121705,
+    "outTokSReplica": 31606.566777697364
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "mi300x",
+    "g": 1,
+    "isl": 1000,
+    "osl": 500,
+    "conc": 128,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 128,
+    "bMax": 290.16134076873936,
+    "queued": 0.0,
+    "tMemMs": 34.84461266237319,
+    "tDecMs": 17.391501410010722,
+    "tPreMs": 34.783002820021444,
+    "t0Ms": 2.4,
+    "tpotMs": 72.02761548239462,
+    "userTokS": 13.883563870643828,
+    "outTokSPerGpu": 1777.09617544241,
+    "outTokSReplica": 1777.09617544241
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "mi300x",
+    "g": 1,
+    "isl": 1000,
+    "osl": 500,
+    "conc": 128,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 128,
+    "bMax": 290.16134076873936,
+    "queued": 0.0,
+    "tMemMs": 34.84461266237319,
+    "tDecMs": 17.391501410010722,
+    "tPreMs": 17.391501410010722,
+    "t0Ms": 2.4,
+    "tpotMs": 50.30486518035532,
+    "userTokS": 19.878792963955952,
+    "outTokSPerGpu": 2544.485499386362,
+    "outTokSReplica": 2544.485499386362
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 8000,
+    "osl": 1000,
+    "conc": 100,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 100,
+    "bMax": 1563.9848826970547,
+    "queued": 0.0,
+    "tMemMs": 13.118647336202354,
+    "tDecMs": 0.5420429955781353,
+    "tPreMs": 4.336343964625082,
+    "t0Ms": 6.2,
+    "tpotMs": 23.654991300827437,
+    "userTokS": 42.27437614678052,
+    "outTokSPerGpu": 528.4297018347564,
+    "outTokSReplica": 4227.437614678051
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 8000,
+    "osl": 1000,
+    "conc": 100,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 100,
+    "bMax": 1563.9848826970547,
+    "queued": 0.0,
+    "tMemMs": 13.118647336202354,
+    "tDecMs": 0.5420429955781353,
+    "tPreMs": 2.168171982312541,
+    "t0Ms": 6.2,
+    "tpotMs": 19.212067430759884,
+    "userTokS": 52.05061889377553,
+    "outTokSPerGpu": 650.6327361721941,
+    "outTokSReplica": 5205.061889377553
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "h100",
+    "g": 4,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 40,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0
+    }
+   },
+   "result": {
+    "B": 40,
+    "bMax": 1028.471355196796,
+    "queued": 0.0,
+    "tMemMs": 6.128143860018457,
+    "tDecMs": 1.026691156104893,
+    "tPreMs": 8.213529248839144,
+    "t0Ms": 10.56,
+    "tpotMs": 24.9016731088576,
+    "userTokS": 40.15794423244183,
+    "outTokSPerGpu": 401.5794423244183,
+    "outTokSReplica": 1606.3177692976733
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "h100",
+    "g": 4,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 40,
+    "opts": {
+     "mtp": true,
+     "cachedShare": 0.5
+    }
+   },
+   "result": {
+    "B": 40,
+    "bMax": 1028.471355196796,
+    "queued": 0.0,
+    "tMemMs": 6.128143860018457,
+    "tDecMs": 1.026691156104893,
+    "tPreMs": 4.106764624419572,
+    "t0Ms": 10.56,
+    "tpotMs": 16.793095086852524,
+    "userTokS": 59.5482842697002,
+    "outTokSPerGpu": 595.482842697002,
+    "outTokSReplica": 2381.931370788008
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "g": 1,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 64,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0,
+     "ctx": 262144
+    }
+   },
+   "result": {
+    "B": 7.374301787199916,
+    "bMax": 7.374301787199916,
+    "queued": 56.62569821280008,
+    "tMemMs": 20.5231924729315,
+    "tDecMs": 0.7889388260482455,
+    "tPreMs": 6.311510608385964,
+    "t0Ms": 2.5599999999999996,
+    "tpotMs": 29.39470308131746,
+    "userTokS": 34.01973468599433,
+    "outTokSPerGpu": 250.87179029499495,
+    "outTokSReplica": 250.87179029499495
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 512,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0,
+     "ctx": 262144
+    }
+   },
+   "result": {
+    "B": 258.1874064222897,
+    "bMax": 258.1874064222897,
+    "queued": 253.8125935777103,
+    "tMemMs": 7.688663278237245,
+    "tDecMs": 0.5098952295664586,
+    "tPreMs": 4.079161836531669,
+    "t0Ms": 4.0,
+    "tpotMs": 15.767825114768916,
+    "userTokS": 63.4202873713605,
+    "outTokSPerGpu": 2046.7899388709827,
+    "outTokSReplica": 16374.319510967862
+   }
+  },
+  {
+   "kind": "stepModel",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "b300",
+    "g": 8,
+    "isl": 4000,
+    "osl": 500,
+    "conc": 64,
+    "opts": {
+     "mtp": false,
+     "cachedShare": 0.0,
+     "ctx": 262144
+    }
+   },
+   "result": {
+    "B": 10.66554008153337,
+    "bMax": 10.66554008153337,
+    "queued": 53.33445991846663,
+    "tMemMs": 8.913256285844362,
+    "tDecMs": 0.08510290135669504,
+    "tPreMs": 0.6808232108535603,
+    "t0Ms": 9.299999999999999,
+    "tpotMs": 18.89407949669792,
+    "userTokS": 52.926632396924546,
+    "outTokSPerGpu": 70.56138990124767,
+    "outTokSReplica": 564.4911192099813
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-27b",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "qwen3.8-flash-next",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "kimi-k3.1-pro",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "deepseek-v4.1-flash",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": null
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "muse-spark-open",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 8
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 4
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "nemotron-3.5-super-vl",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 4,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 8,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "rtx6000pro",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "l40s",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 2
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "h100",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "h200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "b200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "b300",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "gb200",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "mi300x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 8192
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "minGpus",
+   "args": {
+    "model": "gemma-4-31b",
+    "bits": 16,
+    "gpu": "mi355x",
+    "ctx": 131072
+   },
+   "result": {
+    "g": 1
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 8,
+    "C": 1000,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.0,
+    "ctx": 32768,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "qwen3.8-27b",
+    "gpu": "h100"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 48,
+    "gpus": 48,
+    "Bv": 21,
+    "meetsSpeed": true,
+    "confidence": "calibrated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 200,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.5,
+    "ctx": 32768,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "qwen3.8-27b",
+    "gpu": "rtx6000pro"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 12,
+    "gpus": 12,
+    "Bv": 17,
+    "meetsSpeed": true,
+    "confidence": "extrapolated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 200,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.5,
+    "ctx": 32768,
+    "mtp": false,
+    "tf": 0.5,
+    "model": "qwen3.8-27b",
+    "gpu": "rtx6000pro"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 200,
+    "gpus": 200,
+    "Bv": 1,
+    "meetsSpeed": false,
+    "confidence": "extrapolated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 3000,
+    "isl": 6000,
+    "osl": 600,
+    "v": 40,
+    "cachedShare": 0.0,
+    "ctx": 131072,
+    "mtp": true,
+    "tf": 1.0,
+    "model": "deepseek-v4.1-flash",
+    "gpu": "b200"
+   },
+   "result": {
+    "offered": true,
+    "g": 4,
+    "replicas": 16,
+    "gpus": 64,
+    "Bv": 198,
+    "meetsSpeed": true,
+    "confidence": "calibrated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 100,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.0,
+    "ctx": 32768,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "kimi-k3.1-pro",
+    "gpu": "b200"
+   },
+   "result": {
+    "offered": false,
+    "reason": "needs more than one 8-GPU node"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 16,
+    "C": 5000,
+    "isl": 1000,
+    "osl": 400,
+    "v": 150,
+    "cachedShare": 0.0,
+    "ctx": 16384,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "gemma-4-31b",
+    "gpu": "h200"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 5000,
+    "gpus": 5000,
+    "Bv": 1,
+    "meetsSpeed": false,
+    "confidence": "calibrated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 200,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.0,
+    "ctx": 262144,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "qwen3.8-27b",
+    "gpu": "rtx6000pro"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 29,
+    "gpus": 29,
+    "Bv": 7,
+    "meetsSpeed": true,
+    "confidence": "extrapolated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 200,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.0,
+    "ctx": 262144,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "qwen3.8-27b",
+    "gpu": "b200"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 13,
+    "gpus": 13,
+    "Bv": 16,
+    "meetsSpeed": true,
+    "confidence": "calibrated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 3000,
+    "isl": 6000,
+    "osl": 600,
+    "v": 40,
+    "cachedShare": 0.0,
+    "ctx": 262144,
+    "mtp": true,
+    "tf": 1.0,
+    "model": "deepseek-v4.1-flash",
+    "gpu": "b200"
+   },
+   "result": {
+    "offered": true,
+    "g": 4,
+    "replicas": 24,
+    "gpus": 96,
+    "Bv": 130,
+    "meetsSpeed": true,
+    "confidence": "calibrated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 0.25,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.5,
+    "ctx": 262144,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "qwen3.8-27b",
+    "gpu": "rtx6000pro"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 1,
+    "gpus": 1,
+    "Bv": 7,
+    "meetsSpeed": true,
+    "confidence": "extrapolated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 0.01,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.5,
+    "ctx": 262144,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "qwen3.8-27b",
+    "gpu": "rtx6000pro"
+   },
+   "result": {
+    "offered": true,
+    "g": 1,
+    "replicas": 1,
+    "gpus": 1,
+    "Bv": 7,
+    "meetsSpeed": true,
+    "confidence": "extrapolated"
+   }
+  },
+  {
+   "kind": "sizeDeployment",
+   "args": {
+    "bits": 4,
+    "C": 0.5,
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.0,
+    "ctx": 262144,
+    "mtp": false,
+    "tf": 1.0,
+    "model": "kimi-k3.1-pro",
+    "gpu": "b300"
+   },
+   "result": {
+    "offered": true,
+    "g": 8,
+    "replicas": 1,
+    "gpus": 8,
+    "Bv": 10,
+    "meetsSpeed": true,
+    "confidence": "extrapolated"
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "plain",
+    "isl": 1000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 0.007
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "plain",
+    "isl": 1000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.00538
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "plain",
+    "isl": 150000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 0.305
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "plain",
+    "isl": 150000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.06199999999999999
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "plain",
+    "isl": 300000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 0.605
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "plain",
+    "isl": 300000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.11899999999999998
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "plain",
+    "C": 250,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 52427.18446601941,
+    "usdPerMonth": 149815.92233009706,
+    "outputTokensPerMonth": 7968932038.83495,
+    "usdPerMtokOut": 18.799999999999997
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "plain",
+    "C": 0.01,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 2.0970873786407767,
+    "usdPerMonth": 5.992636893203883,
+    "outputTokensPerMonth": 318757.281553398,
+    "usdPerMtokOut": 18.800000000000004
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "plain",
+    "C": 0.25,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 52.42718446601941,
+    "usdPerMonth": 149.81592233009707,
+    "outputTokensPerMonth": 7968932.03883495,
+    "usdPerMtokOut": 18.8
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "tiered",
+    "isl": 1000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 0.035
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "tiered",
+    "isl": 1000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.0269
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "tiered",
+    "isl": 150000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 1.525
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "tiered",
+    "isl": 150000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.31
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "tiered",
+    "isl": 300000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 6.0375
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "tiered",
+    "isl": 300000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 1.1775
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "tiered",
+    "C": 250,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 52427.18446601941,
+    "usdPerMonth": 749079.6116504853,
+    "outputTokensPerMonth": 7968932038.83495,
+    "usdPerMtokOut": 94.0
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "tiered",
+    "C": 0.01,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 2.0970873786407767,
+    "usdPerMonth": 29.963184466019417,
+    "outputTokensPerMonth": 318757.281553398,
+    "usdPerMtokOut": 94.00000000000001
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "tiered",
+    "C": 0.25,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 52.42718446601941,
+    "usdPerMonth": 749.0796116504854,
+    "outputTokensPerMonth": 7968932.03883495,
+    "usdPerMtokOut": 94.00000000000001
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "nocache",
+    "isl": 1000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 0.003
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "nocache",
+    "isl": 1000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.003
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "nocache",
+    "isl": 150000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 0.152
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "nocache",
+    "isl": 150000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.152
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "nocache",
+    "isl": 300000,
+    "osl": 500,
+    "cachedShare": 0.0
+   },
+   "result": {
+    "usd": 0.302
+   }
+  },
+  {
+   "kind": "apiCostPerRequest",
+   "args": {
+    "price": "nocache",
+    "isl": 300000,
+    "osl": 500,
+    "cachedShare": 0.9
+   },
+   "result": {
+    "usd": 0.302
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "nocache",
+    "C": 250,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 52427.18446601941,
+    "usdPerMonth": 95627.1844660194,
+    "outputTokensPerMonth": 7968932038.83495,
+    "usdPerMtokOut": 12.0
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "nocache",
+    "C": 0.01,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 2.0970873786407767,
+    "usdPerMonth": 3.825087378640777,
+    "outputTokensPerMonth": 318757.281553398,
+    "usdPerMtokOut": 12.000000000000004
+   }
+  },
+  {
+   "kind": "apiMonthly",
+   "args": {
+    "price": "nocache",
+    "C": 0.25,
+    "isl": 4000,
+    "osl": 500,
+    "cachedShare": 0.5,
+    "v": 30,
+    "ttftS": 0.5,
+    "hoursPerDay": 10
+   },
+   "result": {
+    "requestsPerHour": 52.42718446601941,
+    "usdPerMonth": 95.62718446601941,
+    "outputTokensPerMonth": 7968932.03883495,
+    "usdPerMtokOut": 12.000000000000002
+   }
+  },
+  {
+   "kind": "rentMonthly",
+   "args": {
+    "deployment": {
+     "offered": true,
+     "g": 1,
+     "replicas": 48,
+     "gpus": 48,
+     "Bv": 21,
+     "meetsSpeed": true,
+     "confidence": "calibrated"
+    },
+    "offer": "b200x8",
+    "hoursPerDay": 12
+   },
+   "result": {
+    "offered": true,
+    "machines": 6,
+    "usdPerHour": 360.0,
+    "usdPerMonth": 131328.0
+   }
+  },
+  {
+   "kind": "rentMonthly",
+   "args": {
+    "deployment": {
+     "offered": true,
+     "g": 1,
+     "replicas": 48,
+     "gpus": 48,
+     "Bv": 21,
+     "meetsSpeed": true,
+     "confidence": "calibrated"
+    },
+    "offer": "h100x4",
+    "hoursPerDay": 12
+   },
+   "result": {
+    "offered": true,
+    "machines": 12,
+    "usdPerHour": 198.0,
+    "usdPerMonth": 72230.4
+   }
+  },
+  {
+   "kind": "rentMonthly",
+   "args": {
+    "deployment": {
+     "offered": true,
+     "g": 1,
+     "replicas": 48,
+     "gpus": 48,
+     "Bv": 21,
+     "meetsSpeed": true,
+     "confidence": "calibrated"
+    },
+    "offer": "rtx1",
+    "hoursPerDay": 12
+   },
+   "result": {
+    "offered": true,
+    "machines": 48,
+    "usdPerHour": 144.0,
+    "usdPerMonth": 52531.2
+   }
+  },
+  {
+   "kind": "buyMonthly",
+   "args": {
+    "deployment": {
+     "offered": true,
+     "g": 1,
+     "replicas": 18,
+     "gpus": 18,
+     "Bv": 17,
+     "meetsSpeed": true,
+     "confidence": "extrapolated"
+    },
+    "server": "dgxb200"
+   },
+   "result": {
+    "offered": true,
+    "servers": 3,
+    "usdPerMonth": 49414.324625,
+    "parts": {
+     "amort": 28107.7045,
+     "energy": 5699.694000000001,
+     "colo": 8580.000000000002,
+     "support": 7026.926124999999
+    }
+   }
+  },
+  {
+   "kind": "buyMonthly",
+   "args": {
+    "deployment": {
+     "offered": true,
+     "g": 1,
+     "replicas": 18,
+     "gpus": 18,
+     "Bv": 17,
+     "meetsSpeed": true,
+     "confidence": "extrapolated"
+    },
+    "server": "dgxb200",
+    "defaults": {
+     "coloIncludesEnergy": true,
+     "residualPct": 20
+    }
+   },
+   "result": {
+    "offered": true,
+    "servers": 3,
+    "usdPerMonth": 38093.089725000005,
+    "parts": {
+     "amort": 22486.163600000003,
+     "energy": 0,
+     "colo": 8580.000000000002,
+     "support": 7026.926124999999
+    }
+   }
+  },
+  {
+   "kind": "buyMonthly",
+   "args": {
+    "deployment": {
+     "offered": true,
+     "g": 1,
+     "replicas": 18,
+     "gpus": 18,
+     "Bv": 17,
+     "meetsSpeed": true,
+     "confidence": "extrapolated"
+    },
+    "server": "rtx4"
+   },
+   "result": {
+    "offered": true,
+    "servers": 5,
+    "usdPerMonth": 18465.6065,
+    "parts": {
+     "amort": 9839.5,
+     "energy": 2461.2315,
+     "colo": 3704.9999999999995,
+     "support": 2459.875
+    }
+   }
+  },
+  {
+   "kind": "buyMonthly",
+   "args": {
+    "deployment": {
+     "offered": true,
+     "g": 1,
+     "replicas": 18,
+     "gpus": 18,
+     "Bv": 17,
+     "meetsSpeed": true,
+     "confidence": "extrapolated"
+    },
+    "server": "rtx4",
+    "defaults": {
+     "coloIncludesEnergy": true,
+     "residualPct": 20
+    }
+   },
+   "result": {
+    "offered": true,
+    "servers": 5,
+    "usdPerMonth": 14036.475,
+    "parts": {
+     "amort": 7871.6,
+     "energy": 0,
+     "colo": 3704.9999999999995,
+     "support": 2459.875
+    }
+   }
+  },
+  {
+   "kind": "agentLoop",
+   "args": {
+    "c0": 20000,
+    "d": 5000,
+    "o": 1000,
+    "N": 50,
+    "caching": false
+   },
+   "result": {
+    "isl": 167000.0,
+    "osl": 1000,
+    "cachedShare": 0.0
+   }
+  },
+  {
+   "kind": "agentLoop",
+   "args": {
+    "c0": 20000,
+    "d": 5000,
+    "o": 1000,
+    "N": 50,
+    "caching": true
+   },
+   "result": {
+    "isl": 167000.0,
+    "osl": 1000,
+    "cachedShare": 0.9640718562874252
+   }
+  },
+  {
+   "kind": "agentLoop",
+   "args": {
+    "c0": 4000,
+    "d": 500,
+    "o": 500,
+    "N": 1,
+    "caching": true
+   },
+   "result": {
+    "isl": 4000.0,
+    "osl": 500,
+    "cachedShare": 0.0
+   }
+  },
+  {
+   "kind": "sweep+crossover",
+   "args": {
+    "model": "qwen3.8-27b",
+    "gpu": "h100",
+    "bits": 8,
+    "price": "plain",
+    "offer": "h100x4",
+    "cs": [
+     1,
+     2,
+     3,
+     5,
+     8,
+     13,
+     21,
+     34,
+     55,
+     89,
+     144,
+     233,
+     377,
+     610,
+     987,
+     1597,
+     2584,
+     4181,
+     6765,
+     10000
+    ],
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.0,
+    "ctx": 32768,
+    "ttftS": 0.5,
+    "hoursPerDay": 24
+   },
+   "result": {
+    "sweep": {
+     "api": [
+      1989.0454368932035,
+      3978.090873786407,
+      5967.136310679612,
+      9945.227184466017,
+      15912.363495145628,
+      25857.590679611643,
+      41769.95417475728,
+      67627.54485436891,
+      109397.49902912621,
+      177025.04388349512,
+      286422.5429126213,
+      463447.5867961165,
+      749870.1297087377,
+      1213317.7165048542,
+      1963187.846213592,
+      3176505.562718447,
+      5139693.408932038,
+      8316198.971650484,
+      13455892.380582523,
+      19890454.368932035
+     ],
+     "selfMid": [
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      24076.8,
+      24076.8,
+      36115.2,
+      60192.0,
+      96307.2,
+      144460.8,
+      240768.0,
+      373190.39999999997,
+      601920.0,
+      975110.3999999999,
+      1444608.0
+     ],
+     "selfLow": [
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      24076.8,
+      24076.8,
+      36115.2,
+      60192.0,
+      96307.2,
+      156499.19999999998,
+      240768.0,
+      385228.8,
+      625996.7999999999,
+      914918.3999999999
+     ],
+     "selfHigh": [
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      12038.4,
+      24076.8,
+      36115.2,
+      48153.6,
+      72230.4,
+      108345.59999999999,
+      168537.6,
+      276883.2,
+      445420.8,
+      710265.6,
+      1155686.4,
+      1853913.5999999999,
+      2744755.1999999997
+     ],
+     "replicasMid": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      3,
+      5,
+      7,
+      12,
+      18,
+      30,
+      47,
+      77,
+      124,
+      200,
+      323,
+      477
+     ]
+    },
+    "crossover": {
+     "low": 8,
+     "mid": 8,
+     "high": 8
+    }
+   }
+  },
+  {
+   "kind": "sweep+crossover",
+   "args": {
+    "model": "qwen3.8-27b",
+    "gpu": "rtx6000pro",
+    "bits": 4,
+    "price": "plain",
+    "offer": "rtx1",
+    "cs": [
+     0.01,
+     0.03,
+     0.1,
+     0.3,
+     1,
+     3,
+     10,
+     30
+    ],
+    "isl": 4000,
+    "osl": 500,
+    "v": 30,
+    "cachedShare": 0.5,
+    "ctx": 262144,
+    "ttftS": 0.5,
+    "hoursPerDay": 24
+   },
+   "result": {
+    "sweep": {
+     "api": [
+      14.382328543689319,
+      43.146985631067956,
+      143.8232854368932,
+      431.4698563106796,
+      1438.2328543689318,
+      4314.6985631067955,
+      14382.328543689318,
+      43146.98563106795
+     ],
+     "selfMid": [
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      4377.599999999999,
+      10944.0
+     ],
+     "selfLow": [
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      4377.599999999999,
+      10944.0
+     ],
+     "selfHigh": [
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      2188.7999999999997,
+      6566.4,
+      21888.0,
+      65664.0
+     ],
+     "replicasMid": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      5
+     ]
+    },
+    "crossover": {
+     "low": 3,
+     "mid": 3,
+     "high": null
+    }
+   }
+  }
+ ]
+}

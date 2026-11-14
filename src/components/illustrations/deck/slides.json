@@ -999,5 +999,26 @@
     "kicker": "vendors",
     "statement": "Every vendor is a different answer to the same three numbers.",
     "notes": "SAY: every vendor is a different answer to the same three numbers, and the ratings are the author's judgement, kept exactly. Walk the rows as they land. Step 0: NVIDIA, mid on raw per-chip capacity but strong on compute, bandwidth and interconnect, and you get it by buying or by cloud. Step 1: AMD, strong on capacity, compute and bandwidth, mid on interconnect until the rack ships, also buy or cloud. Step 2: Apple, strong on unified capacity, but mid compute, weak bandwidth and weak interconnect, and you just buy it. Step 3: Google, strong across the board with scale nobody else matches, but you get it GCP only. The word is always in the cell, so the scorecard reads without the colour."
+  },
+  "d601-api-line": {
+    "steps": 3,
+    "tool": "none",
+    "kicker": "API pricing",
+    "statement": "Ten times the requests, ten times the bill.",
+    "notes": "SAY: An API charges per token, so the bill is tokens times price. One request with 10,000 input tokens, 8,000 of them cached, and 1,000 output tokens costs $0.0148 on Claude Sonnet 5.5. A hundred thousand of them cost $1,480, five hundred thousand cost $7,400 and a million cost $14,800, all on one straight line through zero."
+  },
+  "d602-agent-loop": {
+    "steps": 2,
+    "tool": "none",
+    "kicker": "agent loops",
+    "statement": "Every turn resends the whole conversation, until the agent compacts it.",
+    "notes": "SAY: An agent calls the model, runs a tool and calls the model again, and the API keeps nothing between calls, so each call carries the whole conversation. In the 50-turn example the input grows from 20,000 tokens on turn 1 to 314,000 on turn 50. To cap the growth the agent compacts: one more call asks the model to summarise the conversation, and the context starts small again. The compaction threshold and the sizes after it are illustrative."
+  },
+  "d603-parallelism-steps": {
+    "steps": 2,
+    "tool": "none",
+    "kicker": "self-hosting cost",
+    "statement": "The bill steps up each time the machines run out of room.",
+    "notes": "SAY: A machine serves a fixed number of requests in parallel. For Qwen3.8-27B on one RTX PRO 6000 that is 6 at the full 262,144-token window, so the cost steps by $2,453.73 a month at 6, 12 and 18 requests. A model that needs 2 GPUs per replica, Qwen3.8 Flash Next at 4 bits, serves 10 requests per replica and each step adds a whole replica, $6,045.52 a month."
   }
 }

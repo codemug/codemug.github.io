@@ -938,5 +938,32 @@
       "h009-vendor-scorecard": "NVIDIA, AMD, Apple and Google rated on capacity, compute, bandwidth and interconnect, with how to get each: the author's judgement, strong in accent, mid muted, weak dim, the word always in the cell. (Illustrative.)"
     },
     "dwell": 4500
+  },
+  "p6-api-line": {
+    "slides": [
+      "d601-api-line"
+    ],
+    "captions": {
+      "d601-api-line": "A request with 10,000 input tokens, 8,000 of them cached, and 1,000 output tokens costs $0.0148 on Claude Sonnet 5.5, so the bill grows in a straight line with the number of requests. (Real Claude Sonnet 5.5 list prices.)"
+    },
+    "dwell": 4500
+  },
+  "p6-agent-loop": {
+    "slides": [
+      "d602-agent-loop"
+    ],
+    "captions": {
+      "d602-agent-loop": "An agent loop sends the whole conversation on every turn, so the input grows each turn until the agent compacts it. (Turns 1 to 50 use the numbers of the 50-turn example; the compaction threshold and the bar sizes after it are illustrative.)"
+    },
+    "dwell": 4500
+  },
+  "p6-parallelism-steps": {
+    "slides": [
+      "d603-parallelism-steps"
+    ],
+    "captions": {
+      "d603-parallelism-steps": "One machine serves 6 requests at the full window, so the cost steps by one machine's price every 6 requests, and a model that needs 2 GPUs steps by a whole replica every 10. (Machine prices are AWS on-demand rates in us-east-1; the 6 comes from the vLLM log of part 4 and the 10 from the calculator's memory model.)"
+    },
+    "dwell": 4500
   }
 }
