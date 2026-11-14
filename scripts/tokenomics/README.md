@@ -78,6 +78,28 @@ the price in force when the data was captured.
     crossover is the first `C` where the API bill exceeds the self-hosting bill. The accuracy band repeats the sweep at
     the GPU's `band.low` and `band.high` throughput factors.
 
+## Accuracy of the speed model
+
+The speed constants (`etaBw`, `etaC`, `aUs`, `bUs` in `gpus.json`) were fitted to 458 measured rows from SemiAnalysis
+InferenceX and the AMD ROCm performance page: single node, no speculative decoding, deduplicated by `row_id`. Those rows
+are only 88 distinct curves, so they are not independent. The fit was re-run for this page with the inputs the page uses
+(the fit scripts and the benchmark rows are not in this repository):
+
+- On the fit's own inputs the constants in `gpus.json` are the optimum. On the page's inputs they are within 0.1% of the
+  optimum for the global record, H200 and 0.7% for MI300X and MI355X, 4.5% for H100 and 5.4% for B200, measured as the loss
+  the fit minimises.
+- The accuracy band is typical, not a limit. For the four GPUs calibrated at x0.7 to x1.4, 91% of rows fall inside it
+  (317 of 347), and 78% when the row's model is left out of the fit. MI300X, banded x0.5 to x2, holds 90% in the fit and
+  79% with the model left out. With the global constants, 96% of all rows fall inside x0.5 to x2, and 94% when the
+  model, or the GPU, is left out. Misses fall on both sides (36 slower than estimated, 42 faster, model left out). The worst
+  group is GLM-5 on 8 MI355X with SGLang, at 0.32 to 0.37 of the estimate.
+- Known biases inside the band: B200 is under-estimated by about 4% (its bandwidth is 7.7 TB/s here, and the fit used 8),
+  and the RTX PRO 6000 uses the global record and is over-estimated by about 19% on the 4 rows that exist for it.
+- At the page's default (Qwen3.8 27B NVFP4, one RTX PRO 6000, a 262,144-token window, 80% cached input, 10% new input,
+  10% output) one request alone reaches about 34 tokens per second. With nothing cached and 1,000 output tokens the same
+  window reaches 17.3, because the whole prompt is prefilled and that charge is as large as the memory time. An
+  independent implementation of formulas 1 to 9 reproduced the 17.3 case by hand and all 25 `stepModel` cases in `golden.json`.
+
 ## Checking the calculation
 
 `tests/fixtures/tokenomics/golden.json` holds cases computed by an independent Python implementation of the formulas

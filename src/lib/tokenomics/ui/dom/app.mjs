@@ -11,9 +11,10 @@ import { mountControls } from './controls.mjs';
 import { renderResults } from './results.mjs';
 import { mountTips } from './tips.mjs';
 import { mountChartHover } from './chart-hover.mjs';
+import { mountScaleToggle } from './scale.mjs';
 import { buildFacts } from '../tip-facts.mjs';
 import { fitState } from '../autofit.mjs';
-import { ctxClampNote } from '../ctx-note.mjs';
+import { workloadNote } from '../ctx-note.mjs';
 import { followModel, linkState } from '../api-follow.mjs';
 
 // The calculator is wider than the page text. CSS cannot see the scrollbar, and
@@ -37,10 +38,10 @@ export async function startCalculator(root) {
     return;
   }
   // The state the form or a link asks for, in range, and a sentence when the
-  // context length had to be changed to fit the model's window or the floor.
+  // context length or a percentage had to be changed to fit.
   const requestFrom = (merged, opts) => {
     const state = normalizeState(merged, data);
-    return { state, note: ctxClampNote(merged, state, data, opts) };
+    return { state, note: workloadNote(merged, state, data, opts) };
   };
   const first = requestFrom(linkState(fromHash(location.hash), DEFAULT_STATE, data));
   const state0 = first.state;
@@ -51,14 +52,20 @@ export async function startCalculator(root) {
   const tips = mountTips(root);
   let latest = null;
   const hovers = ['tk-chart1', 'tk-chart2'].map((id, k) => mountChartHover(root.querySelector('#' + id), k === 1, tips, () => latest));
+  // The chart scale switch above the first chart: logarithmic or linear.
+  const scaleToggle = mountScaleToggle(root, (scale) => render({ ...lastState, scale }, true));
   // Phones get a squarer chart layout (see chart-scale.mjs); redraw when it flips.
   const phone = window.matchMedia('(max-width: 720px)');
   let lastState = state0;
+  let shownNote = null; // the sentence about a changed number, as last drawn
   let hashTimer = null;
   const controls = mountControls(controlsRoot, data, state0, (raw, meta) => {
     // A like-for-like API follows a change of model.
     const next = requestFrom(followModel(lastState, { ...lastState, ...raw }, data), meta);
-    render(next.state, true, next.note);
+    // The entry that ends a typed number changes nothing more, but the page has already fixed the other field
+    // (a share that no longer fits next to the output): the sentence says so until something really changes.
+    const unchanged = JSON.stringify(next.state) === JSON.stringify(lastState);
+    render(next.state, true, next.note ?? (unchanged ? shownNote : null));
   });
 
   // requested is the state the form or the link asked for; it is moved to a
@@ -67,6 +74,7 @@ export async function startCalculator(root) {
     const fit = fitState(requested, data);
     const state = fit.state;
     lastState = state;
+    shownNote = clampNote;
     const result = evaluate(state, data);
     const view = buildView(result, state, data);
     const layout = phone.matches ? 'phone' : 'desktop';
@@ -79,6 +87,7 @@ export async function startCalculator(root) {
     renderResults(root, view, charts);
     tips.setFacts(buildFacts(state, data, result));
     tips.refresh();
+    scaleToggle.update(state.scale);
     controls.update({ state, g: result.self && result.self.offered ? result.self.g : null, note: [clampNote, fit.note].filter(Boolean).join(' ') });
     if (pushHash || state !== requested) {
       clearTimeout(hashTimer);

@@ -14,8 +14,8 @@ export function mountChartHover(figure, perMtok, tips, getModel) {
   let index = null;
 
   const svg = () => figure.querySelector('svg');
-  // The layout the svg was drawn in: its size and its visible range 1..xMax.
-  const layout = () => domainLayout(LAYOUTS[svg()?.dataset.layout] ?? DESKTOP, Number(svg()?.dataset.xmax) || 10000);
+  // The layout the svg was drawn in: its size, its scale and its visible range.
+  const layout = () => domainLayout(LAYOUTS[svg()?.dataset.layout] ?? DESKTOP, Number(svg()?.dataset.xmax) || 10000, svg()?.dataset.scale === 'linear' ? 'linear' : 'log');
   const hair = () => svg()?.querySelector('.chart-hair-g') ?? null;
   const set = (node, attrs) => Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, String(v)));
 
@@ -78,7 +78,7 @@ export function mountChartHover(figure, perMtok, tips, getModel) {
       else tips.hide(figure);
       return;
     }
-    showAt(nearestIndex(result.sweep.cs, cFromX(x, L)), at(e.clientX, e.clientY), { mode: touch ? 'touch' : 'hover' }, note);
+    showAt(nearestIndex(result.sweep.cs, cFromX(x, L), L.scale), at(e.clientX, e.clientY), { mode: touch ? 'touch' : 'hover' }, note);
   }
 
   figure.addEventListener('pointermove', onPointer);
@@ -95,7 +95,7 @@ export function mountChartHover(figure, perMtok, tips, getModel) {
   // chart is handled by the pointer code above.
   figure.addEventListener('focusin', (e) => {
     const { result, C } = getModel();
-    if (e.target === svg() && result.self.offered && e.target.matches(':focus-visible')) keyShow(nearestIndex(result.sweep.cs, C));
+    if (e.target === svg() && result.self.offered && e.target.matches(':focus-visible')) keyShow(nearestIndex(result.sweep.cs, C, layout().scale));
   });
   figure.addEventListener('focusout', (e) => {
     if (e.target === svg()) tips.hide(figure);

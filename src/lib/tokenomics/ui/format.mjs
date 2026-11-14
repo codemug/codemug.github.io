@@ -73,3 +73,21 @@ export function fmtStreams(x) {
 export function streamsPhrase(x) {
   return x === 1 ? '1 parallel stream' : fmtStreams(x) + ' parallel streams';
 }
+
+// Axis ticks on a linear dollar axis: $0, $50, $250, $1.5k, $50k, $2M. Three
+// significant digits at most, no trailing zeros.
+export function fmtUsdTick(x) {
+  const v = num(x);
+  if (v === null) return 'n/a';
+  const trim = (n) => String(Number(n.toPrecision(3)));
+  if (v >= 1e6) return '$' + trim(v / 1e6) + 'M';
+  if (v >= 1000) return '$' + trim(v / 1000) + 'k';
+  return '$' + trim(v);
+}
+
+// A share already in percent (80, 33.3) as text: "80%", "33.3%", at most one decimal.
+export function fmtShare(pct) {
+  const v = num(pct);
+  if (v === null) return 'n/a';
+  return String(Math.round(v * 10) / 10) + '%';
+}

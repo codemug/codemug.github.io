@@ -33,6 +33,11 @@ import "./calculator.css";
           <ul id="tk-self-notes" class="tk-notes" data-tip="self.notes"></ul>
         </div>
       </div>
+      <div id="tk-scale" class="tk-scale" role="radiogroup" aria-labelledby="tk-scale-label">
+        <span id="tk-scale-label" class="tk-label" data-tip="scale">Chart scale</span>
+        <label class="tk-seg" data-tip="scale"><input type="radio" name="tk-scale" id="tk-scale-log" value="log" checked data-tip="scale" /><span>Logarithmic</span></label>
+        <label class="tk-seg" data-tip="scale"><input type="radio" name="tk-scale" id="tk-scale-linear" value="linear" data-tip="scale" /><span>Linear</span></label>
+      </div>
       <div class="tk-charts">
         <figure id="tk-chart1" class="tk-chart"></figure>
         <figure id="tk-chart2" class="tk-chart"></figure>

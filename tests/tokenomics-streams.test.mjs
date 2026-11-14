@@ -134,15 +134,18 @@ test('range: xMaxFor for fractions of a stream', () => {
   assert.equal(xMaxFor(34), 1000);
 });
 
-test('fractions: a long-context prompt crosses below one stream, and the cards read well at C = 0.05', () => {
-  // Simple default (261k-token prompts, no cache): the API bill is large, so self-hosting wins from a fraction of a stream.
-  const d = at({});
-  assert.equal(d.res.crossover.mid, 0.237);
-  assert.equal(d.view.crossoverText, "Self-hosting becomes cheaper from about 0.24 parallel streams. Below that, the GPU would sit partly idle, so the API's pay-per-use is cheaper.");
+// A frontier API whose price makes self-hosting win below one stream at the default workload (GPT-5.5 Pro: $30 in, $180 out).
+const PRO = 'OpenAI:gpt-5.5-pro';
+
+test('fractions: a dear API crosses below one stream, and the cards read well at C = 0.05', () => {
+  // Simple default (235,930 input tokens, 26,214 output tokens): on GPT-5.5 Pro the API bill is large, so self-hosting wins from a fraction of a stream.
+  const d = at({ apiId: PRO });
+  assert.equal(d.res.crossover.mid, 0.0693);
+  assert.equal(d.view.crossoverText, "Self-hosting becomes cheaper from about 0.069 parallel streams. Below that, the GPU would sit partly idle, so the API's pay-per-use is cheaper.");
   // The first grid value where the API costs more: one step lower it does not.
-  const above = at({ C: 0.237 }).res; const below = at({ C: 0.236 }).res;
-  assert.ok(above.api.monthly.usdPerMonth > above.self.usdPerMonth, 'API dearer at 0.237');
-  assert.ok(below.api.monthly.usdPerMonth <= below.self.usdPerMonth, 'API cheaper (or equal) at 0.236');
+  const above = at({ apiId: PRO, C: 0.0693 }).res; const below = at({ apiId: PRO, C: 0.0692 }).res;
+  assert.ok(above.api.monthly.usdPerMonth > above.self.usdPerMonth, 'API dearer at 0.0693');
+  assert.ok(below.api.monthly.usdPerMonth <= below.self.usdPerMonth, 'API cheaper (or equal) at 0.0692');
   // One machine whatever the usage; the API bill is proportional to it.
   const p = at({ C: 0.05 });
   assert.equal(p.res.self.replicas, 1); assert.equal(p.res.self.machines, 1);
@@ -151,16 +154,16 @@ test('fractions: a long-context prompt crosses below one stream, and the cards r
   assert.ok(p.view.headline.startsWith('At 0.05 parallel streams the API costs $'), p.view.headline);
   assert.match(p.view.headline, /times dearer\)\.$/);
   assert.match(p.view.self.deployment, /^1 replica of 1 GPU each, on 1 machine/);
-  // A crossover between 1 and 10 streams: Simple at 32,768 tokens crosses at 2.
+  // A crossover between 1 and 10 streams: Simple at 32,768 tokens crosses at 8 (it was 2 before the 80/10/10 split).
   const mid = at({ ctx: 32768 });
-  assert.equal(mid.res.crossover.mid, 2);
-  assert.match(mid.view.crossoverText, /^At the expected speed, self-hosting becomes cheaper from about 2 parallel streams\./);
-  // A crossover at 10 with a short context.
+  assert.equal(mid.res.crossover.mid, 8);
+  assert.match(mid.view.crossoverText, /^At the expected speed, self-hosting becomes cheaper from about 8 parallel streams\./);
+  // A short context crosses at 8 too.
   const short = at({ ctx: 2000 });
-  assert.equal(short.res.crossover.mid, 10);
-  for (const C of [0.01, 0.05, 0.5, 1, 9, 10]) { // above 1 the crossover is searched on whole numbers
+  assert.equal(short.res.crossover.mid, 8);
+  for (const C of [0.01, 0.05, 0.5, 1, 7, 8, 9, 10]) { // above 1 the crossover is searched on whole numbers
     const r = at({ ctx: 2000, C }).res;
-    assert.equal(r.api.monthly.usdPerMonth > r.self.usdPerMonth, C >= 10, 'C = ' + C + ' on the right side of the crossover');
+    assert.equal(r.api.monthly.usdPerMonth > r.self.usdPerMonth, C >= 8, 'C = ' + C + ' on the right side of the crossover');
   }
 });
 
@@ -190,12 +193,12 @@ test('fractions: the marker, the crosshair readout and the two charts at C = 0.0
     assert.ok(readoutLines(res, false, i).some((l) => l.startsWith('Needs 1 machine (1 replica)')));
   }
   // A fractional crossover: drawn at its place, labelled with the formatter, and the two labels stay apart.
-  const d = at({ C: 0.3 }).res;
-  assert.equal(d.crossover.mid, 0.237);
+  const d = at({ C: 0.3, apiId: PRO }).res;
+  assert.equal(d.crossover.mid, 0.0693);
   const L = chartLayout(d, 'desktop');
   const both = markers(d, false, chartModel(d, false, L).scale, L);
-  assert.equal(both.cross.text, 'C = 0.24');
+  assert.equal(both.cross.text, 'C = 0.069');
   assert.ok(both.cross.x < both.here.x && both.cross.x > L.ML);
   const svg = monthlyChartSvg(d, {});
-  assert.ok(svg.includes('class="chart-cross"') && svg.includes('>C = 0.24<'));
+  assert.ok(svg.includes('class="chart-cross"') && svg.includes('>C = 0.069<'));
 });

@@ -95,9 +95,11 @@ test('view: headline wording (cheaper, dearer, about the same)', () => {
 test('view: crossover text (all five cases plus not offered), with the idle-GPU explanation', () => {
   const IDLE = " Below that, the GPU would sit partly idle, so the API's pay-per-use is cheaper.";
   assert.ok(result.crossover.low === result.crossover.mid && result.crossover.mid === result.crossover.high, 'case a: all edges cross at one C');
-  // Simple default: every request is a 261k-token prompt with no cache, so self-hosting wins from a fraction of a stream.
-  assert.equal(result.crossover.low, 0.292);
-  assert.equal(buildView(result, state, data).crossoverText, 'Self-hosting becomes cheaper from about 0.29 parallel streams.' + IDLE);
+  // Simple default: every request is 235,930 input tokens (most of them cached) and 26,214 output tokens, which keeps a
+  // GPU busy for about 15 minutes, so on the fixture prices self-hosting wins from 12 streams (it was 0.29 when a request
+  // was a 261k-token prompt with a 1,000-token answer and nothing cached).
+  assert.equal(result.crossover.low, 12);
+  assert.equal(buildView(result, state, data).crossoverText, 'Self-hosting becomes cheaper from about 12 parallel streams.' + IDLE);
   const c13 = { ...result, crossover: { low: 13, mid: 13, high: 13 } };
   assert.equal(buildView(c13, state, data).crossoverText, 'Self-hosting becomes cheaper from about 13 parallel streams.' + IDLE);
   assert.equal(buildView({ ...result, crossover: { low: 1, mid: 1, high: 1 } }, state, data).crossoverText, 'Self-hosting becomes cheaper from about 1 parallel stream.' + IDLE);
@@ -120,8 +122,8 @@ test('view: api notes (scheduled, promotional, long-context)', () => {
   const view = buildView(evaluate(st, data), st, data);
   assert.ok(view.api.notes.includes('Price changes on ' + p.scheduled[0].effective + ' to $' + p.scheduled[0].input + ' in and $' + p.scheduled[0].output + ' out per million tokens.'));
   assert.ok(view.api.notes.includes(p.note));
-  // Simple: the input is the context length minus 1,000, so this context puts it just over the tier's threshold.
-  const st2 = normalizeState({ ...DEFAULT_STATE, apiId: 'x:tiered', modelId: 'kimi-k3.1-pro', ctx: p.tiers[0].aboveInputTokens + 1001 }, data);
+  // Simple: the input is 90% of the context length, so this context puts it just over the tier's threshold.
+  const st2 = normalizeState({ ...DEFAULT_STATE, apiId: 'x:tiered', modelId: 'kimi-k3.1-pro', ctx: Math.ceil(p.tiers[0].aboveInputTokens / 0.9) + 10 }, data);
   const res2 = evaluate(st2, data);
   assert.ok(res2.api.tierApplied !== null, 'tier applies above its threshold');
   assert.ok(buildView(res2, st2, data).api.notes.includes('Long-context price applies above ' + fmtInt(res2.api.tierApplied.aboveInputTokens) + ' input tokens.'));
@@ -215,28 +217,39 @@ test('view: server power basis from powerKind, with the note fallback', () => {
   }
 });
 
-test('view: assumptions use the effective workload in both modes (real data)', () => {
+test('view: assumptions use the effective workload in every mode (real data)', () => {
   const row = (v, label) => v.assumptions.find((a) => a.label === label);
-  // Detailed: the average request of the loop and the largest context the loop reaches.
-  const stA = normalizeState({ ...DEFAULT_STATE, shape: 'detailed' }, realData);
+  // Agent loop: the average request of the loop and the largest context the loop reaches.
+  const stA = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', detail: 'loop' }, realData);
   const rA = evaluate(stA, realData); const viewA = buildView(rA, stA, realData);
   assert.equal(row(viewA, 'Input tokens per request').value, fmtInt(rA.workload.isl)); assert.equal(row(viewA, 'Input tokens per request').basis, 'average over the loop');
   assert.equal(row(viewA, 'Output tokens per request').value, fmtInt(rA.workload.osl)); assert.equal(row(viewA, 'Output tokens per request').basis, 'set in the controls');
   assert.equal(row(viewA, 'Cached input share').value, fmtPct(rA.workload.cachedShare)); assert.equal(row(viewA, 'Cached input share').basis, 'derived from the agent loop');
   assert.equal(row(viewA, 'Context reserved per request').value, '262,144 tokens', 'the default loop would reach 315,000 and the window caps it');
   assert.equal(row(viewA, 'Context reserved per request').basis, 'largest context the loop reaches, capped at the model window');
-  const short = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', agent: { c0: 10000, d: 1000, o: 500, N: 5, caching: false } }, realData);
+  const short = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', detail: 'loop', agent: { c0: 10000, d: 1000, o: 500, N: 5, caching: false } }, realData);
   assert.equal(row(buildView(evaluate(short, realData), short, realData), 'Context reserved per request').value, fmtInt(10000 + 4 * 1500 + 500) + ' tokens', 'a short loop reserves what it reaches');
-  // Simple: output 1,000, input the rest, nothing cached, all fixed by the mode.
+  // Simple: 80% of the context cached input, 10% new input, 10% output, all fixed by the mode (was: output 1,000, nothing cached).
   const stS = normalizeState({ ...DEFAULT_STATE, ctx: 131072 }, realData);
   const viewS = buildView(evaluate(stS, realData), stS, realData);
-  assert.equal(row(viewS, 'Input tokens per request').value, '130,072'); assert.equal(row(viewS, 'Input tokens per request').basis, 'fixed in simple mode');
-  assert.equal(row(viewS, 'Output tokens per request').value, '1,000'); assert.equal(row(viewS, 'Output tokens per request').basis, 'fixed in simple mode');
-  assert.equal(row(viewS, 'Cached input share').value, '0%'); assert.equal(row(viewS, 'Cached input share').basis, 'fixed in simple mode');
+  assert.equal(row(viewS, 'Input tokens per request').value, '117,965 tokens (80% of the context cached, 10% new)'); assert.equal(row(viewS, 'Input tokens per request').basis, 'fixed in simple mode');
+  assert.equal(row(viewS, 'Output tokens per request').value, '13,107 tokens (10% of the context)'); assert.equal(row(viewS, 'Output tokens per request').basis, 'fixed in simple mode');
+  assert.equal(row(viewS, 'Cached input share').value, '89%', '80% of the context is 89% of the 90% that is input'); assert.equal(row(viewS, 'Cached input share').basis, 'fixed in simple mode');
   assert.equal(row(viewS, 'Context reserved per request').value, '131,072 tokens'); assert.equal(row(viewS, 'Context reserved per request').basis, 'reserved in full for every request (worst case)');
   assert.equal(row(viewS, 'Speed per stream').value, '30 tokens per second'); assert.equal(row(viewS, 'Speed per stream').basis, 'set in the controls');
+  // The author's example: 262,144 tokens, the numbers the page shows for the default.
+  const d = buildView(evaluate(normalizeState({ ...DEFAULT_STATE }, realData), realData), normalizeState({ ...DEFAULT_STATE }, realData), realData);
+  assert.equal(row(d, 'Input tokens per request').value, '235,930 tokens (80% of the context cached, 10% new)');
+  assert.equal(row(d, 'Output tokens per request').value, '26,214 tokens (10% of the context)');
+  // Detailed, custom split: the same words with the reader's percentages, and "set in the controls" in place of "fixed".
+  const stC = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', ctx: 100000, split: { cachedPct: 20, outputPct: 30 } }, realData);
+  const viewC = buildView(evaluate(stC, realData), stC, realData);
+  assert.equal(row(viewC, 'Input tokens per request').value, '70,000 tokens (20% of the context cached, 50% new)'); assert.equal(row(viewC, 'Input tokens per request').basis, 'set in the controls');
+  assert.equal(row(viewC, 'Output tokens per request').value, '30,000 tokens (30% of the context)'); assert.equal(row(viewC, 'Output tokens per request').basis, 'set in the controls');
+  assert.equal(row(viewC, 'Cached input share').value, '29%', '20% of the context out of the 70% that is input'); assert.equal(row(viewC, 'Cached input share').basis, 'set in the controls');
+  assert.equal(row(viewC, 'Context reserved per request').value, '100,000 tokens'); assert.equal(row(viewC, 'Context reserved per request').basis, 'reserved in full for every request (worst case)');
   // The headline and the API card read the same workload as the table.
   const resS = evaluate(stS, realData);
-  assert.equal(resS.workload.isl + resS.workload.osl, 131072);
+  assert.ok(Math.abs(resS.workload.isl + resS.workload.osl - 131072) < 1e-6);
   assert.equal(viewS.api.perMtok, fmtUsdSmall(resS.api.monthly.usdPerMtokOut) + ' per million output tokens');
 });

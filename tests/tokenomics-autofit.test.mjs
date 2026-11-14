@@ -161,11 +161,11 @@ test('fit is idempotent, never loops, and leaves self-hosting offered wherever i
   }
 });
 
-test('fit: Detailed mode reserves the largest context the loop reaches, capped at the window', () => {
+test('fit: the agent loop reserves the largest context the loop reaches, capped at the window', () => {
   const loop = { c0: 60000, d: 5000, o: 1000, N: 50, caching: true };
-  const s = norm({ shape: 'detailed', modelId: 'qwen3.8-flash-next', ctx: 4096, agent: loop });
+  const s = norm({ shape: 'detailed', detail: 'loop', modelId: 'qwen3.8-flash-next', ctx: 4096, agent: loop });
   const fit = fitState(s, data);
-  // The loop reaches 60,000 + 49 x 6,000 + 1,000 = 355,000; the model window caps it at 262,144 (ctx is not used in Detailed).
+  // The loop reaches 60,000 + 49 x 6,000 + 1,000 = 355,000; the model window caps it at 262,144 (ctx is not used by the loop).
   const w = calc.agentLoop(loop);
   const reserved = Math.min(modelOf(s.modelId).contextMax, 60000 + 49 * 6000 + 1000);
   assert.equal(reserved, 262144);
@@ -174,15 +174,15 @@ test('fit: Detailed mode reserves the largest context the loop reaches, capped a
   assert.equal(evaluate(fit.state, data).self.offered, true);
   assert.equal(evaluate(fit.state, data).workload.reserved, reserved);
   // A short loop reserves only what it reaches, so a smaller machine can do.
-  const short = norm({ shape: 'detailed', modelId: 'qwen3.8-flash-next', agent: { c0: 2000, d: 500, o: 100, N: 3, caching: false } });
+  const short = norm({ shape: 'detailed', detail: 'loop', modelId: 'qwen3.8-flash-next', agent: { c0: 2000, d: 500, o: 100, N: 3, caching: false } });
   const sf = fitState(short, data);
   assert.equal(evaluate(sf.state, data).workload.reserved, 2000 + 2 * 600 + 100);
   assert.equal(evaluate(sf.state, data).self.offered, true);
 });
 
-test('fit: Simple mode reserves the context length itself', () => {
-  for (const ctx of [2000, 32768, 262144]) {
-    const s = norm({ modelId: 'qwen3.8-flash-next', ctx });
+test('fit: Simple mode and the custom split reserve the context length itself', () => {
+  for (const patch of [{}, { shape: 'detailed', split: { cachedPct: 20, outputPct: 30 } }]) for (const ctx of [2000, 32768, 262144]) {
+    const s = norm({ modelId: 'qwen3.8-flash-next', ctx, ...patch });
     const fit = fitState(s, data);
     const res = evaluate(fit.state, data);
     assert.equal(res.workload.reserved, ctx);

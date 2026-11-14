@@ -5,8 +5,7 @@
 // rebuilt only when they change, so a focused control keeps its focus.
 
 import { apiOptions, modelOptions, bitsOptions, rentProviders, rentMachineOptions, rentTerms, rentOfferIdFor, buyGpus, fieldVisibility } from '../options.mjs';
-import { fmtInt } from '../format.mjs';
-import { SIMPLE_OSL, MIN_CTX } from '../workload.mjs';
+import { simpleSplitText, MIN_CTX } from '../workload.mjs';
 import { C_MIN, C_MAX, posToC, cToPos } from '../streams.mjs';
 
 const TERM_LABELS = { on_demand: 'On demand', '1y': '1-year commitment', '3y': '3-year commitment' };
@@ -70,17 +69,32 @@ function setSelect(select, options, value) {
 export function mountControls(root, data, state, onChange) {
   const form = el('form', { id: 'tk-form' }); form.addEventListener('submit', (e) => e.preventDefault());
 
-  // 1. Workload: Simple (one number) or Detailed (an agent loop)
+  // 1. Workload: Simple (one number, fixed split), or Detailed: a custom split or an agent loop
   const fs1 = group('Workload', 'fs.workload');
   const shapeRow = el('div', { class: 'tk-radio-row', role: 'radiogroup', 'aria-label': 'Workload mode' });
   radioRow(shapeRow, 'tk-shape', 'tk-shape-', [['simple', 'Simple', 'shape.simple'], ['detailed', 'Detailed', 'shape.detailed']]);
   fs1.appendChild(shapeRow);
+  const detailRow = el('div', { class: 'tk-radio-row', role: 'radiogroup', 'aria-labelledby': 'tk-detail-label' });
+  radioRow(detailRow, 'tk-detail', 'tk-detail-', [['split', 'Custom split', 'detail.split'], ['loop', 'Agent loop', 'detail.loop']]);
+  const detailBox = el('div', { id: 'tk-detail-box', class: 'tk-field tk-stack' });
+  detailBox.append(tip(el('span', { id: 'tk-detail-label', class: 'tk-label' }, 'Shape of each request'), 'detail'), detailRow);
+  fs1.appendChild(detailBox);
   const num = (id, extra = {}) => el('input', { type: 'number', id, min: '1', step: '1', ...extra });
+  // The context length is one field for Simple and for the custom split, so it keeps its value when the mode changes.
   const ctxInput = num('tk-ctx', { min: String(MIN_CTX), step: '1000' });
-  const simpleBox = el('div', { id: 'tk-simple-box' });
-  field(simpleBox, 'tk-ctx', 'Context length per request (tokens)', ctxInput, 'ctx', 'row');
-  simpleBox.appendChild(el('p', { class: 'tk-hint' }, 'Output is fixed at ' + fmtInt(SIMPLE_OSL) + ' tokens, the rest is input, and nothing is cached.'));
+  const ctxBox = el('div', { id: 'tk-ctx-box' });
+  field(ctxBox, 'tk-ctx', 'Context length per request (tokens)', ctxInput, 'ctx', 'row');
+  fs1.appendChild(ctxBox);
+  const simpleBox = el('p', { id: 'tk-simple-box', class: 'tk-hint' }, 'Each request is ' + simpleSplitText() + '.');
   fs1.appendChild(simpleBox);
+  const splitBox = el('div', { id: 'tk-split-box' });
+  const sCached = num('tk-split-cached', { min: '0', max: '100', step: 'any' });
+  const sOutput = num('tk-split-output', { min: '0.1', max: '99', step: 'any' });
+  const sNew = el('input', { type: 'text', id: 'tk-split-new', readonly: '' });
+  field(splitBox, 'tk-split-cached', 'Cached input (% of the context)', sCached, 'split.cached', 'row');
+  field(splitBox, 'tk-split-output', 'Output (% of the context)', sOutput, 'split.output', 'row');
+  field(splitBox, 'tk-split-new', 'New input, not cached (% of the context)', sNew, 'split.new', 'row');
+  fs1.appendChild(splitBox);
   const agentBox = el('div', { id: 'tk-agent-box' });
   const aC0 = num('tk-a-c0'); const aD = num('tk-a-d'); const aO = num('tk-a-o'); const aN = num('tk-a-n');
   const aCaching = el('input', { type: 'checkbox', id: 'tk-a-caching' });
@@ -90,6 +104,8 @@ export function mountControls(root, data, state, onChange) {
   field(agentBox, 'tk-a-n', 'Turns per task', aN, 'a.N', 'row');
   field(agentBox, 'tk-a-caching', 'Prompt caching between turns', aCaching, 'a.caching', 'row');
   fs1.appendChild(agentBox);
+  // Fields whose number is typed digit by digit: a note about a value that is too low waits for the finished entry.
+  const typedFields = [ctxInput, sCached, sOutput];
 
   // 2. Traffic
   const fs2 = group('Traffic', 'fs.traffic');
@@ -163,7 +179,9 @@ export function mountControls(root, data, state, onChange) {
     const bitsEl = bitsRow.querySelector('input:checked') ?? bitsRow.querySelector('input');
     return {
       shape: shapeRow.querySelector('input[value="detailed"]').checked ? 'detailed' : 'simple',
+      detail: detailRow.querySelector('input[value="loop"]').checked ? 'loop' : 'split',
       ctx: Number(ctxInput.value),
+      split: { cachedPct: Number(sCached.value), outputPct: Number(sOutput.value) },
       agent: { c0: Number(aC0.value), d: Number(aD.value), o: Number(aO.value), N: Number(aN.value), caching: aCaching.checked },
       C: Number(cNum.value), v: Number(vIn.value), hoursPerDay: Number(hours.value), apiId: apiSelect.value, modelId: modelSelect.value,
       bits: Number(bitsEl.value),
@@ -182,11 +200,13 @@ export function mountControls(root, data, state, onChange) {
     if (e.target === cSlider) cNum.value = posToC(cSlider.value);
     else if (e.target === cNum) cSlider.value = cToPos(cNum.value);
     else if (e.target === machineSelect) syncTerm();
-    // quiet: the context length is still being typed (it may pass through numbers below the floor);
+    // quiet: a number is still being typed (it may pass through numbers below the floor);
     // the note comes when the entry is finished (the change event).
-    onChange(read(), { quiet: e.type === 'input' && e.target === ctxInput });
+    onChange(read(), { quiet: e.type === 'input' && typedFields.includes(e.target) });
     // A finished entry shows the number the page used (it may have been capped or rounded).
     if (e.type === 'change' && e.target === ctxInput) ctxInput.value = current.ctx;
+    if (e.type === 'change' && e.target === sCached) sCached.value = current.split.cachedPct;
+    if (e.type === 'change' && e.target === sOutput) sOutput.value = current.split.outputPct;
     if (e.type === 'change' && e.target === cNum) cNum.value = current.C;
   };
   form.addEventListener('input', onEvent); form.addEventListener('change', onEvent);
@@ -198,10 +218,16 @@ export function mountControls(root, data, state, onChange) {
     const g = options.g ?? null;
     fitNote.textContent = options.note ?? '';
     shapeRow.querySelectorAll('input').forEach((i) => { i.checked = i.value === s.shape; });
-    const vis = fieldVisibility(s.shape);
-    agentBox.hidden = !vis.detailed; simpleBox.hidden = !vis.simple;
+    detailRow.querySelectorAll('input').forEach((i) => { i.checked = i.value === s.detail; });
+    const vis = fieldVisibility(s);
+    detailBox.hidden = !vis.detail; ctxBox.hidden = !vis.ctx; simpleBox.hidden = !vis.hint;
+    splitBox.hidden = !vis.split; agentBox.hidden = !vis.loop;
     // Not while it has the focus: a number typed on the way to 50,000 passes through 5.
     if (document.activeElement !== ctxInput) ctxInput.value = s.ctx;
+    if (document.activeElement !== sCached) sCached.value = s.split.cachedPct;
+    if (document.activeElement !== sOutput) sOutput.value = s.split.outputPct;
+    // A plain number like its two siblings; the label says it is a percentage.
+    sNew.value = String(Math.round((100 - s.split.cachedPct - s.split.outputPct) * 10) / 10);
     aC0.value = s.agent.c0; aD.value = s.agent.d; aO.value = s.agent.o; aN.value = s.agent.N;
     aCaching.checked = s.agent.caching === true;
     // Not while they have the focus: 0.05 is typed through 0 and 0.0, and a drag would jump by a step.

@@ -3,6 +3,7 @@
 
 import { fmtInt, fmtPct, fmtStreams, streamsPhrase } from './format.mjs';
 import { C_MIN } from './streams.mjs';
+import { simpleSplitText } from './workload.mjs';
 import { TIPS } from './tips.mjs';
 
 const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
@@ -88,6 +89,8 @@ export function buildFacts(state, data, result) {
     isl: fmtInt(w.isl),
     osl: fmtInt(w.osl),
     cachedPct: fmtPct(w.cachedShare),
+    newTokens: fmtInt(w.isl * (1 - w.cachedShare)),
+    simpleSplit: simpleSplitText(),
     v: String(state.v),
     hours: String(state.hoursPerDay),
     ttft: String(state.ttftS),

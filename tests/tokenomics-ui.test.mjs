@@ -53,8 +53,10 @@ function closeTo(a, b) {
 }
 
 // The workload of Simple mode, written out from the spec and not from the code under test:
-// every request holds ctx tokens, 1,000 of them output, nothing cached, ctx reserved.
-const simpleW = (ctx) => ({ isl: ctx - 1000, osl: 1000, cachedShare: 0, reserved: ctx });
+// every request holds ctx tokens, 80% cached input, 10% new input and 10% output, ctx reserved.
+const simpleW = (ctx) => ({ isl: 0.9 * ctx, osl: 0.1 * ctx, cachedShare: 0.8 / 0.9, reserved: ctx });
+// The numbers the cost and sizing code takes (the workload also carries the split in words).
+const core = ({ isl, osl, cachedShare, reserved }) => ({ isl, osl, cachedShare, reserved });
 
 test('format: spec examples and non-finite input', () => {
   assert.equal(fmtUsd(123), '$123'); assert.equal(fmtUsd(12345), '$12.3k'); assert.equal(fmtUsd(1234567), '$1.23M');
@@ -97,9 +99,10 @@ test('state: normalize clamps fields and replaces unknown ids', () => {
 test('state: hash round trip is the identity; fromHash("") is {}', () => {
   const n1 = normalizeState(DEFAULT_STATE, data);
   assert.deepStrictEqual(n1, normalizeState(fromHash(toHash(n1)), data));
-  const a = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', ctx: 20000, agent: { c0: 30000, d: 2000, o: 500, N: 10, caching: false } }, data);
-  // Detailed works the reserved context out from the loop, so ctx is not written to the link at all.
-  assert.ok(!/ctx=/.test(toHash(a)), 'no ctx in a Detailed link');
+  const a = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', detail: 'loop', ctx: 20000, agent: { c0: 30000, d: 2000, o: 500, N: 10, caching: false } }, data);
+  // The agent loop works the reserved context out from the loop, so ctx is not written to the link at all.
+  assert.ok(!/ctx=/.test(toHash(a)), 'no ctx in an agent loop link');
+  assert.ok(/detail=loop/.test(toHash(a)) && /a_c0=30000/.test(toHash(a)));
   const backToDefault = { ...a, ctx: normalizeState(DEFAULT_STATE, data).ctx };
   assert.deepStrictEqual(backToDefault, normalizeState(fromHash(toHash(a)), data));
   // location.hash keeps the leading '#'; the first key (shape) must survive it.
@@ -157,7 +160,7 @@ test('evaluate: qwen 4-bit rent h100x4 matches calc', () => {
   // Simple mode: the fixture model's window caps the default 262,144 at its contextMax.
   assert.equal(s.shape, 'simple'); assert.equal(s.ctx, M['qwen3.8-27b'].contextMax);
   const w = simpleW(s.ctx);
-  assert.deepEqual(res.workload, w);
+  assert.deepEqual(core(res.workload), w);
   const inp = { price: price(s.apiId), C: s.C, isl: w.isl, osl: w.osl, cachedShare: w.cachedShare, v: s.v, ttftS: s.ttftS, hoursPerDay: s.hoursPerDay };
   const dep = calc.sizeDeployment({ model: M['qwen3.8-27b'], bits: s.bits, gpu: G['h100'], C: s.C, isl: w.isl, osl: w.osl, v: s.v, cachedShare: w.cachedShare, ctx: w.reserved, mtp: false, tf: 1 });
   assert.equal(res.self.offered, true); assert.equal(res.self.g, dep.g); assert.equal(res.self.replicas, dep.replicas);
@@ -199,21 +202,21 @@ test('evaluate: crossover equals calc.crossover over the crossover grid (fractio
 });
 
 test('evaluate: detailed mode, buy smallest server, kimi 4-bit b200 not offered', () => {
-  const a = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', agent: { c0: 30000, d: 2000, o: 500, N: 10, caching: true } }, data);
+  const a = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', detail: 'loop', agent: { c0: 30000, d: 2000, o: 500, N: 10, caching: true } }, data);
   const ra = evaluate(a, data);
   // Detailed: the average request of the loop, and the largest context the loop reaches
   // (30,000 + 9 x 2,500 + 500 = 53,000), capped at the model window.
   assert.deepEqual(ra.errors, []);
-  assert.deepEqual(ra.workload, { ...calc.agentLoop(a.agent), reserved: Math.min(M['qwen3.8-27b'].contextMax, 53000) });
+  assert.deepEqual(ra.workload, { ...calc.agentLoop(a.agent), reserved: Math.min(M['qwen3.8-27b'].contextMax, 53000), mix: null });
   assert.equal(ra.workload.isl, 30000 + 9 * 2500 / 2);
-  const wide = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', agent: { c0: 20000, d: 5000, o: 1000, N: 50, caching: true }, modelId: 'kimi-k3.1-pro' }, data);
+  const wide = normalizeState({ ...DEFAULT_STATE, shape: 'detailed', detail: 'loop', agent: { c0: 20000, d: 5000, o: 1000, N: 50, caching: true }, modelId: 'kimi-k3.1-pro' }, data);
   assert.equal(evaluate(wide, data).workload.reserved, Math.min(M['kimi-k3.1-pro'].contextMax, 20000 + 49 * 6000 + 1000), 'the default loop reaches 315,000 and the window caps it');
 
   const b = normalizeState({ ...DEFAULT_STATE, mode: 'buy', buyGpu: 'rtx6000pro' }, data);
   const rb = evaluate(b, data);
   assert.deepEqual(rb.errors, []);
   const wb = simpleW(b.ctx);
-  assert.deepEqual(rb.workload, wb);
+  assert.deepEqual(core(rb.workload), wb);
   const depB = calc.sizeDeployment({ model: M['qwen3.8-27b'], bits: 4, gpu: G['rtx6000pro'], C: b.C, isl: wb.isl, osl: wb.osl, v: b.v, cachedShare: wb.cachedShare, ctx: wb.reserved, mtp: false, tf: 1 });
   assert.equal(rb.self.offered, true); assert.equal(rb.self.label, 'Thinkmate GPX 4-GPU');
   const expB = calc.buyMonthly({ deployment: depB, server: data.buyOptions.servers.find((x) => x.id === 'x:rtx4'), defaults: fx.buyDefaults });
@@ -239,9 +242,13 @@ test('format: fmtUsdAxis powers of ten without trailing zeros', () => {
   assert.equal(fmtUsdAxis(1500000), '$1.50M'); assert.equal(fmtUsdAxis(null), 'n/a');
 });
 
-test('visibility: fieldVisibility shows exactly one group per mode', () => {
-  assert.deepEqual(fieldVisibility('simple'), { simple: true, detailed: false });
-  assert.deepEqual(fieldVisibility('detailed'), { simple: false, detailed: true });
+test('visibility: fieldVisibility shows the fields of each mode and shape of request', () => {
+  // Simple: the context length and the one-line note. Detailed: the shape of each request, then either the
+  // context length with the split, or the agent loop (which has no context length of its own).
+  assert.deepEqual(fieldVisibility({ shape: 'simple', detail: 'split' }), { detail: false, ctx: true, hint: true, split: false, loop: false });
+  assert.deepEqual(fieldVisibility({ shape: 'simple', detail: 'loop' }), { detail: false, ctx: true, hint: true, split: false, loop: false }, 'Simple ignores the detail');
+  assert.deepEqual(fieldVisibility({ shape: 'detailed', detail: 'split' }), { detail: true, ctx: true, hint: false, split: true, loop: false });
+  assert.deepEqual(fieldVisibility({ shape: 'detailed', detail: 'loop' }), { detail: true, ctx: false, hint: false, split: false, loop: true });
 });
 
 test('evaluate: buy picks the cheapest server shape per deployment (real data)', () => {

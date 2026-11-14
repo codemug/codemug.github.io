@@ -12,7 +12,7 @@ import { DEFAULT_STATE, normalizeState } from '../src/lib/tokenomics/ui/state.mj
 import { evaluate } from '../src/lib/tokenomics/ui/evaluate.mjs';
 import { monthlyChartSvg, perMtokChartSvg } from '../src/lib/tokenomics/ui/chart.mjs';
 import { cFromX, inPlot, nearestIndex, stepIndex, pointAt, readoutValues, readoutLines } from '../src/lib/tokenomics/ui/chart-hover.mjs';
-import { LAYOUTS, domainLayout, xLog, xTicks, r2 } from '../src/lib/tokenomics/ui/chart-scale.mjs';
+import { LAYOUTS, domainLayout, xOf, xTicks, r2 } from '../src/lib/tokenomics/ui/chart-scale.mjs';
 import { chartLayout, chartModel } from '../src/lib/tokenomics/ui/chart.mjs';
 import { xMaxFor, sampleCs, crossoverCs } from '../src/lib/tokenomics/ui/chart-domain.mjs';
 import { markers, labelExtent } from '../src/lib/tokenomics/ui/chart-here.mjs';
@@ -91,7 +91,7 @@ const notOffered = evaluate(normalizeState({ ...DEFAULT_STATE, modelId: 'kimi-k3
 
 test('hover: cFromX inverts the log x scale and clamps outside the plot, on both layouts', () => {
   for (const L of Object.values(LAYOUTS)) {
-    for (const c of [0.01, 0.05, 0.1, 1, 10, 100, 1000, 10000]) assert.ok(Math.abs(cFromX(xLog(c, L), L) - c) / c < 1e-9, 'round trip at ' + c);
+    for (const c of [0.01, 0.05, 0.1, 1, 10, 100, 1000, 10000]) assert.ok(Math.abs(cFromX(xOf(c, L), L) - c) / c < 1e-9, 'round trip at ' + c);
     assert.equal(cFromX(L.ML - 50, L), L.xMin);
     assert.equal(L.xMin, 0.01, 'the chart starts at 0.01 parallel streams');
     assert.ok(Math.abs(cFromX(L.ML + L.PW + 50, L) - 10000) < 1e-6);
@@ -123,7 +123,7 @@ test('hover: nearestIndex picks the closest sweep point on the log scale, fracti
   assert.equal(nearestIndex(cs, mid / 1.0001), i);
   // Every sample is nearest to its own x position on the chart, in the chart's own range.
   const L = chartLayout(rentRes, 'desktop');
-  for (let n = 0; n <= last; n++) assert.equal(nearestIndex(cs, cFromX(xLog(cs[n], L), L)), n);
+  for (let n = 0; n <= last; n++) assert.equal(nearestIndex(cs, cFromX(xOf(cs[n], L), L)), n);
 });
 
 test('hover: stepIndex walks one visible sample at a time and stays at the ends', () => {
@@ -176,7 +176,7 @@ test('hover: the crosshair dot sits on the drawn API line, on both layouts', () 
   for (const name of ['desktop', 'phone']) {
     const L = chartLayout(rentRes, name);
     const p = pointAt(rentRes, false, i, L);
-    assert.equal(p.x, r2(xLog(rentRes.sweep.cs[i], L)), name + ' x');
+    assert.equal(p.x, r2(xOf(rentRes.sweep.cs[i], L)), name + ' x');
     assert.ok(p.yApi >= L.MT && p.yApi <= L.MT + L.PH && p.yMid >= L.MT && p.yMid <= L.MT + L.PH, name + ' y inside the plot');
     const svg = monthlyChartSvg(rentRes, { layout: name });
     const pts = svg.match(/<polyline class="chart-api"[^>]*points="([^"]*)"/)[1].split(' ');
@@ -305,7 +305,7 @@ test('here: the marker is at x from C and its dots are at the exact figures of t
       for (const perMtok of [false, true]) {
         const { scale } = chartModel(res, perMtok, L);
         const here = markers(res, perMtok, scale, L).here;
-        assert.equal(here.x, r2(xLog(C, L)), 'x from C = ' + C);
+        assert.equal(here.x, r2(xOf(C, L)), 'x from C = ' + C);
         assert.ok(here.x >= L.ML && here.x <= L.ML + L.PW, 'x inside the plot');
         assert.ok(here.x + 6 <= L.W && here.x - 6 >= 0, 'the dot is not clipped');
         const api = perMtok ? res.api.monthly.usdPerMtokOut : res.api.monthly.usdPerMonth;
@@ -322,7 +322,7 @@ test('here: the marker is at x from C and its dots are at the exact figures of t
   const off = atC(337);
   assert.ok(!off.sweep.cs.includes(337));
   const L = chartLayout(off, 'desktop');
-  assert.equal(markers(off, false, chartModel(off, false, L).scale, L).here.x, r2(xLog(337, L)));
+  assert.equal(markers(off, false, chartModel(off, false, L).scale, L).here.x, r2(xOf(337, L)));
 });
 
 test('here: only the API dot when self-hosting is not offered', () => {
@@ -379,7 +379,7 @@ test('here: the svg draws the solid line, the dots and the label, and the desc s
   const res = atC(100);
   const L = chartLayout(res, 'desktop');
   const svg = monthlyChartSvg(res, { idPrefix: 'q' });
-  const x = r2(xLog(100, L));
+  const x = r2(xOf(100, L));
   assert.ok(svg.includes('<line class="chart-here" x1="' + x + '"'), 'solid line at x from C');
   assert.equal((svg.match(/class="chart-here-dot /g) ?? []).length, 2);
   assert.ok(svg.includes('>C = 100<'));
@@ -390,5 +390,5 @@ test('here: the svg draws the solid line, the dots and the label, and the desc s
   assert.ok(TIPS['chart.here'] && TIPS['legend.here']);
   // Moving C moves the line.
   const other = atC(300);
-  assert.ok(monthlyChartSvg(other, {}).includes('<line class="chart-here" x1="' + r2(xLog(300, chartLayout(other, 'desktop'))) + '"'));
+  assert.ok(monthlyChartSvg(other, {}).includes('<line class="chart-here" x1="' + r2(xOf(300, chartLayout(other, 'desktop'))) + '"'));
 });

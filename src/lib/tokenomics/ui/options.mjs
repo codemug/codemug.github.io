@@ -108,7 +108,11 @@ export function rentOfferIdFor(data, provider, instance, term) {
   return data.rentOffers.find((o) => o.provider === provider && o.instance === instance && o.term === term)?.id ?? null;
 }
 
-// Field-group visibility per workload mode: the Simple field or the Detailed box.
-export function fieldVisibility(shape) {
-  return { simple: shape !== 'detailed', detailed: shape === 'detailed' };
+// What the workload box shows. Simple: the context length and a one-line note.
+// Detailed asks for the shape of each request: the custom split (the context length
+// and the percentages) or the agent loop (its own fields).
+export function fieldVisibility(state) {
+  const detailed = state.shape === 'detailed';
+  const loop = detailed && state.detail === 'loop';
+  return { detail: detailed, ctx: !loop, hint: !detailed, split: detailed && !loop, loop };
 }

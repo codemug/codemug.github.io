@@ -1,10 +1,16 @@
 // View model for the tokenomics page: plain strings and arrays for the DOM
 // layer to copy into elements. Pure; no HTML is built here.
 
-import { fmtUsd, fmtUsdSmall, fmtInt, fmtPct, fmtStreams, streamsPhrase } from './format.mjs';
+import { fmtUsd, fmtUsdSmall, fmtInt, fmtPct, fmtShare, fmtStreams, streamsPhrase } from './format.mjs';
 import { C_MIN } from './streams.mjs';
 
-export const CHART_CAPTION = 'The straight line is the API cost, the stepped line is self-hosting at its expected throughput (dashed when the speed you asked for is missed), the shaded band is the accuracy band, the dashed vertical line marks the crossover and the solid vertical line is your setting. The horizontal range starts at 0.01 and its right edge follows your parallel streams setting: it is 100, 1,000 or 10,000, the first of these that is at least three times your number (10,000 at most).';
+const CAPTION_START = 'The straight line is the API cost, the stepped line is self-hosting at its expected throughput (dashed when the speed you asked for is missed), the shaded band is the accuracy band, the dashed vertical line marks the crossover and the solid vertical line is your setting. ';
+const RANGE_LOG = 'The horizontal range starts at 0.01 and its right edge follows your parallel streams setting: it is 100, 1,000 or 10,000, the first of these that is at least three times your number (10,000 at most).';
+const RANGE_LINEAR = 'The horizontal range runs from 0 to about three times your parallel streams setting, rounded up to a round figure (10,000 at most).';
+
+// The caption for the logarithmic charts (the default) and for the linear ones.
+export const CHART_CAPTION = CAPTION_START + RANGE_LOG;
+export const LINEAR_CAPTION = CAPTION_START + RANGE_LINEAR;
 
 const TERM_WORDS = { on_demand: 'on demand', '1y': '1-year commitment', '3y': '3-year commitment' };
 
@@ -17,9 +23,10 @@ const becomes = (n) => (n <= C_MIN ? 'is cheaper everywhere on the charts, even 
 // The caption, plus a sentence when the crossover lies beyond the right edge of
 // the charts (it is not drawn then).
 function chartCaption(result) {
+  const base = result.sweep.scale === 'linear' ? LINEAR_CAPTION : CHART_CAPTION;
   const mid = result.crossover.mid;
-  if (!result.self.offered || mid === null || mid <= result.sweep.xMax) return CHART_CAPTION;
-  return CHART_CAPTION + ' The crossover is not drawn because it is off the right edge: self-hosting becomes cheaper from about ' + streams(mid) + '.';
+  if (!result.self.offered || mid === null || mid <= result.sweep.xMax) return base;
+  return base + ' The crossover is not drawn because it is off the right edge: self-hosting becomes cheaper from about ' + streams(mid) + '.';
 }
 
 function emptyView() {
@@ -89,22 +96,25 @@ function selfView(result, state, data) {
   };
 }
 
-// The workload rows. In Simple mode the output, the cached share and the split of
-// the context into input and output are fixed by the mode; in Detailed they come
-// from the agent loop.
+// The workload rows. Simple fixes the split of the context into cached input, new
+// input and output; the custom split of Detailed sets it in the controls; the agent
+// loop works it out from the loop. A value says the split in words where there is one.
 function workloadRows(state, result) {
   const w = result.workload;
+  const mix = w.mix;
   const simple = state.shape === 'simple';
-  const fixed = 'fixed in simple mode';
+  const setBy = simple ? 'fixed in simple mode' : 'set in the controls';
+  const isl = mix ? fmtInt(w.isl) + ' tokens (' + fmtShare(mix.cachedPct) + ' of the context cached, ' + fmtShare(mix.newPct) + ' new)' : fmtInt(w.isl);
+  const osl = mix ? fmtInt(w.osl) + ' tokens (' + fmtShare(mix.outputPct) + ' of the context)' : fmtInt(w.osl);
   return [
-    { key: 'as.isl', label: 'Input tokens per request', value: fmtInt(w.isl), basis: simple ? fixed : 'average over the loop' },
-    { key: 'as.osl', label: 'Output tokens per request', value: fmtInt(w.osl), basis: simple ? fixed : 'set in the controls' },
-    { key: 'as.ctx', label: 'Context reserved per request', value: fmtInt(w.reserved) + ' tokens', basis: simple ? 'reserved in full for every request (worst case)' : 'largest context the loop reaches, capped at the model window' },
+    { key: 'as.isl', label: 'Input tokens per request', value: isl, basis: mix ? setBy : 'average over the loop' },
+    { key: 'as.osl', label: 'Output tokens per request', value: osl, basis: setBy },
+    { key: 'as.ctx', label: 'Context reserved per request', value: fmtInt(w.reserved) + ' tokens', basis: mix ? 'reserved in full for every request (worst case)' : 'largest context the loop reaches, capped at the model window' },
     { key: 'as.v', label: 'Speed per stream', value: String(state.v) + ' tokens per second', basis: 'set in the controls' },
     { key: 'as.ttft', label: 'Time to first token', value: String(state.ttftS) + ' seconds', basis: 'set in the controls' },
     { key: 'as.kv', label: 'KV cache precision', value: '8 bits', basis: 'fixed by the model' },
     { key: 'as.hours', label: 'Hours under load per day', value: String(state.hoursPerDay), basis: 'set in the controls' },
-    { key: 'as.cached', label: 'Cached input share', value: fmtPct(w.cachedShare), basis: simple ? fixed : 'derived from the agent loop' },
+    { key: 'as.cached', label: 'Cached input share', value: fmtPct(w.cachedShare), basis: mix ? setBy : 'derived from the agent loop' },
     { key: 'as.cachewrite', label: 'Cache write premium', value: 'not charged', basis: 'not modelled (Anthropic and OpenAI bill 1.25x on tokens written to the cache)' },
   ];
 }
@@ -151,7 +161,7 @@ function speedWarning(result, state) {
 // A warning when an agent loop reaches more tokens than the model's window. A real agent compacts before that,
 // which this calculator does not model, so the average request of the loop is overstated.
 function windowWarning(state, data) {
-  if (state.shape !== 'detailed') return '';
+  if (state.shape !== 'detailed' || state.detail !== 'loop') return '';
   const model = data.models.find((m) => m.id === state.modelId);
   const a = state.agent;
   const reached = a.c0 + (a.N - 1) * (a.d + a.o) + a.o;

@@ -29,9 +29,9 @@ function selfNotOffered(reason, gpu) {
 }
 
 // Sweep with the self-hosted sides all null; the chart draws the note instead.
-function nullBandSweep(cs, xMax, apiArr, tokens1) {
+function nullBandSweep(cs, xMax, scale, apiArr, tokens1) {
   return {
-    cs, xMax, api: apiArr, selfMid: cs.map(() => null), selfLow: cs.map(() => null),
+    cs, xMax, scale, api: apiArr, selfMid: cs.map(() => null), selfLow: cs.map(() => null),
     selfHigh: cs.map(() => null), replicasMid: [], unitsMid: [], mtokPerMonth: cs.map((C) => (tokens1 / 1e6) * C),
   };
 }
@@ -54,7 +54,7 @@ export function evaluate(state, data) {
   };
 
   const errors = [];
-  const xMax = xMaxFor(s.C);
+  const xMax = xMaxFor(s.C, s.scale);
   let self = null;
   let sweep = null;
   let crossover = { low: null, mid: null, high: null };
@@ -62,7 +62,7 @@ export function evaluate(state, data) {
     const rent = s.mode === 'rent';
     const offer = data.rentOffers.find((o) => o.id === s.rentOfferId) ?? data.rentOffers[0];
     const gpu = data.gpus.find((g) => g.id === (rent ? offer.gpu : s.buyGpu)) ?? data.gpus[0];
-    const cs = sampleCs(xMax);
+    const cs = sampleCs(xMax, s.scale);
     const tokens1 = apiMonthly(1).outputTokensPerMonth;
     const dep = calc.sizeDeployment({
       model, bits: s.bits, gpu, C: s.C, isl: workload.isl, osl: workload.osl,
@@ -89,7 +89,7 @@ export function evaluate(state, data) {
     if (!dep.offered || !res || !res.offered) {
       const reason = !dep.offered ? dep.reason : res ? res.reason : 'no buy server with enough GPUs for this replica';
       self = selfNotOffered(reason, gpu);
-      sweep = nullBandSweep(cs, xMax, cs.map((C) => apiMonthly(C).usdPerMonth), tokens1);
+      sweep = nullBandSweep(cs, xMax, s.scale, cs.map((C) => apiMonthly(C).usdPerMonth), tokens1);
     } else {
       const tokens = api.monthly.outputTokensPerMonth;
       self = {
@@ -115,7 +115,7 @@ export function evaluate(state, data) {
         return r && r.offered ? (rent ? r.machines : r.servers) : null;
       };
       sweep = {
-        cs, xMax, api: sw.api, selfMid: sw.selfMid, selfLow: sw.selfLow, selfHigh: sw.selfHigh,
+        cs, xMax, scale: s.scale, api: sw.api, selfMid: sw.selfMid, selfLow: sw.selfLow, selfHigh: sw.selfHigh,
         replicasMid: sw.replicasMid, unitsMid: sw.replicasMid.map(unitsOf), mtokPerMonth: cs.map((C) => (tokens1 / 1e6) * C),
       };
       const all = crossoverCs();
@@ -124,7 +124,7 @@ export function evaluate(state, data) {
   } catch (err) {
     errors.push(err.message);
     if (!self) self = selfNotOffered('evaluation failed: ' + err.message, null);
-    if (!sweep) sweep = { cs: [], xMax, api: [], selfMid: [], selfLow: [], selfHigh: [], replicasMid: [], unitsMid: [], mtokPerMonth: [] };
+    if (!sweep) sweep = { cs: [], xMax, scale: s.scale, api: [], selfMid: [], selfLow: [], selfHigh: [], replicasMid: [], unitsMid: [], mtokPerMonth: [] };
     crossover = { low: null, mid: null, high: null };
   }
   return { errors, C: s.C, workload, api, self, sweep, crossover };

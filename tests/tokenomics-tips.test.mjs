@@ -34,7 +34,8 @@ function states() {
   const list = [
     { ...DEFAULT_STATE },
     { ...DEFAULT_STATE, mode: 'buy', buyGpu: 'rtx6000pro' },
-    { ...DEFAULT_STATE, mode: 'buy', buyGpu: 'b200', shape: 'detailed', modelId: 'deepseek-v4.1-flash' },
+    { ...DEFAULT_STATE, mode: 'buy', buyGpu: 'b200', shape: 'detailed', detail: 'loop', modelId: 'deepseek-v4.1-flash' },
+    { ...DEFAULT_STATE, shape: 'detailed', split: { cachedPct: 20, outputPct: 30 } },
     { ...DEFAULT_STATE, modelId: 'kimi-k3.1-pro' },
     { ...DEFAULT_STATE, v: 500 },
     { ...DEFAULT_STATE, apiId: 'ref:muse-spark-open' },
@@ -89,9 +90,12 @@ test('registry: facts come from the data and the result', () => {
   assert.ok(f.deployNow.startsWith(r.self.replicas + ' replicas of 1 GPU each, on ' + r.self.machines + ' machines'));
   assert.ok(f.machineNow.startsWith('g7e.2xlarge: 1 x RTX PRO 6000'));
   assert.ok(f.apiNow.includes('Qwen3.8 27B (Maker API)') && f.apiNow.includes('per million output tokens'), 'the default API is the same model on its maker API: ' + f.apiNow);
-  assert.equal(f.maxSpeedNote, 'On this setup one request alone reaches about 17 tokens per second, so asking for more than that cannot be met by one GPU.');
+  assert.equal(f.maxSpeedNote, 'On this setup one request alone reaches about 34 tokens per second, so asking for more than that cannot be met by one GPU.');
+  assert.equal(f.simpleSplit, '80% cached input, 10% new input and 10% output');
+  assert.equal(f.newTokens, '26,214', 'the new input of the default request: 10% of 262,144 tokens');
+  assert.equal(f.isl, '235,930'); assert.equal(f.osl, '26,214'); assert.equal(f.cachedPct, '89%');
   assert.equal(f.C, '100'); assert.equal(buildFacts({ ...s, C: 0.05 }, real, evaluate({ ...s, C: 0.05 }, real)).C, '0.05');
-  // Simple default: a 262,144-token prompt with no cache leaves room for one request per replica.
+  // Simple default: the whole 262,144-token window is reserved for every request, so one request fills a replica.
   assert.ok(f.ctxNow.startsWith('At 262,144 tokens, one replica holds 1 request at once'), f.ctxNow);
   const cached = normalizeState({ ...DEFAULT_STATE, apiId: real.apiPrices.find((p) => p.cachedInput == null)?.id ?? DEFAULT_STATE.apiId }, real);
   if (real.apiPrices.some((p) => p.cachedInput == null)) assert.ok(buildFacts(cached, real, evaluate(cached, real)).apiCachedNow.includes('no cached price'));
@@ -99,13 +103,28 @@ test('registry: facts come from the data and the result', () => {
 
 test('registry: the context length overlay says what Simple mode fixes and why memory is the worst case', () => {
   const t = TIPS.ctx;
-  for (const part of ['every request holds in total', 'reserved up front', 'deliberately the worst case', 'real agents that stay shorter need fewer machines', 'all but 1,000 tokens count as input', 'output is fixed at 1,000', 'nothing is cached', 'switch to Detailed to model caching']) assert.ok(t.includes(part), part);
+  for (const part of ['every request holds in total', 'reserved up front', 'deliberately the worst case', 'real agents that stay shorter need fewer machines', 'In Simple mode every request is split {simpleSplit}', 'Detailed lets you change that']) assert.ok(t.includes(part), part);
   assert.ok(TIPS['as.ctx'].includes('worst case') && TIPS['as.ctx'].includes('Detailed'));
   assert.equal(basisKey('reserved in full for every request (worst case)'), 'basis.worstcase');
   assert.equal(basisKey('fixed in simple mode'), 'basis.simple');
   assert.equal(basisKey('largest context the loop reaches, capped at the model window'), 'basis.loopmax');
-  for (const key of ['shape.simple', 'shape.detailed', 'fs.workload']) assert.ok(TIPS[key].length > 30, key);
-  assert.ok(TIPS['shape.simple'].includes('1,000') && TIPS['shape.simple'].includes('nothing is cached'));
+  for (const key of ['shape.simple', 'shape.detailed', 'fs.workload', 'detail', 'detail.split', 'detail.loop', 'split.cached', 'split.output', 'split.new']) assert.ok(TIPS[key].length > 30, key);
+  // The texts that describe Simple say the 80/10/10 split, from the same words the form shows (never 1,000 or "nothing is cached").
+  const s = normalizeState({ ...DEFAULT_STATE }, real);
+  const f = buildFacts(s, real, evaluate(s, real));
+  for (const key of ['shape.simple', 'ctx']) {
+    assert.ok(tipText(key, f).includes('80% cached input, 10% new input and 10% output'), key + ' says the split');
+    assert.ok(!/1,000|nothing is cached/.test(tipText(key, f)), key + ' no longer says the old fixed assumption');
+  }
+  for (const key of ['as.isl', 'as.osl', 'as.cached']) assert.ok(!/1,000|nothing is cached/.test(TIPS[key]), key + ' no longer says the old fixed assumption');
+  // The Detailed fields: what each share means, in plain words.
+  assert.ok(TIPS['detail'].includes('custom split') && TIPS['detail'].includes('agent loop'));
+  assert.ok(TIPS['detail.split'].includes('cached input') && TIPS['detail.split'].includes('The rest is new input, billed at the full input price') && TIPS['detail.split'].includes('whole context length'));
+  assert.ok(TIPS['detail.loop'].includes('many turns') && TIPS['detail.loop'].includes('{isl} input tokens'));
+  assert.ok(TIPS['split.cached'].includes('billed at the cached price') && TIPS['split.cached'].includes('add up to the whole context') && TIPS['split.cached'].includes('{apiCachedNow}'));
+  assert.ok(TIPS['split.output'].includes('0.1% to 99%') && TIPS['split.output'].includes('output price'));
+  assert.ok(TIPS['split.new'].includes('full input price') && TIPS['split.new'].includes('it follows the other two') && TIPS['split.new'].includes('{newTokens}'));
+  assert.equal(tipText('split.new', f), TIPS['split.new'].replace('{newTokens}', '26,214'));
   for (const gone of ['shape.single', 'shape.agent', 'isl', 'osl', 'cached']) assert.ok(!(gone in TIPS), gone + ' belonged to the old single-request fields');
 });
 
@@ -142,6 +161,7 @@ test('markup: every overlay key used by the page exists, and every text is used'
   take(controls, /field\(\s*\w+,\s*'[^']*',\s*'[^']*',\s*\w+,\s*'([^']+)'/g);
   take(controls, /\[(?:'\w+'|\d+),\s*(?:'[^']*'|opts\['\d+'\]\.label),\s*'([^']+)'\]/g);
   take(controls, /'Bits per weight'\),\s*'([^']+)'/g);
+  take(controls, /'Shape of each request'\),\s*'([^']+)'/g);
   take(controls, /tip\(el\('div', \{[^}]*\}\), '([^']+)'\)/g);
   // Keys built at run time: the terms the data has, and the basis cells of every assumptions row.
   for (const t of new Set(real.rentOffers.map((o) => o.term))) used.add('term.' + t);
@@ -285,9 +305,21 @@ test('registry: the overlays say what the new controls and warnings mean, in pla
   // The speed overlay quotes the speed of one lone request, from the result.
   const s = normalizeState({ ...DEFAULT_STATE }, real);
   const f = buildFacts(s, real, evaluate(s, real));
-  assert.match(tipText('v', f), /On this setup one request alone reaches about 17 tokens per second, so asking for more than that cannot be met by one GPU\.$/);
+  assert.match(tipText('v', f), /On this setup one request alone reaches about 34 tokens per second, so asking for more than that cannot be met by one GPU\.$/);
   const none = normalizeState({ ...DEFAULT_STATE, modelId: 'kimi-k3.1-pro', rentProvider: 'AWS', rentOfferId: 'AWS:g7e.2xlarge:on_demand' }, real);
   assert.ok(!/reaches about/.test(tipText('v', buildFacts(none, real, evaluate(none, real)))), 'nothing about a speed when self-hosting is not offered');
   // The chart overlay quotes the right edge of the current chart.
   assert.match(tipText('chart.axis.x', f), /Right now it is 1,000\.$/);
+});
+
+test('accuracy band overlays call the band typical, not a bound', () => {
+  // The band is the range most measured runs fell into (about 9 in 10 for the calibrated GPUs
+  // when the model was in the fit, about 3 in 4 when it was left out), so the texts must not
+  // promise that real speed stays inside it.
+  for (const key of ['self.confidence', 'legend.band', 'chart.band']) {
+    assert.match(TIPS[key], /Most measured runs/, key);
+    assert.match(TIPS[key], /some (landed )?outside/, key);
+    assert.ok(!/anywhere (from|in between)/.test(TIPS[key]), key + ' must not read as a bound');
+  }
+  assert.match(TIPS['self.confidence'], /typical, not as a limit/);
 });

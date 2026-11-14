@@ -2,15 +2,21 @@
 // Pure functions; normalizeState returns a new object and never mutates input.
 //
 // The workload has two modes. 'simple': every request holds `ctx` tokens in
-// total. 'detailed': the agent loop in `agent`. Links made before the modes
-// existed still open: shape=single is Simple, shape=agent is Detailed, and the
-// old isl, osl and cachedShare parameters are ignored.
+// total, 80% cached input, 10% new input and 10% output. 'detailed' has a second
+// level, `detail`: 'split' (the default: the same context split by the
+// percentages in `split`) or 'loop' (the agent loop in `agent`). Links made before
+// the modes existed still open: shape=single is Simple, shape=agent or a detailed
+// link with agent parameters is the agent loop, and the old isl, osl and
+// cachedShare parameters are ignored.
 
-import { ctxBounds } from './workload.mjs';
+import { ctxBounds, SIMPLE_SPLIT, MIN_OUTPUT_PCT, MAX_OUTPUT_PCT } from './workload.mjs';
 import { roundC } from './streams.mjs';
 
 export const DEFAULT_STATE = {
   shape: 'simple',
+  detail: 'split', // under Detailed: 'split' (custom split) or 'loop' (agent loop)
+  split: { cachedPct: SIMPLE_SPLIT.cachedPct, outputPct: SIMPLE_SPLIT.outputPct },
+  scale: 'log', // the charts: 'log' (logarithmic) or 'linear'
   agent: { c0: 20000, d: 5000, o: 1000, N: 50, caching: true },
   C: 100,
   v: 30,
@@ -40,6 +46,17 @@ function numOr(x, fallback) {
   return typeof x === 'number' && Number.isFinite(x) ? x : fallback;
 }
 
+const round1 = (x) => Math.round(x * 10) / 10;
+
+// Percentages of the context: output 0.1 to 99, cached 0 up to what is left after
+// the output, one decimal. The remainder is the new (uncached) input.
+export function normalizeSplit(split) {
+  const sp = { ...DEFAULT_STATE.split, ...(split ?? {}) };
+  const outputPct = clamp(round1(numOr(sp.outputPct, DEFAULT_STATE.split.outputPct)), MIN_OUTPUT_PCT, MAX_OUTPUT_PCT);
+  const cachedPct = clamp(round1(numOr(sp.cachedPct, DEFAULT_STATE.split.cachedPct)), 0, round1(100 - outputPct));
+  return { cachedPct, outputPct };
+}
+
 // Returns a NEW valid state: numbers clamped into range, unknown ids replaced
 // by the first valid one, the rent offer kept only if it exists for the provider.
 export function normalizeState(state, data) {
@@ -55,6 +72,9 @@ export function normalizeState(state, data) {
   const [ctxLo, ctxHi] = ctxBounds(model);
   return {
     shape: s.shape === 'detailed' || s.shape === 'agent' ? 'detailed' : 'simple',
+    detail: s.detail === 'loop' || (s.shape === 'agent' && s.detail === undefined) ? 'loop' : 'split',
+    split: normalizeSplit(s.split),
+    scale: s.scale === 'linear' ? 'linear' : 'log',
     agent: {
       c0: Math.max(1, intOr(agent.c0, DEFAULT_STATE.agent.c0)),
       d: Math.max(1, intOr(agent.d, DEFAULT_STATE.agent.d)),
@@ -84,19 +104,27 @@ export function toHash(state) {
     if (v !== null && v !== undefined && v !== '') p.set(k, String(v));
   };
   set('shape', state.shape);
-  set('a_c0', state.agent.c0);
-  set('a_d', state.agent.d);
-  set('a_o', state.agent.o);
-  set('a_N', state.agent.N);
-  set('a_caching', state.agent.caching);
+  if (state.scale !== DEFAULT_STATE.scale) set('scale', state.scale);
+  // The agent loop is written only when it is the chosen shape: a link with agent
+  // parameters and no detail opens the loop (that is how older links read).
+  if (state.shape === 'detailed' && state.detail === 'loop') {
+    set('detail', 'loop');
+    set('a_c0', state.agent.c0);
+    set('a_d', state.agent.d);
+    set('a_o', state.agent.o);
+    set('a_N', state.agent.N);
+    set('a_caching', state.agent.caching);
+  }
+  if (state.split.cachedPct !== DEFAULT_STATE.split.cachedPct) set('sc', state.split.cachedPct);
+  if (state.split.outputPct !== DEFAULT_STATE.split.outputPct) set('so', state.split.outputPct);
   set('C', state.C);
   set('v', state.v);
   set('hoursPerDay', state.hoursPerDay);
   set('apiId', state.apiId);
   set('modelId', state.modelId);
   set('bits', state.bits);
-  // ctx is the Simple context length; Detailed works it out from the loop.
-  if (state.shape === 'simple') set('ctx', state.ctx);
+  // ctx is the context length of Simple and of the custom split; the agent loop works it out.
+  if (state.shape === 'simple' || state.detail === 'split') set('ctx', state.ctx);
   set('mode', state.mode);
   set('buyGpu', state.buyGpu);
   set('rentProvider', state.rentProvider);
@@ -126,6 +154,20 @@ export function fromHash(hash) {
   };
   const shape = str('shape');
   put('shape', shape === undefined ? undefined : shape === 'agent' || shape === 'detailed' ? 'detailed' : 'simple');
+  // The agent loop: detail=loop, or an older link (shape=agent, or a detailed link
+  // that carries agent parameters and no detail) opens it.
+  const detail = str('detail');
+  const hasAgent = ['a_c0', 'a_d', 'a_o', 'a_N', 'a_caching'].some((k) => p.has(k));
+  if (detail !== undefined) put('detail', detail === 'loop' ? 'loop' : 'split');
+  else if (shape === 'agent' || (shape === 'detailed' && hasAgent)) put('detail', 'loop');
+  const split = {};
+  const sc = num('sc');
+  const so = num('so');
+  if (sc !== undefined) split.cachedPct = sc;
+  if (so !== undefined) split.outputPct = so;
+  if (Object.keys(split).length > 0) out.split = split;
+  const scale = str('scale');
+  put('scale', scale === undefined ? undefined : scale === 'linear' ? 'linear' : 'log');
   put('C', num('C'));
   put('v', num('v'));
   put('hoursPerDay', num('hoursPerDay'));

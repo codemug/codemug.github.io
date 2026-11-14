@@ -3,31 +3,19 @@
 // wiring is in dom/chart-hover.mjs.
 
 import { fmtUsd, fmtUsdSmall, fmtInt, streamsPhrase } from './format.mjs';
-import { DESKTOP, xLog, r2 } from './chart-scale.mjs';
+import { DESKTOP, xOf, cOf, nearestIndex, r2 } from './chart-scale.mjs';
 import { chartModel } from './chart.mjs';
 
-// C (a float) under a viewBox x position, clamped to the visible range 0.01..L.xMax.
-// L is the chart layout over that range (see chartLayout in chart.mjs).
-export function cFromX(x, L = DESKTOP) {
-  const t = Math.min(1, Math.max(0, (x - L.ML) / L.PW));
-  return 10 ** (Math.log10(L.xMin) + t * L.decades);
-}
+// C (a float) under a viewBox x position, clamped to the visible range of the
+// layout (0.01..xMax on the log scale, 0..xMax on the linear one).
+export const cFromX = cOf;
 
 export function inPlot(x, y, L = DESKTOP) {
   return x >= L.ML && x <= L.ML + L.PW && y >= L.MT && y <= L.MT + L.PH;
 }
 
-// Index of the sweep point nearest to c on the log scale; the first on a tie.
-export function nearestIndex(cs, c) {
-  const lc = Math.log10(c);
-  let best = 0;
-  let bestDist = Infinity;
-  cs.forEach((v, i) => {
-    const dist = Math.abs(Math.log10(v) - lc);
-    if (dist < bestDist) { bestDist = dist; best = i; }
-  });
-  return best;
-}
+// The sample nearest to c: nearestIndex(cs, c, mode) with mode 'log' (the default) or 'linear'.
+export { nearestIndex };
 
 // The next index in a direction whose C differs (a sample list may repeat a C).
 export function stepIndex(cs, i, dir) {
@@ -53,11 +41,17 @@ export function readoutValues(result, i) {
   };
 }
 
-// Where the crosshair and its two dots go (viewBox units) for sweep point i.
+// Where the crosshair and its two dots go (viewBox units) for sweep point i. A
+// dot whose value is above the top of a linear chart (the self-hosting curve of
+// the per-million chart at small streams) is left out: null.
 export function pointAt(result, perMtok, i, L = DESKTOP) {
   const { s, scale } = chartModel(result, perMtok, L);
-  const y = (v) => (scale && typeof v === 'number' && v > 0 ? r2(scale.y(v)) : null);
-  return { i, x: r2(xLog(s.cs[i], L)), yApi: y(s.api[i]), yMid: y(s.mid[i]) };
+  const y = (v) => {
+    if (!scale || typeof v !== 'number' || !(v > 0)) return null;
+    const py = scale.y(v);
+    return py < L.MT - 0.5 || py > L.MT + L.PH + 0.5 ? null : r2(py);
+  };
+  return { i, x: r2(xOf(s.cs[i], L)), yApi: y(s.api[i]), yMid: y(s.mid[i]) };
 }
 
 const word = (n, one, many) => fmtInt(n) + ' ' + (n === 1 ? one : many);

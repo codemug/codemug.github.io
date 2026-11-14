@@ -7,7 +7,7 @@
 // two lines are close, the labels move to another row or the other side of
 // their line, so no label touches the other label or the other line.
 
-import { r2, xLog } from './chart-scale.mjs';
+import { r2, xOf } from './chart-scale.mjs';
 import { fmtStreams } from './format.mjs';
 
 const TOP = 14; // baseline of the first label row, below the top of the plot
@@ -73,9 +73,9 @@ function badness(cross, here, L) {
 // needs the y scale for its dots.
 export function markers(result, perMtok, scale, L) {
   const mid = result.crossover.mid;
-  const crossLine = mid !== null && mid <= L.xMax ? { mid, x: r2(xLog(mid, L)), text: 'C = ' + fmtStreams(mid), short: fmtStreams(mid) } : null;
+  const crossLine = mid !== null && mid <= L.xMax ? { mid, x: r2(xOf(mid, L)), text: 'C = ' + fmtStreams(mid), short: fmtStreams(mid) } : null;
   const v = scale ? hereValues(result, perMtok) : null;
-  const hereLine = v ? { c: v.c, x: r2(xLog(v.c, L)), text: 'C = ' + fmtStreams(v.c), short: fmtStreams(v.c) } : null;
+  const hereLine = v ? { c: v.c, x: r2(xOf(v.c, L)), text: 'C = ' + fmtStreams(v.c), short: fmtStreams(v.c) } : null;
   const crossOpts = crossLine ? options(crossLine, L) : [null];
   const hereOpts = hereLine ? options(hereLine, L) : [null];
   let pick = null;
