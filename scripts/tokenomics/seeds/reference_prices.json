@@ -1,0 +1,119 @@
+[
+  {
+    "modelId": "qwen3.8-27b",
+    "rule": "maker",
+    "picks": [
+      {
+        "provider": "Qwen Cloud (Alibaba)",
+        "model_id": "qwen3.8-27b",
+        "region_or_tier": "standard"
+      }
+    ]
+  },
+  {
+    "modelId": "qwen3.8-flash-next",
+    "rule": "maker",
+    "picks": [
+      {
+        "provider": "Qwen Cloud (Alibaba)",
+        "model_id": "qwen3.8-flash-next",
+        "region_or_tier": "standard"
+      }
+    ]
+  },
+  {
+    "modelId": "kimi-k3.1-pro",
+    "rule": "maker",
+    "picks": [
+      {
+        "provider": "Moonshot (first-party)",
+        "model_id": "kimi-k3.1-pro",
+        "region_or_tier": "standard"
+      }
+    ]
+  },
+  {
+    "modelId": "deepseek-v4.1-flash",
+    "rule": "maker",
+    "picks": [
+      {
+        "provider": "DeepSeek (first-party)",
+        "model_id": "deepseek-v4.1-flash-1017",
+        "region_or_tier": "peak hours"
+      }
+    ]
+  },
+  {
+    "modelId": "muse-spark-open",
+    "rule": "median",
+    "picks": [
+      {
+        "provider": "Baseten",
+        "model_id": "muse-spark-open",
+        "region_or_tier": "Model APIs"
+      },
+      {
+        "provider": "Together AI",
+        "model_id": "muse-spark-open",
+        "region_or_tier": "serverless"
+      },
+      {
+        "provider": "Fireworks AI",
+        "model_id": "muse-spark-open",
+        "region_or_tier": "serverless Standard"
+      }
+    ]
+  },
+  {
+    "modelId": "nemotron-3.5-super-vl",
+    "rule": "median",
+    "picks": [
+      {
+        "provider": "Baseten",
+        "model_id": "nemotron-3.5-super-vl-120b-a12b",
+        "region_or_tier": "Model APIs"
+      },
+      {
+        "provider": "Together AI",
+        "model_id": "nemotron-3.5-super-vl-120b-a12b",
+        "region_or_tier": "serverless"
+      },
+      {
+        "provider": "DeepInfra",
+        "model_id": "nemotron-3.5-super-vl-120b-a12b",
+        "region_or_tier": "serverless standard"
+      }
+    ]
+  },
+  {
+    "modelId": "gemma-4-31b",
+    "rule": "median",
+    "picks": [
+      {
+        "provider": "Parasail",
+        "model_id": "gemma-4-31b-it",
+        "region_or_tier": "serverless"
+      },
+      {
+        "provider": "SambaNova",
+        "model_id": "gemma-4-31b-it",
+        "region_or_tier": "pay-as-you-go"
+      },
+      {
+        "provider": "AWS Bedrock",
+        "model_id": "gemma-4-31b-it",
+        "region_or_tier": "us-east-1 standard"
+      },
+      {
+        "provider": "DeepInfra",
+        "model_id": "gemma-4-31b-it",
+        "region_or_tier": "serverless standard"
+      },
+      {
+        "provider": "Novita AI",
+        "model_id": "gemma-4-31b-it",
+        "region_or_tier": "serverless"
+      }
+    ]
+  }
+]

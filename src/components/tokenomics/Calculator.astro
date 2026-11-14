@@ -1,0 +1,67 @@
+---
+// Tokenomics calculator: the static skeleton lives here; the form, results
+// and charts are filled by src/lib/tokenomics/ui/dom/app.mjs. data-tip names
+// an overlay text in src/lib/tokenomics/ui/tips.mjs. The styles are in
+// calculator.css (site CSS variables only, so light and dark both work).
+import "./calculator.css";
+---
+
+<section id="tokenomics-calc" class="tk" aria-label="Cost calculator: API price versus self-hosting">
+  <header class="tk-top">
+    <p id="tk-headline" class="tk-headline" aria-live="polite" tabindex="0" data-tip="headline"></p>
+    <p id="tk-crossover" class="tk-crossover" tabindex="0" data-tip="crossover"></p>
+    <p id="tk-warning" class="tk-warning" aria-live="polite" data-tip="warning"></p>
+    <p id="tk-captured" class="tk-captured" data-tip="captured"></p>
+  </header>
+  <div class="tk-layout">
+    <aside id="tk-controls" class="tk-side" aria-label="Calculator inputs"></aside>
+    <div class="tk-main">
+      <div class="tk-cards">
+        <div class="tk-card" id="tk-api" data-tip="card.api">
+          <h3 id="tk-api-title" data-tip="api.title"></h3>
+          <p class="tk-monthly" tabindex="0" data-tip="api.monthly"><span id="tk-api-monthly"></span> a month</p>
+          <p class="tk-perMtok" tabindex="0" data-tip="api.perMtok"><span id="tk-api-perMtok"></span></p>
+          <ul id="tk-api-notes" class="tk-notes" data-tip="api.notes"></ul>
+        </div>
+        <div class="tk-card" id="tk-self" data-tip="card.self">
+          <h3><span id="tk-self-title" data-tip="self.title"></span> <span id="tk-self-badge" class="tk-badge" data-tip="self.speedwarn" tabindex="0" hidden>Speed not met</span></h3>
+          <p class="tk-monthly" tabindex="0" data-tip="self.monthly"><span id="tk-self-monthly"></span> a month</p>
+          <p class="tk-perMtok" tabindex="0" data-tip="self.perMtok"><span id="tk-self-perMtok"></span></p>
+          <p class="tk-deployment" tabindex="0" data-tip="self.deployment"><span id="tk-self-deployment"></span></p>
+          <p class="tk-perReplica" tabindex="0" data-tip="self.perReplica"><span id="tk-self-perReplica"></span></p>
+          <p class="tk-confidence" tabindex="0" data-tip="self.confidence"><span id="tk-self-confidence"></span></p>
+          <ul id="tk-self-notes" class="tk-notes" data-tip="self.notes"></ul>
+        </div>
+      </div>
+      <div id="tk-scale" class="tk-scale" role="radiogroup" aria-labelledby="tk-scale-label">
+        <span id="tk-scale-label" class="tk-label" data-tip="scale">Chart scale</span>
+        <label class="tk-seg" data-tip="scale"><input type="radio" name="tk-scale" id="tk-scale-log" value="log" checked data-tip="scale" /><span>Logarithmic</span></label>
+        <label class="tk-seg" data-tip="scale"><input type="radio" name="tk-scale" id="tk-scale-linear" value="linear" data-tip="scale" /><span>Linear</span></label>
+      </div>
+      <div class="tk-charts">
+        <figure id="tk-chart1" class="tk-chart"></figure>
+        <figure id="tk-chart2" class="tk-chart"></figure>
+      </div>
+      <p id="tk-chart-caption" class="tk-caption"></p>
+      <ul class="tk-legend">
+        <li tabindex="0" data-tip="legend.api"><svg width="28" height="12" aria-hidden="true"><line class="chart-api" x1="0" y1="6" x2="28" y2="6"/></svg> API cost (straight line)</li>
+        <li tabindex="0" data-tip="legend.self"><svg width="28" height="12" aria-hidden="true"><path class="chart-self-mid" fill="none" d="M 0 9 H 14 V 3 H 28"/></svg> Self-hosting (stepped line)</li>
+        <li tabindex="0" data-tip="legend.band"><svg width="28" height="12" aria-hidden="true"><rect class="chart-self-band" x="0" y="3" width="28" height="6"/></svg> Accuracy band (shaded)</li>
+        <li tabindex="0" data-tip="legend.here"><svg width="28" height="12" aria-hidden="true"><line class="chart-here" x1="14" y1="0" x2="14" y2="12"/></svg> Your setting (solid line)</li>
+        <li tabindex="0" data-tip="legend.cross"><svg width="28" height="12" aria-hidden="true"><line class="chart-cross" x1="14" y1="0" x2="14" y2="12"/></svg> Crossover (dashed line)</li>
+      </ul>
+      <table class="tk-assumptions">
+        <caption data-tip="assumptions">Assumptions behind the numbers</caption>
+        <thead>
+          <tr><th>Assumption</th><th>Value</th><th>Basis</th></tr>
+        </thead>
+        <tbody id="tk-assumptions"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { startCalculator } from "../../lib/tokenomics/ui/dom/app.mjs";
+  startCalculator(document.getElementById("tokenomics-calc"));
+</script>

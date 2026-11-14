@@ -1,0 +1,4282 @@
+[
+  {
+    "id": "qwen3.8-27b",
+    "name": "Qwen3.8 27B",
+    "hf_repo": "Qwen/Qwen3.8-27B",
+    "release_date": "2026-08-05",
+    "release_date_kind": "hf_repo_created",
+    "license": "apache-2.0",
+    "context_max": 262144,
+    "total_params_b": 26.896,
+    "active_params_b": 26.896,
+    "active_matmul_params_b": 25.625,
+    "all_params_b_incl_vision_mtp_lookup": 27.781,
+    "params_source": "derived from safetensors headers; vendor says 27B",
+    "params_b_by_part": {
+      "dense": 24.353,
+      "shared": 0.0,
+      "routed": 0.0,
+      "embed": 1.271,
+      "lm_head": 1.271,
+      "lookup": 0.0,
+      "vision": 0.461,
+      "audio": 0.0,
+      "mtp": 0.425
+    },
+    "moe": {
+      "E_routed": 1,
+      "k_per_token": 1,
+      "shared_experts": 0,
+      "dense": true
+    },
+    "arch": {
+      "num_layers": 64,
+      "hidden_size": 5120,
+      "num_attention_heads": 24,
+      "num_kv_heads": 4,
+      "head_dim": 256,
+      "attention_type": "hybrid_linear (Gated DeltaNet x48 + gated attention x16)",
+      "full_attention_layers": 16,
+      "sliding_window": null,
+      "mtp_layers": 1,
+      "linear_attention_state_bytes_per_seq": {
+        "fp32_state": 153944064,
+        "bf16_state": 78446592
+      }
+    },
+    "kv_bytes_per_token": {
+      "fp8": 32768,
+      "bf16": 65536,
+      "kind": "derived",
+      "formula": "16 full layers x 2 x 4 KV heads x 256; fixed 48 GDN x (48 x 128 x 128 x 4 B + 3 x 10,240 x 2 B)"
+    },
+    "fixed_bytes_per_seq": {
+      "fp8_kv_fp32_state": 153944064,
+      "bf16_kv": 153944064
+    },
+    "kv_bytes_32k_request_fp8": 1227685888,
+    "dp_attention_recommended": false,
+    "dp_attention_note": "recipe default is tensor parallel (vLLM recipes.vllm.ai recommended_command)",
+    "m1_inputs": {
+      "P": 26896000000.0,
+      "A": 26896000000.0,
+      "E": 1,
+      "k": 1,
+      "L": 64,
+      "kv_fp8": 32768,
+      "S": 153944064,
+      "h_kv": 4,
+      "dpa": false
+    },
+    "checkpoints_by_bits": {
+      "4": {
+        "repo": "nvidia/Qwen3.8-27B-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 21.92,
+        "source_url": "https://huggingface.co/api/models/nvidia/Qwen3.8-27B-NVFP4?blobs=true",
+        "bits_per_weight_all": 6.31,
+        "bits_per_weight_text": 6.52,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 27.781B (matches HF safetensors total), text = 26.896B",
+        "text_resident_gb": 20.151,
+        "read_per_step_gb_b1": 17.608,
+        "nonrouted_read_gb": 17.608,
+        "routed_gb": 0.0,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "attention + GDN projections FP8 7.21 GB; MLP NVFP4; lm_head NVFP4; embedding BF16 2.54; MTP BF16 0.85; vision BF16 0.92",
+        "gb_by_role": {
+          "dense": 16.893,
+          "shared": 0.0,
+          "routed": 0.0,
+          "embed": 2.543,
+          "lm_head": 0.715,
+          "lookup": 0.0,
+          "vision": 0.921,
+          "audio": 0.0,
+          "mtp": 0.849
+        }
+      },
+      "8": {
+        "repo": "Qwen/Qwen3.8-27B-FP8",
+        "format": "FP8 block 128x128 dynamic",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 30.87,
+        "source_url": "https://huggingface.co/api/models/Qwen/Qwen3.8-27B-FP8?blobs=true",
+        "bits_per_weight_all": 8.89,
+        "bits_per_weight_text": 9.18,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 27.781B (matches HF safetensors total), text = 26.896B",
+        "text_resident_gb": 29.468,
+        "read_per_step_gb_b1": 26.925,
+        "nonrouted_read_gb": 26.925,
+        "routed_gb": 0.0,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "embedding and lm_head BF16 (2.54 each); vision BF16 0.92; MTP FP8 0.37 + BF16 0.11",
+        "gb_by_role": {
+          "dense": 24.382,
+          "shared": 0.0,
+          "routed": 0.0,
+          "embed": 2.543,
+          "lm_head": 2.543,
+          "lookup": 0.0,
+          "vision": 0.921,
+          "audio": 0.0,
+          "mtp": 0.477
+        }
+      },
+      "16": {
+        "repo": "Qwen/Qwen3.8-27B",
+        "format": "BF16",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 55.56,
+        "source_url": "https://huggingface.co/api/models/Qwen/Qwen3.8-27B?blobs=true",
+        "bits_per_weight_all": 16.0,
+        "bits_per_weight_text": 16.53,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 27.781B (matches HF safetensors total), text = 26.896B",
+        "text_resident_gb": 53.792,
+        "read_per_step_gb_b1": 51.249,
+        "nonrouted_read_gb": 51.249,
+        "routed_gb": 0.0,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "all BF16",
+        "gb_by_role": {
+          "dense": 48.706,
+          "shared": 0.0,
+          "routed": 0.0,
+          "embed": 2.543,
+          "lm_head": 2.543,
+          "lookup": 0.0,
+          "vision": 0.921,
+          "audio": 0.0,
+          "mtp": 0.849
+        }
+      }
+    },
+    "other_checkpoints": [
+      {
+        "repo": "unsloth/Qwen3.8-27B-NVFP4",
+        "size_gb": 23.42,
+        "bits_per_weight_all": 6.74,
+        "bits_per_weight_text": 6.97
+      },
+      {
+        "repo": "Inferact/Qwen3.8-27B-NVFP4",
+        "size_gb": 26.38,
+        "bits_per_weight_all": 7.6,
+        "bits_per_weight_text": 7.85
+      },
+      {
+        "repo": "RedHatAI/Qwen3.8-27B-NVFP4",
+        "size_gb": 24.69,
+        "bits_per_weight_all": 7.11,
+        "bits_per_weight_text": 7.34
+      }
+    ],
+    "engines": [
+      {
+        "engine": "vLLM",
+        "min_version": "0.17.0",
+        "recipe_url": "https://recipes.vllm.ai/Qwen/Qwen3.8-27B.json"
+      },
+      {
+        "engine": "SGLang",
+        "min_version": "latest",
+        "recipe_url": "https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8.md"
+      }
+    ],
+    "gpu_fit": {
+      "A100 80GB SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 NVL": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H200 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B200 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-27B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B300 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-27B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB200 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-27B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB300 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-27B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "RTX PRO 6000 Blackwell Server Edition": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-27B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L40S": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L4": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI300X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI325X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI355X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Gaudi 3 (HL-325L OAM)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU v6e (Trillium)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU7x (Ironwood)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Trainium2": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-27B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 21.92,
+            "checkpoint": "nvidia/Qwen3.8-27B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 30.87,
+            "checkpoint": "Qwen/Qwen3.8-27B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 55.56,
+            "checkpoint": "Qwen/Qwen3.8-27B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      }
+    },
+    "source_urls": [
+      "https://huggingface.co/Qwen/Qwen3.8-27B/resolve/main/config.json",
+      "https://huggingface.co/Qwen/Qwen3.8-27B/resolve/main/README.md",
+      "https://huggingface.co/api/models/Qwen/Qwen3.8-27B?blobs=true",
+      "https://recipes.vllm.ai/Qwen/Qwen3.8-27B.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "qwen3.8-flash-next",
+    "name": "Qwen3.8 Flash Next",
+    "hf_repo": "Qwen/Qwen3.8-Flash-Next",
+    "release_date": "2026-08-24",
+    "release_date_kind": "hf_repo_created",
+    "license": "other: qwen-community-1.0",
+    "context_max": 262144,
+    "total_params_b": 125.744,
+    "active_params_b": 7.307,
+    "active_matmul_params_b": 6.671,
+    "all_params_b_incl_vision_mtp_lookup": 180.0,
+    "params_source": "derived from safetensors headers; vendor says 176B total incl. 51B n-gram table, 6B active (125B main model)",
+    "params_b_by_part": {
+      "dense": 3.44,
+      "shared": 0.236,
+      "routed": 120.796,
+      "embed": 0.636,
+      "lm_head": 0.636,
+      "lookup": 51.2,
+      "vision": 0.449,
+      "audio": 0.0,
+      "mtp": 2.607
+    },
+    "moe": {
+      "E_routed": 512,
+      "k_per_token": 10,
+      "shared_experts": 1,
+      "dense": false
+    },
+    "arch": {
+      "num_layers": 48,
+      "hidden_size": 2560,
+      "num_attention_heads": 24,
+      "num_kv_heads": 2,
+      "head_dim": 256,
+      "attention_type": "hybrid_linear (Gated DeltaNet x36 + QSA sparse attention x12)",
+      "full_attention_layers": 12,
+      "sliding_window": null,
+      "mtp_layers": 1,
+      "linear_attention_state_bytes_per_seq": {
+        "fp32_state": 115458048,
+        "bf16_state": 58834944
+      }
+    },
+    "kv_bytes_per_token": {
+      "fp8": 13824,
+      "bf16": 27648,
+      "kind": "derived",
+      "formula": "12 QSA layers x (2 x 2 KV heads x 256 + 128 raw indexer key, reference code caches per-token keys); fixed 36 GDN x (48 x 128 x 128 x 4 B + 3 x 10,240 x 2 B)"
+    },
+    "fixed_bytes_per_seq": {
+      "fp8_kv_fp32_state": 115458048,
+      "bf16_kv": 115458048
+    },
+    "kv_bytes_32k_request_fp8": 568442880,
+    "dp_attention_recommended": false,
+    "dp_attention_note": "recipe default B200 single_node_tep (TP8 + EP); single_node_dep also offered. With 2 KV heads, TP8 replicates KV 4x; set dpa = true only for the dep layout",
+    "m1_inputs": {
+      "P": 125744000000.0,
+      "A": 7307000000.0,
+      "E": 512,
+      "k": 10,
+      "L": 48,
+      "kv_fp8": 13824,
+      "S": 115458048,
+      "h_kv": 2,
+      "dpa": false
+    },
+    "checkpoints_by_bits": {
+      "4": {
+        "repo": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 132.68,
+        "source_url": "https://huggingface.co/api/models/nvidia/Qwen3.8-Flash-Next-NVFP4?blobs=true",
+        "bits_per_weight_all": 5.9,
+        "bits_per_weight_text": 8.44,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 180.0B (matches HF safetensors total), text = 125.744B",
+        "text_resident_gb": 129.044,
+        "read_per_step_gb_b1": 9.951,
+        "nonrouted_read_gb": 8.624,
+        "routed_gb": 67.948,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "attention, GDN, dense and shared experts BF16 7.35; routed experts NVFP4 (+FP8 scales) 67.95; lm_head and embedding BF16 1.27 each; n-gram table FP8 51.20; MTP FP8 2.70",
+        "gb_by_role": {
+          "dense": 6.88,
+          "shared": 0.472,
+          "routed": 67.948,
+          "embed": 1.271,
+          "lm_head": 1.271,
+          "lookup": 51.2,
+          "vision": 0.898,
+          "audio": 0.0,
+          "mtp": 2.698
+        }
+      },
+      "8": {
+        "repo": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "format": "FP8 block 128x128 dynamic",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 185.52,
+        "source_url": "https://huggingface.co/api/models/Qwen/Qwen3.8-Flash-Next-FP8?blobs=true",
+        "bits_per_weight_all": 8.25,
+        "bits_per_weight_text": 11.8,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 180.0B (matches HF safetensors total), text = 125.744B",
+        "text_resident_gb": 181.906,
+        "read_per_step_gb_b1": 10.984,
+        "nonrouted_read_gb": 8.624,
+        "routed_gb": 120.811,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "attention and shared experts BF16; routed FP8 120.81; n-gram table FP8 51.20; lm_head, embedding BF16",
+        "gb_by_role": {
+          "dense": 6.88,
+          "shared": 0.472,
+          "routed": 120.811,
+          "embed": 1.271,
+          "lm_head": 1.271,
+          "lookup": 51.2,
+          "vision": 0.898,
+          "audio": 0.0,
+          "mtp": 2.698
+        }
+      },
+      "16": {
+        "repo": "Qwen/Qwen3.8-Flash-Next",
+        "format": "BF16",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 360.0,
+        "source_url": "https://huggingface.co/api/models/Qwen/Qwen3.8-Flash-Next?blobs=true",
+        "bits_per_weight_all": 16.0,
+        "bits_per_weight_text": 22.9,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 180.0B (matches HF safetensors total), text = 125.744B",
+        "text_resident_gb": 353.888,
+        "read_per_step_gb_b1": 13.343,
+        "nonrouted_read_gb": 8.624,
+        "routed_gb": 241.592,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "all BF16",
+        "gb_by_role": {
+          "dense": 6.88,
+          "shared": 0.472,
+          "routed": 241.592,
+          "embed": 1.271,
+          "lm_head": 1.271,
+          "lookup": 102.4,
+          "vision": 0.898,
+          "audio": 0.0,
+          "mtp": 5.214
+        }
+      }
+    },
+    "other_checkpoints": [
+      {
+        "repo": "RadixArk/Qwen3.8-Flash-Next-NVFP4",
+        "size_gb": 135.2,
+        "bits_per_weight_all": 6.01,
+        "bits_per_weight_text": 8.6
+      },
+      {
+        "repo": "Inferact/Qwen3.8-Flash-Next-NVFP4",
+        "size_gb": 182.78,
+        "bits_per_weight_all": 8.12,
+        "bits_per_weight_text": 11.63
+      },
+      {
+        "repo": "RedHatAI/Qwen3.8-Flash-Next-NVFP4",
+        "size_gb": 186.4,
+        "bits_per_weight_all": 8.28,
+        "bits_per_weight_text": 11.86
+      },
+      {
+        "repo": "amd/Qwen3.8-Flash-Next-Quark-MXFP4-PLEFP8",
+        "size_gb": 131.05,
+        "bits_per_weight_all": 5.82,
+        "bits_per_weight_text": 8.34
+      }
+    ],
+    "engines": [
+      {
+        "engine": "vLLM",
+        "min_version": "0.30.0 (nightly required)",
+        "recipe_url": "https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next.json"
+      },
+      {
+        "engine": "SGLang",
+        "min_version": ">= v0.5.22",
+        "recipe_url": "https://docs.sglang.io/cookbook/autoregressive/Qwen/Qwen3.8-Flash-Next.md"
+      }
+    ],
+    "gpu_fit": {
+      "A100 80GB SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 NVL": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H200 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B200 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B300 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB200 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB300 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "RTX PRO 6000 Blackwell Server Edition": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L40S": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L4": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI300X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI325X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI355X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Gaudi 3 (HL-325L OAM)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU v6e (Trillium)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU7x (Ironwood)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Trainium2": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "Qwen/Qwen3.8-Flash-Next-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 132.68,
+            "checkpoint": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 185.52,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 360.0,
+            "checkpoint": "Qwen/Qwen3.8-Flash-Next"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      }
+    },
+    "source_urls": [
+      "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/main/config.json",
+      "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/resolve/main/README.md",
+      "https://huggingface.co/api/models/Qwen/Qwen3.8-Flash-Next?blobs=true",
+      "https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "kimi-k3.1-pro",
+    "name": "Kimi K3.1 Pro",
+    "hf_repo": "moonshotai/Kimi-K3.1-Pro",
+    "release_date": "2026-11-02",
+    "release_date_kind": "hf_repo_created",
+    "license": "other: kimi-k3.1-pro",
+    "context_max": 1048576,
+    "total_params_b": 2779.663,
+    "active_params_b": 105.543,
+    "active_matmul_params_b": 104.368,
+    "all_params_b_incl_vision_mtp_lookup": 2780.11,
+    "params_source": "derived from safetensors headers; vendor says 2.8T total / 104B active",
+    "params_b_by_part": {
+      "dense": 42.418,
+      "shared": 12.155,
+      "routed": 2722.741,
+      "embed": 1.174,
+      "lm_head": 1.174,
+      "lookup": 0.0,
+      "vision": 0.447,
+      "audio": 0.0,
+      "mtp": 0.0
+    },
+    "moe": {
+      "E_routed": 896,
+      "k_per_token": 16,
+      "shared_experts": 2,
+      "dense": false
+    },
+    "arch": {
+      "num_layers": 93,
+      "hidden_size": 7168,
+      "num_attention_heads": 96,
+      "num_kv_heads": null,
+      "head_dim": null,
+      "attention_type": "hybrid_linear (KDA x69 + Gated DSA/MLA x24)",
+      "full_attention_layers": 24,
+      "sliding_window": null,
+      "mtp_layers": 0,
+      "linear_attention_state_bytes_per_seq": {
+        "fp32_state": 449372160,
+        "bf16_state": 232316928
+      }
+    },
+    "kv_bytes_per_token": {
+      "fp8": 16896,
+      "bf16": 33792,
+      "kind": "derived",
+      "formula": "24 DSA layers x (512 + 64 latent + 128 indexer); fixed 69 KDA x (96 x 128 x 128 x 4 B + conv)"
+    },
+    "fixed_bytes_per_seq": {
+      "fp8_kv_fp32_state": 449372160,
+      "bf16_kv": 449372160
+    },
+    "kv_bytes_32k_request_fp8": 1003020288,
+    "dp_attention_recommended": false,
+    "dp_attention_note": "recipe default is TP (GB300 multi_node_tp). MLA KV is replicated on every TP rank; SGLang: 'DCP is the only axis that shards it'. Set dpa = true in M1 only if decode context parallel is on (vLLM recipe: DCP8 holds about 7x the KV tokens of TP8)",
+    "m1_inputs": {
+      "P": 2779663000000.0,
+      "A": 105543000000.0,
+      "E": 896,
+      "k": 16,
+      "L": 93,
+      "kv_fp8": 16896,
+      "S": 449372160,
+      "h_kv": "mla",
+      "dpa": false
+    },
+    "checkpoints_by_bits": {
+      "4": {
+        "repo": "moonshotai/Kimi-K3.1-Pro",
+        "format": "MXFP4 QAT routed experts (compressed-tensors mxfp4-pack-quantized)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 1561.29,
+        "source_url": "https://huggingface.co/api/models/moonshotai/Kimi-K3.1-Pro?blobs=true",
+        "bits_per_weight_all": 4.49,
+        "bits_per_weight_text": 4.49,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 2780.11B (matches HF safetensors total), text = 2779.663B",
+        "text_resident_gb": 1560.323,
+        "read_per_step_gb_b1": 137.347,
+        "nonrouted_read_gb": 111.518,
+        "routed_gb": 1446.456,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "routed experts MXFP4 1,446.46 GB; attention, KDA, dense layer, shared experts, router, lm_head, embedding, vision all BF16 (about 115 GB)",
+        "gb_by_role": {
+          "dense": 84.859,
+          "shared": 24.31,
+          "routed": 1446.456,
+          "embed": 2.349,
+          "lm_head": 2.349,
+          "lookup": 0.0,
+          "vision": 0.895,
+          "audio": 0.0,
+          "mtp": 0.0
+        }
+      },
+      "8": {
+        "repo": null,
+        "format": "no published 8-bit checkpoint",
+        "kind": "derived fallback",
+        "size_gb": 2814.9,
+        "bits_per_weight_all": 8.1,
+        "bpw_formula": "all params 2780.11B x 8.1 bits / 8 (8.1 = median MoE FP8 build: DeepSeek PTPC 8.06, Muse PTPC 8.10, Super VL 8.28)",
+        "text_resident_gb": 2814.4,
+        "read_per_step_gb_b1": 160.75,
+        "nonrouted_read_gb": 111.52,
+        "routed_gb": 2756.78,
+        "read_formula": "max((dense + shared + lm_head params) x bytes, nonrouted_read_gb of the nearest published build) + routed params x bytes x k/E",
+        "higher_precision_tensors": null
+      },
+      "16": {
+        "repo": null,
+        "format": "no published 16-bit checkpoint",
+        "kind": "derived fallback",
+        "size_gb": 5560.2,
+        "bits_per_weight_all": 16.0,
+        "bpw_formula": "all params 2780.11B x 16.0 bits / 8 (8.1 = median MoE FP8 build: DeepSeek PTPC 8.06, Muse PTPC 8.10, Super VL 8.28)",
+        "text_resident_gb": 5559.3,
+        "read_per_step_gb_b1": 208.76,
+        "nonrouted_read_gb": 111.52,
+        "routed_gb": 5445.48,
+        "read_formula": "max((dense + shared + lm_head params) x bytes, nonrouted_read_gb of the nearest published build) + routed params x bytes x k/E",
+        "higher_precision_tensors": null
+      }
+    },
+    "other_checkpoints": [],
+    "engines": [
+      {
+        "engine": "vLLM",
+        "min_version": "0.34.0 (nightly)",
+        "recipe_url": "https://recipes.vllm.ai/moonshotai/Kimi-K3.1-Pro.json"
+      },
+      {
+        "engine": "SGLang",
+        "min_version": "dev image lmsysorg/sglang:dev-kimi-k31-pro",
+        "recipe_url": "https://docs.sglang.io/cookbook/autoregressive/Moonshotai/Kimi-K3.1-Pro.md"
+      }
+    ],
+    "gpu_fit": {
+      "A100 80GB SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 64,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 128,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 64,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 128,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 NVL": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 64,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 128,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H200 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B200 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B300 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB200 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB300 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "RTX PRO 6000 Blackwell Server Edition": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 64,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 128,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L40S": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 64,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 64,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 128,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 256,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L4": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 128,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 128,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 256,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 512,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI300X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI325X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI355X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Gaudi 3 (HL-325L OAM)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU v6e (Trillium)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 64,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 64,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 128,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 256,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU7x (Ironwood)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Trainium2": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "moonshotai/Kimi-K3.1-Pro",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": true,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 1561.29,
+            "checkpoint": "moonshotai/Kimi-K3.1-Pro"
+          },
+          "8": {
+            "g_min": 64,
+            "weights_gb": 2814.9,
+            "checkpoint": "derived fallback"
+          },
+          "16": {
+            "g_min": 128,
+            "weights_gb": 5560.2,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      }
+    },
+    "source_urls": [
+      "https://huggingface.co/moonshotai/Kimi-K3.1-Pro/resolve/main/config.json",
+      "https://huggingface.co/moonshotai/Kimi-K3.1-Pro/resolve/main/README.md",
+      "https://huggingface.co/api/models/moonshotai/Kimi-K3.1-Pro?blobs=true",
+      "https://recipes.vllm.ai/moonshotai/Kimi-K3.1-Pro.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "deepseek-v4.1-flash",
+    "name": "DeepSeek V4.1 Flash",
+    "hf_repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "release_date": "2026-10-17",
+    "release_date_kind": "hf_repo_created",
+    "license": "mit",
+    "context_max": 1048576,
+    "total_params_b": 551.881,
+    "active_params_b": 16.793,
+    "active_matmul_params_b": 16.131,
+    "all_params_b_incl_vision_mtp_lookup": 763.205,
+    "params_source": "derived from safetensors headers; vendor says 552B backbone, 16B active in decode",
+    "params_b_by_part": {
+      "dense": 5.56,
+      "shared": 1.416,
+      "routed": 543.582,
+      "embed": 0.662,
+      "lm_head": 0.662,
+      "lookup": 196.614,
+      "vision": 0.485,
+      "audio": 0.0,
+      "mtp": 14.225
+    },
+    "moe": {
+      "E_routed": 384,
+      "k_per_token": 6,
+      "shared_experts": 1,
+      "dense": false
+    },
+    "arch": {
+      "num_layers": 40,
+      "hidden_size": 5120,
+      "num_attention_heads": 64,
+      "num_kv_heads": 1,
+      "head_dim": 512,
+      "attention_type": "compressed_sparse (CSA2: KV only in 4 source layers) + 128-token sliding window",
+      "full_attention_layers": 4,
+      "sliding_window": 128,
+      "mtp_layers": 3,
+      "linear_attention_state_bytes_per_seq": {
+        "fp32_state": null,
+        "bf16_state": null
+      }
+    },
+    "kv_bytes_per_token": {
+      "fp8": 1600,
+      "bf16": 3200,
+      "kind": "derived",
+      "formula": "re-checked against inference/model.py (owns_k = kv_source_layers): 3 x 512/2 + 512/1 KV + 3 x 128/2 + 128 indexer; fixed 40 layers x 128-token window x 512"
+    },
+    "fixed_bytes_per_seq": {
+      "fp8_kv_fp32_state": 2621440,
+      "bf16_kv": 5242880
+    },
+    "kv_bytes_32k_request_fp8": 55050240,
+    "dp_attention_recommended": false,
+    "dp_attention_note": "recipe default GB200 single_node_tp; dep / tep / pd_cluster offered. KV is 1 latent head replicated by TP but only 1,600 B/token",
+    "m1_inputs": {
+      "P": 551881000000.0,
+      "A": 16793000000.0,
+      "E": 384,
+      "k": 6,
+      "L": 40,
+      "kv_fp8": 1600,
+      "S": 2621440,
+      "h_kv": "mla",
+      "dpa": false
+    },
+    "checkpoints_by_bits": {
+      "4": {
+        "repo": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 428.99,
+        "source_url": "https://huggingface.co/api/models/nvidia/DeepSeek-V4.1-Flash-1017-NVFP4?blobs=true",
+        "bits_per_weight_all": 4.5,
+        "bits_per_weight_text": 6.22,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 763.205B (matches HF safetensors total), text = 551.881B",
+        "text_resident_gb": 420.063,
+        "read_per_step_gb_b1": 13.301,
+        "nonrouted_read_gb": 8.523,
+        "routed_gb": 305.765,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "attention and shared experts FP8; routed NVFP4 305.77; Engram table 4-bit 104.45; lm_head, embedding BF16 1.32 each; MTP experts MXFP4",
+        "gb_by_role": {
+          "dense": 5.782,
+          "shared": 1.417,
+          "routed": 305.765,
+          "embed": 1.324,
+          "lm_head": 1.324,
+          "lookup": 104.451,
+          "vision": 0.971,
+          "audio": 0.0,
+          "mtp": 7.933
+        }
+      },
+      "8": {
+        "repo": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "format": "FP8 per-tensor/channel (AMD Quark)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 769.01,
+        "source_url": "https://huggingface.co/api/models/amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8?blobs=true",
+        "bits_per_weight_all": 8.06,
+        "bits_per_weight_text": 11.15,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 763.205B (matches HF safetensors total), text = 551.881B",
+        "text_resident_gb": 753.715,
+        "read_per_step_gb_b1": 17.029,
+        "nonrouted_read_gb": 8.526,
+        "routed_gb": 544.179,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "routed FP8 543.58; Engram FP8 196.61; lm_head, embedding BF16",
+        "gb_by_role": {
+          "dense": 5.785,
+          "shared": 1.417,
+          "routed": 544.179,
+          "embed": 1.324,
+          "lm_head": 1.324,
+          "lookup": 199.686,
+          "vision": 0.971,
+          "audio": 0.0,
+          "mtp": 14.318
+        }
+      },
+      "16": {
+        "repo": null,
+        "format": "no published 16-bit checkpoint",
+        "kind": "derived fallback",
+        "size_gb": 1526.4,
+        "bits_per_weight_all": 16.0,
+        "bpw_formula": "all params 763.205B x 16.0 bits / 8 (8.1 = median MoE FP8 build: DeepSeek PTPC 8.06, Muse PTPC 8.10, Super VL 8.28)",
+        "text_resident_gb": 1497.0,
+        "read_per_step_gb_b1": 32.27,
+        "nonrouted_read_gb": 15.28,
+        "routed_gb": 1087.16,
+        "read_formula": "max((dense + shared + lm_head params) x bytes, nonrouted_read_gb of the nearest published build) + routed params x bytes x k/E",
+        "higher_precision_tensors": null
+      }
+    },
+    "other_checkpoints": [
+      {
+        "repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        "size_gb": 510.3,
+        "bits_per_weight_all": 5.35,
+        "bits_per_weight_text": 7.4
+      }
+    ],
+    "engines": [
+      {
+        "engine": "vLLM",
+        "min_version": "0.31.0",
+        "recipe_url": "https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash.json"
+      },
+      {
+        "engine": "SGLang",
+        "min_version": "dev image dev-dsv41",
+        "recipe_url": "https://docs.sglang.io/cookbook/autoregressive/DeepSeek/DeepSeek-V4_1.md"
+      }
+    ],
+    "gpu_fit": {
+      "A100 80GB SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 NVL": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H200 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B200 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B300 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB200 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB300 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "RTX PRO 6000 Blackwell Server Edition": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L40S": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L4": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 64,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 64,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 128,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI300X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI325X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI355X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Gaudi 3 (HL-325L OAM)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU v6e (Trillium)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU7x (Ironwood)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Trainium2": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 428.99,
+            "checkpoint": "nvidia/DeepSeek-V4.1-Flash-1017-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 769.01,
+            "checkpoint": "amd/DeepSeek-V4.1-Flash-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1526.4,
+            "checkpoint": "derived fallback"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      }
+    },
+    "source_urls": [
+      "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/resolve/main/config.json",
+      "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/resolve/main/README.md",
+      "https://huggingface.co/api/models/deepseek-ai/DeepSeek-V4.1-Flash-1017?blobs=true",
+      "https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4.1-Flash.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "muse-spark-open",
+    "name": "Muse Spark Open",
+    "hf_repo": "meta-models/Muse-Spark-Open-816B-A42B",
+    "release_date": "2026-09-15",
+    "release_date_kind": "hf_repo_created (card says 2026-10-15)",
+    "license": "other: muse-model-license (gated, manual)",
+    "context_max": 1048576,
+    "total_params_b": 819.991,
+    "active_params_b": 46.091,
+    "active_matmul_params_b": 44.436,
+    "all_params_b_incl_vision_mtp_lookup": 822.037,
+    "params_source": "derived from safetensors headers; vendor says 816B total / 42B active",
+    "params_b_by_part": {
+      "dense": 17.816,
+      "shared": 0.0,
+      "routed": 798.864,
+      "embed": 1.655,
+      "lm_head": 1.655,
+      "lookup": 0.0,
+      "vision": 1.928,
+      "audio": 0.118,
+      "mtp": 0.0
+    },
+    "moe": {
+      "E_routed": 256,
+      "k_per_token": 8,
+      "shared_experts": 0,
+      "dense": false
+    },
+    "arch": {
+      "num_layers": 62,
+      "hidden_size": 8192,
+      "num_attention_heads": 128,
+      "num_kv_heads": 16,
+      "head_dim": 64,
+      "attention_type": "sliding_window_mix (16 full NoPE + 46 sliding 2,048)",
+      "full_attention_layers": 16,
+      "sliding_window": 2048,
+      "mtp_layers": 0,
+      "linear_attention_state_bytes_per_seq": {
+        "fp32_state": null,
+        "bf16_state": null
+      }
+    },
+    "kv_bytes_per_token": {
+      "fp8": 32768,
+      "bf16": 65536,
+      "kind": "derived",
+      "formula": "16 full layers x 2 x 16 KV heads x 64; fixed 46 sliding layers x 2,048 x 2,048 elements (window 2,048)"
+    },
+    "fixed_bytes_per_seq": {
+      "fp8_kv_fp32_state": 192937984,
+      "bf16_kv": 385875968
+    },
+    "kv_bytes_32k_request_fp8": 1266679808,
+    "dp_attention_recommended": false,
+    "dp_attention_note": "recipe default B200 single_node_tep; dep offered, not on AMD. 16 KV heads: no replication up to TP16",
+    "m1_inputs": {
+      "P": 819991000000.0,
+      "A": 46091000000.0,
+      "E": 256,
+      "k": 8,
+      "L": 62,
+      "kv_fp8": 32768,
+      "S": 192937984,
+      "h_kv": 16,
+      "dpa": false
+    },
+    "checkpoints_by_bits": {
+      "4": {
+        "repo": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        "format": "NVFP4 (ModelOpt)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 533.01,
+        "source_url": "https://huggingface.co/api/models/meta-models/Muse-Spark-Open-816B-A42B-NVFP4?blobs=true",
+        "bits_per_weight_all": 5.19,
+        "bits_per_weight_text": 5.2,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 822.037B (matches HF safetensors total), text = 819.991B",
+        "text_resident_gb": 528.919,
+        "read_per_step_gb_b1": 54.403,
+        "nonrouted_read_gb": 39.203,
+        "routed_gb": 486.405,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "attention and pre/post-expert projections BF16 35.37; routed NVFP4 (U8 386.5 + FP8 scales 48.3) except 2 layers of experts left BF16 (51.5); lm_head, embedding BF16 3.31 each; router FP32",
+        "gb_by_role": {
+          "dense": 35.893,
+          "shared": 0.0,
+          "routed": 486.405,
+          "embed": 3.31,
+          "lm_head": 3.31,
+          "lookup": 0.0,
+          "vision": 3.856,
+          "audio": 0.236,
+          "mtp": 0.0
+        }
+      },
+      "8": {
+        "repo": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "format": "FP8 PTPC (AMD Quark)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 832.75,
+        "source_url": "https://huggingface.co/api/models/amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8?blobs=true",
+        "bits_per_weight_all": 8.1,
+        "bits_per_weight_text": 8.12,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 822.037B (matches HF safetensors total), text = 819.991B",
+        "text_resident_gb": 828.642,
+        "read_per_step_gb_b1": 50.676,
+        "nonrouted_read_gb": 25.687,
+        "routed_gb": 799.644,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "attention partly BF16 (8.3); routed FP8 798.86; lm_head, embedding BF16",
+        "gb_by_role": {
+          "dense": 22.377,
+          "shared": 0.0,
+          "routed": 799.644,
+          "embed": 3.31,
+          "lm_head": 3.31,
+          "lookup": 0.0,
+          "vision": 3.856,
+          "audio": 0.236,
+          "mtp": 0.0
+        }
+      },
+      "16": {
+        "repo": "meta-models/Muse-Spark-Open-816B-A42B",
+        "format": "BF16",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 1644.33,
+        "source_url": "https://huggingface.co/api/models/meta-models/Muse-Spark-Open-816B-A42B?blobs=true",
+        "bits_per_weight_all": 16.0,
+        "bits_per_weight_text": 16.04,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 822.037B (matches HF safetensors total), text = 819.991B",
+        "text_resident_gb": 1640.241,
+        "read_per_step_gb_b1": 89.132,
+        "nonrouted_read_gb": 39.203,
+        "routed_gb": 1597.728,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "all BF16 (router FP32)",
+        "gb_by_role": {
+          "dense": 35.893,
+          "shared": 0.0,
+          "routed": 1597.728,
+          "embed": 3.31,
+          "lm_head": 3.31,
+          "lookup": 0.0,
+          "vision": 3.856,
+          "audio": 0.236,
+          "mtp": 0.0
+        }
+      }
+    },
+    "other_checkpoints": [],
+    "engines": [
+      {
+        "engine": "vLLM",
+        "min_version": "0.33.0 (nightly)",
+        "recipe_url": "https://recipes.vllm.ai/meta-models/Muse-Spark-Open-816B-A42B.json"
+      },
+      {
+        "engine": "SGLang",
+        "min_version": "latest",
+        "recipe_url": "https://docs.sglang.io/cookbook/autoregressive/Meta/MuseSparkOpen.md"
+      }
+    ],
+    "gpu_fit": {
+      "A100 80GB SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 NVL": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H200 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B200 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B300 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB200 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB300 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "RTX PRO 6000 Blackwell Server Edition": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L40S": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 16,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L4": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 64,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 64,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 128,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI300X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI325X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI355X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Gaudi 3 (HL-325L OAM)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU v6e (Trillium)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 32,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 32,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 32,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 64,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU7x (Ironwood)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Trainium2": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8",
+        "g_min_author_rule": 16,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 8,
+            "weights_gb": 533.01,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B-NVFP4"
+          },
+          "8": {
+            "g_min": 16,
+            "weights_gb": 832.75,
+            "checkpoint": "amd/Muse-Spark-Open-816B-A42B-Quark-PTPC-FP8"
+          },
+          "16": {
+            "g_min": 32,
+            "weights_gb": 1644.33,
+            "checkpoint": "meta-models/Muse-Spark-Open-816B-A42B"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      }
+    },
+    "source_urls": [
+      "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/resolve/main/config.json",
+      "https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B/resolve/main/README.md",
+      "https://huggingface.co/api/models/meta-models/Muse-Spark-Open-816B-A42B?blobs=true",
+      "https://recipes.vllm.ai/meta-models/Muse-Spark-Open-816B-A42B.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "nemotron-3.5-super-vl",
+    "name": "Nemotron 3.5 Super VL",
+    "hf_repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16",
+    "release_date": "2026-10-12",
+    "release_date_kind": "hf_repo_created (card says 2026-10-15)",
+    "license": "other: openmdw-1.1",
+    "context_max": 1048576,
+    "total_params_b": 120.669,
+    "active_params_b": 12.77,
+    "active_matmul_params_b": 12.233,
+    "all_params_b_incl_vision_mtp_lookup": 124.453,
+    "params_source": "derived from safetensors headers; vendor says 120B total / 12B active",
+    "params_b_by_part": {
+      "dense": 5.09,
+      "shared": 1.762,
+      "routed": 112.743,
+      "embed": 0.537,
+      "lm_head": 0.537,
+      "lookup": 0.0,
+      "vision": 0.842,
+      "audio": 0.0,
+      "mtp": 2.942
+    },
+    "moe": {
+      "E_routed": 512,
+      "k_per_token": 22,
+      "shared_experts": 1,
+      "dense": false
+    },
+    "arch": {
+      "num_layers": 88,
+      "hidden_size": 4096,
+      "num_attention_heads": 32,
+      "num_kv_heads": 2,
+      "head_dim": 128,
+      "attention_type": "hybrid (Mamba-2 x40 + LatentMoE x40 + attention x8)",
+      "full_attention_layers": 8,
+      "sliding_window": null,
+      "mtp_layers": 1,
+      "linear_attention_state_bytes_per_seq": {
+        "fp32_state": 170229760,
+        "bf16_state": 86343680
+      }
+    },
+    "kv_bytes_per_token": {
+      "fp8": 4096,
+      "bf16": 8192,
+      "kind": "derived",
+      "formula": "8 attention layers x 2 x 2 KV heads x 128; fixed 40 Mamba-2 x (128 x 64 x 128 x 4 B + 3 x 10,240 x 2 B)"
+    },
+    "fixed_bytes_per_seq": {
+      "fp8_kv_fp32_state": 170229760,
+      "bf16_kv": 170229760
+    },
+    "kv_bytes_32k_request_fp8": 304447488,
+    "dp_attention_recommended": false,
+    "dp_attention_note": "recipe default is tensor parallel (vLLM recipes.vllm.ai recommended_command)",
+    "m1_inputs": {
+      "P": 120669000000.0,
+      "A": 12770000000.0,
+      "E": 512,
+      "k": 22,
+      "L": 88,
+      "kv_fp8": 4096,
+      "S": 170229760,
+      "h_kv": 2,
+      "dpa": false
+    },
+    "checkpoints_by_bits": {
+      "4": {
+        "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+        "format": "NVFP4 (ModelOpt MIXED_PRECISION, FP8 KV)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 75.01,
+        "source_url": "https://huggingface.co/api/models/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4?blobs=true",
+        "bits_per_weight_all": 4.82,
+        "bits_per_weight_text": 4.97,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 124.453B (matches HF safetensors total), text = 120.669B",
+        "text_resident_gb": 71.532,
+        "read_per_step_gb_b1": 9.765,
+        "nonrouted_read_gb": 7.04,
+        "routed_gb": 63.418,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "Mamba projections FP8 4.67 + BF16 0.84; routed NVFP4 63.42; shared NVFP4; lm_head FP8 0.54; embedding BF16 1.07; MTP NVFP4+FP8 1.77; vision BF16 1.69",
+        "gb_by_role": {
+          "dense": 5.513,
+          "shared": 0.991,
+          "routed": 63.418,
+          "embed": 1.074,
+          "lm_head": 0.537,
+          "lookup": 0.0,
+          "vision": 1.685,
+          "audio": 0.0,
+          "mtp": 1.77
+        }
+      },
+      "8": {
+        "repo": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "format": "FP8 dynamic (compressed-tensors)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 128.77,
+        "source_url": "https://huggingface.co/api/models/RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8?blobs=true",
+        "bits_per_weight_all": 8.28,
+        "bits_per_weight_text": 8.54,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 124.453B (matches HF safetensors total), text = 120.669B",
+        "text_resident_gb": 124.08,
+        "read_per_step_gb_b1": 14.963,
+        "nonrouted_read_gb": 10.112,
+        "routed_gb": 112.895,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "shared experts BF16 3.52; routed FP8 112.74; lm_head, embedding BF16",
+        "gb_by_role": {
+          "dense": 5.515,
+          "shared": 3.523,
+          "routed": 112.895,
+          "embed": 1.074,
+          "lm_head": 1.074,
+          "lookup": 0.0,
+          "vision": 1.685,
+          "audio": 0.0,
+          "mtp": 2.99
+        }
+      },
+      "16": {
+        "repo": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16",
+        "format": "BF16",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 248.91,
+        "source_url": "https://huggingface.co/api/models/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16?blobs=true",
+        "bits_per_weight_all": 16.0,
+        "bits_per_weight_text": 16.5,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 124.453B (matches HF safetensors total), text = 120.669B",
+        "text_resident_gb": 241.337,
+        "read_per_step_gb_b1": 24.467,
+        "nonrouted_read_gb": 14.778,
+        "routed_gb": 225.486,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "all BF16",
+        "gb_by_role": {
+          "dense": 10.181,
+          "shared": 3.523,
+          "routed": 225.486,
+          "embed": 1.074,
+          "lm_head": 1.074,
+          "lookup": 0.0,
+          "vision": 1.685,
+          "audio": 0.0,
+          "mtp": 5.885
+        }
+      }
+    },
+    "other_checkpoints": [],
+    "engines": [
+      {
+        "engine": "vLLM",
+        "min_version": "0.31.0",
+        "recipe_url": "https://recipes.vllm.ai/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4.json"
+      },
+      {
+        "engine": "SGLang",
+        "min_version": "image lmsysorg/sglang:nemotron3-5-super",
+        "recipe_url": "https://docs.sglang.io/cookbook/autoregressive/NVIDIA/Nemotron3.5-Super.md"
+      }
+    ],
+    "gpu_fit": {
+      "A100 80GB SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 NVL": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H200 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B200 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B300 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB200 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB300 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "RTX PRO 6000 Blackwell Server Edition": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L40S": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 4,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 4,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 8,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L4": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI300X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI325X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI355X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Gaudi 3 (HL-325L OAM)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU v6e (Trillium)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 8,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 4,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 8,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 16,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU7x (Ironwood)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Trainium2": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 75.01,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 128.77,
+            "checkpoint": "RedHatAI/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-FP8"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 248.91,
+            "checkpoint": "nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      }
+    },
+    "source_urls": [
+      "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16/resolve/main/config.json",
+      "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16/resolve/main/README.md",
+      "https://huggingface.co/api/models/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16?blobs=true",
+      "https://recipes.vllm.ai/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4.json"
+    ],
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "gemma-4-31b",
+    "name": "Gemma 4 31B",
+    "hf_repo": "google/gemma-4-31B-it",
+    "release_date": "2026-03-11",
+    "release_date_kind": "hf_repo_created",
+    "license": "apache-2.0",
+    "context_max": 262144,
+    "total_params_b": 30.697,
+    "active_params_b": 30.697,
+    "active_matmul_params_b": 30.697,
+    "all_params_b_incl_vision_mtp_lookup": 31.273,
+    "params_source": "derived from safetensors headers; vendor says 31B dense",
+    "params_b_by_part": {
+      "dense": 29.288,
+      "shared": 0.0,
+      "routed": 0.0,
+      "embed": 1.409,
+      "lm_head": 0.0,
+      "lookup": 0.0,
+      "vision": 0.576,
+      "audio": 0.0,
+      "mtp": 0.0
+    },
+    "moe": {
+      "E_routed": 1,
+      "k_per_token": 1,
+      "shared_experts": 0,
+      "dense": true
+    },
+    "arch": {
+      "num_layers": 60,
+      "hidden_size": 5376,
+      "num_attention_heads": 32,
+      "num_kv_heads": 4,
+      "head_dim": 512,
+      "attention_type": "sliding_window_mix (50 sliding 1,024 + 10 global), dense",
+      "full_attention_layers": 10,
+      "sliding_window": 1024,
+      "mtp_layers": 0,
+      "linear_attention_state_bytes_per_seq": {
+        "fp32_state": null,
+        "bf16_state": null
+      }
+    },
+    "kv_bytes_per_token": {
+      "fp8": 40960,
+      "bf16": 81920,
+      "kind": "derived",
+      "formula": "10 global layers x 2 x 4 KV heads x 512 (vLLM stores V separately even with attention_k_eq_v); fixed 50 sliding layers x 8,192 elements x 1,024 window"
+    },
+    "fixed_bytes_per_seq": {
+      "fp8_kv_fp32_state": 419430400,
+      "bf16_kv": 838860800
+    },
+    "kv_bytes_32k_request_fp8": 1761607680,
+    "dp_attention_recommended": false,
+    "dp_attention_note": "recipe default is tensor parallel (vLLM recipes.vllm.ai recommended_command)",
+    "m1_inputs": {
+      "P": 30697000000.0,
+      "A": 30697000000.0,
+      "E": 1,
+      "k": 1,
+      "L": 60,
+      "kv_fp8": 40960,
+      "S": 419430400,
+      "h_kv": 4,
+      "dpa": false
+    },
+    "checkpoints_by_bits": {
+      "4": {
+        "repo": "RedHatAI/gemma-4-31B-it-NVFP4",
+        "format": "NVFP4 (compressed-tensors)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 23.27,
+        "source_url": "https://huggingface.co/api/models/RedHatAI/gemma-4-31B-it-NVFP4?blobs=true",
+        "bits_per_weight_all": 5.95,
+        "bits_per_weight_text": 6.06,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 31.273B (matches HF safetensors total), text = 30.697B",
+        "text_resident_gb": 22.114,
+        "read_per_step_gb_b1": 19.295,
+        "nonrouted_read_gb": 19.295,
+        "routed_gb": 0.0,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "attention + MLP NVFP4; lm_head BF16 2.82 (untied copy), embedding BF16 2.82; vision BF16 1.15",
+        "gb_by_role": {
+          "dense": 16.476,
+          "shared": 0.0,
+          "routed": 0.0,
+          "embed": 2.819,
+          "lm_head": 2.819,
+          "lookup": 0.0,
+          "vision": 1.151,
+          "audio": 0.0,
+          "mtp": 0.0
+        }
+      },
+      "8": {
+        "repo": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "format": "FP8 dynamic (compressed-tensors)",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 33.27,
+        "source_url": "https://huggingface.co/api/models/RedHatAI/gemma-4-31B-it-FP8-dynamic?blobs=true",
+        "bits_per_weight_all": 8.51,
+        "bits_per_weight_text": 8.67,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 31.273B (matches HF safetensors total), text = 30.697B",
+        "text_resident_gb": 32.116,
+        "read_per_step_gb_b1": 32.116,
+        "nonrouted_read_gb": 32.116,
+        "routed_gb": 0.0,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "embedding BF16 2.82 (tied lm_head); vision BF16 1.15",
+        "gb_by_role": {
+          "dense": 29.298,
+          "shared": 0.0,
+          "routed": 0.0,
+          "embed": 2.819,
+          "lm_head": 0.0,
+          "lookup": 0.0,
+          "vision": 1.151,
+          "audio": 0.0,
+          "mtp": 0.0
+        }
+      },
+      "16": {
+        "repo": "google/gemma-4-31B-it",
+        "format": "BF16",
+        "kind": "derived (sum of root .safetensors, bytes / 1e9)",
+        "size_gb": 62.55,
+        "source_url": "https://huggingface.co/api/models/google/gemma-4-31B-it?blobs=true",
+        "bits_per_weight_all": 16.0,
+        "bits_per_weight_text": 16.3,
+        "bpw_formula": "size_gb x 1e9 x 8 / params; all = 31.273B (matches HF safetensors total), text = 30.697B",
+        "text_resident_gb": 61.395,
+        "read_per_step_gb_b1": 61.395,
+        "nonrouted_read_gb": 61.395,
+        "routed_gb": 0.0,
+        "read_formula": "nonrouted_read_gb + routed_gb x (1 - (1 - k/E)^B); embedding, lookup tables, vision, audio, MTP excluded",
+        "higher_precision_tensors": "all BF16",
+        "gb_by_role": {
+          "dense": 58.576,
+          "shared": 0.0,
+          "routed": 0.0,
+          "embed": 2.819,
+          "lm_head": 0.0,
+          "lookup": 0.0,
+          "vision": 1.151,
+          "audio": 0.0,
+          "mtp": 0.0
+        }
+      }
+    },
+    "other_checkpoints": [
+      {
+        "repo": "RedHatAI/gemma-4-31B-it-FP8-block",
+        "size_gb": 33.26,
+        "bits_per_weight_all": 8.51,
+        "bits_per_weight_text": 8.67
+      },
+      {
+        "repo": "nvidia/Gemma-4-31B-IT-NVFP4",
+        "size_gb": 32.63,
+        "bits_per_weight_all": 8.35,
+        "bits_per_weight_text": 8.5
+      },
+      {
+        "repo": "unsloth/gemma-4-31B-it-NVFP4",
+        "size_gb": 24.77,
+        "bits_per_weight_all": 6.34,
+        "bits_per_weight_text": 6.45
+      }
+    ],
+    "engines": [
+      {
+        "engine": "vLLM",
+        "min_version": "0.19.1",
+        "recipe_url": "https://recipes.vllm.ai/Google/gemma-4-31B-it.json"
+      },
+      {
+        "engine": "SGLang",
+        "min_version": "latest",
+        "recipe_url": "https://docs.sglang.io/cookbook/autoregressive/Google/Gemma4.md"
+      }
+    ],
+    "gpu_fit": {
+      "A100 80GB SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H100 NVL": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "H200 SXM": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B200 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "B300 (HGX)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB200 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "GB300 (NVL72, per GPU)": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "RTX PRO 6000 Blackwell Server Edition": {
+        "author_rule_bits": 4,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-NVFP4",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L40S": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 2,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "L4": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 2,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI300X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI325X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "MI355X": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Gaudi 3 (HL-325L OAM)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU v6e (Trillium)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 2,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 2,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 4,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "TPU7x (Ironwood)": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      },
+      "Trainium2": {
+        "author_rule_bits": 8,
+        "checkpoint_used": "RedHatAI/gemma-4-31B-it-FP8-dynamic",
+        "g_min_author_rule": 1,
+        "neither_nvfp4_nor_fp8_exists": false,
+        "g_min_by_bits": {
+          "4": {
+            "g_min": 1,
+            "weights_gb": 23.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-NVFP4"
+          },
+          "8": {
+            "g_min": 1,
+            "weights_gb": 33.27,
+            "checkpoint": "RedHatAI/gemma-4-31B-it-FP8-dynamic"
+          },
+          "16": {
+            "g_min": 1,
+            "weights_gb": 62.55,
+            "checkpoint": "google/gemma-4-31B-it"
+          }
+        },
+        "fit_formula": "g x M x 0.9 >= W + r(g) x kv_fp8 x 32768 + S"
+      }
+    },
+    "source_urls": [
+      "https://huggingface.co/google/gemma-4-31B-it/resolve/main/config.json",
+      "https://huggingface.co/google/gemma-4-31B-it/resolve/main/README.md",
+      "https://huggingface.co/api/models/google/gemma-4-31B-it?blobs=true",
+      "https://recipes.vllm.ai/Google/gemma-4-31B-it.json"
+    ],
+    "captured": "2026-11-09"
+  }
+]

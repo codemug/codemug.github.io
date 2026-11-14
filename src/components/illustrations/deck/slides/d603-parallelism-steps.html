@@ -1,0 +1,109 @@
+<section class="slide" id="d603-parallelism-steps" data-steps="2">
+  <p class="kicker reveal">self-hosting cost</p>
+  <p class="statement reveal">The bill steps up each time the machines run out of room.</p>
+  <div class="stage reveal">
+    <svg class="diagram" viewBox="0 0 1120 520" role="img" aria-labelledby="d603-parallelism-steps-t d603-parallelism-steps-d">
+      <title id="d603-parallelism-steps-t">Self-hosting cost is a staircase in requests in parallel, and models that need several GPUs have taller steps</title>
+      <desc id="d603-parallelism-steps-d">Two staircase charts of monthly cost against requests in parallel, from 0 to 24. Left: Qwen3.8-27B on one RTX PRO 6000 per machine, which serves 6 requests at the full 262,144-token window, so the cost steps by $2,453.73 at 6, 12 and 18 requests, reaching $9,814.93 at 24. Right: Qwen3.8 Flash Next at 4 bits, which needs 2 GPUs per replica and serves 10 requests per replica, so the cost steps by $6,045.52 at 10 and 20 requests, reaching $18,136.57 at 24.</desc>
+      <g id="d603-parallelism-steps-g"></g>
+    </svg>
+  </div>
+
+  <style>
+    #d603-parallelism-steps svg.diagram{width:100%;height:100%;max-width:none;}
+    #d603-parallelism-steps text{font-family:var(--font-mono);}
+    #d603-parallelism-steps .grid{stroke:var(--color-hairline);stroke-width:1.5;}
+    #d603-parallelism-steps .axis{stroke:var(--color-border-strong);stroke-width:2.5;}
+    #d603-parallelism-steps .tick{font-size:20px;fill:var(--color-text-soft);}
+    #d603-parallelism-steps .xt{text-anchor:middle;}
+    #d603-parallelism-steps .yt{text-anchor:end;}
+    #d603-parallelism-steps .axt{font-size:20px;fill:var(--color-text-muted);text-anchor:middle;}
+    #d603-parallelism-steps .ptitle{font-size:20px;fill:var(--color-text);text-anchor:middle;}
+    #d603-parallelism-steps .ytitle{font-size:20px;fill:var(--color-text-muted);}
+    #d603-parallelism-steps .stair{fill:none;stroke:var(--color-accent);stroke-width:4;stroke-linejoin:round;}
+    #d603-parallelism-steps .fill{fill:color-mix(in oklab, var(--color-accent) 14%, var(--color-surface-deep));stroke:none;}
+    #d603-parallelism-steps .count{font-size:20px;text-anchor:middle;fill:var(--color-text);}
+    #d603-parallelism-steps .note{font-size:20px;fill:var(--color-accent);paint-order:stroke;stroke:var(--color-bg);stroke-width:8px;stroke-linejoin:round;}
+    #d603-parallelism-steps .cap{font-size:20px;text-anchor:middle;fill:var(--color-text-muted);}
+    #d603-parallelism-steps [data-from]{opacity:0;transition:opacity .5s;}
+    #d603-parallelism-steps [data-from].on{opacity:1;}
+  </style>
+
+  <script>
+    (function () {
+      var ID = 'd603-parallelism-steps';
+      var NS = 'http://www.w3.org/2000/svg';
+      function el(tag, attrs, parent, text) {
+        var e = document.createElementNS(NS, tag);
+        Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+        if (text !== undefined) e.textContent = text;
+        if (parent) parent.appendChild(e);
+        return e;
+      }
+      var g = document.getElementById(ID + '-g');
+
+      // y-bands: 30 y title, 58 panel titles, 90..410 plot (0..$18,200), 440 ticks, 470 axis titles, 500 caption.
+      var BASE = 410, YMAX = 18200, PH = 320;
+      function py(d) { return BASE - d / YMAX * PH; }
+      var PW = 400, XMAX = 24;
+      function dollars(n) { return '$' + n.toLocaleString('en-US'); }
+
+      // shared horizontal grid, drawn once across both panels, with the y labels on the left
+      [0, 6000, 12000, 18000].forEach(function (d) {
+        el('line', { 'class': 'grid', x1: 120, y1: py(d), x2: 1040, y2: py(d) }, g);
+        el('text', { 'class': 'tick yt', x: 110, y: py(d) + 7 }, g, dollars(d));
+      });
+      el('text', { 'class': 'ytitle', x: 10, y: 30 }, g, 'monthly cost');
+
+      // one panel: its own x range 0..24, its title, ticks, axis title and a staircase of equal treads
+      // visibleTreads: how many treads are in the panel's first step state (the rest join in `fullStep`)
+      function panel(x0, title, per, price, ticks, from, extra) {
+        var grp = el('g', { 'data-from': String(from) }, g);
+        function px(r) { return x0 + r / XMAX * PW; }
+        el('line', { 'class': 'axis', x1: x0, y1: BASE, x2: x0 + PW, y2: BASE }, grp);
+        el('text', { 'class': 'ptitle', x: x0 + PW / 2, y: 58 }, grp, title);
+        ticks.forEach(function (t) { el('text', { 'class': 'tick xt', x: px(t), y: 440 }, grp, String(t)); });
+        el('text', { 'class': 'axt', x: x0 + PW / 2, y: 470 }, grp, 'requests in parallel');
+        var treads = [];
+        for (var k = 1; px((k - 1) * per) < x0 + PW - 1; k++) treads.push(k);
+        // each tread k covers requests (k-1)*per .. k*per at k machines (or replicas); the last is cut at 24
+        function tread(k, parent) {
+          var xa = px((k - 1) * per), xb = px(Math.min(k * per, XMAX)), y = py(k * price);
+          var d = 'M ' + xa + ' ' + BASE + ' V ' + y + ' H ' + xb;
+          var fill = 'M ' + xa + ' ' + BASE + ' V ' + y + ' H ' + xb + ' V ' + BASE + ' Z';
+          el('path', { 'class': 'fill', d: fill }, parent);
+          el('path', { 'class': 'stair', d: d }, parent);
+          if (k > 1) el('path', { 'class': 'stair', d: 'M ' + xa + ' ' + py((k - 1) * price) + ' V ' + y }, parent);
+          el('text', { 'class': 'count', x: (xa + xb) / 2, y: y - 10 }, parent, 'x' + k);
+        }
+        return { grp: grp, px: px, treads: treads, tread: tread };
+      }
+
+      // left panel: Qwen3.8-27B, 1 GPU per replica, 6 requests per machine (the vLLM log of part 4), $2,453.73 per machine
+      var A = panel(120, 'Qwen3.8-27B, 1 GPU', 6, 2453.73, [0, 6, 12, 18, 24], 0);
+      A.tread(1, A.grp);
+      var Arest = el('g', { 'data-from': '1' }, g);
+      for (var k = 2; k <= 4; k++) A.tread(k, Arest);
+      el('text', { 'class': 'note', x: 130, y: 150, 'data-from': '1' }, g, 'the 7th request adds a machine');
+
+      // right panel: Qwen3.8 Flash Next at 4 bits, 2 GPUs per replica, 10 requests per replica, $6,045.52 per replica
+      var B = panel(640, 'Qwen3.8 Flash Next, 2 GPUs', 10, 6045.52, [0, 10, 20], 2);
+      B.treads.forEach(function (k) { B.tread(k, B.grp); });
+      el('text', { 'class': 'note', x: 650, y: 150, 'data-from': '2' }, g, 'each step adds 2 GPUs');
+
+      // steps 0 and 1: the right half states the machine's facts; step 2 swaps them for the second staircase
+      var key = el('g', { 'data-from': '0', 'data-until': '2' }, g);
+      el('text', { 'class': 'note', x: 640, y: 200 }, key, 'one machine: 1 GPU, 96 GB');
+      el('text', { 'class': 'note', x: 640, y: 244 }, key, 'serves 6 requests in parallel');
+      el('text', { 'class': 'note', x: 640, y: 288 }, key, 'costs $2,453.73 a month');
+      var c0 = el('g', { 'data-from': '0', 'data-until': '1' }, g);
+      el('text', { 'class': 'cap', x: 560, y: 500 }, c0, 'one machine serves 6 requests at the full 262,144-token window');
+      var c1 = el('g', { 'data-from': '1', 'data-until': '2' }, g);
+      el('text', { 'class': 'cap', x: 560, y: 500 }, c1, 'past 6 requests the next machine starts: $2,453.73 a month each');
+      var c2 = el('g', { 'data-from': '2' }, g);
+      el('text', { 'class': 'cap', x: 560, y: 500 }, c2, 'a model that needs 2 GPUs has taller steps: $6,045.52 a month per replica');
+
+      Deck.slide(ID, { enter: function () {}, step: function (n, prev, c) {} });
+    })();
+  </script>
+</section>

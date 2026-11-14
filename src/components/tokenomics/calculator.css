@@ -1,0 +1,245 @@
+/* Styles for Calculator.astro and the DOM that src/lib/tokenomics/ui/dom/ fills
+   in. Site variables only (no hex colours), so the light and dark themes both
+   work. Every rule starts with #tokenomics-calc to beat the .prose rules of the
+   blog page; the chart and overlay classes are global because they are injected.
+   Spacing, type sizes, weights, radii and motion follow the checklist of unslop
+   (https://github.com/heydamir/unslop, CC BY 4.0): a 4px spacing scale, six type
+   sizes, weights 400 and 500, one radius per kind of element, one easing curve. */
+
+/* ---- Breakout: the calculator is wider than the post's text column ---- */
+#tokenomics-calc {
+  /* --tk-vw is the page width without the scrollbar, set by dom/app.mjs; 100vw
+     is only the fallback before it runs. */
+  --tk-pad: 48px;
+  --tk-w: min(calc(var(--tk-vw, 100vw) - var(--tk-pad)), 1840px);
+  /* Type: meta, secondary, body (15px, set below), card title, headline, figure. */
+  --tk-fs-meta: 12px;
+  --tk-fs-sm: 13px;
+  --tk-fs-title: 16px;
+  --tk-fs-headline: 20px;
+  --tk-fs-figure: 30px;
+  /* Radius: the panel, a card or fieldset, a control, a tag. */
+  --tk-r-panel: 16px;
+  --tk-r-card: 12px;
+  --tk-r-control: 8px;
+  --tk-r-tag: 4px;
+  /* Motion: one curve, one short duration, colour changes only. */
+  --tk-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --tk-t: 150ms;
+  box-sizing: border-box;
+  width: var(--tk-w);
+  margin-left: calc(50% - var(--tk-w) / 2);
+  padding: 20px 24px 24px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--tk-r-panel);
+}
+#tokenomics-calc [hidden] { display: none !important; }
+#tokenomics-calc p { margin: 0; }
+#tokenomics-calc :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; border-radius: 4px; }
+#tokenomics-calc [tabindex]:focus:not(:focus-visible) { outline: none; }
+#tokenomics-calc [data-tip]:not(input):not(select):not(.tk-opt) { cursor: help; }
+
+/* ---- Headline band ---- */
+#tokenomics-calc .tk-top { margin-bottom: 16px; }
+#tokenomics-calc .tk-headline { font-size: var(--tk-fs-headline); font-weight: 500; line-height: 1.4; }
+#tokenomics-calc .tk-crossover { margin-top: 4px; color: var(--color-text-soft); }
+#tokenomics-calc .tk-warning { margin-top: 8px; padding: 8px 12px; color: var(--color-text); background: var(--color-surface); border: 1px dashed var(--color-text-soft); border-radius: var(--tk-r-control); }
+#tokenomics-calc .tk-warning:empty { margin: 0; padding: 0; border: 0; height: 0; overflow: hidden; }
+#tokenomics-calc .tk-captured { margin-top: 4px; font-size: var(--tk-fs-meta); color: var(--color-text-muted); }
+
+/* ---- Dashboard: inputs on the left, results on the right ---- */
+#tokenomics-calc .tk-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 20px 24px;
+  align-items: start;
+}
+#tokenomics-calc .tk-side {
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  padding: 2px 4px 2px 2px;
+}
+#tokenomics-calc .tk-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+#tokenomics-calc .tk-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+#tokenomics-calc .tk-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 680px), 1fr)); gap: 16px; }
+
+/* ---- Form ---- */
+#tokenomics-calc #tk-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+#tokenomics-calc #tk-form fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 16px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--tk-r-card);
+}
+#tokenomics-calc #tk-form legend { padding: 0 8px; font-size: var(--tk-fs-sm); font-weight: 500; color: var(--color-text); }
+#tokenomics-calc .tk-field { display: grid; gap: 4px; margin-top: 12px; }
+#tokenomics-calc .tk-row { grid-template-columns: minmax(0, 1fr) 7.5rem; align-items: center; column-gap: 12px; }
+#tokenomics-calc .tk-field label,
+#tokenomics-calc .tk-label { font-size: var(--tk-fs-sm); color: var(--color-text-soft); }
+#tokenomics-calc #tk-form input[type="number"],
+#tokenomics-calc #tk-form input[type="text"],
+#tokenomics-calc #tk-form select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--tk-fs-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--tk-r-control);
+  transition: border-color var(--tk-t) var(--tk-ease);
+}
+#tokenomics-calc #tk-form input[type="number"]:hover,
+#tokenomics-calc #tk-form input[type="text"]:hover,
+#tokenomics-calc #tk-form select:hover { border-color: var(--color-text-muted); }
+#tokenomics-calc #tk-form input[readonly] { color: var(--color-text-soft); background: var(--color-surface); }
+#tokenomics-calc #tk-form input[type="range"] { width: 100%; margin: 0; accent-color: var(--color-accent); }
+#tokenomics-calc #tk-form input[type="checkbox"] { justify-self: end; width: 16px; height: 16px; margin: 0; accent-color: var(--color-accent); }
+#tokenomics-calc #tk-form input[type="radio"] { margin: 0; accent-color: var(--color-accent); }
+#tokenomics-calc .tk-hint { margin-top: 8px; font-size: var(--tk-fs-meta); color: var(--color-text-muted); }
+#tokenomics-calc .tk-radio-row { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; }
+#tokenomics-calc .tk-field .tk-radio-row { margin-top: 0; }
+#tokenomics-calc .tk-opt { display: flex; align-items: center; gap: 8px; font-size: var(--tk-fs-sm); color: var(--color-text); cursor: pointer; }
+
+/* ---- Cost cards ---- */
+#tokenomics-calc .tk-card {
+  padding: 16px 20px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-accent);
+  border-radius: var(--tk-r-card);
+}
+#tokenomics-calc #tk-self { border-top-color: var(--color-text); }
+#tokenomics-calc #tk-self[data-state="warn"] { border-style: dashed; border-color: var(--color-text-muted); border-top: 3px solid var(--color-text); }
+/* A quiet tag, dashed like the card and the chart line it goes with. */
+#tokenomics-calc .tk-badge { display: inline-block; margin-left: 8px; padding: 0 8px; font-size: var(--tk-fs-meta); font-weight: 400; line-height: 20px; color: var(--color-text-soft); background: transparent; border: 1px dashed var(--color-text-muted); border-radius: var(--tk-r-tag); vertical-align: 2px; }
+#tokenomics-calc .tk-card h3 { margin: 0 0 8px; font-size: var(--tk-fs-title); font-weight: 500; line-height: 1.5; color: var(--color-text); overflow-wrap: anywhere; }
+#tokenomics-calc .tk-monthly { color: var(--color-text-muted); }
+#tokenomics-calc .tk-monthly span { font-size: var(--tk-fs-figure); font-weight: 500; letter-spacing: 0; color: var(--color-text); font-variant-numeric: tabular-nums; }
+#tokenomics-calc .tk-perMtok,
+#tokenomics-calc .tk-deployment,
+#tokenomics-calc .tk-perReplica,
+#tokenomics-calc .tk-confidence { margin-top: 8px; font-size: var(--tk-fs-sm); color: var(--color-text-soft); overflow-wrap: anywhere; }
+#tokenomics-calc .tk-confidence { color: var(--color-text-muted); }
+#tokenomics-calc .tk-notes { margin: 8px 0 0; padding-left: 20px; list-style: disc; font-size: var(--tk-fs-sm); color: var(--color-text-muted); }
+#tokenomics-calc .tk-notes:empty { display: none; }
+#tokenomics-calc .tk-notes li { margin: 2px 0; padding: 0; }
+
+/* ---- The chart scale switch: two radios styled as one segmented control ---- */
+#tokenomics-calc .tk-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+#tokenomics-calc .tk-seg { position: relative; margin: 0; cursor: pointer; }
+#tokenomics-calc .tk-seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+#tokenomics-calc .tk-seg span { display: inline-block; padding: 8px 16px; font-size: var(--tk-fs-sm); line-height: 16px; color: var(--color-text-soft); background: var(--color-surface); border: 1px solid var(--color-border); transition: color var(--tk-t) var(--tk-ease), background-color var(--tk-t) var(--tk-ease), border-color var(--tk-t) var(--tk-ease); }
+#tokenomics-calc .tk-seg:first-of-type span { border-radius: var(--tk-r-control) 0 0 var(--tk-r-control); }
+#tokenomics-calc .tk-seg:last-of-type span { border-radius: 0 var(--tk-r-control) var(--tk-r-control) 0; margin-left: -1px; }
+#tokenomics-calc .tk-seg input:not(:checked):hover + span { color: var(--color-text); background: var(--color-bg); }
+#tokenomics-calc .tk-seg input:checked + span { color: var(--color-bg); background: var(--color-text); border-color: var(--color-text); }
+#tokenomics-calc .tk-seg input:focus-visible + span { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ---- Charts and legend ---- */
+#tokenomics-calc .tk-chart { margin: 0; padding: 8px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--tk-r-card); }
+#tokenomics-calc .tk-chart svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+#tokenomics-calc .tk-caption { font-size: var(--tk-fs-sm); color: var(--color-text-muted); }
+#tokenomics-calc .tk-legend { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; padding: 0; list-style: none; font-size: var(--tk-fs-sm); color: var(--color-text-soft); }
+#tokenomics-calc .tk-legend li { display: flex; align-items: center; gap: 8px; margin: 0; padding: 2px 4px; }
+#tokenomics-calc .tk-error { font-weight: 500; color: var(--color-text); }
+
+/* ---- Assumptions table (the .prose table rules make tables scroll blocks) ---- */
+#tokenomics-calc .tk-assumptions { display: table; width: 100%; border-collapse: collapse; font-size: var(--tk-fs-sm); overflow: visible; }
+#tokenomics-calc .tk-assumptions caption { padding-bottom: 8px; text-align: left; font-size: var(--tk-fs-title); font-weight: 500; color: var(--color-text); }
+#tokenomics-calc .tk-assumptions th,
+#tokenomics-calc .tk-assumptions td { padding: 8px 12px; text-align: left; font-weight: 400; color: var(--color-text-soft); border: 0; border-bottom: 1px solid var(--color-border); }
+#tokenomics-calc .tk-assumptions th { font-weight: 500; color: var(--color-text); background: var(--color-surface); }
+#tokenomics-calc .tk-assumptions td:first-child { width: 28%; color: var(--color-text); }
+#tokenomics-calc .tk-assumptions td:last-child { color: var(--color-text-muted); }
+#tokenomics-calc .tk-assumptions tbody tr:hover { background: var(--color-surface); }
+
+/* ---- The note that says the machine was changed ---- */
+#tokenomics-calc .tk-fit-note { margin-top: 12px; padding: 8px 12px; font-size: var(--tk-fs-sm); color: var(--color-text-soft); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--tk-r-control); }
+#tokenomics-calc .tk-fit-note:empty { margin: 0; padding: 0; border: 0; height: 0; overflow: hidden; }
+
+/* ---- Chart classes injected by chart.mjs (SVG innerHTML) ---- */
+.chart-api { stroke: var(--color-accent); stroke-width: 2.5; fill: none; }
+.chart-self-mid { stroke: var(--color-text); stroke-width: 2.5; fill: none; }
+.chart-self-slow { stroke-dasharray: 9 6; }
+.chart-self-band { fill: var(--color-text-muted); fill-opacity: 0.18; stroke: none; }
+.chart-cross { stroke: var(--color-text-muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.chart-cross-label { fill: var(--color-text-muted); font-size: 16px; font-family: var(--font-mono); }
+.chart-here { stroke: var(--color-accent); stroke-width: 3; }
+.chart-here-dot { stroke: var(--color-bg); stroke-width: 2; }
+.chart-here-api { fill: var(--color-accent); }
+.chart-here-self { fill: var(--color-text); }
+.chart-here-label { fill: var(--color-text); font-size: 16px; font-weight: 500; font-family: var(--font-mono); }
+/* A halo in the chart's own colour keeps a label readable where a line runs behind it. */
+.chart-here-label, .chart-cross-label { paint-order: stroke; stroke: var(--color-surface); stroke-width: 4px; stroke-linejoin: round; }
+.chart-grid { stroke: var(--color-border); stroke-width: 1; }
+.chart-tick { fill: var(--color-text-soft); font-size: 16px; font-family: var(--font-mono); }
+.chart-axis-title { fill: var(--color-text-soft); font-size: 17px; font-family: var(--font-sans); }
+.chart-note { fill: var(--color-text); font-size: 20px; }
+/* Wide invisible copies of the lines, so a pointer finds them easily. */
+.chart-hit { fill: none; stroke: transparent; stroke-width: 18; pointer-events: stroke; }
+.chart-hair-g { pointer-events: none; }
+.chart-hair { stroke: var(--color-text); stroke-width: 1.5; opacity: 0.7; }
+.chart-dot-api { fill: var(--color-accent); stroke: var(--color-bg); stroke-width: 2; }
+.chart-dot-self { fill: var(--color-text); stroke: var(--color-bg); stroke-width: 2; }
+/* The phone layout is 480 units wide, so the same text size reads larger. */
+.tk-chart svg[data-layout="phone"] .chart-tick,
+.tk-chart svg[data-layout="phone"] .chart-here-label,
+.tk-chart svg[data-layout="phone"] .chart-cross-label { font-size: 15px; }
+.tk-chart svg[data-layout="phone"] .chart-axis-title { font-size: 16px; }
+.tk-chart svg[data-layout="phone"] .chart-note { font-size: 19px; }
+.tk-chart svg:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ---- The shared overlay (appended to <body> by dom/tips.mjs) ---- */
+.tk-tip {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(340px, calc(100vw - 16px));
+  padding: 8px 12px;
+  font: 400 13px/20px var(--font-sans);
+  letter-spacing: 0;
+  white-space: pre-line;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-text) 14%, transparent);
+  border-radius: 8px;
+  /* A neutral shadow: a shadow made from the text colour would glow on the dark theme. */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 120ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tk-tip[data-open="true"] { visibility: visible; opacity: 1; }
+
+/* ---- Narrow screens ---- */
+@media (max-width: 1000px) {
+  #tokenomics-calc .tk-layout { grid-template-columns: minmax(0, 1fr); }
+  #tokenomics-calc .tk-side { position: static; max-height: none; overflow: visible; padding: 0; }
+}
+@media (max-width: 720px) {
+  #tokenomics-calc { --tk-pad: 24px; padding: 16px 12px 16px; }
+  #tokenomics-calc .tk-headline { font-size: 18px; }
+  #tokenomics-calc .tk-cards { grid-template-columns: minmax(0, 1fr); }
+  #tokenomics-calc .tk-assumptions th,
+  #tokenomics-calc .tk-assumptions td { padding: 4px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #tokenomics-calc * , .tk-tip { transition: none !important; }
+}

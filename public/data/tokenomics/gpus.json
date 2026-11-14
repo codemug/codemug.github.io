@@ -1,0 +1,335 @@
+[
+  {
+    "id": "rtx6000pro",
+    "name": "RTX PRO 6000 Blackwell Server Edition",
+    "memGb": 96,
+    "bwTBs": 1.597,
+    "bits": {
+      "4": {
+        "mode": "tensor_core",
+        "peakTflops": 2000
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 1000
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 500
+      }
+    },
+    "constants": {
+      "etaBw": 0.6032,
+      "etaC": 0.2514,
+      "aUs": 40,
+      "bUs": 40,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "extrapolated",
+    "band": {
+      "low": 0.5,
+      "high": 2
+    },
+    "tdpW": 600,
+    "sourceUrl": "https://www.nvidia.com/en-us/data-center/rtx-pro-6000-blackwell-server-edition/",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "l40s",
+    "name": "L40S",
+    "memGb": 48,
+    "bwTBs": 0.864,
+    "bits": {
+      "4": {
+        "mode": "weight_only",
+        "peakTflops": 362.05
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 733
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 362.05
+      }
+    },
+    "constants": {
+      "etaBw": 0.6032,
+      "etaC": 0.2514,
+      "aUs": 40,
+      "bUs": 40,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "extrapolated",
+    "band": {
+      "low": 0.5,
+      "high": 2
+    },
+    "tdpW": 350,
+    "sourceUrl": "https://www.nvidia.com/en-us/data-center/l40s/",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "h100",
+    "name": "H100 SXM",
+    "memGb": 80,
+    "bwTBs": 3.35,
+    "bits": {
+      "4": {
+        "mode": "weight_only",
+        "peakTflops": 989.5
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 1979
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 989.5
+      }
+    },
+    "constants": {
+      "etaBw": 0.8246,
+      "etaC": 0.2514,
+      "aUs": 40,
+      "bUs": 40,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "calibrated",
+    "band": {
+      "low": 0.7,
+      "high": 1.4
+    },
+    "tdpW": 700,
+    "sourceUrl": "https://www.nvidia.com/en-us/data-center/h100/",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "h200",
+    "name": "H200 SXM",
+    "memGb": 141,
+    "bwTBs": 4.8,
+    "bits": {
+      "4": {
+        "mode": "weight_only",
+        "peakTflops": 989.5
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 1979
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 989.5
+      }
+    },
+    "constants": {
+      "etaBw": 0.7277,
+      "etaC": 0.5001,
+      "aUs": 80,
+      "bUs": 20,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "calibrated",
+    "band": {
+      "low": 0.7,
+      "high": 1.4
+    },
+    "tdpW": 700,
+    "sourceUrl": "https://www.nvidia.com/en-us/data-center/h200/",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "b200",
+    "name": "B200 (HGX)",
+    "memGb": 180,
+    "bwTBs": 7.7,
+    "bits": {
+      "4": {
+        "mode": "tensor_core",
+        "peakTflops": 9000
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 4500
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 2250
+      }
+    },
+    "constants": {
+      "etaBw": 0.6836,
+      "etaC": 0.2362,
+      "aUs": 40,
+      "bUs": 20,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "calibrated",
+    "band": {
+      "low": 0.7,
+      "high": 1.4
+    },
+    "tdpW": 1000,
+    "sourceUrl": "https://www.nvidia.com/en-us/data-center/hgx/",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "b300",
+    "name": "B300 (HGX)",
+    "memGb": 270,
+    "bwTBs": 7.7,
+    "bits": {
+      "4": {
+        "mode": "tensor_core",
+        "peakTflops": 14000
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 4500
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 2250
+      }
+    },
+    "constants": {
+      "etaBw": 0.6836,
+      "etaC": 0.2362,
+      "aUs": 40,
+      "bUs": 20,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "extrapolated",
+    "band": {
+      "low": 0.5,
+      "high": 2
+    },
+    "tdpW": 1100,
+    "sourceUrl": "https://www.nvidia.com/en-us/data-center/hgx/",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "gb200",
+    "name": "GB200 (NVL72, per GPU)",
+    "memGb": 186,
+    "bwTBs": 8,
+    "bits": {
+      "4": {
+        "mode": "tensor_core",
+        "peakTflops": 10000
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 5000
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 2500
+      }
+    },
+    "constants": {
+      "etaBw": 0.6836,
+      "etaC": 0.2362,
+      "aUs": 40,
+      "bUs": 20,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "extrapolated",
+    "band": {
+      "low": 0.5,
+      "high": 2
+    },
+    "tdpW": 1200,
+    "sourceUrl": "https://www.nvidia.com/en-us/data-center/gb200-nvl72/",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "mi300x",
+    "name": "MI300X",
+    "memGb": 192,
+    "bwTBs": 5.3,
+    "bits": {
+      "4": {
+        "mode": "weight_only",
+        "peakTflops": 1307.4
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 2614.9
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 1307.4
+      }
+    },
+    "constants": {
+      "etaBw": 0.5001,
+      "etaC": 0.1728,
+      "aUs": 40,
+      "bUs": 60,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "calibrated",
+    "band": {
+      "low": 0.5,
+      "high": 2
+    },
+    "tdpW": 750,
+    "sourceUrl": "https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html",
+    "captured": "2026-11-09"
+  },
+  {
+    "id": "mi355x",
+    "name": "MI355X",
+    "memGb": 288,
+    "bwTBs": 8,
+    "bits": {
+      "4": {
+        "mode": "tensor_core",
+        "peakTflops": 10100
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peakTflops": 5000
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peakTflops": 2500
+      }
+    },
+    "constants": {
+      "etaBw": 0.6836,
+      "etaC": 0.1048,
+      "aUs": 80,
+      "bUs": 40,
+      "memFrac": 0.9,
+      "mtpA": 1.721,
+      "mtpB": -0.0907
+    },
+    "confidence": "calibrated",
+    "band": {
+      "low": 0.7,
+      "high": 1.4
+    },
+    "tdpW": 1400,
+    "sourceUrl": "https://www.amd.com/en/products/accelerators/instinct/mi350/mi355x.html",
+    "captured": "2026-11-09"
+  }
+]

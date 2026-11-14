@@ -1,0 +1,177 @@
+---
+title: "An SRE's guide to deploying Large Language Models, Part 6: tokenomics"
+description: "When self-hosting an LLM costs less than an API: how an API charges per token, how self-hosting charges per machine and per request in parallel, and a calculator that finds where the two cost lines cross."
+pubDate: 2026-11-14
+tags: ["llms", "sre", "kubernetes", "inference"]
+draft: false
+---
+
+import DeckRuntime from "../../components/illustrations/deck/DeckRuntime.astro";
+import DeckFig from "../../components/illustrations/deck/DeckFig.astro";
+import Calculator from "../../components/tokenomics/Calculator.astro";
+
+<DeckRuntime />
+
+## 1. When does self-hosting make sense?
+
+[Part 1](/blog/sre-guide-deploying-llms-part-1/) was about what an LLM is as a workload. [Part 2](/blog/sre-guide-deploying-llms-part-2/) was about how a base model becomes an assistant, and the GPU and memory mechanics of serving it. [Part 3](/blog/sre-guide-deploying-llms-part-3/) was about the chips and inference engines you can run it on. In [parts 4](/blog/sre-guide-deploying-llms-part-4/) and [5](/blog/sre-guide-deploying-llms-part-5/) we combined all three and deployed [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B) on [Kubernetes](https://kubernetes.io/) on [AWS](https://aws.amazon.com/), from an empty account to a routed, observed and autoscaled service.
+
+That service costs money every hour the GPU is up, whether anyone is talking to it or not. So before we build the next one, let's cover when it even makes sense to self-host. When is running our own GPUs cheaper than paying a provider for the same tokens, and when is the provider the better deal?
+
+The answer comes from how each side charges. An API charges for tokens, so the bill follows how much we use it. Self-hosting charges for machines, so the bill follows how many requests we need to handle at the same moment. Those are different units, and the rest of this part converts one into the other so we can compare them on the same workload.
+
+## 2. How an API charges for tokens
+
+### Paying by the token
+
+An API doesn't charge for machines. It charges for tokens, and each kind of token has its own price per million:
+
+- Input tokens are everything we send: the system prompt, the conversation so far and tool results.
+- Output tokens are everything the model writes back, including the reasoning tokens it produces before it answers. We never see those, but we pay for them at the output price.
+- Cached input tokens are input the provider has seen before. They get a cheaper price, which we get to in a moment.
+
+Output tokens cost more than input tokens, and the gap is big. Every model in the table below charges 5 times as much for an output token as for an input token. This is because, as explained in [part 2](/blog/sre-guide-deploying-llms-part-2/#kv-caching-and-prefilldecode), a provider reads our prompt in one pass but writes the answer one token at a time. So output is a small share of the tokens and a big share of the bill. Take a request that sends 10,000 tokens and gets 1,000 back. On [Claude Sonnet 5.5](https://platform.claude.com/docs/en/models/overview) the input costs $0.02 and the output costs $0.01, so about a tenth of the tokens makes a third of the bill (derived: tokens times the price per million tokens from the table).
+
+Here are the standard-tier list prices for seven models: three from [Anthropic](https://platform.claude.com/docs/en/about-claude/pricing), two from [OpenAI](https://developers.openai.com/api/docs/pricing) (the flagship [GPT-6 Astra](https://developers.openai.com/api/docs/models/gpt-6-astra) and the mid-priced [GPT-6.1 Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol)) and two from Google (the flagship [Gemini 4 Argon](https://aistudio.google.com/docs/models/gemini-4-argon) and the mid-priced [Gemini 3.8 Flash](https://aistudio.google.com/docs/models/gemini-3.8-flash)). Both Gemini models have a scheduled price change, so each gets two rows.
+
+| Model | Input | Cached input | Output | Output / input (derived) | Cached / input (derived) |
+|---|---|---|---|---|---|
+| Claude Fable 5.1 | $10.00 | $0.25 | $50.00 | 5x | 0.025x |
+| Claude Opus 5.5 | $4.00 | $0.20 | $20.00 | 5x | 0.05x |
+| Claude Sonnet 5.5 | $2.00 | $0.10 | $10.00 | 5x | 0.05x |
+| GPT-6 Astra | $10.00 | $1.00 | $50.00 | 5x | 0.1x |
+| GPT-6.1 Sol | $2.00 | $0.10 | $10.00 | 5x | 0.05x |
+| Gemini 4 Argon, through 2026-11-30 | $2.00 | $0.10 | $10.00 | 5x | 0.05x |
+| Gemini 4 Argon, from 2026-12-01 | $4.00 | $0.20 | $20.00 | 5x | 0.05x |
+| Gemini 3.8 Flash, through 2026-12-31 | $0.75 | $0.075 | $3.75 | 5x | 0.1x |
+| Gemini 3.8 Flash, from 2027-01-01 | $1.50 | $0.15 | $7.50 | 5x | 0.1x |
+
+USD per million tokens, standard tier, no regional surcharge. Source: the Anthropic, OpenAI and [Google AI Studio](https://aistudio.google.com/docs/pricing) pricing pages. The last two columns are derived: output price over input price, and cached price over input price. The GPT-6 prices apply to prompts of up to 272,000 tokens; above that the prices go up.
+
+One more thing can change a price. Batch inference is when we send a whole batch of requests and the provider takes its sweet time to finish them, because nothing has to start coming back instantly. Providers reward that with a discount: batch processing halves a price.
+
+### Caching
+
+In part 2 we met the [KV cache](https://huggingface.co/docs/transformers/en/kv_cache), the keys and values a model keeps for every token it has already read, and in part 5 we put a router in front of our pods that sends a request to the pod already holding the start of its prompt. A provider does the same thing for us and passes some of the saving on. It's called [prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching). The provider remembers the processed start of our prompt for a short while, and when the next request begins with the same text, that part is charged at the cached price instead of the input price.
+
+The cached price is a fraction of the input price: 0.025 of it on Claude Fable 5.1, 0.05 on Claude Opus 5.5, Claude Sonnet 5.5, GPT-6.1 Sol and Gemini 4 Argon, and 0.1 on GPT-6 Astra and Gemini 3.8 Flash. Let's price the same Claude Sonnet 5.5 request again, this time with 8,000 of its 10,000 input tokens cached:
+
+| Case | Input at $2.00 | Cached at $0.10 | Output at $10.00 | Cost |
+|---|---|---|---|---|
+| No caching | 10,000 tokens, $0.0200 | none | 1,000 tokens, $0.0100 | $0.0300 |
+| Caching | 2,000 tokens, $0.0040 | 8,000 tokens, $0.0008 | 1,000 tokens, $0.0100 | $0.0148 |
+
+Derived: tokens times the price per million tokens. Caching about halves the request. The more of the input repeats, the closer the input half of the bill gets to zero, while the output half stays where it is.
+
+Writing into the cache can cost extra. Anthropic charges 1.25x the input price to write a 5-minute cache and 2x for a 1-hour cache, and OpenAI charges 1.25x for a 30-minute write. The 5-minute write pays for itself on the first reuse: its premium is 0.25 input prices and each read saves 0.95 on Claude Opus 5.5 and Sonnet 5.5 (derived). Google lists no write charge, only $0.50 per million tokens per hour of storage ($1.00 from 2027-01-01) on an explicit Gemini 3.8 Flash cache.
+
+### The bill is a straight line
+
+So an API bill is tokens times price, added up over the three kinds of token. The price doesn't change with how much we've already bought, which means the bill grows in a straight line with usage.
+
+<DeckFig name="p6-api-line" />
+
+The request above costs $0.0148, so 1,000 of them cost $14.80 and a million cost $14,800 (derived). Ten times the requests, ten times the bill. The only ways to push the line down are a cache hit, a cheaper model or a batch discount.
+
+I should clarify here that we're strictly talking about API pricing, which means paying a provider per token for requests we send to its endpoint. Claude Code and Codex aren't part of this. They're flat-rate plans, and a heavy user gets far more out of one than the same money buys on the API. [SemiAnalysis](https://x.com/SemiAnalysis_/status/2091631658973671900) tested the $200 plans in June and found that a Claude plan can yield up to $8,000 a month in tokens and a ChatGPT plan up to $14,000, if you use up the weekly limits on long coding tasks. Those are values at API prices, [not what the tokens cost the labs](https://techjacksolutions.com/ai-brief/a-200-subscription-costs-openai-up-to-14000-in-compute-semia/), and plan limits change, but they show why the price of a plan tells us nothing about the price of a token.
+
+That makes an API a great fit when a workload only runs inference every now and then, or never has many requests going at once. When nothing is running, nothing is billed.
+
+### Agent loops
+
+Counting tokens is easy for one request and surprising for an agent. An agent calls the model, the model asks for a tool, we run the tool and call the model again. Most inference APIs are [stateless](https://platform.claude.com/docs/en/api/messages), which means the model keeps nothing between calls, so every call has to carry the whole conversation so far. OpenAI's [Responses API](https://developers.openai.com/api/docs/guides/conversation-state) and the [Open Responses](https://www.openresponses.org/specification) spec built on it are the exception, because they can keep the conversation on the server. That doesn't change the bill, because OpenAI still bills every earlier input token as input on each call.
+
+<DeckFig name="p6-agent-loop" />
+
+Say the first context is c0 tokens, each turn adds d tokens from the tool and o tokens of output, and the loop runs N turns. Turn t sends c0 + (t-1)(d+o) input tokens, so over the session:
+
+```
+total input  = N*c0 + (d+o) * N(N-1)/2
+total output = N*o
+```
+
+The price per token stays put, but the number of tokens doesn't. The second term has N squared in it, so doubling the turns more than doubles the input. Let's work one example on Claude Opus 5.5 with c0 = 20,000, d = 5,000, o = 1,000 and N = 50. Turn 1 sends 20,000 tokens and turn 50 sends 314,000, and the whole session sends 8,350,000 input tokens (derived). Of those, 1,000,000 is the first context sent 50 times and 7,350,000, or 88%, is growth. At 100 turns it would be 31,700,000, which is 3.8 times as many for twice the turns.
+
+Real agents don't let the context grow forever. When it nears the limit, the agent compacts it: one more call to the model [summarises the message history](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents), and the agent carries on with the summary in place of the full history. [Claude Code](https://code.claude.com/docs/en/context-window) does this automatically as the context fills. The [Claude API](https://platform.claude.com/docs/en/build-with-claude/compaction-threshold) can do it on the server once the input passes a threshold (150,000 tokens by default, in beta), and [OpenAI's API](https://developers.openai.com/api/docs/guides/compaction) does it when the token count crosses a threshold you set, returning an opaque item instead of a readable summary. The summary is an extra model call that [counts toward rate limits and billing](https://platform.claude.com/docs/en/build-with-claude/compaction-threshold), the context drops back down and the growth starts again from there. The example here runs without compaction, so that we can see the growth on its own.
+
+To price the example with caching we need one exact rule, applied to every turn. Turn 1 writes its 20,000-token context to a 5-minute cache at the write price. Each later turn reads the previous request's whole input at the cache-read price and writes the d+o tokens added since then at the write price, because we mark the end of the conversation for caching on every request. No token is billed at the plain input price, and we assume each turn arrives within 5 minutes of the last, so every read hits.
+
+| Case | Total input | At $4.00 (input) | At $5.00 (write) | At $0.20 (read) | Output at $20.00 | Cost |
+|---|---|---|---|---|---|---|
+| No caching | 8,350,000 | 8,350,000 | 0 | 0 | 50,000 | $34.40 |
+| Caching | 8,350,000 | 0 | 314,000 | 8,036,000 | 50,000 | $4.18 |
+
+Derived: tokens per billing category over 50 turns, priced per million tokens at the Claude Opus 5.5 rates from the first table. Without caching, cost = 8.35 x $4.00 + 0.05 x $20.00. With caching, cost = 0.314 x $5.00 + 8.036 x $0.20 + 0.05 x $20.00, where the token counts are in millions. Each token is written once, so the written tokens equal the size of the last request.
+
+Caching cuts the session from $34.40 to $4.18, which is 8.2 times less (derived). The tokens we read from the cache still grow with N squared, they're just billed at 0.05 of the input price, so with the same rule a 100-turn session costs $11.29, which is 2.7 times the 50-turn cost for twice the turns (derived). Caching makes each token cheaper but doesn't change how many tokens the loop sends.
+
+### Hitting the limits
+
+Providers also limit how fast we can go. Accounts sit in tiers, with caps on tokens per minute and on monthly spend. Anthropic's [Scale tier](https://platform.claude.com/docs/en/api/rate-limits#spend-limits) and OpenAI's [Grow tier](https://developers.openai.com/api/docs/guides/rate-limits#usage-tiers) both cap spend at $200,000 a month, and when an Anthropic account reaches its cap, the API pauses until 00:00 UTC on the first day of the next month.
+
+Past that, providers sell reserved capacity: a fixed slice of throughput for a fixed price, instead of tokens. [Azure](https://azure.microsoft.com/en-us) sells [provisioned throughput units](https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/provisioned-throughput), Google Vertex [generative AI scale units](https://cloud.google.com/model-garden/pricing), [Amazon Bedrock](https://aws.amazon.com/bedrock/) a [Reserved Tier](https://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inference.html), and OpenAI a [Reserved Tier](https://openai.com/api-reserved-tier/) and the older [Scale Tier](https://openai.com/api-scale-tier/). Run flat out around the clock, the monthly products cost about list price per token, and the emptier the reservation, the more each token costs (derived: cost per token rises as 1 divided by utilisation). What we buy is guaranteed throughput, not a discount.
+
+That's the API vendors' own version of what comes next. Once we pay for throughput instead of tokens, the unit of cost is no longer a token, and that's exactly how self-hosting works.
+
+## 3. How self-hosting charges
+
+### Paying for machines
+
+With an API the provider worries about machines and we pay for tokens. Self-hosting flips that. We don't pay for tokens at all, we pay for machines that can run inference, and there are two ways to get them.
+
+We can rent them by the hour. A big cloud like AWS will do: the g7e.2xlarge from part 4, one [RTX PRO 6000](https://aws.amazon.com/ec2/instance-types/g7e/) with 96 GB of memory, costs $3.36312 an hour on demand in us-east-1, which is $2,453.73 a month if it runs around the clock (derived: 3.36312 x 24 hours x 30.4 days). So will the GPU specialists. [Modal](https://modal.com/pricing) bills per second, at $0.001736 for a [B200](https://dam-cdn.nvd.orangelogic.com/AssetLink/y441155802qub41q118b2852i557jem5.pdf) GPU and $0.001972 for a [B300](https://dam-cdn.nvd.orangelogic.com/AssetLink/1k0p832eq8r5ca0u5383ie5o4tp3bst1.pdf) GPU, which is $6.2496 and $7.0992 an hour (derived: per second x 3,600). [Nebius](https://docs.nebius.com/compute/resources/pricing.md) charges $8.50 an hour for a B200 GPU and $9.50 for a B300 GPU, so an 8-GPU machine is $68 and $76 an hour (derived: 8 x the per-GPU price).
+
+Or we can buy the servers, and then we pay for the hardware, the rack space and the power. An 8-GPU B200 server lists at about $562,154 [at Broadberry](https://www.broadberry.com/xeon-scalable-processor-gen4-rackmount-servers/nvidia-dgx-b200) and an 8-GPU B300 server at about $646,878 [there too](https://www.broadberry.com/xeon-6-rackmount-servers/nvidia-dgx-b300).
+
+Either way, the price is for the machine and it doesn't depend on what the machine does. A machine serving six requests costs the same as a machine serving none.
+
+### Request parallelism is the unit
+
+How much work can one machine take? It isn't a number of tokens a month. A model server like [vLLM](https://github.com/vllm-project/vllm) works on many requests at the same moment, and every request in flight keeps its own KV cache in GPU memory, which is limited. So for a given model, a machine can handle a particular number of requests at once. Ask for one more and it has nowhere to put it. That number is what changes the unit of cost. With an API the unit is a token. When we self-host, the unit is request parallelism: how many requests are in flight at the same time.
+
+Let's read the number off the machine from part 4, a g7e.2xlarge running Qwen3.8-27B as an [NVFP4](https://arxiv.org/abs/2509.25149) checkpoint with a 262,144-token context window. These are the lines from the vLLM startup log of my pod that carry it:
+
+```text
+(EngineCore pid=206) INFO 10-28 15:28:25 [gpu_model_runner.py:5515] Model loading took 22.13 GiB memory and 198.244322 seconds
+(EngineCore pid=206) INFO 10-28 15:30:30 [gpu_worker.py:578] Available KV cache memory: 59.26 GiB
+(EngineCore pid=206) INFO 10-28 15:30:30 [kv_cache_utils.py:1869] GPU KV cache size: 1,672,449 tokens, Maximum concurrency for 262,144 tokens per request: 6.38x
+```
+
+The weights take 22.13 GiB of the card. Part 4 went through what else comes off the memory budget, and 59.26 GiB is left for the KV cache. The last line says that pool holds 6.38 requests of 262,144 tokens each, so this machine handles 6 requests at once at the full window. That's its parallelism threshold. Memory isn't the only limit, because every request in a batch slows the others down, so the speed each request needs matters too. But memory is the hard limit, and the one we're after here.
+
+Once the workload goes above the threshold, we need another machine, and the cost goes up in steps.
+
+<DeckFig name="p6-parallelism-steps" />
+
+When all 6 slots of a machine are busy, one request in flight costs $408.96 a month (derived: $2,453.73 / 6). When only one is busy, it costs $2,453.73. Compare that with the API line from section 2. The API charges for exactly what we use, so it's cheaper while a machine would sit mostly idle. The machine is cheaper once it's full, because its price doesn't grow with the tokens that go through it. It's paying for use against paying for readiness.
+
+### When one machine isn't enough
+
+Some models don't fit on one GPU. A replica is one complete copy of the model, and its first memory bill is the weights. The 4-bit checkpoint of Qwen3.8-27B is 21.92 GB and fits one card with room to spare. The 4-bit checkpoint of [Qwen3.8 Flash Next](https://huggingface.co/Qwen/Qwen3.8-Flash-Next) is 132.68 GB, and one RTX PRO 6000 offers 86.4 GB at 90% use (derived: 96 x 0.9), so a replica takes 2 GPUs. [Kimi K3.1 Pro](https://huggingface.co/moonshotai/Kimi-K3.1-Pro) is 1,561.29 GB at 4 bits and needs all 8 GPUs of a B300 server, which hold 1,944 GB at 90% use (derived: 8 x 270 x 0.9). All sizes are derived from the checkpoint files.
+
+A model like that changes the staircase in one way: each step is taller. In the right half of the figure, a replica of Qwen3.8 Flash Next takes 2 GPUs, so every step adds 2 GPUs' worth. On the 2-GPU g7e.12xlarge, which costs $8.28608 an hour, that's $6,045.52 a month for every 10 requests at once (the 10 comes from the calculator's memory model in the next section).
+
+### Why we reserve the full window
+
+A request doesn't hold the same amount of memory all the time. In part 4 I worked out how many requests of each length the pool of my pod holds:
+
+| Request length | Requests the pool holds |
+|---|---|
+| 2,048 tokens | 67 (`--max-num-seqs` caps it at 64) |
+| 8,192 tokens | 54 |
+| 65,536 tokens | 20 |
+| 262,144 tokens | 6.38 |
+
+The same machine handles anywhere from 6 to 64 requests at once, depending on how long they are. And an agent isn't one length. It doesn't use the full context window at the start. Say it begins a session with 25% of the window already filled, which is 65,536 tokens here, and each turn adds to it, so its request climbs toward the full window. The 25% is an assumption, not a measurement. A Claude Code session already carries about 24,000 to 35,000 tokens of system prompt, tool definitions, memory files and skills before the first message, according to two published `/context` readouts, [one](https://johndamask.substack.com/p/til-claude-codes-context-command) and [another](https://wmedia.es/en/tips/claude-code-context-command-token-usage) (derived: the rows other than messages), and the [docs](https://code.claude.com/docs/en/context-window) list what loads before you type anything. The files the agent reads first add to that. While an agent sits at 25%, the 75% it hasn't used yet is free for other requests. If we count on that, the best case puts the threshold very high: 20 requests at 25% instead of 6 at the full window.
+
+We're not going to use the best case. We're going for the worst case and assuming the full window is reserved for every request. Then every one of the parallel requests can grow all the way to the end of the window without running out of cache. The threshold of the machine above is 6, not 20, and every number in the calculator uses the same rule. If our agents stay shorter than the window, a deployment needs fewer machines than the calculator says, and the real threshold lies somewhere between the two numbers.
+
+### When it makes sense
+
+Put the two sides together. An API charges for use, a machine charges for being there, and one machine handles a fixed number of requests at once. Self-hosting makes sense when the workload has a constant number of requests in flight, around the clock, every day. The machines are full all the time, and their price is spread over as many tokens as they can produce. When the requests come in bursts, the machines sit idle between them and we pay for every hour we hold them, so the API is usually the better deal.
+
+## 4. The calculator
+
+Now let's put it all on one page. Describe the workload either as one number, the context length per request (Simple), or in more detail (Detailed). Simple fixes the split of every request at 80% cached input, 10% new input and 10% output, so a 262,144-token request is roughly 210,000 cached input tokens, 26,000 new input tokens and 26,000 output tokens. Detailed lets you set that split yourself, or describe an agent loop instead. Parallel streams is the average number of requests in flight, so it can be below 1, which is a workload that is busy only part of the time. Pick an API to compare against, by default the same model on its maker's API, and a way to self-host, and the calculator prices both sides for the same tokens and shows where the two lines cross. Memory is reserved for the full context of every request, the worst case from section 3, whatever the split. The charts are logarithmic so that 0.01 and 10,000 streams fit on one axis, and a toggle switches them to linear, where the API line is a straight line from zero and self-hosting climbs in steps. It covers seven open-weight models, Qwen3.8 27B, Qwen3.8 Flash Next, Kimi K3.1 Pro, [DeepSeek V4.1 Flash](https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017), [Muse Spark Open](https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B), [Nemotron 3.5 Super VL](https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-BF16) and [Gemma 4 31B](https://huggingface.co/google/gemma-4-31B-it), at 4, 8 and 16 bits per weight, on GPUs we buy or rent. Hover over anything to see what it means.
+
+<Calculator />

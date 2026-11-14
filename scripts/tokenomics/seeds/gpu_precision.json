@@ -1,0 +1,740 @@
+[
+  {
+    "gpu": "A100 80GB SXM",
+    "arch_class": "SM80/89",
+    "memory_gb": 80,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 312
+      },
+      "8": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 312
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 312
+      }
+    },
+    "four_bit_tensor_core_format": "none (Marlin W4A16)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "Marlin W4A16",
+      "vllm_moe": "Marlin W4A16",
+      "sglang_dense": "Marlin W4A16",
+      "sglang_moe": "Marlin W4A16"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": true,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/a100/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "H100 SXM",
+    "arch_class": "SM90",
+    "memory_gb": 80,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 989.5
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 1979.0
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 989.5
+      }
+    },
+    "four_bit_tensor_core_format": "none (Marlin W4A16)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "Marlin W4A16",
+      "vllm_moe": "Marlin W4A16 or emulation",
+      "sglang_dense": "Marlin W4A16",
+      "sglang_moe": "Marlin W4A16 (Super VL cookbook: NVFP4 greyed out on H200)"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/h100/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "H100 NVL",
+    "arch_class": "SM90",
+    "memory_gb": 94,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 835.5
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 1670.5
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 835.5
+      }
+    },
+    "four_bit_tensor_core_format": "none (Marlin W4A16)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "Marlin W4A16",
+      "vllm_moe": "Marlin W4A16 or emulation",
+      "sglang_dense": "Marlin W4A16",
+      "sglang_moe": "Marlin W4A16 (Super VL cookbook: NVFP4 greyed out on H200)"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/h100/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "H200 SXM",
+    "arch_class": "SM90",
+    "memory_gb": 141,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 989.5
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 1979.0
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 989.5
+      }
+    },
+    "four_bit_tensor_core_format": "none (Marlin W4A16)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "Marlin W4A16",
+      "vllm_moe": "Marlin W4A16 or emulation",
+      "sglang_dense": "Marlin W4A16",
+      "sglang_moe": "Marlin W4A16 (Super VL cookbook: NVFP4 greyed out on H200)"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/h200/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "B200 (HGX)",
+    "arch_class": "SM100",
+    "memory_gb": 180.0,
+    "bit_widths": {
+      "4": {
+        "mode": "tensor_core",
+        "peak_key": "fp4",
+        "peak_tflops": 9000.0
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 4500.0
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 2250.0
+      }
+    },
+    "four_bit_tensor_core_format": "NVFP4 + MXFP4",
+    "nvfp4_engine_support": {
+      "vllm_dense": "native",
+      "vllm_moe": "native",
+      "sglang_dense": "native",
+      "sglang_moe": "native"
+    },
+    "author_rule_precision": "nvfp4",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/hgx/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "B300 (HGX)",
+    "arch_class": "SM100",
+    "memory_gb": 262.5,
+    "bit_widths": {
+      "4": {
+        "mode": "tensor_core",
+        "peak_key": "fp4",
+        "peak_tflops": 13500.0
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 4500.0
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 2250.0
+      }
+    },
+    "four_bit_tensor_core_format": "NVFP4 + MXFP4",
+    "nvfp4_engine_support": {
+      "vllm_dense": "native",
+      "vllm_moe": "native",
+      "sglang_dense": "native",
+      "sglang_moe": "native"
+    },
+    "author_rule_precision": "nvfp4",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/hgx/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "GB200 (NVL72, per GPU)",
+    "arch_class": "SM100",
+    "memory_gb": 186.0,
+    "bit_widths": {
+      "4": {
+        "mode": "tensor_core",
+        "peak_key": "fp4",
+        "peak_tflops": 10000.0
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 5000.0
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 2500.0
+      }
+    },
+    "four_bit_tensor_core_format": "NVFP4 + MXFP4",
+    "nvfp4_engine_support": {
+      "vllm_dense": "native",
+      "vllm_moe": "native",
+      "sglang_dense": "native",
+      "sglang_moe": "native"
+    },
+    "author_rule_precision": "nvfp4",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/gb200-nvl72/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "GB300 (NVL72, per GPU)",
+    "arch_class": "SM100",
+    "memory_gb": 277.8,
+    "bit_widths": {
+      "4": {
+        "mode": "tensor_core",
+        "peak_key": "fp4",
+        "peak_tflops": 15000.0
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 5000.0
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 2500.0
+      }
+    },
+    "four_bit_tensor_core_format": "NVFP4 + MXFP4",
+    "nvfp4_engine_support": {
+      "vllm_dense": "native",
+      "vllm_moe": "native",
+      "sglang_dense": "native",
+      "sglang_moe": "native"
+    },
+    "author_rule_precision": "nvfp4",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/gb300-nvl72/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "RTX PRO 6000 Blackwell Server Edition",
+    "arch_class": "SM120",
+    "memory_gb": 96,
+    "bit_widths": {
+      "4": {
+        "mode": "tensor_core",
+        "peak_key": "fp4",
+        "peak_tflops": 4000
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 2000
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 1000
+      }
+    },
+    "four_bit_tensor_core_format": "NVFP4 + MXFP4",
+    "nvfp4_engine_support": {
+      "vllm_dense": "native (FlashInferCutlassNvFp4LinearKernel)",
+      "vllm_moe": "native kernels (B12X, FlashInfer-B12X, CUTLASS); some recipes pin marlin",
+      "sglang_dense": "native (flashinfer_cutlass)",
+      "sglang_moe": "native (flashinfer_cutlass, listed in cookbooks)"
+    },
+    "author_rule_precision": "nvfp4",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": "Published 1 / 2 / 4 PFLOPS (BF16 / FP8 / FP4); NVIDIA's Server page has no sparsity footnote, Lenovo's table says '(peak)' with no qualifier, NVIDIA's RTX-Blackwell sheets footnote FP4 TOPS as 'with sparsity' (Portwell, 2026-07-24). If sparse, dense is half: 500 / 1,000 / 2,000 (derived). UNVERIFIED.",
+    "source_url": "https://www.nvidia.com/en-us/data-center/rtx-pro-6000-blackwell-server-edition/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "L40S",
+    "arch_class": "SM80/89",
+    "memory_gb": 48,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 362.05
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 733
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 362.05
+      }
+    },
+    "four_bit_tensor_core_format": "none (Marlin W4A16)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "Marlin W4A16",
+      "vllm_moe": "Marlin W4A16",
+      "sglang_dense": "Marlin W4A16",
+      "sglang_moe": "Marlin W4A16"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/l40s/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "L4",
+    "arch_class": "SM80/89",
+    "memory_gb": 24,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 121.0
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 242.5
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 121.0
+      }
+    },
+    "four_bit_tensor_core_format": "none (Marlin W4A16)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "Marlin W4A16",
+      "vllm_moe": "Marlin W4A16",
+      "sglang_dense": "Marlin W4A16",
+      "sglang_moe": "Marlin W4A16"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.nvidia.com/en-us/data-center/l4/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "MI300X",
+    "arch_class": "CDNA3",
+    "memory_gb": 192,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 1307.4
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 2614.9
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 1307.4
+      }
+    },
+    "four_bit_tensor_core_format": "none (MXFP4 and NVFP4 emulated by dequantizing to half precision)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "emulation",
+      "vllm_moe": "emulation",
+      "sglang_dense": "petit_nvfp4 (emulated)",
+      "sglang_moe": "petit_nvfp4 (emulated)"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.amd.com/en/products/accelerators/instinct/mi300/mi300x.html",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "MI325X",
+    "arch_class": "CDNA3",
+    "memory_gb": 256,
+    "bit_widths": {
+      "4": {
+        "mode": "weight_only",
+        "peak_key": "bf16",
+        "peak_tflops": 1300
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 2610
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 1300
+      }
+    },
+    "four_bit_tensor_core_format": "none (same as MI300X)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "emulation",
+      "vllm_moe": "emulation",
+      "sglang_dense": "petit_nvfp4 (emulated)",
+      "sglang_moe": "petit_nvfp4 (emulated)"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.amd.com/en/products/accelerators/instinct/mi300/mi325x.html",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "MI355X",
+    "arch_class": "CDNA4",
+    "memory_gb": 288,
+    "bit_widths": {
+      "4": {
+        "mode": "tensor_core",
+        "peak_key": "fp4",
+        "peak_tflops": 10100
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 5000
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 2500
+      }
+    },
+    "four_bit_tensor_core_format": "MXFP4 (NVFP4 emulated in vLLM; SGLang requantizes NVFP4 to MXFP4 at load)",
+    "nvfp4_engine_support": {
+      "vllm_dense": "emulation",
+      "vllm_moe": "emulation",
+      "sglang_dense": "quark_mxfp4 requantizes NVFP4 to MXFP4 at load",
+      "sglang_moe": "same"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://www.amd.com/en/products/accelerators/instinct/mi350/mi355x.html",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "Gaudi 3 (HL-325L OAM)",
+    "arch_class": "other",
+    "memory_gb": 128,
+    "bit_widths": {
+      "4": {
+        "mode": "none",
+        "peak_key": "bf16",
+        "peak_tflops": 1800
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 1800
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 1800
+      }
+    },
+    "four_bit_tensor_core_format": "none; engine path not found",
+    "nvfp4_engine_support": {
+      "vllm_dense": "no path found",
+      "vllm_moe": "no path found",
+      "sglang_dense": "no path found",
+      "sglang_moe": "no path found"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://docs.habana.ai/en/latest/Gaudi_Overview/Gaudi_Architecture.html",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "TPU v6e (Trillium)",
+    "arch_class": "other",
+    "memory_gb": 32,
+    "bit_widths": {
+      "4": {
+        "mode": "none",
+        "peak_key": "bf16",
+        "peak_tflops": 918
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 918
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 918
+      }
+    },
+    "four_bit_tensor_core_format": "none; engine path not found",
+    "nvfp4_engine_support": {
+      "vllm_dense": "no path found",
+      "vllm_moe": "no path found",
+      "sglang_dense": "no path found",
+      "sglang_moe": "no path found"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://cloud.google.com/tpu/docs/v6e",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "TPU7x (Ironwood)",
+    "arch_class": "other",
+    "memory_gb": 192,
+    "bit_widths": {
+      "4": {
+        "mode": "none",
+        "peak_key": "bf16",
+        "peak_tflops": 2307
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 4614
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": 2307
+      }
+    },
+    "four_bit_tensor_core_format": "none; engine path not found",
+    "nvfp4_engine_support": {
+      "vllm_dense": "no path found",
+      "vllm_moe": "no path found",
+      "sglang_dense": "no path found",
+      "sglang_moe": "no path found"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": null,
+    "source_url": "https://cloud.google.com/tpu/docs/tpu7x",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  },
+  {
+    "gpu": "Trainium2",
+    "arch_class": "other",
+    "memory_gb": 96,
+    "bit_widths": {
+      "4": {
+        "mode": "none",
+        "peak_key": "bf16",
+        "peak_tflops": null
+      },
+      "8": {
+        "mode": "tensor_core",
+        "peak_key": "fp8",
+        "peak_tflops": 1300.0
+      },
+      "16": {
+        "mode": "tensor_core",
+        "peak_key": "bf16",
+        "peak_tflops": null
+      }
+    },
+    "four_bit_tensor_core_format": "none; engine path not found",
+    "nvfp4_engine_support": {
+      "vllm_dense": "no path found",
+      "vllm_moe": "no path found",
+      "sglang_dense": "no path found",
+      "sglang_moe": "no path found"
+    },
+    "author_rule_precision": "fp8",
+    "fp8_weight_only_on_this_gpu": false,
+    "peak_notes": "BF16 peak not published on the AWS page; 16-bit throughput cannot be computed from datasheet data.",
+    "source_url": "https://aws.amazon.com/ec2/instance-types/trn2/",
+    "sources": [
+      "https://raw.githubusercontent.com/NVIDIA/cutlass/main/media/docs/cpp/blackwell_functionality.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/modelopt.md",
+      "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
+      "https://docs.sglang.io/docs/advanced_features/quantization.md"
+    ],
+    "kind": "published (format support) + gpus.json (peaks)",
+    "captured": "2026-11-09"
+  }
+]

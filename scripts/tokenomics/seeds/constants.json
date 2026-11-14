@@ -1,0 +1,222 @@
+[
+  {
+    "scope": "global",
+    "gpu": null,
+    "r4_gpu": null,
+    "eta_bw": 0.6032,
+    "eta_c": 0.2514,
+    "overhead_a_us_per_layer": 40,
+    "overhead_b_us_per_layer_per_log2g": 40,
+    "in_sample": {
+      "rows": 458,
+      "tput_ape_median_pct": 20.0,
+      "tput_ape_p90_pct": 51.0,
+      "tpot_ape_median_pct": 21.0,
+      "tpot_ape_p90_pct": 48.0
+    },
+    "leave_one_model_out": {
+      "rows": 458,
+      "tput_ape_median_pct": 22.0,
+      "tput_ape_p90_pct": 56.0,
+      "tpot_ape_median_pct": 23.0,
+      "tpot_ape_p90_pct": 55.0
+    },
+    "confidence": "use for any GPU without its own record (A100, L40S, L4, B300, GB300, MI325X, Gaudi 3, TPU, Trainium) and for RTX PRO 6000 single-GPU",
+    "notes": "Leave-one-model-out is the error to quote for models without a benchmark.",
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "per_gpu",
+    "gpu": "b200",
+    "r4_gpu": "B200 (HGX)",
+    "eta_bw": 0.6836,
+    "eta_c": 0.2362,
+    "overhead_a_us_per_layer": 40,
+    "overhead_b_us_per_layer_per_log2g": 20,
+    "in_sample": {
+      "rows": 109,
+      "tput_ape_median_pct": 9.0,
+      "tput_ape_p90_pct": 25.0,
+      "tpot_ape_median_pct": 10.0,
+      "tpot_ape_p90_pct": 25.0
+    },
+    "leave_one_model_out": null,
+    "confidence": "medium",
+    "notes": null,
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "per_gpu",
+    "gpu": "h100",
+    "r4_gpu": "H100 SXM",
+    "eta_bw": 0.8246,
+    "eta_c": 0.2514,
+    "overhead_a_us_per_layer": 40,
+    "overhead_b_us_per_layer_per_log2g": 40,
+    "in_sample": {
+      "rows": 40,
+      "tput_ape_median_pct": 9.0,
+      "tput_ape_p90_pct": 27.0,
+      "tpot_ape_median_pct": 8.0,
+      "tpot_ape_p90_pct": 28.0
+    },
+    "leave_one_model_out": null,
+    "confidence": "medium",
+    "notes": null,
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "per_gpu",
+    "gpu": "h200",
+    "r4_gpu": "H200 SXM",
+    "eta_bw": 0.7277,
+    "eta_c": 0.5001,
+    "overhead_a_us_per_layer": 80,
+    "overhead_b_us_per_layer_per_log2g": 20,
+    "in_sample": {
+      "rows": 93,
+      "tput_ape_median_pct": 17.0,
+      "tput_ape_p90_pct": 37.0,
+      "tpot_ape_median_pct": 15.0,
+      "tpot_ape_p90_pct": 35.0
+    },
+    "leave_one_model_out": null,
+    "confidence": "medium",
+    "notes": null,
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "per_gpu",
+    "gpu": "mi300x",
+    "r4_gpu": "MI300X",
+    "eta_bw": 0.5001,
+    "eta_c": 0.1728,
+    "overhead_a_us_per_layer": 40,
+    "overhead_b_us_per_layer_per_log2g": 60,
+    "in_sample": {
+      "rows": 107,
+      "tput_ape_median_pct": 21.0,
+      "tput_ape_p90_pct": 65.0,
+      "tpot_ape_median_pct": 20.0,
+      "tpot_ape_p90_pct": 48.0
+    },
+    "leave_one_model_out": null,
+    "confidence": "medium-low: InferenceX MI300X curves (slow, TP8) and AMD's own static-batch runs (fast) disagree by about 1.7x",
+    "notes": null,
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "per_gpu",
+    "gpu": "mi355x",
+    "r4_gpu": "MI355X",
+    "eta_bw": 0.6836,
+    "eta_c": 0.1048,
+    "overhead_a_us_per_layer": 80,
+    "overhead_b_us_per_layer_per_log2g": 40,
+    "in_sample": {
+      "rows": 105,
+      "tput_ape_median_pct": 16.0,
+      "tput_ape_p90_pct": 33.0,
+      "tpot_ape_median_pct": 18.0,
+      "tpot_ape_p90_pct": 44.0
+    },
+    "leave_one_model_out": null,
+    "confidence": "medium",
+    "notes": null,
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "per_gpu",
+    "gpu": "rtx6000pro",
+    "r4_gpu": "RTX PRO 6000 Blackwell Server Edition",
+    "eta_bw": 0.5667,
+    "eta_c": 0.0465,
+    "overhead_a_us_per_layer": 40,
+    "overhead_b_us_per_layer_per_log2g": 60,
+    "in_sample": {
+      "rows": 4,
+      "tput_ape_median_pct": 2.0,
+      "tput_ape_p90_pct": 11.0,
+      "tpot_ape_median_pct": 4.0,
+      "tpot_ape_p90_pct": 9.0
+    },
+    "leave_one_model_out": null,
+    "confidence": "low: 4 rows, one model (Qwen-3.5-397B fp4, 4 GPUs TP4 over PCIe, 8k/1k); eta_c absorbs TP all-reduce over PCIe and the unconfirmed sparsity of the published 4 PF FP4",
+    "notes": "peak used: published 4,000 / 2,000 / 1,000 TFLOPS FP4 / FP8 / BF16 (the dense fields of gpus.json are null)",
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "per_gpu",
+    "gpu": "gb200",
+    "r4_gpu": "GB200 (NVL72, per GPU)",
+    "eta_bw": 0.6836,
+    "eta_c": 0.2362,
+    "overhead_a_us_per_layer": 40,
+    "overhead_b_us_per_layer_per_log2g": 20,
+    "in_sample": null,
+    "leave_one_model_out": null,
+    "confidence": "borrowed from B200: the benchmark data has only disaggregated multinode GB200 rows",
+    "notes": "decode-only check on GB200 disaggregated rows: see 05-disagg-mtp-capacity.md",
+    "kind": "derived",
+    "captured": "2026-11-09",
+    "measured_inputs": "(SemiAnalysis InferenceX nightly CI + AMD ROCm performance page), calibration rows, no spec decode, not disaggregated, deduplicated by row_id",
+    "fit_method": "grid search, log-spaced eta 0.03-1.2 (60 points), a in {0,20,40,60,80,120,160} us, b in {0,20,40,60,90,120} us; loss = mean squared log error of per-GPU output tok/s plus TPOT",
+    "formula_ref": "scripts/tokenomics/README.md"
+  },
+  {
+    "scope": "mtp_multiplier",
+    "formula": "m(B) = max(1, a + b x log2(B)); divide step time t by m",
+    "a": 1.721,
+    "b": -0.0907,
+    "in_sample": {
+      "rows": 99,
+      "ratio_ape_median_pct": 6,
+      "ratio_ape_p90_pct": 19
+    },
+    "notes": "99 same-topology pairs (same model, GPU, precision, ISL/OSL, concurrency, parallelism): DeepSeek-R1 28, GLM-5 36, Qwen-3.5 35. Measured ratio falls below 1 at B=256 (median 0.89, n=2); clipped at 1 on the assumption an operator disables MTP when it hurts.",
+    "kind": "derived",
+    "captured": "2026-11-09"
+  },
+  {
+    "scope": "capacity",
+    "mem_frac": 0.9,
+    "kv_bytes_per_element": 1.0,
+    "notes": "B_max = (g x memory x mem_frac - weight_bytes) / per-sequence KV bytes; FP8 KV (1 byte/element) fits better than BF16 (loss 0.267 vs 0.290) and flags queueing better: of 17 rows with concurrency > B_max, 12 had TTFT > 5 s; with BF16 KV, 40 rows flagged and only 13 queued. The benchmark rows do not record the KV dtype.",
+    "kind": "derived",
+    "captured": "2026-11-09"
+  },
+  {
+    "scope": "peak_flops_rule",
+    "rule": "fp8 -> fp8_dense_tflops; fp4 -> fp4_dense_tflops if the GPU has FP4 math, else bf16_dense_tflops (weight-only 4-bit on H100/H200/MI300X); int4 and bf16 -> bf16_dense_tflops",
+    "kind": "derived",
+    "captured": "2026-11-09"
+  }
+]

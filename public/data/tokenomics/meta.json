@@ -1,0 +1,27 @@
+{
+  "generated": "2026-11-14",
+  "oldestCapture": "2026-11-09",
+  "newestCapture": "2026-11-09",
+  "files": {
+    "models": {
+      "rows": 7,
+      "oldestCapture": "2026-11-09"
+    },
+    "gpus": {
+      "rows": 9,
+      "oldestCapture": "2026-11-09"
+    },
+    "api_prices": {
+      "rows": 30,
+      "oldestCapture": "2026-11-09"
+    },
+    "rent_offers": {
+      "rows": 201,
+      "oldestCapture": "2026-11-09"
+    },
+    "buy_options": {
+      "rows": 6,
+      "oldestCapture": "2026-11-09"
+    }
+  }
+}
