@@ -34,8 +34,12 @@ applied before its date. `captured` is the date the page shows under the form.
 The functions are pure and live in `src/lib/tokenomics/`. Units: bytes, seconds, tokens, USD. A month is 30.4 days.
 `C` is the average number of requests in flight and may be below 1 (the page allows 0.01 to 10,000).
 
-1. `routed = E > 1 ? (P - A) / (1 - k/E) : 0` (parameters); `r = dpa ? 1 : (mla ? g : max(1, g / kvHeads))`, the number
-   of copies of the KV cache across `g` GPUs.
+Definitions used below: `weightsBytes = checkpoints[bits].sizeGb * 1e9`; `F = bits[bits].peakTflops` of the GPU, which already
+is the peak the GPU multiplies at at that width (for a GPU without native 4-bit math it is the 16-bit peak); `wRead` is the
+value of formula 4. A scheduled price change in `api_prices.json` is shown as a note and never applied: the calculator uses
+the price in force when the data was captured.
+
+1. `r = dpa ? 1 : (mla ? g : max(1, g / kvHeads))`, the number of copies of the KV cache across `g` GPUs.
 2. `bMax = (g * memGb * 1e9 * memFrac - weightsBytes) / (r * kvFp8 * reserve + S)` with `reserve = max(isl + osl, ctx)`:
    the window `ctx` is reserved in full for every request (the worst case), never the request's own length.
 3. `B = max(1, min(conc, bMax))`; `touched = E > 1 ? 1 - (1 - k/E)^B : 0` (the share of routed experts a batch reads).
@@ -46,20 +50,29 @@ The functions are pure and live in `src/lib/tokenomics/`. Units: bytes, seconds,
 8. `t0 = L * (aUs + bUs * log2(g)) * 1e-6`; step time `t = max(tMem, tDec) + tPre + t0`; with multi-token prediction
    `t = t / max(1, mtpA + mtpB * log2(B))` (off by default).
 9. `userTokS = 1 / t` is the speed one stream gets; `outTokSReplica = B / t`.
-10. `minGpus`: the smallest `g` in 1, 2, 4, 8 with `g * memGb * 1e9 * memFrac >= weightsBytes + r(g) * kvFp8 * ctx + S`.
-11. `sizeReplica`: the largest integer `B` in `[1, floor(bMax)]` whose `userTokS * tf >= v`. If `floor(bMax) < 1` the model is
-    not offered; if even `B = 1` misses the speed, `meetsSpeed = false` and `Bv = 1`.
-12. `sizeDeployment`: `replicas = ceil(C / Bv)` and `gpus = replicas * g`; `null` from `minGpus` means the model needs
-    more than one 8-GPU node and is not offered.
+10. `minGpus`: the smallest `g` in 1, 2, 4, 8 with `g * memGb * 1e9 * memFrac >= weightsBytes + r(g) * kvFp8 * ctx + S`, where `ctx`
+    is the reserved window; the page always passes a `ctx` of at least `isl + osl`.
+11. `sizeReplica`: the largest integer `B` in `[1, floor(bMax)]` whose `userTokS * tf >= v`, with formulas 3 to 9 evaluated at
+    `conc = B` (including the multi-token-prediction division when it is on). If `floor(bMax) < 1` the model is not offered;
+    if even `B = 1` misses the speed, `meetsSpeed = false` and `Bv = 1`.
+12. `sizeDeployment`: `replicas = ceil(C / Bv)` and `gpus = replicas * g`, so any `C` below 1 still needs one replica;
+    `null` from `minGpus` means the model needs more than one 8-GPU node and is not offered.
 13. API: the price tier is the one with the largest `aboveInputTokens` below `isl`, if any.
     `costPerRequest = (isl*(1-h)*input + isl*h*cachedUnit + osl*output) / 1e6` with `cachedUnit = cachedInput ?? input`.
-    A request lasts `T = osl / v + ttftS`; `requestsPerHour = 3600 * C / T`;
-    `usdPerMonth = requestsPerHour * costPerRequest * hoursPerDay * 30.4`.
-14. Rent: `perMachine = floor(gpuCount / g)`, `machines = ceil(replicas / perMachine)`,
-    `usdPerMonth = machines * (pricePerHour + addonPerHour) * hoursPerDay * 30.4`.
-15. Buy: `servers = ceil(replicas / floor(server.gpuCount / g))`; amortisation, energy, rack space and support are summed
-    per server, and a bought server is billed for all 24 hours.
-16. Cost per million output tokens divides the monthly bill by the same `outputTokensPerMonth` on both sides.
+    A request lasts `T = osl / v + ttftS` (`ttftS` defaults to 0.5); `requestsPerHour = 3600 * C / T`;
+    `usdPerMonth = requestsPerHour * costPerRequest * hoursPerDay * 30.4`;
+    `outputTokensPerMonth = requestsPerHour * osl * hoursPerDay * 30.4`; `usdPerMtokOut = usdPerMonth / (outputTokensPerMonth / 1e6)`.
+    The duration uses the target speed `v`, not the speed the GPUs reach, so both sides are priced for the same workload.
+14. Rent: `perMachine = floor(gpuCount / g)` (the machine is not offered when `g > gpuCount`), `machines = ceil(replicas / perMachine)`,
+    `usdPerMonth = machines * (pricePerHour + addonPerHour) * hoursPerDay * 30.4`, a missing `addonPerHour` counting as 0.
+15. Buy (a bought server is billed for all 24 hours, so `hoursPerDay` is ignored): `servers = ceil(replicas / floor(server.gpuCount / g))`
+    (not offered when `g > server.gpuCount`). Per month, with the `defaults` of `buy_options.json`:
+    `amort = servers * priceUsd * (1 - residualPct/100) / (amortYears * 12)`;
+    `energy = coloIncludesEnergy ? 0 : servers * powerKw * pue * hoursPerMonth * electricityUsdPerKwh`;
+    `colo = servers * powerKw * coloUsdPerKwMonth`; `support = servers * priceUsd * supportPctPerYear / 100 / 12`;
+    `usdPerMonth = amort + energy + colo + support`. `hoursPerMonth` is 730 there, not 24 * 30.4.
+16. Cost per million output tokens divides the monthly bill by the same `outputTokensPerMonth` on both sides. A bought server is
+    billed for 24 hours while the tokens follow `hoursPerDay`, which is why a part-time load raises its cost per token.
 17. `agentLoop`: `isl = c0 + (N - 1) * (d + o) / 2`, `osl = o`, `cachedShare = caching ? 1 - (d + o) / isl : 0`.
 18. `sweep` sizes the deployment once per throughput factor and then takes `replicas = ceil(C / Bv)` for each `C`; the
     crossover is the first `C` where the API bill exceeds the self-hosting bill. The accuracy band repeats the sweep at

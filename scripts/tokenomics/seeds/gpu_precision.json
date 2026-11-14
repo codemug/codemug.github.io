@@ -37,7 +37,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -78,7 +78,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -119,7 +119,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -160,7 +160,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -201,7 +201,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -242,7 +242,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -283,7 +283,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -324,7 +324,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -365,7 +365,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -406,7 +406,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -447,7 +447,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -488,7 +488,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -529,7 +529,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -570,7 +570,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -611,7 +611,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -652,7 +652,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -693,7 +693,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   },
   {
@@ -734,7 +734,7 @@
       "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/quantization/quark.md",
       "https://docs.sglang.io/docs/advanced_features/quantization.md"
     ],
-    "kind": "published (format support) + R4 (peaks)",
+    "kind": "published (format support) + gpus.json (peaks)",
     "captured": "2026-11-09"
   }
 ]

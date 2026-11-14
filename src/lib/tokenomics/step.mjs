@@ -44,7 +44,7 @@ export function stepModel(model, bits, gpu, g, isl, osl, conc, opts = {}) {
   const bMax = (g * gpu.memGb * 1e9 * c.memFrac - weights) / (r * model.kvFp8 * reserve + model.S);
   const B = Math.max(1, Math.min(conc, bMax));
   const touched = model.E > 1 ? 1 - Math.pow(1 - model.k / model.E, B) : 0;
-  // Formula 4: R6 read model, nonrouted plus the fraction of routed weights touched.
+  // Formula 4: read model, nonrouted plus the fraction of routed weights touched.
   const wRead = (ck.readGbNonrouted + ck.readGbRouted * touched) * 1e9;
   const kvRead = B * (r * model.kvFp8 * (isl + osl / 2) + model.S);
   const tMem = (wRead + kvRead) / (g * gpu.bwTBs * 1e12 * c.etaBw);

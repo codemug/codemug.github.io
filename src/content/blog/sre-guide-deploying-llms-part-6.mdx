@@ -46,7 +46,7 @@ Here are the standard-tier list prices for seven models: three from [Anthropic](
 | Gemini 3.8 Flash, through 2026-12-31 | $0.75 | $0.075 | $3.75 | 5x | 0.1x |
 | Gemini 3.8 Flash, from 2027-01-01 | $1.50 | $0.15 | $7.50 | 5x | 0.1x |
 
-USD per million tokens, standard tier, no regional surcharge. Source: the Anthropic, OpenAI and [Google AI Studio](https://aistudio.google.com/docs/pricing) pricing pages. The last two columns are derived: output price over input price, and cached price over input price.
+USD per million tokens, standard tier, no regional surcharge. Source: the Anthropic, OpenAI and [Google AI Studio](https://aistudio.google.com/docs/pricing) pricing pages. The last two columns are derived: output price over input price, and cached price over input price. The GPT-6 prices apply to prompts of up to 272,000 tokens; above that the prices go up.
 
 One more thing can change a price. Batch inference is when we send a whole batch of requests and the provider takes its sweet time to finish them, because nothing has to start coming back instantly. Providers reward that with a discount: batch processing halves a price.
 
@@ -63,7 +63,7 @@ The cached price is a fraction of the input price: 0.025 of it on Claude Fable 5
 
 Derived: tokens times the price per million tokens. Caching about halves the request. The more of the input repeats, the closer the input half of the bill gets to zero, while the output half stays where it is.
 
-Writing into the cache can cost extra. Anthropic charges 1.25x the input price to write a 5-minute cache and 2x for a 1-hour cache, and OpenAI charges 1.25x for a 30-minute write. The 5-minute write pays for itself on the first reuse: its premium is 0.25 input prices and each read saves 0.95 on Claude Opus 5.5 and Sonnet 5.5 (derived). Google charges no write premium, only $0.50 per million tokens per hour of storage ($1.00 from 2027-01-01) on an explicit Gemini 3.8 Flash cache.
+Writing into the cache can cost extra. Anthropic charges 1.25x the input price to write a 5-minute cache and 2x for a 1-hour cache, and OpenAI charges 1.25x for a 30-minute write. The 5-minute write pays for itself on the first reuse: its premium is 0.25 input prices and each read saves 0.95 on Claude Opus 5.5 and Sonnet 5.5 (derived). Google lists no write charge, only $0.50 per million tokens per hour of storage ($1.00 from 2027-01-01) on an explicit Gemini 3.8 Flash cache.
 
 ### The bill is a straight line
 
@@ -119,7 +119,7 @@ That's the API vendors' own version of what comes next. Once we pay for throughp
 
 With an API the provider worries about machines and we pay for tokens. Self-hosting flips that. We don't pay for tokens at all, we pay for machines that can run inference, and there are two ways to get them.
 
-We can rent them by the hour. A big cloud like AWS will do: the g7e.2xlarge from part 4, one [RTX PRO 6000](https://aws.amazon.com/ec2/instance-types/g7e/) with 96 GB of memory, costs $3.36312 an hour on demand in us-east-1, which is $2,453.73 a month if it runs around the clock (derived: 3.36312 x 24 hours x 30.4 days). So will the GPU specialists. [Modal](https://modal.com/pricing) charges $6.2496 an hour for a [B200](https://dam-cdn.nvd.orangelogic.com/AssetLink/y441155802qub41q118b2852i557jem5.pdf) GPU and $7.0992 for a [B300](https://dam-cdn.nvd.orangelogic.com/AssetLink/1k0p832eq8r5ca0u5383ie5o4tp3bst1.pdf) GPU, and [Nebius](https://docs.nebius.com/compute/resources/pricing.md) sells an 8-GPU B200 machine for $68 an hour and an 8-GPU B300 machine for $76 an hour.
+We can rent them by the hour. A big cloud like AWS will do: the g7e.2xlarge from part 4, one [RTX PRO 6000](https://aws.amazon.com/ec2/instance-types/g7e/) with 96 GB of memory, costs $3.36312 an hour on demand in us-east-1, which is $2,453.73 a month if it runs around the clock (derived: 3.36312 x 24 hours x 30.4 days). So will the GPU specialists. [Modal](https://modal.com/pricing) bills per second, at $0.001736 for a [B200](https://dam-cdn.nvd.orangelogic.com/AssetLink/y441155802qub41q118b2852i557jem5.pdf) GPU and $0.001972 for a [B300](https://dam-cdn.nvd.orangelogic.com/AssetLink/1k0p832eq8r5ca0u5383ie5o4tp3bst1.pdf) GPU, which is $6.2496 and $7.0992 an hour (derived: per second x 3,600). [Nebius](https://docs.nebius.com/compute/resources/pricing.md) charges $8.50 an hour for a B200 GPU and $9.50 for a B300 GPU, so an 8-GPU machine is $68 and $76 an hour (derived: 8 x the per-GPU price).
 
 Or we can buy the servers, and then we pay for the hardware, the rack space and the power. An 8-GPU B200 server lists at about $562,154 [at Broadberry](https://www.broadberry.com/xeon-scalable-processor-gen4-rackmount-servers/nvidia-dgx-b200) and an 8-GPU B300 server at about $646,878 [there too](https://www.broadberry.com/xeon-6-rackmount-servers/nvidia-dgx-b300).
 

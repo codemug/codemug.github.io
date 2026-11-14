@@ -15,7 +15,7 @@ const DEFAULTS = {
   hoursPerMonth: 730,
 };
 
-// R8 part 5 "Slider range" column.
+// the research table's "Slider range" column.
 const RANGES = {
   amortYears: { low: 3, high: 6 },
   residualPct: { low: 0, high: 20 },

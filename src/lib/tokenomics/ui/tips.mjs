@@ -6,7 +6,7 @@
 export const TIPS = {
   // Top of the results
   'headline': 'The two monthly bills side by side for {C} parallel streams. It says how many times cheaper or dearer self-hosting is, and "about the same" when the bills are within 5% of each other.',
-  'warning': 'A warning about the setup you chose. It appears when even one request alone cannot reach the speed per stream you asked for.',
+  'warning': 'A warning about the setup you chose. It appears when even one request alone cannot reach the speed per stream you asked for, or when an agent loop reaches more tokens than the model\'s window.',
   'crossover': 'The number of parallel streams from which self-hosting costs less than the API. Below that, the machines would sit partly idle, so paying per token is cheaper. It is worked out at the expected speed and at both ends of the accuracy band.',
   'captured': 'Prices and specs are a snapshot taken on {captured}. Prices move, so look at the provider before you commit. A price change that is already scheduled shows as a note and is never applied early.',
 

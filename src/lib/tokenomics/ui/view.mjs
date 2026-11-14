@@ -148,6 +148,18 @@ function speedWarning(result, state) {
     + 'The self-hosting figure gives every stream its own ' + (s.g === 1 ? 'GPU' : 'replica') + ' and the speed is still missed. Lower the speed per stream or pick a faster GPU.';
 }
 
+// A warning when an agent loop reaches more tokens than the model's window. A real agent compacts before that,
+// which this calculator does not model, so the average request of the loop is overstated.
+function windowWarning(state, data) {
+  if (state.shape !== 'detailed') return '';
+  const model = data.models.find((m) => m.id === state.modelId);
+  const a = state.agent;
+  const reached = a.c0 + (a.N - 1) * (a.d + a.o) + a.o;
+  if (!model || reached <= model.contextMax) return '';
+  return 'This loop reaches ' + fmtInt(reached) + ' tokens, past the ' + fmtInt(model.contextMax) + '-token window of ' + model.name
+    + '. Real agents compact before that and the calculator does not model compaction, so the average request is overstated.';
+}
+
 export function buildView(result, state, data) {
   if (result.errors.length > 0) {
     const v = emptyView();
@@ -185,7 +197,7 @@ export function buildView(result, state, data) {
   return {
     headline,
     crossoverText,
-    warning: speedWarning(result, state),
+    warning: [speedWarning(result, state), windowWarning(state, data)].filter(Boolean).join(' '),
     api: {
       title: price.model + ' API',
       monthly: fmtUsd(apiUsd),

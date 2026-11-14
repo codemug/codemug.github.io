@@ -1306,7 +1306,7 @@
       "fp8": 16896,
       "bf16": 33792,
       "kind": "derived",
-      "formula": "R3: 24 DSA layers x (512 + 64 latent + 128 indexer); fixed 69 KDA x (96 x 128 x 128 x 4 B + conv)"
+      "formula": "24 DSA layers x (512 + 64 latent + 128 indexer); fixed 69 KDA x (96 x 128 x 128 x 4 B + conv)"
     },
     "fixed_bytes_per_seq": {
       "fp8_kv_fp32_state": 449372160,
@@ -1887,7 +1887,7 @@
       "fp8": 1600,
       "bf16": 3200,
       "kind": "derived",
-      "formula": "R3, re-checked against inference/model.py (owns_k = kv_source_layers): 3 x 512/2 + 512/1 KV + 3 x 128/2 + 128 indexer; fixed 40 layers x 128-token window x 512"
+      "formula": "re-checked against inference/model.py (owns_k = kv_source_layers): 3 x 512/2 + 512/1 KV + 3 x 128/2 + 128 indexer; fixed 40 layers x 128-token window x 512"
     },
     "fixed_bytes_per_seq": {
       "fp8_kv_fp32_state": 2621440,

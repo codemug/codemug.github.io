@@ -39,7 +39,7 @@ const KEEP_PROVIDERS = new Set([
 // 1-year or 3-year term (Together: "91-180 days", Lambda: "2 weeks - 1 year").
 const TERM_MAP = { on_demand: "on_demand", savings_plan_1y: "1y", reserved_1y: "1y", savings_plan_3y: "3y", reserved_3y: "3y" };
 
-// R9's machine rows are the correction to R4's per-GPU listings.
+// offers_r9.json's machine rows are the correction to the per-GPU listings of offers_r4.json.
 const R9_SUPERSEDES_R4 = new Set(["Crusoe", "Together AI"]);
 
 // Region values that are not US (or not the default US region of the provider).
@@ -105,7 +105,7 @@ function buildOffers() {
   }
   const records = [];
   for (const group of groups.values()) {
-    // R9 rows win on a shared key (R9 is the correction).
+    // offers_r9 rows win on a shared key (they are the correction).
     const fromR9 = group.filter((c) => c.src === "r9");
     const base = fromR9.length ? fromR9 : group;
     const def = DEFAULT_REGION[base[0].row.provider];
@@ -137,8 +137,8 @@ function buildOffers() {
   const questions = [
     "Azure: the seed has no eastus row for some machines (H200 v5, MI300X v5); where the default region is absent the cheapest US-region row is kept per machine and term, and region shows that actual region.",
     "Lambda 1-Click Cluster committed rows state a term of '2 weeks - 1 year', not a stated 1-year term, so they are dropped; say the word if they should be emitted as term 1y.",
-    "Nebius R4 rows carry no region in the seed; they are kept with the seed region string ('not stated') - flag if they should be dropped.",
-    "Modal addonPerHour is null: the R9 notes give CPU and memory rates and a container minimum but no default container size.",
+    "Nebius rows in offers_r4.json carry no region in the seed; they are kept with the seed region string ('not stated') - flag if they should be dropped.",
+    "Modal addonPerHour is null: the offers_r9.json notes give CPU and memory rates and a container minimum but no default container size.",
     "AWS lists the same instance/term under both Compute and EC2 Instance Savings Plan; the cheaper (Instance SP) price is kept.",
     "Crusoe has no current-price row in a US region for B300 and H200 (eu-iceland1-a only), and no current B200 price (contact sales); no Crusoe rows for those GPUs.",
   ];

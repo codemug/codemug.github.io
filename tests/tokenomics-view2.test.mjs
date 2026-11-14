@@ -117,7 +117,7 @@ test('warning: plain English under the headline exactly when the speed asked for
   assert.equal(none.res.self.soloTokS, null);
   for (const patch of [{}, { ctx: 32768 }, { shape: 'detailed' }, { v: 500 }, { C: 0.05, ctx: 2000 }]) {
     const t = at(patch);
-    assert.equal(t.v.warning === '', t.res.self.meetsSpeed !== false, 'warning exactly when the speed is missed: ' + JSON.stringify(patch));
+    assert.equal(!/reaches only about/.test(t.v.warning), t.res.self.meetsSpeed !== false, 'speed warning exactly when the speed is missed: ' + JSON.stringify(patch));
     assert.equal(t.v.self.speedMissed, t.res.self.meetsSpeed === false);
   }
 });
@@ -126,4 +126,18 @@ test('warning: not part of the error view', () => {
   const st = normalizeState({ ...DEFAULT_STATE }, real);
   const v = buildView({ ...evaluate(st, real), errors: ['broken'] }, st, real);
   assert.equal(v.warning, ''); assert.equal(v.self.speedMissed, false);
+});
+
+test('view: an agent loop that reaches past the model window says so, and a simple workload does not', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { normalizeState, DEFAULT_STATE } = await import('../src/lib/tokenomics/ui/state.mjs');
+  const { evaluate } = await import('../src/lib/tokenomics/ui/evaluate.mjs');
+  const { buildView } = await import('../src/lib/tokenomics/ui/view.mjs');
+  const rd = (f) => JSON.parse(readFileSync(new URL('../public/data/tokenomics/' + f, import.meta.url), 'utf8'));
+  const d = { models: rd('models.json'), gpus: rd('gpus.json'), apiPrices: rd('api_prices.json'), rentOffers: rd('rent_offers.json'), buyOptions: rd('buy_options.json'), meta: rd('meta.json') };
+  const view = (over) => { const st = normalizeState({ ...DEFAULT_STATE, ...over }, d); return buildView(evaluate(st, d), st, d).warning; };
+  // the default 50-turn loop reaches 20,000 + 49 x 6,000 + 1,000 = 315,000 tokens, past Qwen3.8 27B's 262,144
+  assert.match(view({ shape: 'detailed' }), /This loop reaches 315,000 tokens, past the 262,144-token window of Qwen3\.8 27B\./);
+  assert.doesNotMatch(view({ shape: 'detailed', agent: { c0: 20000, d: 5000, o: 1000, N: 10, caching: true } }), /This loop reaches/);
+  assert.doesNotMatch(view({ shape: 'simple', ctx: 32768 }), /This loop reaches/);
 });
