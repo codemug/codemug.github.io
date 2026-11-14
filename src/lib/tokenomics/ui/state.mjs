@@ -30,6 +30,9 @@ export const DEFAULT_STATE = {
   rentProvider: 'AWS',
   rentOfferId: 'AWS:g7e.2xlarge:on_demand',
   ttftS: 0.5,
+  // USD per kWh of the servers you buy. A test pins it equal to the data's
+  // defaults.electricityUsdPerKwh; it overrides that default in every buy cost.
+  energyUsdPerKwh: 0.14,
 };
 
 const BUY_GPUS = ['rtx6000pro', 'b200', 'b300'];
@@ -47,6 +50,7 @@ function numOr(x, fallback) {
 }
 
 const round1 = (x) => Math.round(x * 10) / 10;
+const round3 = (x) => Math.round(x * 1000) / 1000;
 
 // Percentages of the context: output 0.1 to 99, cached 0 up to what is left after
 // the output, one decimal. The remainder is the new (uncached) input.
@@ -94,6 +98,8 @@ export function normalizeState(state, data) {
     rentProvider: provider,
     rentOfferId: offer.id,
     ttftS: numOr(s.ttftS, DEFAULT_STATE.ttftS) >= 0 ? numOr(s.ttftS, DEFAULT_STATE.ttftS) : DEFAULT_STATE.ttftS,
+    // 0 to 1 USD per kWh, 3 decimals; anything that is not a finite number is the default.
+    energyUsdPerKwh: round3(clamp(numOr(s.energyUsdPerKwh, DEFAULT_STATE.energyUsdPerKwh), 0, 1)),
   };
 }
 
@@ -130,6 +136,7 @@ export function toHash(state) {
   set('rentProvider', state.rentProvider);
   set('rentOfferId', state.rentOfferId);
   set('ttftS', state.ttftS);
+  if (state.energyUsdPerKwh !== DEFAULT_STATE.energyUsdPerKwh) set('eprice', state.energyUsdPerKwh);
   return p.toString();
 }
 
@@ -180,6 +187,7 @@ export function fromHash(hash) {
   put('rentProvider', str('rentProvider'));
   put('rentOfferId', str('rentOfferId'));
   put('ttftS', num('ttftS'));
+  put('energyUsdPerKwh', num('eprice'));
   const agent = {};
   for (const [pk, k] of [['a_c0', 'c0'], ['a_d', 'd'], ['a_o', 'o'], ['a_N', 'N']]) {
     const v = num(pk);

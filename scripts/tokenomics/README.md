@@ -71,6 +71,9 @@ the price in force when the data was captured.
     `energy = coloIncludesEnergy ? 0 : servers * powerKw * pue * hoursPerMonth * electricityUsdPerKwh`;
     `colo = servers * powerKw * coloUsdPerKwMonth`; `support = servers * priceUsd * supportPctPerYear / 100 / 12`;
     `usdPerMonth = amort + energy + colo + support`. `hoursPerMonth` is 730 there, not 24 * 30.4.
+    The page's electricity price overrides `defaults.electricityUsdPerKwh` in every buy cost it computes (the card, the sweep,
+    the accuracy band and the crossover): state `energyUsdPerKwh`, 0 to 1 USD per kWh, written to the link as hash key `eprice`
+    only when it differs from the default. The calculation functions themselves take the defaults they are given.
 16. Cost per million output tokens divides the monthly bill by the same `outputTokensPerMonth` on both sides. A bought server is
     billed for 24 hours while the tokens follow `hoursPerDay`, which is why a part-time load raises its cost per token.
 17. `agentLoop`: `isl = c0 + (N - 1) * (d + o) / 2`, `osl = o`, `cachedShare = caching ? 1 - (d + o) / isl : 0`.

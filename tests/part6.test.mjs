@@ -139,3 +139,24 @@ test("calculator defaults: the part 4 machine, the full 262,144-token window res
   assert.equal(r.self.offered, true);
   assert.ok(buildView(r, st, data).headline.length > 20);
 });
+
+test("idle power: the prose says an owned server draws power when idle, and the calculator bills the rated draw for every hour whatever the load", () => {
+  assert.match(proseOnly, /Idle isn't free for an owner either\./);
+  assert.match(proseOnly, /for all 730 hours of the month/);
+  // The reader's figure is attributed, not stated as a general fact.
+  assert.match(proseOnly, /One reader measured about 1\.1 kW on their own 8-GPU server/);
+  // The 14.3 kW in the prose is the published maximum of the 8-GPU B200 server in the data, and 730 is the data's month.
+  const b200 = data.buyOptions.servers.find((s) => s.id === "b200-8");
+  assert.equal(b200.powerKw, 14.3);
+  assert.equal(b200.powerKind, "published");
+  assert.equal(data.buyOptions.defaults.hoursPerMonth, 730);
+  assert.match(proseOnly, /\[14\.3 kW maximum NVIDIA lists\]\(https:\/\/www\.nvidia\.com\/en-us\/data-center\/dgx-b200\/\)/);
+  // The energy line does not move with the hours of use or the load: a bought server is billed for the whole month.
+  const base = normalizeState({ ...DEFAULT_STATE, mode: "buy", buyGpu: "b200" }, data);
+  const busy = evaluate({ ...base, hoursPerDay: 24 }, data);
+  const part = evaluate({ ...base, hoursPerDay: 4 }, data);
+  assert.ok(busy.self.offered && part.self.offered);
+  assert.equal(part.self.parts.energy, busy.self.parts.energy);
+  const expected = busy.self.servers * 14.3 * data.buyOptions.defaults.pue * 730 * data.buyOptions.defaults.electricityUsdPerKwh;
+  assert.ok(Math.abs(busy.self.parts.energy - expected) < 1e-6, "energy = servers x rated kW x PUE x 730 h x price");
+});

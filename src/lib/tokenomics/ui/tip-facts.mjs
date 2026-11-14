@@ -1,7 +1,7 @@
 // The run-time numbers behind the {name} slots in tips.mjs. Pure: every value
 // is read from the data, the page state or the evaluation result.
 
-import { fmtInt, fmtPct, fmtStreams, streamsPhrase } from './format.mjs';
+import { fmtInt, fmtPct, fmtStreams, fmtUsdSmall, streamsPhrase } from './format.mjs';
 import { C_MIN } from './streams.mjs';
 import { simpleSplitText } from './workload.mjs';
 import { TIPS } from './tips.mjs';
@@ -110,6 +110,8 @@ export function buildFacts(state, data, result) {
     crossNow: crossNow(result),
     amortYears: String(d.amortYears),
     pue: String(d.pue),
+    energyDefault: fmtUsdSmall(d.electricityUsdPerKwh),
+    hoursPerMonth: String(d.hoursPerMonth),
     support: String(d.supportPctPerYear),
   };
 }

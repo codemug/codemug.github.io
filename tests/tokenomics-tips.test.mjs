@@ -15,6 +15,7 @@ import { DEFAULT_STATE, normalizeState } from '../src/lib/tokenomics/ui/state.mj
 import { evaluate } from '../src/lib/tokenomics/ui/evaluate.mjs';
 import { buildView } from '../src/lib/tokenomics/ui/view.mjs';
 import { rentTerms } from '../src/lib/tokenomics/ui/options.mjs';
+import { fmtUsdSmall } from '../src/lib/tokenomics/ui/format.mjs';
 import * as calc from '../src/lib/tokenomics/calc.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -310,6 +311,34 @@ test('registry: the overlays say what the new controls and warnings mean, in pla
   assert.ok(!/reaches about/.test(tipText('v', buildFacts(none, real, evaluate(none, real)))), 'nothing about a speed when self-hosting is not offered');
   // The chart overlay quotes the right edge of the current chart.
   assert.match(tipText('chart.axis.x', f), /Right now it is 1,000\.$/);
+});
+
+test('electricity overlays: what the price is, how it enters the bill, where the default comes from, and that idle draw is not modelled', () => {
+  const has = (key, parts) => { for (const part of parts) assert.ok(TIPS[key].includes(part), key + ' says "' + part + '"'); };
+  has('energy', ['price per kWh', 'the rated power of one server', 'power usage effectiveness', '{pue}', '{hoursPerMonth} hours', 'this price', 'US commercial average', '{energyDefault}',
+    'full rated power for every hour of the month', 'whether or not', 'an idle server draws less than its rating', 'on the high side', 'rack space is billed separately', 'assumptions table']);
+  // The overlay may name the source only while the data still says so.
+  const basis = real.buyOptions.defaults.basis.electricityUsdPerKwh;
+  assert.match(basis.note, /US commercial average/);
+  assert.match(basis.note, /\bEIA\b/, 'the overlay names the Energy Information Administration, which is the data source');
+  assert.match(basis.sourceUrl, /eia\.gov/);
+  assert.ok(TIPS.energy.includes('US Energy Information Administration'));
+  // The facts it quotes come from the data, so the overlay cannot drift from the numbers.
+  const s = normalizeState({ ...DEFAULT_STATE, mode: 'buy', buyGpu: 'b200' }, real);
+  const f = buildFacts(s, real, evaluate(s, real));
+  assert.equal(f.energyDefault, fmtUsdSmall(real.buyOptions.defaults.electricityUsdPerKwh));
+  assert.equal(f.hoursPerMonth, String(real.buyOptions.defaults.hoursPerMonth));
+  assert.equal(f.pue, String(real.buyOptions.defaults.pue));
+  const d = real.buyOptions.defaults;
+  const t = tipText('energy', f);
+  assert.ok(t.includes('(' + d.pue + ') x ' + d.hoursPerMonth + ' hours') && t.includes(fmtUsdSmall(d.electricityUsdPerKwh) + ' by default'), t);
+  // The row, the overlay of the card notes and the old row text now say the price is set in the controls and the notes hold the split.
+  has('as.energy', ['in the controls', 'US commercial average', 'full power of the server for every hour of the month', 'power usage effectiveness']);
+  assert.ok(!/The default is a US average/.test(TIPS['as.energy']), 'the row no longer reads as a fixed data number');
+  has('self.notes', ['hardware', 'electricity', 'rack space', 'support']);
+  has('as.power', ['charged for every hour of the month']);
+  has('mode.buy', ['electricity, rack space and support', 'all 24 hours']);
+  assert.equal(tipText('basis.set', {}), 'A number you set in the controls.');
 });
 
 test('accuracy band overlays call the band typical, not a bound', () => {
