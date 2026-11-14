@@ -125,6 +125,8 @@ Or we can buy the servers, and then we pay for the hardware, the rack space and 
 
 Either way, the price is for the machine and it doesn't depend on what the machine does. A machine serving six requests costs the same as a machine serving none.
 
+Idle isn't free for an owner either. A server we own draws power with nothing running, so the meter keeps turning between bursts. One reader measured about 1.1 kW on their own 8-GPU server doing nothing. The calculator keeps this simple. It charges every bought server its full rated power for all 730 hours of the month, for example the [14.3 kW maximum NVIDIA lists](https://www.nvidia.com/en-us/data-center/dgx-b200/) for an 8-GPU B200 server, which is more than a server draws when it is idle. So it counts the idle power, and if anything counts too much of it.
+
 ### Request parallelism is the unit
 
 How much work can one machine take? It isn't a number of tokens a month. A model server like [vLLM](https://github.com/vllm-project/vllm) works on many requests at the same moment, and every request in flight keeps its own KV cache in GPU memory, which is limited. So for a given model, a machine can handle a particular number of requests at once. Ask for one more and it has nowhere to put it. That number is what changes the unit of cost. With an API the unit is a token. When we self-host, the unit is request parallelism: how many requests are in flight at the same time.
@@ -168,7 +170,7 @@ We're not going to use the best case. We're going for the worst case and assumin
 
 ### When it makes sense
 
-Put the two sides together. An API charges for use, a machine charges for being there, and one machine handles a fixed number of requests at once. Self-hosting makes sense when the workload has a constant number of requests in flight, around the clock, every day. The machines are full all the time, and their price is spread over as many tokens as they can produce. When the requests come in bursts, the machines sit idle between them and we pay for every hour we hold them, so the API is usually the better deal.
+Put the two sides together. An API charges for use, a machine charges for being there, and one machine handles a fixed number of requests at once. Self-hosting makes sense when the workload has a constant number of requests in flight, around the clock, every day. The machines are full all the time, and their price is spread over as many tokens as they can produce. When the requests come in bursts, the machines sit idle between them and we pay for every hour we hold them, including the power an owned server draws while it waits, so the API is usually the better deal.
 
 ## 4. The calculator
 
