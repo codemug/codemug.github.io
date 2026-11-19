@@ -4,7 +4,7 @@ Static portfolio and technical blog at **https://usmanshahid.is-a.dev**. Built w
 
 ## Development and checks
 
-Use Node.js **22.12 or newer** and the committed npm lockfile. VERT preparation also requires **Bun 1.3.14** and `tar`; the Pages workflow installs the pinned Bun version. Other app-specific clean-build tools are listed below.
+Use Node.js **22.12 or newer** and the committed npm lockfile. App-specific clean-build tools are listed below.
 
 ```sh
 npm ci --ignore-scripts
@@ -84,7 +84,7 @@ The launcher searches app names, descriptions, categories, and keywords. `/pc/` 
 
 - **CyberChef 11.5.0** uses the actual upstream static release. `assets:pc` verifies the pinned SHA-256 and extracts it with `unzip` (required on the build machine). First clean build downloads 83 MB from GitHub Releases; later builds reuse ignored assets/cache. Source ZIP and generated bundles are not committed. The largest shipped file is 13.6 MB; check the total `dist/` size against [Pages' 1 GB site limit](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits) when adding more apps. Licenses and notices are preserved under `/third-party/cyberchef/` and beside bundled JS. Recipes/output use CyberChef's own save/download controls. A wrapper-only pane selector makes Operations, Recipe, Input, and Output accessible on narrow screens without modifying the upstream release.
 - **Terminal** boots real 32-bit Alpine Linux in a v86 worker, with Bash, coreutils, Python, Node.js and nano. The guest is offline; no public relay, SSH backend, or host-file access is supplied. Start/Pause/Restart and explicit IndexedDB save/restore/export preserve real guest memory and files. The old `pc:terminal:v1` data stays untouched and can be exported from Help. Clean asset preparation requires Docker + Python 3; the generated ~154 MB guest is served statically and loaded on demand. See [Linux Terminal reproduction, limits, and source provenance](docs/webpc/linux-terminal.md).
-- **VERT** embeds the actual pinned converter with local image, audio and document engines. Files stay on the device; remote conversion servers are disabled. Engines load on demand, and Privacy reset affects only VERT. The frozen Bun build, non-isolated format limits, storage/service-worker boundaries and AGPL modified-source download are documented in [VERT integration notes](docs/webpc/vert.md).
+- **VERT ↗** opens the official [vert.sh](https://vert.sh/) converter in a new tab. It is no longer self-hosted: its 206 MB of engines would push the site past [Pages' 1 GB limit](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits). Files you convert there are handled by vert.sh, not by WebPC.
 - **AI Agent** is a text-only, on-device WebGPU assistant with calculation, Wikipedia/page reading and isolated JavaScript tools. Load model explicitly downloads roughly 600 MB–1.4 GB; no model files load on opening the app. Conversation migration preserves legacy data, and Jina Reader is opt-in. See [models, storage/recovery, cancellation, source provenance and verification](docs/webpc/ai-agent.md).
 - **VS Code ↗** opens the genuine `vscode.dev` service in a new tab. It is not embedded, self-hosted, or equivalent to a server-backed development environment.
 

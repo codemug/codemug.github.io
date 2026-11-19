@@ -25,7 +25,7 @@ export const apps = [
   { id: 'materialcraft', title: 'MaterialCraft', category: 'Creative', keywords: ['shader', 'material', 'sbs', 'substance', '3d', 'game'], description: 'Build shader graphs for game engines.', src: '/pc/apps/materialcraft/', kind: 'iframe', loadTimeout: 75000, width: 1280, height: 800 },
   { id: 'texturecraft', title: 'TextureCraft', category: 'Creative', keywords: ['texture', 'bake', '3d', 'mesh', 'uv', 'pbr'], description: 'Bake and author textures for 3D meshes.', src: '/pc/apps/texturecraft/', kind: 'iframe', loadTimeout: 75000, width: 1280, height: 800 },
   { id: 'excalidraw', title: 'Excalidraw', category: 'Creative', keywords: ['diagram', 'whiteboard', 'draw', 'sketch', 'flowchart', 'wireframe'], description: 'Sketch and diagram in a hand-drawn editor.', src: '/pc/apps/excalidraw/', kind: 'iframe', loadTimeout: 45000, width: 1280, height: 800 },
-  { id: 'vert', title: 'VERT', category: 'Utilities', keywords: ['convert', 'converter', 'image', 'audio', 'document', 'video'], description: 'Convert files locally with VERT.', src: '/pc/apps/vert/', kind: 'iframe', loadTimeout: 95000, width: 1180, height: 800 },
+  { id: 'vert', title: 'VERT ↗', category: 'Utilities', keywords: ['convert', 'converter', 'image', 'audio', 'document', 'video'], description: 'vert.sh file converter — opens in a new tab.', src: 'https://vert.sh/', kind: 'external' },
   { id: 'about', title: 'About WebPC', category: 'System', keywords: ['help', 'controls', 'keyboard', 'save'], description: 'Controls, shortcuts, and local saves.', kind: 'about', width: 520, height: 560 },
 ];
 export const categories = [...new Set(apps.map(app => app.category))];

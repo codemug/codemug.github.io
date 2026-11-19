@@ -13,7 +13,7 @@
     "astro": "astro",
     "test": "node --test \"tests/*.test.mjs\"",
     "test:browser": "playwright test --config scripts/qa/playwright.config.mjs",
-    "assets:pc": "node scripts/pc/prepare-docs.mjs && node scripts/pc/prepare-cyberchef.mjs && node scripts/pc/prepare-terminal.mjs && node scripts/pc/prepare-craft.mjs && node scripts/pc/prepare-ai-agent.mjs && node scripts/pc/prepare-vert.mjs && node scripts/pc/prepare-static-apps.mjs && node scripts/pc/prepare-excalidraw.mjs && node scripts/pc/prepare-nettools.mjs && node scripts/pc/prepare-packets.mjs"
+    "assets:pc": "node scripts/pc/prepare-docs.mjs && node scripts/pc/prepare-cyberchef.mjs && node scripts/pc/prepare-terminal.mjs && node scripts/pc/prepare-craft.mjs && node scripts/pc/prepare-ai-agent.mjs && node scripts/pc/prepare-static-apps.mjs && node scripts/pc/prepare-excalidraw.mjs && node scripts/pc/prepare-nettools.mjs && node scripts/pc/prepare-packets.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^6.0.3",
