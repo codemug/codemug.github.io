@@ -448,10 +448,10 @@
     },
     {
       "name": "linux-virt",
-      "version": "6.12.117-r0",
+      "version": "6.12.118-r0",
       "origin": "linux-lts",
       "license": "GPL-2.0-only",
-      "sourceCommit": "e30fb966aa1d9cec17dac8283b37f4e779575cc2",
+      "sourceCommit": "a3715fd0a46f723eb6806475e81383611c71be5a",
       "url": "https://www.kernel.org"
     },
     {

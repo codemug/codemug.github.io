@@ -1,6 +1,6 @@
 # Browser-local Linux Terminal
 
-`/pc/apps/terminal/` boots a real 32-bit Alpine Linux guest in v86 0.5.473, inside a dedicated module Worker. xterm.js renders its serial console. This replaces the previous JavaScript command simulator. Bash 5.2.37, GNU coreutils 9.7, Python 3.12.16, Node.js 22.23.5, nano, grep/sed/gawk/findutils and Linux 6.12.117 are pinned in `scripts/pc/linux/packages.lock.json`.
+`/pc/apps/terminal/` boots a real 32-bit Alpine Linux guest in v86 0.5.473, inside a dedicated module Worker. xterm.js renders its serial console. This replaces the previous JavaScript command simulator. Bash 5.2.37, GNU coreutils 9.7, Python 3.12.16, Node.js 22.23.5, nano, grep/sed/gawk/findutils and Linux 6.12.118 are pinned in `scripts/pc/linux/packages.lock.json`.
 
 The user explicitly starts the VM. It has 512 MiB guest memory plus emulator/browser overhead; the root filesystem is approximately 154 MB and its content-addressed files load on demand. The initial kernel/initramfs and shell boot normally take tens of seconds. Opening the desktop does not load this guest. Small/mobile devices may run out of memory on large workloads or checkpoints.
 
