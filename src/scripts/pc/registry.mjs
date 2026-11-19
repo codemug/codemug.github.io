@@ -11,6 +11,7 @@ export const apps = [
   { id: 'figcraft', title: 'FigCraft', category: 'Creative', keywords: ['design', 'vector', 'graphics'], description: 'Create vector designs.', src: '/pc/apps/figcraft/', kind: 'iframe', loadTimeout: 75000, width: 1180, height: 760 },
   { id: 'pdfcraft', title: 'PDFCraft', category: 'Office', keywords: ['pdf', 'annotate', 'document'], description: 'Read and annotate PDF files.', src: '/pc/apps/pdfcraft/', kind: 'iframe', loadTimeout: 75000, width: 1180, height: 760 },
   { id: 'soundcraft', title: 'SoundCraft', category: 'Creative', keywords: ['audio', 'music', 'sound'], description: 'Work with audio in your browser.', src: '/pc/apps/soundcraft/', kind: 'iframe', loadTimeout: 75000, width: 1180, height: 760 },
+  { id: 'filmcraft', title: 'FilmCraft', category: 'Creative', keywords: ['video', 'film', 'edit', 'timeline', 'audio'], description: 'Edit video, audio and stills into films.', src: '/pc/apps/filmcraft/', kind: 'iframe', loadTimeout: 75000, width: 1280, height: 800 },
   { id: 'vert', title: 'VERT', category: 'Utilities', keywords: ['convert', 'converter', 'image', 'audio', 'document', 'video'], description: 'Convert files locally with VERT.', src: '/pc/apps/vert/', kind: 'iframe', loadTimeout: 95000, width: 1180, height: 800 },
   { id: 'about', title: 'About WebPC', category: 'System', keywords: ['help', 'controls', 'keyboard', 'save'], description: 'Controls, shortcuts, and local saves.', kind: 'about', width: 520, height: 560 },
 ];

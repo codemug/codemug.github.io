@@ -11,7 +11,11 @@ test('Craft recovery accepts native documents without replacing them with export
  assert.equal(nativeFile('soundcraft','session.scraft'),false,'plain session may omit media');
  assert.equal(nativeFile('soundcraft','mix.wav'),false);
  assert.equal(nativeFile('pdfcraft','document.PDF'),true);
- assert.equal(nativeFile('lightcraft','photo.png'),false,'native LightCraft owns its library');
+  assert.equal(nativeFile('lightcraft','photo.png'),false,'native LightCraft owns its library');
+  assert.equal(nativeFile('filmcraft','edit.fcproj'),true);
+  assert.equal(nativeFile('filmcraft','Edit.FCPROJ'),true);
+  assert.equal(nativeFile('filmcraft','final.mp4'),false,'video exports are not projects');
+  assert.equal(nativeFile('filmcraft','mix.wav'),false);
 });
 test('Craft save messages need a bounded filename and actual binary data',()=>{
  assert.equal(validSave({name:'a.pdf',bytes:new Uint8Array([1,2])}),true);

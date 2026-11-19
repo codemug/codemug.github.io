@@ -8,6 +8,7 @@ These are the official Storytold browser applications, not replacement editors. 
 | [FigCraft](https://github.com/storytold/figcraft/releases/tag/v0.18.1) | 0.18.1 | `/pc/apps/figcraft/` | about 25 MB |
 | [PDFCraft](https://github.com/storytold/pdfcraft/releases/tag/v0.21.1) | 0.21.1 | `/pc/apps/pdfcraft/` | about 74 MB, including lazy OCR models |
 | [SoundCraft](https://github.com/storytold/soundcraft/releases/tag/v0.20.1) | 0.20.1 | `/pc/apps/soundcraft/` | about 19 MB |
+| [FilmCraft](https://github.com/storytold/filmcraft/releases/tag/v0.20.1) | 0.20.1 | `/pc/apps/filmcraft/` | about 48 MB |
 
 ## Prepare and update
 
@@ -25,11 +26,13 @@ LightCraft uses its native browser library and automatic writes. It starts with 
 
 FigCraft stores its name and crash recovery under `figcraft.userName` and `figcraft.recovery`. PDFCraft stores preferences under `pdfcraft` (reads legacy `printcraft`); these are not document autosaves. SoundCraft has no persistent session or host bridge in v0.20.1. None of their reviewed web source resets the origin's storage.
 
-The wrapper keeps one last **explicitly saved** document/session per app in its separate IndexedDB database `webpc-craft-saves-v1`, object store `files`: `.figcraft`/JSON, PDF, or `.scraftz`. Exports to unrelated formats never replace that recovery copy. Reopen saved is explicit. Changes since Save are not autosaved, and this is not a cloud backup. Native Save always triggers a real download, even when keeping its browser copy fails. Storage errors remain visible; the current bytes can be downloaded again or retried. Corrupt/invalid incoming files remain subject to native validation.
+FilmCraft writes its crash-recovery journal into OPFS (`recovery/snapshot.fcproj`, `recovery/meta.json`) and copies imported media to `media/<name>` (up to 4 GiB per file); its reviewed web source removes only its own OPFS entries and never resets the origin's storage. Its host saves carry a `saveAs` flag: project Saves (and the first Save of a new project) are the document, everything else (exports, captions, AAF/OMF/EDL interchange, extracted audio) is a copy. The wrapper ignores the flag, downloads every save, and only a `.fcproj` replaces the recovery copy.
+
+The wrapper keeps one last **explicitly saved** document/session per app in its separate IndexedDB database `webpc-craft-saves-v1`, object store `files`: `.figcraft`/JSON, PDF, `.fcproj` or `.scraftz`. Exports to unrelated formats never replace that recovery copy. Reopen saved is explicit. Changes since Save are not autosaved, and this is not a cloud backup. Native Save always triggers a real download, even when keeping its browser copy fails. Storage errors remain visible; the current bytes can be downloaded again or retried. Corrupt/invalid incoming files remain subject to native validation.
 
 ## Host and audio contracts
 
-LightCraft, FigCraft and PDFCraft use their actual same-origin `?host=parent` ready/dirty/open/save messages. Listeners are installed before assigning iframe `src`. Every received message checks both `event.origin` and the exact editor window. `?control` enables upstream's documented command API for native browser regression tests. `?webgl` chooses the supported WebGL2 renderer without requiring WebGPU or cross-origin isolation headers.
+LightCraft, FigCraft, PDFCraft and FilmCraft use their actual same-origin `?host=parent` ready/dirty/open/save messages. Listeners are installed before assigning iframe `src`. Every received message checks both `event.origin` and the exact editor window. `?control` enables upstream's documented command API for native browser regression tests. `?webgl` chooses the supported WebGL2 renderer without requiring WebGPU or cross-origin isolation headers.
 
 SoundCraft starts empty (`?empty`), with audio suspended. Its upstream release already wraps AudioContext to resume on gestures; our earlier wrapper gates that resume and immediately suspends newly created contexts until **Enable audio**. Closing the WebPC window suspends all live contexts and requires explicit re-enabling on reopen. The shell keeps the same iframe/session cached. Reload requires a saved `.scraftz` bundle; a plain `.scraft` may not include media. No microphone permission is requested automatically, and the wrapper does not provide desktop plug-ins or recording input.
 
