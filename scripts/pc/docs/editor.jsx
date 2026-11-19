@@ -6,7 +6,7 @@ import { documentBackup, readDocument, validateDocument } from './storage.mjs';
 
 const KEY = 'pc:docs:v1', PREVIOUS = `${KEY}:previous`;
 const $ = id => document.getElementById(id);
-let api, latest, startupError, storage, busy = false, suspended = false, ready = false, lastSaved = '', rawRecovery = ''; 
+let api, latest, startupError, storage, busy = false, suspended = false, ready = false, lastSaved = '', rawRecovery = '';
 let name = 'Untitled document', hostTheme;
 try { storage = localStorage; const text = storage.getItem(KEY); rawRecovery = text || ''; if (text) { const saved = readDocument(text); latest = saved.document; name = saved.name; lastSaved = text; } } catch (error) { startupError = error; }
 latest ??= createEmptyDocument();

@@ -31,7 +31,7 @@ await rm(out,{recursive:true,force:true});await cp(join(source,'apps/web/dist'),
 await mkdir(notice,{recursive:true});
 const modules=[...JSON.parse(await readFile(join(out,'webpc-modules.json'),'utf8')),...JSON.parse(await readFile(join(source,'apps/web/webpc-worker-modules.json'),'utf8'))];
 await writeBundleNotices({inputs:Object.fromEntries(modules.filter(id=>!id.includes('\0')).map(id=>[id,{}]))},root,join(notice,'BUNDLED-NOTICES.txt'));
-await rm(join(out,'webpc-modules.json')); 
+await rm(join(out,'webpc-modules.json'));
 for(const [path,name] of [['LICENSE','LICENSE']])await cp(join(source,path),join(notice,name));
 await cp(join(root,'node_modules/@casualoffice/docs/dist/fonts'),join(out,'fonts'),{recursive:true});
 await cp(join(root,'node_modules/@casualoffice/docs/dist/fonts/LICENSE'),join(notice,'fonts-LICENSE'));

@@ -108,6 +108,9 @@ RSS: https://usmanshahid.is-a.dev/rss.xml
 - [An SRE's guide to deploying LLMs, Part 1](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-1/) — transformer mechanics, with interactive diagrams.
 - [Part 2](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-2/) — training, reasoning, serving memory, and quantization.
 - [Part 3](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-3/) — hardware and inference-engine tradeoffs.
+- [Part 4](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-4/) — deploying Qwen3.8-27B on AWS with Terraform, EKS, Karpenter, vLLM and Helm.
+- [Part 5](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-5/) — request routing, observability, autoscaling and tiered KV caching.
+- [Part 6](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-6/) — tokenomics: API versus self-hosting costs, with an interactive calculator.
 
 ## Selected External Writing
 

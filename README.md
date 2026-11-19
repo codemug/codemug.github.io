@@ -19,10 +19,12 @@ Browser checks require Chromium; see the illustration workflow below. The Pages 
 ## Routes and source of truth
 
 - `/`: portfolio, experience, Primer, local posts and selected external writing; data lives in `src/pages/index.astro`.
-- `/blog/` and `/blog/<slug>/`: articles from `src/content/blog/*.{md,mdx}`. The filename supplies the slug.
+- `/blog/` and `/blog/<slug>/`: articles from `src/content/blog/*.{md,mdx}`. The filename supplies the slug. Published articles currently include Primer and all six parts of the SRE LLM-deployment series.
+- `/pc/`: the WebPC desktop; `/pc/apps/<app>/` contains its embedded application routes.
 - `/rss.xml`, `/sitemap-index.xml`, and `/404.html`: feed, generated sitemap index, and error page.
 - `src/layouts/Base.astro`: shared navigation, footer, metadata, theme and analytics. `src/styles/global.css`: dark/light design tokens and prose styles. Tailwind custom properties use explicit `var(...)`, e.g. `text-[var(--color-text-muted)]`.
 - `src/components/Comments.astro` and `YouTubeGrid.astro`: comments and click-to-load video embeds. `src/components/illustrations/`: native figure and extracted deck runtimes.
+- `src/components/tokenomics/` and `src/lib/tokenomics/`: Part 6’s calculator UI and calculation logic. Its published data is `public/data/tokenomics/`; see the [data preparation and calculation notes](scripts/tokenomics/README.md) before refreshing it.
 - `public/`: assets copied directly to the build, including fonts, social cards, the CV PDF, `llms.txt`, domain and crawler configuration.
 
 The site domain is set in `astro.config.mjs`, `Base.astro`, `public/CNAME` and `public/robots.txt`; keep these aligned if it changes.
@@ -31,9 +33,9 @@ The site domain is set in `astro.config.mjs`, `Base.astro`, `public/CNAME` and `
 
 Create a Markdown/MDX file under `src/content/blog/` with `title`, `description`, and `pubDate`. Optional fields are `updatedDate`, `tags`, `draft`, `canonicalUrl`, `ogImage`, and `comments`; the schema is in `src/content.config.ts`. Drafts appear in development but not production pages or RSS. Set `canonicalUrl` only when another site is the original publisher. Per-post social images resolve in this order: explicit `ogImage`, `public/og/<slug>.png`, then `public/og-image.png`. `npm run og` generates cards; review the output before publishing.
 
-The current articles are the source of truth. Root `llm-series-*.md`, illustration briefs, `docs/superpowers/` plans, and `*.devto.md` are editorial history or work in progress, not build inputs. Older Part 1/2 drafts and `llm/config.json` describe Gemma-era examples; current articles use Qwen examples. See [llm/README.md](llm/README.md). Crosspost drafts are not synchronized automatically: review prose, image placeholders, and custom-domain canonical URLs before reuse.
+The published source of truth is `src/content/blog/`. The SRE series now covers transformer mechanics (Part 1), training and serving (Part 2), hardware and engines (Part 3), model deployment (Part 4), routing/observability/autoscaling (Part 5), and tokenomics (Part 6). Parts 3–6 include deck figures; Part 6 also includes the interactive cost calculator. Infrastructure examples and calculator estimates depend on their documented versions and assumptions; a site build does not validate an external deployment or benchmark.
 
-`ARCHITECTURE.md` is an inference-platform evidence snapshot, not this website's architecture. The untracked Part 4 article is still a draft. Its snippets are schematic and its operational claims need the cited source versions; building this site does not validate external infrastructure. Preserve untracked author material rather than treating it as disposable generated output.
+Author workspaces may contain root drafts, illustration briefs, crosspost drafts, planning documents, model research, and the original `deck.html`. These are separate from the published article and figure inputs and are not required for an ordinary checkout to build. Keep such untracked author material intact. Crosspost drafts are not synchronized automatically: review prose, image placeholders, and custom-domain canonical URLs before reuse.
 
 ## Illustration workflow
 

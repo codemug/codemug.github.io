@@ -129,7 +129,7 @@ test('legacy timers suspend offscreen and on motion changes, preserving user pau
   await expect(fig).toHaveAttribute('data-frame', reduced);
 });
 
-test('every included deck state renders without runtime errors; mobile expand closes', async ({ page }) => {
+test('every included Part 1–2 deck state renders without runtime errors; mobile expand closes', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const n of [1, 2]) {
     await page.goto(part(n), { waitUntil: 'domcontentloaded' });
@@ -157,3 +157,38 @@ test('every included deck state renders without runtime errors; mobile expand cl
   await expect(fig).not.toHaveClass(/is-expanded/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(360);
 });
+
+// Main now publishes Parts 3–6 with native deck figures. Exercise their hooks
+// against the same shared runtime, including backward traversal and redraw.
+for (const [partNumber, figureCount, stateCount] of [[3, 12, 47], [4, 7, 34], [5, 13, 75], [6, 3, 10]]) {
+  test(`Part ${partNumber} deck states survive traversal and theme redraw`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(part(partNumber), { waitUntil: 'domcontentloaded' });
+    const figures = page.locator('figure.dk');
+    await expect(figures).toHaveCount(figureCount);
+    await expect.poll(() => figures.evaluateAll(figs => figs.every(fig => Boolean(fig.__dk)))).toBe(true);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(value => document.documentElement.dataset.theme = value, theme);
+      const result = await figures.evaluateAll(figs => {
+        let states = 0;
+        const problems = [];
+        for (const fig of figs) {
+          const player = fig.__dk;
+          player.user();
+          for (const direction of [1, -1]) {
+            for (let i = 0; i < player.states.length; i++) {
+              const index = direction === 1 ? i : player.states.length - 1 - i;
+              player.go(index);
+              states++;
+              if (+fig.dataset.state !== index || fig.querySelectorAll('.slide.visible').length !== 1) {
+                problems.push(`${fig.dataset.fig}:${index}`);
+              }
+            }
+          }
+        }
+        return { states, problems };
+      });
+      expect(result).toEqual({ states: stateCount * 2, problems: [] });
+    }
+  });
+}
