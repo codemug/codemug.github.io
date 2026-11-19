@@ -1,0 +1,5 @@
+GridCraft 0.19.1
+Upstream: https://github.com/storytold/gridcraft/tree/v0.19.1
+Release: https://github.com/storytold/gridcraft/releases/download/v0.19.1/gridcraft-web-0.19.1.zip
+SHA-256: 48c5d1b101befebb3c5ba3b7a14914f01c3207934813ed07dc4251b7ae116a78
+Official WASM, JavaScript and embedded assets are preserved. WebPC adds a small entry script for storage safety, focus and SoundCraft audio/session handling. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

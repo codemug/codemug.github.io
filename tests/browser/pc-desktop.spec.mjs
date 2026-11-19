@@ -1,33 +1,33 @@
 import { test, expect } from '@playwright/test';
 
-const appHtml = `<!doctype html><title>Sheets test app</title><label>Cell A1 <input id="cell"></label><script>
-parent.postMessage({type:'pc:ready',appId:'sheets'},location.origin);
+const appHtml = `<!doctype html><title>GridCraft test app</title><label>Cell A1 <input id="cell"></label><script>
+parent.postMessage({type:'pc:ready',appId:'gridcraft'},location.origin);
 </script>`;
-async function fakeSheets(page) {
+async function fakeGridcraft(page) {
   let loads = 0;
-  await page.route('**/pc/apps/sheets/', route => { loads++; return route.fulfill({ contentType: 'text/html', body: appHtml }); });
+  await page.route('**/pc/apps/gridcraft/', route => { loads++; return route.fulfill({ contentType: 'text/html', body: appHtml }); });
   return () => loads;
 }
 const win = (page, id) => page.locator(`[data-window="${id}"]`);
 
 test('PC launches lazily and reuses app state after minimize and close', async ({ page }) => {
-  const loads = await fakeSheets(page);
+  const loads = await fakeGridcraft(page);
   await page.goto('/pc/');
   await expect(page.locator('iframe')).toHaveCount(0);
-  const shortcut = page.locator('[data-shortcut="sheets"]');
+  const shortcut = page.locator('[data-shortcut="gridcraft"]');
   await shortcut.click();
   await expect(page.locator('iframe')).toHaveCount(0);
   await shortcut.dblclick();
-  await expect(win(page, 'sheets')).toHaveAttribute('data-load', 'ready');
+  await expect(win(page, 'gridcraft')).toHaveAttribute('data-load', 'ready');
   const cell = page.frameLocator('iframe').getByLabel('Cell A1');
   await cell.fill('Keep my work');
-  await page.getByRole('button', { name: 'Minimize Sheets', exact: true }).click();
-  await expect(win(page, 'sheets')).toBeHidden();
-  await page.getByRole('button', { name: 'Switch to Sheets', exact: true }).click();
+  await page.getByRole('button', { name: 'Minimize GridCraft', exact: true }).click();
+  await expect(win(page, 'gridcraft')).toBeHidden();
+  await page.getByRole('button', { name: 'Switch to GridCraft', exact: true }).click();
   await expect(cell).toHaveValue('Keep my work');
-  await page.getByRole('button', { name: 'Close Sheets', exact: true }).click();
-  await expect(win(page, 'sheets')).toBeHidden();
-  await expect(page.locator('[data-task="sheets"]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close GridCraft', exact: true }).click();
+  await expect(win(page, 'gridcraft')).toBeHidden();
+  await expect(page.locator('[data-task="gridcraft"]')).toHaveCount(0);
   await shortcut.focus();
   await page.keyboard.press('Enter');
   await expect(cell).toHaveValue('Keep my work');
@@ -35,15 +35,15 @@ test('PC launches lazily and reuses app state after minimize and close', async (
 });
 
 test('PC manages keyboard geometry, stacking, maximize, and launcher focus', async ({ page }) => {
-  await fakeSheets(page);
+  await fakeGridcraft(page);
   await page.goto('/pc/');
   await page.getByRole('button', { name: 'Apps', exact: true }).click();
   await expect(page.locator('#pc-launcher')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('[data-launcher-toggle]')).toBeFocused();
-  await page.locator('[data-shortcut="sheets"]').focus();
+  await page.locator('[data-shortcut="gridcraft"]').focus();
   await page.keyboard.press('Enter');
-  await expect(win(page, 'sheets')).toHaveAttribute('data-load', 'ready');
+  await expect(win(page, 'gridcraft')).toHaveAttribute('data-load', 'ready');
   await page.getByRole('button', { name: 'Help', exact: true }).click();
   await expect(win(page, 'about')).toHaveAttribute('data-active', 'true');
   const title = win(page, 'about').locator('[data-move]');
@@ -59,9 +59,9 @@ test('PC manages keyboard geometry, stacking, maximize, and launcher focus', asy
   await page.getByRole('button', { name: 'Restore About WebPC', exact: true }).click();
   expect((await win(page, 'about').boundingBox()).width).toBe(moved.width);
   await page.frameLocator('iframe').getByLabel('Cell A1').click();
-  await expect(win(page, 'sheets')).toHaveAttribute('data-active', 'true');
+  await expect(win(page, 'gridcraft')).toHaveAttribute('data-active', 'true');
   await page.getByRole('button', { name: 'Show desktop', exact: true }).click();
-  await expect(win(page, 'sheets')).toBeHidden();
+  await expect(win(page, 'gridcraft')).toBeHidden();
   await expect(win(page, 'about')).toBeHidden();
 });
 
@@ -87,28 +87,28 @@ test('PC pointer dragging and resizing work without escaping the workspace', asy
 
 test('PC iframe failure offers a working retry', async ({ page }) => {
   let failed = true;
-  await page.route('**/pc/apps/sheets/', route => route.fulfill({ status: failed ? 404 : 200, contentType: 'text/html', body: failed ? '<title>404 Not Found</title>' : appHtml }));
+  await page.route('**/pc/apps/gridcraft/', route => route.fulfill({ status: failed ? 404 : 200, contentType: 'text/html', body: failed ? '<title>404 Not Found</title>' : appHtml }));
   await page.goto('/pc/');
-  await page.locator('[data-shortcut="sheets"]').dblclick();
-  await expect(win(page, 'sheets')).toHaveAttribute('data-load', 'error');
-  await expect(page.getByRole('heading', { name: 'Sheets couldn’t open' })).toBeVisible();
+  await page.locator('[data-shortcut="gridcraft"]').dblclick();
+  await expect(win(page, 'gridcraft')).toHaveAttribute('data-load', 'error');
+  await expect(page.getByRole('heading', { name: 'GridCraft couldn’t open' })).toBeVisible();
   failed = false;
   await page.getByRole('button', { name: 'Try again', exact: true }).click();
-  await expect(win(page, 'sheets')).toHaveAttribute('data-load', 'ready');
+  await expect(win(page, 'gridcraft')).toHaveAttribute('data-load', 'ready');
 });
 
 test('PC keeps a window open if its synchronous save hook fails', async ({ page }) => {
-  await fakeSheets(page);
+  await fakeGridcraft(page);
   await page.goto('/pc/');
-  await page.locator('[data-shortcut="sheets"]').dblclick();
-  await expect(win(page, 'sheets')).toHaveAttribute('data-load', 'ready');
+  await page.locator('[data-shortcut="gridcraft"]').dblclick();
+  await expect(win(page, 'gridcraft')).toHaveAttribute('data-load', 'ready');
   await page.locator('iframe').evaluate(frame => { frame.contentWindow.pcBeforeClose = () => false; });
-  await page.getByRole('button', { name: 'Close Sheets', exact: true }).click();
-  await expect(win(page, 'sheets')).toBeVisible();
+  await page.getByRole('button', { name: 'Close GridCraft', exact: true }).click();
+  await expect(win(page, 'gridcraft')).toBeVisible();
   await expect(page.locator('[data-announcement]')).toContainText('could not save');
   await page.locator('iframe').evaluate(frame => { frame.contentWindow.pcBeforeClose = () => true; });
-  await page.getByRole('button', { name: 'Close Sheets', exact: true }).click();
-  await expect(win(page, 'sheets')).toBeHidden();
+  await page.getByRole('button', { name: 'Close GridCraft', exact: true }).click();
+  await expect(win(page, 'gridcraft')).toBeHidden();
 });
 
 test.describe('PC touch and responsive layout' , () => {
@@ -131,7 +131,7 @@ test.describe('PC touch and responsive layout' , () => {
 });
 
 test('WebPC launcher filters apps and launches a keyboard search result', async ({ page }) => {
-  const loads = await fakeSheets(page);
+  const loads = await fakeGridcraft(page);
   await page.goto('/pc/');
   await expect(page).toHaveTitle('WebPC · Usman Shahid');
   await page.getByRole('button', { name: 'Apps', exact: true }).click();
@@ -139,13 +139,13 @@ test('WebPC launcher filters apps and launches a keyboard search result', async 
   await expect(search).toBeFocused();
   await search.fill('no app matches this');
   await expect(page.locator('[data-app-empty]')).toBeVisible();
-  await search.fill('excel');
-  await expect(page.locator('[data-app-result=sheets]')).toBeVisible();
+  await search.fill('spreadsheet');
+  await expect(page.locator('[data-app-result=gridcraft]')).toBeVisible();
   await expect(page.locator('[data-app-result=about]')).toBeHidden();
   await page.getByLabel('App category').selectOption('System');
   await expect(page.locator('[data-app-empty]')).toBeVisible();
   await page.getByLabel('App category').selectOption('all');
   await search.press('Enter');
-  await expect(win(page, 'sheets')).toHaveAttribute('data-load', 'ready');
+  await expect(win(page, 'gridcraft')).toHaveAttribute('data-load', 'ready');
   expect(loads()).toBe(1);
 });

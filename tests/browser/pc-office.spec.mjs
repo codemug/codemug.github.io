@@ -90,10 +90,10 @@ test('Docs participates in desktop close/reopen and fit a narrow viewport', asyn
     await expect(win).toHaveAttribute('data-load', 'ready');
     const frame = page.frameLocator(`[data-window="${app}"] iframe`);
     if (app === 'docs') { await frame.locator('.layout-paragraph').first().click(); await page.keyboard.type('Close and reopen draft'); }
-    await page.getByRole('button', {name:`Close ${app === 'docs' ? 'Docs' : 'Slides'}`,exact:true}).click();
+    await page.getByRole('button', {name:`Close Docs`,exact:true}).click();
     await expect(win).toBeHidden(); await page.locator(`[data-shortcut="${app}"]`).dblclick();
     if (app === 'docs') await expect(frame.locator('[contenteditable=true]')).toContainText('Close and reopen draft');
-    await page.getByRole('button', {name:`Close ${app === 'docs' ? 'Docs' : 'Slides'}`,exact:true}).click();
+    await page.getByRole('button', {name:`Close Docs`,exact:true}).click();
   }
   await page.setViewportSize({width:390,height:844}); await page.goto('/pc/apps/docs/');
   await expect.poll(() => page.evaluate(() => window.webpcDocs?.getZoom())).toBeLessThan(.5);
