@@ -22,12 +22,20 @@ for(const [id,release] of Object.entries(releases)){
    execFileSync('unzip',['-q',zip,'-d',stage]);const payload=join(stage,`${id}-web-${release.version}`);
    async function prune(dir){for(const entry of await readdir(dir,{withFileTypes:true})){const path=join(dir,entry.name);if(entry.isDirectory())await prune(path);else if(/\.(br|gz)$/.test(entry.name)||['_headers','.htaccess'].includes(entry.name))await rm(path);}}
    await prune(payload);
+   if(id==='photocraft'){ // the 0.23.1 archive ships its eframe snippet at root snippets/ only, but the app imports it from app/snippets/
+     const snippets=join(payload,'snippets'),target=join(payload,'app','snippets');
+     if(!(await access(target).then(()=>true).catch(()=>false))){ // a fixed future release ships app/snippets/ itself
+       await access(snippets).catch(()=>{throw new Error(`${id}: archive has neither snippets/ nor app/snippets/`)});
+       async function copyTree(src,dest){await mkdir(dest,{recursive:true});for(const entry of await readdir(src,{withFileTypes:true})){const s=join(src,entry.name),d=join(dest,entry.name);if(entry.isDirectory())await copyTree(s,d);else await copyFile(s,d);}}
+       await copyTree(snippets,target);
+     }
+   }
    let html=await readFile(join(payload,'index.html'),'utf8');html=html.replace('<html lang="en">',`<html lang="en" data-webpc-app="${id}">`).replace('<head>','<head>\n<script src="./webpc-bootstrap.js"></script>');
    await writeFile(join(payload,'index.html'),html);await writeFile(join(payload,'webpc-bootstrap.js'),bootstrap);
    const notice=join(root,'public/third-party',id);await mkdir(notice,{recursive:true});
    async function notices(dir,relative=''){for(const entry of await readdir(dir,{withFileTypes:true})){const path=join(dir,entry.name),rel=join(relative,entry.name);if(entry.isDirectory())await notices(path,rel);else if(/^(LICENSE|NOTICE|OFL|ATTRIBUTION)|\.LICEN[CS]E(?:\.txt)?$/i.test(entry.name)){const target=join(notice,rel);await mkdir(dirname(target),{recursive:true});await copyFile(path,target);}}}
    await notices(payload);
-   await writeFile(join(notice,'WEBPC.txt'),`${release.title} ${release.version}\nUpstream: https://github.com/storytold/${id}/tree/v${release.version}\nRelease: ${url}\nSHA-256: ${release.sha256}\nOfficial WASM, JavaScript and embedded assets are preserved. WebPC adds a small entry script for storage safety, focus and SoundCraft audio/session handling. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.\n`);
+   await writeFile(join(notice,'WEBPC.txt'),`${release.title} ${release.version}\nUpstream: https://github.com/storytold/${id}/tree/v${release.version}\nRelease: ${url}\nSHA-256: ${release.sha256}\nOfficial WASM, JavaScript and embedded assets are preserved. WebPC adds a small entry script for storage safety, focus and SoundCraft audio/session handling. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.\n${id==='photocraft'?'Packaging workaround: the 0.23.1 archive ships its eframe snippet at root snippets/ only, while the app imports it from app/snippets/, so preparation copies snippets/ to app/snippets/ (skipped when a future release already ships app/snippets/).\n':''}`);
    await writeFile(join(payload,'.release.json'),JSON.stringify({...release,url,fingerprint}));
    await rm(output,{recursive:true,force:true});await rename(payload,output);
  }finally{await rm(stage,{recursive:true,force:true});}
