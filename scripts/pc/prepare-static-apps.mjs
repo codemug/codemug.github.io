@@ -46,7 +46,7 @@ export const staticApps = [
     upstream: 'https://github.com/johnnesky/beepbox',
     sha256: '884e5acb4007535b47b124f66f9a72b339a8df80a625ba6ae952873c166e81de',
     license: { url: 'https://raw.githubusercontent.com/johnnesky/beepbox/v4.2.2/LICENSE.md', sha256: '11bda08d0a35daa31dea162bce1aeaae999938fe7bddabd9709602c28af998ef', name: 'LICENSE.md' },
-    notice: 'Official release bundle (MIT; the release ZIP ships no licence file, so the repo LICENSE.md at tag v4.2.2 is pinned by SHA-256 and copied here). WebPC removes the Google Fonts stylesheet (the UI falls back to system sans-serif), removes the service-worker registration (upstream requests scope "/" and would precache a third-party CDN, shadowing the whole site if it could install), prunes the files WebPC never loads (unminified editor, beepbox_offline.html, index_debug.html, source maps, the unused player/ directory and macOS .DS_Store — the "View in Song Player" menu item, copied HTML embeds and the About link to beepbox_offline.html 404 by design), and injects webpc-audio-guard.js before the app scripts so the WebPC wrapper can pause and suspend audio when its window closes. The song stays in the URL hash; the WebPC wrapper mirrors it to localStorage. Share-menu shortener links (tinyurl, is.gd, …) and the PayPal donation form only send data when the user explicitly submits them. See docs/webpc/static-apps.md.',
+    notice: 'Official release bundle (MIT; the release ZIP ships no licence file, so the repo LICENSE.md at tag v4.2.2 is pinned by SHA-256 and copied here). WebPC removes the Google Fonts stylesheet (the UI falls back to system sans-serif), removes the service-worker registration (upstream requests scope "/" and would precache a third-party CDN, shadowing the whole site if it could install), prunes the files nothing loads (unminified editor, minified synth, beepbox_offline.html, index_debug.html, source maps, macOS .DS_Store — the About link to beepbox_offline.html 404s by design), keeps player/ (the "View in Song Player" menu item and copied HTML embeds point at it at runtime) with its Google Fonts link stripped, and injects webpc-audio-guard.js before the app scripts so the WebPC wrapper can pause and suspend audio when its window closes. The song stays in the URL hash; the WebPC wrapper mirrors it to localStorage. Share-menu shortener links (tinyurl, is.gd, …) and the PayPal donation form only send data when the user explicitly submits them. See docs/webpc/static-apps.md.',
     inject: { name: 'webpc-audio-guard.js', src: 'scripts/pc/static-apps/audio-guard.js' },
     tweak: tweakBeepBox,
   },
@@ -67,19 +67,20 @@ async function tweakBeepBox(payload) {
   const tweaked = code.replace(sw, 'false');
   new Script(tweaked); // syntax-check the tweaked bundle before it can be served
   await writeFile(js, tweaked);
-  // Prune files WebPC never loads: they would stay publicly reachable even though our page
-  // never requests them (unminified editor, offline/debug pages, source maps, macOS junk).
-  for (const junk of ['beepbox_editor.js', 'beepbox_offline.html', 'index_debug.html', 'service_worker.js', '.DS_Store']) await rm(join(payload, junk), { force: true });
-  for (const file of await readdir(payload)) if (file.endsWith('.map')) await rm(join(payload, file), { force: true });
-  // Keep player/ only if index.html links to it (then strip its fonts link, fail loudly);
-  // upstream 4.2.2 does not, so it goes — "View in Song Player" and copied HTML embeds 404.
-  if (!text.includes('player/')) await rm(join(payload, 'player'), { recursive: true, force: true });
-  else {
-    const playerHtml = join(payload, 'player', 'index.html');
-    const playerText = await readFile(playerHtml, 'utf8');
-    if (!playerText.includes(font)) throw new Error('beepbox: player Google Fonts link not found; upstream changed, refusing to prepare.');
-    await writeFile(playerHtml, playerText.replace(font, ''));
-  }
+  // Prune the files nothing loads: they would stay publicly reachable even though no page
+  // fetches them (unminified editor, minified synth, offline/debug pages, source maps, macOS
+  // junk). The minified synth is unreferenced (editor and player bundles inline the synth; the
+  // About example page uses the UNminified one), so it goes, but beepbox_synth.js and
+  // synth_example.html stay: index.html's About section links to the example page.
+  for (const junk of ['beepbox_editor.js', 'beepbox_synth.min.js', 'beepbox_offline.html', 'index_debug.html', 'service_worker.js', '.DS_Store']) await rm(join(payload, junk), { force: true });
+  const pruneMaps = async dir => { for (const entry of await readdir(dir, { withFileTypes: true })) { const path = join(dir, entry.name); if (entry.isDirectory()) await pruneMaps(path); else if (entry.name.endsWith('.map')) await rm(path, { force: true }); } };
+  await pruneMaps(payload);
+  // player/ stays: the bundle builds "View in Song Player" and copied HTML embeds at runtime,
+  // pointing at player/#song=... Strip its Google Fonts link, fail loudly.
+  const playerHtml = join(payload, 'player', 'index.html');
+  const playerText = await readFile(playerHtml, 'utf8');
+  if (!playerText.includes(font)) throw new Error('beepbox: player Google Fonts link not found; upstream changed, refusing to prepare.');
+  await writeFile(playerHtml, playerText.replace(font, ''));
 }
 
 async function notices(dir, target, relative = '') {
