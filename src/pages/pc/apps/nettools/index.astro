@@ -1,0 +1,9 @@
+---
+import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
+---
+<UtilityLayout title="Network and Security Tools">
+  <header><h1>Network and Security Tools</h1><a href="/pc/vendor/nettools/index.html" target="_blank" rel="noopener">Open full page ↗</a><a href="/third-party/nettools/WEBPC.txt" target="_blank" rel="noopener">Licences</a></header>
+  <p class="utility-note" id="nettools-note">Runs entirely in this browser. The Subnet calculator, password-strength and age file-encryption tools are fully local and never send anything to the network. The other tabs — DNS over HTTPS (Cloudflare or Google), domain/IP lookups (rdap.org, crt.sh, Shodan InternetDB), global ping/traceroute/mtr (Globalping, keyless) and latency probes — run only when you click their button, name the service they send to, and show results as text. Globalping probes see the target and your IP address (free tier: 250 tests/hour). Your password and your files are never stored or sent anywhere.</p>
+  <main class="utility-frame"><iframe id="nettools-frame" title="Network and Security Tools" src="/pc/vendor/nettools/index.html"></iframe><div class="utility-loading" id="nettools-loading" role="status"><span id="nettools-status">Loading Network and Security Tools…</span><button id="nettools-retry" hidden>Retry</button></div></main>
+  <script>import '../../../../scripts/pc/apps/nettools.mjs';</script>
+</UtilityLayout>

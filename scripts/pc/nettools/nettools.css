@@ -1,0 +1,31 @@
+:root {
+  --nt-bg: #ffffff; --nt-fg: #1e1e1e; --nt-muted: #6b7280; --nt-card: #f5f5f7;
+  --nt-border: #e2e2e6; --nt-accent: #4f46e5; --nt-accent-fg: #fff; --nt-err: #b42318; --nt-out-bg: #fafafa;
+}
+[data-theme='dark'] {
+  --nt-bg: #101012; --nt-fg: #e5e5e5; --nt-muted: #9ca3af; --nt-card: #1b1b1f;
+  --nt-border: #2c2c31; --nt-accent: #818cf8; --nt-accent-fg: #101012; --nt-err: #f97066; --nt-out-bg: #0c0c0e;
+}
+#nettools-root, #nettools-root * { box-sizing: border-box; }
+#nettools-root {
+  height: 100%; margin: 0; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: auto;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--nt-fg); background: var(--nt-bg);
+}
+#nettools-root h1 { font-size: 20px; margin: 0; }
+.nt-intro { margin: 0; color: var(--nt-muted); font-size: 13px; max-width: 92ch; line-height: 1.4; }
+.nt-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.nt-tab { border: 1px solid var(--nt-border); background: var(--nt-card); color: var(--nt-fg); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.nt-tab.active { background: var(--nt-accent); color: var(--nt-accent-fg); border-color: var(--nt-accent); }
+.nt-content { display: flex; flex-direction: column; gap: 14px; }
+.nt-card { border: 1px solid var(--nt-border); background: var(--nt-card); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.nt-card h3 { margin: 0; font-size: 15px; }
+.nt-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.nt-input { flex: 0 1 280px; padding: 7px 10px; border: 1px solid var(--nt-border); border-radius: 8px; background: var(--nt-bg); color: var(--nt-fg); font-size: 14px; }
+.nt-input-grow { flex: 1 1 240px; }
+.nt-select { padding: 7px 8px; border: 1px solid var(--nt-border); border-radius: 8px; background: var(--nt-bg); color: var(--nt-fg); font-size: 14px; }
+.nt-limit { flex: 0 0 64px; }
+.nt-btn { padding: 7px 14px; border: 0; border-radius: 8px; background: var(--nt-accent); color: var(--nt-accent-fg); font-size: 14px; cursor: pointer; }
+.nt-btn:disabled { opacity: 0.6; cursor: default; }
+.nt-out { margin: 0; padding: 10px; border-radius: 8px; background: var(--nt-out-bg); border: 1px solid var(--nt-border); white-space: pre-wrap; word-break: break-word; font-size: 13px; min-height: 24px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.nt-err { color: var(--nt-err); font-size: 13px; }
+.nt-help { margin: 0; color: var(--nt-muted); font-size: 12px; line-height: 1.4; }
