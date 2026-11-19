@@ -58,7 +58,7 @@
       ROWS.forEach(function (r) {
         var w = GB[r.fmt] * PX, inside = w > 160;
         if (r.appear) ghosts[r.fmt] = el('rect', { 'class': 'gh', x: X0, y: r.y, width: w.toFixed(1), height: BH, rx: 8 }, g);
-        bars[r.fmt] = el('rect', { x: X0, y: r.y, width: '0.01', height: BH, rx: 8, fill: r.fmt === 'bf16' ? 'rgb(' + ACC.join(',') + ')' : 'rgb(' + BAR.join(',') + ')' }, g);
+        bars[r.fmt] = el('rect', { x: X0, y: r.y, width: '0.01', height: BH, rx: 8, fill: r.fmt === 'bf16' ? Deck.color(ACC) : Deck.color(BAR) }, g);
         names[r.fmt] = el('text', { 'class': 'nm', x: 60, y: r.y + 24 }, g, r.name);
         muls[r.fmt] = el('text', { 'class': 'mul', x: 60, y: r.y + 50 }, g, (PARAMS / 1e9).toFixed(1) + 'B \u00d7 ' + byLabel(BPW[r.fmt]));
         vals[r.fmt] = el('text', {
@@ -66,7 +66,7 @@
           x: (inside ? X0 + w - 14 : X0 + w + 12).toFixed(1),
           y: r.y + 38,
           'text-anchor': inside ? 'end' : 'start',
-          fill: r.fmt === 'bf16' ? 'rgb(' + DARK.join(',') + ')' : 'rgb(' + TEXT.join(',') + ')'
+          fill: r.fmt === 'bf16' ? Deck.color(DARK) : Deck.color(TEXT)
         }, g, GB[r.fmt].toFixed(1) + ' GB');
       });
       // real FP8 repo tick on the 8-bit row

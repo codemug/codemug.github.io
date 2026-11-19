@@ -1,0 +1,5 @@
+VERT 35ebeb1679eb0b1af3f099c03060cb89f72e70f8
+Upstream: https://github.com/VERT-sh/VERT/tree/35ebeb1679eb0b1af3f099c03060cb89f72e70f8
+Source archive SHA256: 9bbe95a29176396fd17c02c817fad2d0b856c9477c6f5a7fd0aad982bcbe38ad
+AGPL-3.0; modified source: /third-party/vert/modified-source.tar.gz
+WebPC patches: nested base path, pc:vert: storage namespace, scoped reset/cache service worker, no forced isolation, remote-service probes blocked, remote avatars omitted, local CSP, hydration/lifecycle bridge. Native converters and their licenses retained. Frozen Bun1.3.14 build; pinned translation plugins.

@@ -9,17 +9,10 @@
 //   (i = figure index from 1, k = frame number). Prints the number of screenshots.
 //   Exits non-zero if a figure's data-frame does not follow the clicked dot.
 //
-// Needs Playwright, which is not a repo dependency: set PLAYWRIGHT_MODULE to its
-// path, or keep the sibling install at ../immigration/career-ops/node_modules/playwright.
+// Install the repository browser: npx playwright install chromium.
 
-import { createRequire } from 'node:module';
+import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const require = createRequire(import.meta.url);
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || resolve(repo, '../immigration/career-ops/node_modules/playwright'));
 
 const args = process.argv.slice(2);
 const [urlArg, outDir] = args;

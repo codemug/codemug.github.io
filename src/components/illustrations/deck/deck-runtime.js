@@ -5,7 +5,7 @@
  * Each <figure class="dk"> is a small player over one or more slides, whose build steps are
  * flattened into states. Where this differs from the talk's single-slide engine:
  *   - state is per figure; a tween or loop belongs to the slide whose hook started it and is
- *     cancelled when that figure changes slide;
+ *     cancelled when that figure changes slide; finite tweens also cancel on each step;
  *   - a figure autoplays only while at least half visible, stops at its last state, and never
  *     autoplays under prefers-reduced-motion;
  *   - an off-screen figure is idle: running tweens jump to their end, loops pause, and any
@@ -16,7 +16,8 @@
   if (window.Deck) return;
 
   var FRAME_W = 1280, FRAME_H = 720, MIN_W = 640;
-  var reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reduce = motion.matches;
   var hooks = {};
   var players = [];
   var active = null; // the slide record whose hook, tween or loop callback is running
@@ -119,9 +120,11 @@
   }
   function rgb(name) {
     var a = readRgb(name);
+    a.token = name;
     liveColors.push({ name: name, rgb: a });
     return a;
   }
+  function color(a) { return a.token ? 'var(' + a.token + ')' : 'rgb(' + a.join(',') + ')'; }
   function refreshColors() {
     liveColors.forEach(function (c) { var v = readRgb(c.name); c.rgb[0] = v[0]; c.rgb[1] = v[1]; c.rgb[2] = v[2]; });
   }
@@ -256,6 +259,10 @@
       this.applyStep(rec, 0, -1, true);
       if (n > 0) { this.curStep = n; this.applyStep(rec, n, 0, true); }
     } else if (n !== this.curStep) {
+      // A new step supersedes every finite animation of the previous step,
+      // including its completion callbacks. Keep continuous slide loops alive.
+      rec.tweens.forEach(function (t) { if (!t.pause) t.cancel(); });
+      rec.tweens = rec.tweens.filter(function (t) { return t.pause; });
       var p = this.curStep;
       this.curStep = n;
       this.applyStep(rec, n, p, !!(opts && opts.instant));
@@ -382,7 +389,7 @@
   Player.prototype.redraw = function () {
     var rec = this.recs[this.cur], n = this.curStep;
     this.cancel(rec);
-    this.hook(rec, 'enter', [this.ctx(rec)]);
+    this.hook(rec, 'enter', [this.ctx(rec, true)]);
     this.applyStep(rec, 0, -1, true);
     if (n > 0) this.applyStep(rec, n, 0, true);
   };
@@ -420,10 +427,20 @@
     });
   }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
+  motion.addEventListener('change', function (e) {
+    reduce = e.matches;
+    window.Deck.reduced = reduce;
+    players.forEach(function (p) {
+      p.pause();
+      p.redraw();
+      if (!reduce && p.visible && !p.touched && !p.finished && !p.interactive) p.play();
+    });
+  });
+
   window.Deck = {
     slide: function (id, h) { hooks[id] = h || {}; },
     tween: tween, loop: loop, ease: ease, lerp: lerp, mul: mul, vmul: vmul, dot: dot,
-    plane: plane, cam3: cam3, reduced: reduce, scale: scale, rgb: rgb,
+    plane: plane, cam3: cam3, reduced: reduce, scale: scale, rgb: rgb, color: color,
     shaders: function () { return Promise.resolve(null); }
   };
 

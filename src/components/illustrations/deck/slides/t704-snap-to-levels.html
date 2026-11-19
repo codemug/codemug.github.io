@@ -63,7 +63,7 @@
         if (c < VMIN || c > VMAX || !HIST_COUNTS[i]) continue;
         var hx1 = Math.max(AX0, xv(c - HIST_BW / 2)), hx2 = Math.min(AX1, xv(c + HIST_BW / 2));
         var hh = HIST_COUNTS[i] / maxC * 150;
-        el('rect', { x: hx1.toFixed(1), y: (AY - hh).toFixed(1), width: (hx2 - hx1).toFixed(1), height: hh.toFixed(1), fill: 'rgb(' + FAINT.join(',') + ')', opacity: 0.55 }, g);
+        el('rect', { x: hx1.toFixed(1), y: (AY - hh).toFixed(1), width: (hx2 - hx1).toFixed(1), height: hh.toFixed(1), fill: Deck.color(FAINT), opacity: 0.55 }, g);
       }
 
       // number line with end labels

@@ -1,0 +1,6 @@
+---
+import html from '../../../../apps/ai-agent/index.html?raw';
+// Authored static app, prepared runtime assets. The base keeps worker/vendor URLs same-origin.
+const document = html.replace('<head>', '<head><base href="/pc/vendor/ai-agent/">');
+---
+<Fragment set:html={document} />

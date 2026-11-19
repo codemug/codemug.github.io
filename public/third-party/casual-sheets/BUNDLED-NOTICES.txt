@@ -1,0 +1,313 @@
+formula.worker.js
+/*! Bundled license information:
+
+@wendellhu/redi/dist/esm/index.js:
+  (* istanbul ignore next -- @preserve *)
+
+lodash-es/lodash.js:
+  (**
+   * @license
+   * Lodash (Custom Build) <https://lodash.com/>
+   * Build: `lodash modularize exports="es" --repo lodash/lodash#4.18.1 -o ./`
+   * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+   * Released under MIT license <https://lodash.com/license>
+   * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+   * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+   *)
+
+decimal.js/decimal.mjs:
+  (*!
+   *  decimal.js v10.6.0
+   *  An arbitrary-precision Decimal type for JavaScript.
+   *  https://github.com/MikeMcl/decimal.js
+   *  Copyright (c) 2025 Michael Mclaughlin <M8ch88l@gmail.com>
+   *  MIT Licence
+   *)
+*/
+
+
+exporter.worker.js
+/*! Bundled license information:
+
+exceljs/dist/exceljs.min.js:
+  (*! ExcelJS 19-10-2023 *)
+  (*!
+   * The buffer module from node.js, for the browser.
+   *
+   * @author   Feross Aboukhadijeh <https://feross.org>
+   * @license  MIT
+   *)
+  (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
+  (*!
+  
+  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
+  <http://stuartk.com/jszip>
+  
+  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
+  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
+  
+  JSZip uses the library pako released under the MIT license :
+  https://github.com/nodeca/pako/blob/main/LICENSE
+  *)
+  (*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> *)
+  (**
+   * Character classes and associated utilities for the 5th edition of XML 1.0.
+   *
+   * @author Louis-Dominique Dubeau
+   * @license MIT
+   * @copyright Louis-Dominique Dubeau
+   *)
+  (**
+   * Character classes and associated utilities for the 2nd edition of XML 1.1.
+   *
+   * @author Louis-Dominique Dubeau
+   * @license MIT
+   * @copyright Louis-Dominique Dubeau
+   *)
+  (**
+   * Character class utilities for XML NS 1.0 edition 3.
+   *
+   * @author Louis-Dominique Dubeau
+   * @license MIT
+   * @copyright Louis-Dominique Dubeau
+   *)
+
+jszip/dist/jszip.min.js:
+  (*!
+  
+  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
+  <http://stuartk.com/jszip>
+  
+  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
+  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
+  
+  JSZip uses the library pako released under the MIT license :
+  https://github.com/nodeca/pako/blob/main/LICENSE
+  *)
+
+@wendellhu/redi/dist/esm/index.js:
+  (* istanbul ignore next -- @preserve *)
+
+lodash-es/lodash.js:
+  (**
+   * @license
+   * Lodash (Custom Build) <https://lodash.com/>
+   * Build: `lodash modularize exports="es" --repo lodash/lodash#4.18.1 -o ./`
+   * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+   * Released under MIT license <https://lodash.com/license>
+   * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+   * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+   *)
+*/
+
+
+embed-runtime.js
+/*! Bundled license information:
+
+react/cjs/react.production.js:
+react/cjs/react.production.js:
+  (**
+   * @license React
+   * react.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+scheduler/cjs/scheduler.production.js:
+scheduler/cjs/scheduler.production.js:
+  (**
+   * @license React
+   * scheduler.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom.production.js:
+react-dom/cjs/react-dom.production.js:
+  (**
+   * @license React
+   * react-dom.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom-client.production.js:
+react-dom/cjs/react-dom-client.production.js:
+  (**
+   * @license React
+   * react-dom-client.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+@wendellhu/redi/dist/esm/index.js:
+  (* istanbul ignore next -- @preserve *)
+
+lodash-es/lodash.js:
+  (**
+   * @license
+   * Lodash (Custom Build) <https://lodash.com/>
+   * Build: `lodash modularize exports="es" --repo lodash/lodash#4.18.1 -o ./`
+   * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+   * Released under MIT license <https://lodash.com/license>
+   * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+   * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+   *)
+
+decimal.js/decimal.mjs:
+  (*!
+   *  decimal.js v10.6.0
+   *  An arbitrary-precision Decimal type for JavaScript.
+   *  https://github.com/MikeMcl/decimal.js
+   *  Copyright (c) 2025 Michael Mclaughlin <M8ch88l@gmail.com>
+   *  MIT Licence
+   *)
+
+react/cjs/react-jsx-runtime.production.js:
+react/cjs/react-jsx-runtime.production.js:
+  (**
+   * @license React
+   * react-jsx-runtime.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+localforage/dist/localforage.js:
+  (*!
+      localForage -- Offline Storage, Improved
+      Version 1.10.0
+      https://localforage.github.io/localForage
+      (c) 2013-2017 Mozilla, Apache License 2.0
+  *)
+
+jszip/dist/jszip.min.js:
+  (*!
+  
+  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
+  <http://stuartk.com/jszip>
+  
+  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
+  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
+  
+  JSZip uses the library pako released under the MIT license :
+  https://github.com/nodeca/pako/blob/main/LICENSE
+  *)
+
+tslib/tslib.es6.js:
+  (*! *****************************************************************************
+  Copyright (c) Microsoft Corporation.
+  
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted.
+  
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+  REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+  INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+  OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  PERFORMANCE OF THIS SOFTWARE.
+  ***************************************************************************** *)
+
+zrender/lib/zrender.js:
+  (*!
+  * ZRender, a high performance 2d drawing library.
+  *
+  * Copyright (c) 2013, Baidu Inc.
+  * All rights reserved.
+  *
+  * LICENSE
+  * https://github.com/ecomfe/zrender/blob/master/LICENSE.txt
+  *)
+*/
+
+
+parser.worker.js
+/*! Bundled license information:
+
+exceljs/dist/exceljs.min.js:
+  (*! ExcelJS 19-10-2023 *)
+  (*!
+   * The buffer module from node.js, for the browser.
+   *
+   * @author   Feross Aboukhadijeh <https://feross.org>
+   * @license  MIT
+   *)
+  (*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> *)
+  (*!
+  
+  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
+  <http://stuartk.com/jszip>
+  
+  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
+  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
+  
+  JSZip uses the library pako released under the MIT license :
+  https://github.com/nodeca/pako/blob/main/LICENSE
+  *)
+  (*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> *)
+  (**
+   * Character classes and associated utilities for the 5th edition of XML 1.0.
+   *
+   * @author Louis-Dominique Dubeau
+   * @license MIT
+   * @copyright Louis-Dominique Dubeau
+   *)
+  (**
+   * Character classes and associated utilities for the 2nd edition of XML 1.1.
+   *
+   * @author Louis-Dominique Dubeau
+   * @license MIT
+   * @copyright Louis-Dominique Dubeau
+   *)
+  (**
+   * Character class utilities for XML NS 1.0 edition 3.
+   *
+   * @author Louis-Dominique Dubeau
+   * @license MIT
+   * @copyright Louis-Dominique Dubeau
+   *)
+
+jszip/dist/jszip.min.js:
+  (*!
+  
+  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
+  <http://stuartk.com/jszip>
+  
+  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
+  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
+  
+  JSZip uses the library pako released under the MIT license :
+  https://github.com/nodeca/pako/blob/main/LICENSE
+  *)
+
+@wendellhu/redi/dist/esm/index.js:
+  (* istanbul ignore next -- @preserve *)
+
+lodash-es/lodash.js:
+  (**
+   * @license
+   * Lodash (Custom Build) <https://lodash.com/>
+   * Build: `lodash modularize exports="es" --repo lodash/lodash#4.18.1 -o ./`
+   * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
+   * Released under MIT license <https://lodash.com/license>
+   * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
+   * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+   *)
+*/
+//# sourceMappingURL=parser.worker.js.map

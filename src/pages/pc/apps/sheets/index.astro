@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Sheets · WebPC</title>
+  </head>
+  <body>
+    <header class="app-bar">
+      <label class="title"><span class="app-icon" aria-hidden="true">▦</span><input id="workbook-name" aria-label="Workbook name" maxlength="100" value="Untitled workbook" disabled /></label>
+      <nav aria-label="Workbook actions">
+        <button id="new-workbook" disabled>New</button>
+        <button id="open-workbook" disabled>Open…</button>
+        <button id="export-xlsx" disabled>Export XLSX</button>
+        <button id="export-json" disabled>Backup JSON</button>
+        <button id="recover-workbook" disabled>Recover previous</button>
+        <button id="help-button">Help</button>
+      </nav>
+    </header>
+    <div class="save-line"><span id="save-status" role="status" aria-live="polite">Loading spreadsheet…</span><span>This browser only</span></div>
+    <div id="error-box" role="alert" hidden><span id="error-text"></span><button id="download-stored" hidden>Download stored backup</button><button id="retry-button" hidden>Retry</button></div>
+    <main id="editor-container" aria-label="Spreadsheet editor"><iframe id="sheets-editor" title="Workbook grid and formatting" allow="clipboard-read; clipboard-write" tabindex="0"></iframe><div id="loading">Opening your workbook…</div></main>
+    <input id="file-input" type="file" accept=".xlsx,.json" hidden />
+    <dialog id="help-dialog" aria-labelledby="help-title">
+      <h1 id="help-title">Your local spreadsheet</h1>
+      <p>Edit cells, enter formulas such as <code>=SUM(A1:A5)</code>, format a selection, and use + below the grid to add sheets. Enter commits a cell; Ctrl/Cmd+S saves locally.</p>
+      <p>Changes stay in this browser on this device. Clearing site data removes them. Export important work regularly: <strong>JSON backup</strong> preserves the workbook snapshot; <strong>XLSX</strong> works with other spreadsheet apps. Excel compatibility is partial: charts, pivots, sparklines, macros, and external links are not supported here.</p>
+      <p>New and Open keep one previous workbook under Recover previous. Choose an XLSX or a JSON backup from this app, up to 20 MB. Large workbooks may exceed browser storage; if saving fails, keep this window open and download a backup.</p>
+      <p>Powered by <a href="https://github.com/CasualOffice/sheets" target="_blank" rel="noopener noreferrer">Casual Sheets 0.20.0</a> and Univer. <a href="/third-party/casual-sheets/NOTICE" target="_blank">Third-party notices</a> · <a href="/third-party/casual-sheets/LICENSE" target="_blank">License</a></p>
+      <form method="dialog"><button>Close help</button></form>
+    </dialog>
+    <script>
+      import '../../../../../scripts/pc/sheets/app.mjs';
+    </script>
+  </body>
+</html>
+<style is:global>
+  :root { font-family: system-ui, sans-serif; color: #243328; background: #f6f8f5; color-scheme: light; --line:#d6dfd5; --panel:#fff; --muted:#536252; --accent:#2d613e; }
+  :root[data-theme="dark"] { color:#e7ede6; background:#1c241e; color-scheme:dark; --line:#405144; --panel:#253028; --muted:#becbbc; --accent:#b5dfb2; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden; }
+  body { display:flex; flex-direction:column; font-size:13px; }
+  .app-bar { display:flex; flex-wrap:wrap; gap:6px 14px; padding:9px 12px; align-items:center; background:var(--panel); border-bottom:1px solid var(--line); }
+  .title { display:flex; align-items:center; gap:8px; flex:1 1 180px; max-width:330px; }
+  .app-icon { font-size:26px; color:var(--accent); }
+  input { font:inherit; }
+  #workbook-name { border:1px solid transparent; width:100%; min-width:80px; color:inherit; background:transparent; padding:5px; font-weight:650; border-radius:4px; }
+  #workbook-name:hover,#workbook-name:focus { border-color:var(--line); }
+  nav { display:flex; flex-wrap:wrap; gap:5px; }
+  button { font:inherit; color:inherit; border:1px solid var(--line); border-radius:5px; background:var(--panel); padding:6px 9px; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:var(--accent); }
+  button:disabled { opacity:.55; cursor:default; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .save-line { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px; padding:5px 13px; color:var(--muted); font-size:11px; border-bottom:1px solid var(--line); }
+  #error-box { background:#fff0d1; color:#613e00; padding:8px 12px; border-bottom:1px solid #dcb759; }
+  #error-box button { margin-left:8px; color:#613e00; background:#fff9ed; }
+  #error-box[hidden] { display:none; }
+  main { flex:1; position:relative; min-height:0; background:var(--panel); }
+  iframe { display:block; width:100%; height:100%; border:0; }
+  #loading { position:absolute; inset:0; display:grid; place-items:center; background:var(--panel); color:var(--muted); }
+  #loading[hidden] { display:none; }
+  dialog { max-width:560px; max-height:85vh; overflow:auto; border:1px solid var(--line); border-radius:10px; padding:24px; background:var(--panel); color:inherit; line-height:1.6; }
+  dialog::backdrop { background:#0008; }
+  dialog h1 { font-size:19px; margin-top:0; }
+  a { color:var(--accent); }
+  @media(max-width:600px) { .app-bar { padding:6px 8px; gap:4px; } nav { gap:3px; } button { padding:5px 7px; font-size:11px; } .title { max-width:none; flex-basis:100%; } #workbook-name { font-size:13px; } .save-line { padding:4px 8px; } }
+</style>

@@ -1,0 +1,19 @@
+/* Keep the native editor navigable in a narrow WebPC window. */
+@media(max-width:600px){
+ .cs-slide-rail{width:72px}
+ body.cs-slide-rail-open .cs-workspace,body.cs-slide-rail-open .cs-notes{margin-left:72px;transition:none}
+ .cs-slide-rail__list{padding:6px 3px}
+ .cs-slide-rail__thumb-frame{display:none}
+ .cs-slide-rail__thumb{min-height:48px;min-width:46px;font-size:10px;white-space:normal}
+ .cs-slide-rail__thumb::after{content:attr(aria-label)}
+ .cs-slide-rail__num{display:none}
+ .cs-slide-rail__add{font-size:10px;padding:8px 2px;white-space:normal}
+ .cs-toolbar2__row{overflow-x:auto;scrollbar-width:thin}
+ .cs-titlebar__center{min-width:0}
+ .cs-titlebar__row--menus{overflow-x:auto;scrollbar-width:thin}
+ .cs-titlebar__filename-input{min-width:0;max-width:160px}
+ .cs-titlebar__actions{gap:0}
+ .cs-titlebar__actions .cs-btn{padding:5px}
+ .cs-titlebar__saved{display:none}
+ .cs-statusbar{overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+}

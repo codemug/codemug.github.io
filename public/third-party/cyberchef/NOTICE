@@ -1,0 +1,9 @@
+CyberChef 11.5.0
+Crown Copyright 2016-2026
+https://github.com/gchq/CyberChef
+Source commit: 8cd426dd4f40f1423912d5fad91b578a86a65112
+Apache License 2.0, supplied in LICENSE.
+
+WebPC serves the upstream web release unmodified in /pc/vendor/cyberchef/.
+Bundled third-party *.LICENSE.txt files remain alongside their JS artifacts.
+The WebPC wrapper is separate from the upstream application.

@@ -25,16 +25,16 @@ const fmt = (d: Date) =>
   <section class="max-w-[720px] mx-auto px-6 sm:px-8 py-16 sm:py-20 rise">
     <header class="mb-12">
       <p
-        class="font-mono text-[12.5px] tracking-[0.08em] uppercase text-[--color-accent]"
+        class="font-mono text-[12.5px] tracking-[0.08em] uppercase text-[var(--color-accent)]"
       >
         Writing
       </p>
       <h1
-        class="mt-3 text-[30px] sm:text-[38px] leading-[1.12] font-semibold tracking-[-0.02em] text-[--color-text]"
+        class="mt-3 text-[30px] sm:text-[38px] leading-[1.12] font-semibold tracking-[-0.02em] text-[var(--color-text)]"
       >
         Notes on small-model agents
       </h1>
-      <p class="mt-4 text-[15px] leading-relaxed text-[--color-text-muted]">
+      <p class="mt-4 text-[15px] leading-relaxed text-[var(--color-text-muted)]">
         Technical writeups and opinions on running capable agents on local,
         open-weight models. Also on
         <a
@@ -48,30 +48,30 @@ const fmt = (d: Date) =>
 
     {
       posts.length === 0 ? (
-        <p class="text-[15px] text-[--color-text-dim]">
+        <p class="text-[15px] text-[var(--color-text-dim)]">
           No posts yet - the first one is on its way.
         </p>
       ) : (
-        <ul class="flex flex-col divide-y divide-[--color-hairline]">
+        <ul class="flex flex-col divide-y divide-[var(--color-hairline)]">
           {posts.map((post) => (
             <li class="group py-6 first:pt-0">
               <a href={`/blog/${post.id}/`} class="block">
                 <div class="flex items-baseline justify-between gap-4">
-                  <h2 class="text-[18px] sm:text-[19px] font-medium tracking-[-0.01em] text-[--color-text] group-hover:text-[--color-accent] transition-colors">
+                  <h2 class="text-[18px] sm:text-[19px] font-medium tracking-[-0.01em] text-[var(--color-text)] group-hover:text-[var(--color-accent)] transition-colors">
                     {post.data.title}
                   </h2>
                   <time
                     datetime={post.data.pubDate.toISOString()}
-                    class="shrink-0 font-mono text-[12px] text-[--color-text-dim]"
+                    class="shrink-0 font-mono text-[12px] text-[var(--color-text-dim)]"
                   >
                     {fmt(post.data.pubDate)}
                   </time>
                 </div>
-                <p class="mt-1.5 text-[14.5px] leading-relaxed text-[--color-text-muted]">
+                <p class="mt-1.5 text-[14.5px] leading-relaxed text-[var(--color-text-muted)]">
                   {post.data.description}
                 </p>
                 {post.data.tags.length > 0 && (
-                  <div class="mt-2.5 flex flex-wrap gap-2 font-mono text-[11.5px] text-[--color-text-dim]">
+                  <div class="mt-2.5 flex flex-wrap gap-2 font-mono text-[11.5px] text-[var(--color-text-dim)]">
                     {post.data.tags.map((t) => (
                       <span>#{t}</span>
                     ))}

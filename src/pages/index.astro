@@ -177,27 +177,27 @@ const posts = [
         class="absolute inset-x-0 top-[-40px] bottom-0 w-full h-full pointer-events-none opacity-90"></canvas>
       <div class="relative z-[2]">
         <div
-          class="rise inline-flex items-center gap-2.5 font-mono text-[12.5px] uppercase tracking-[0.14em] text-[--color-accent] mb-7 rounded-full px-3.5 py-2"
+          class="rise inline-flex items-center gap-2.5 font-mono text-[12.5px] uppercase tracking-[0.14em] text-[var(--color-accent)] mb-7 rounded-full px-3.5 py-2"
           style="border:1px solid color-mix(in oklab,var(--color-accent) 28%,transparent);background:color-mix(in oklab,var(--color-accent) 5%,transparent)"
         >
           <span
-            class="w-1.5 h-1.5 rounded-full bg-[--color-accent]"
+            class="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]"
             style="animation:pulse 2s ease-in-out infinite"></span>
           Staff SRE · Platform Engineering · Dubai
         </div>
         <h1
-          class="rise text-[clamp(48px,8.4vw,92px)] leading-[1.0] font-semibold tracking-[-0.038em] text-[--color-text] mb-8"
+          class="rise text-[clamp(48px,8.4vw,92px)] leading-[1.0] font-semibold tracking-[-0.038em] text-[var(--color-text)] mb-8"
           style="animation-delay:.06s"
         >
           Usman Shahid
         </h1>
         <p
-          class="rise text-[clamp(20px,2.6vw,28px)] leading-[1.48] font-[380] text-[--color-text-soft] max-w-[780px] tracking-[-0.013em]"
+          class="rise text-[clamp(20px,2.6vw,28px)] leading-[1.48] font-[380] text-[var(--color-text-soft)] max-w-[780px] tracking-[-0.013em]"
           style="animation-delay:.12s"
         >
           Classic SRE discipline applied to the agentic-AI era. 11+ years scaling
           resilient, cost-effective cloud infrastructure,<span
-            class="text-[--color-text-dim]"
+            class="text-[var(--color-text-dim)]"
           >
             now building production AI Agent platforms with MCP, multi-agent
             orchestration, and human-in-the-loop approvals.</span
@@ -222,26 +222,26 @@ const posts = [
         </div>
       </div>
       <div
-        class="absolute bottom-7 left-0 flex items-center gap-2.5 font-mono text-[11px] tracking-[0.1em] text-[--color-text-faint] z-[2]"
+        class="absolute bottom-7 left-0 flex items-center gap-2.5 font-mono text-[11px] tracking-[0.1em] text-[var(--color-text-faint)] z-[2]"
       >
-        <span class="w-[26px] h-px bg-[--color-border]"></span>SCROLL
+        <span class="w-[26px] h-px bg-[var(--color-border)]"></span>SCROLL
       </div>
     </header>
 
     <!-- 01 · IMPACT METRICS -->
-    <section id="impact" class="py-[70px] border-t border-[--color-hairline] scroll-mt-24">
+    <section id="impact" class="py-[70px] border-t border-[var(--color-hairline)] scroll-mt-24">
       <div data-reveal class="flex items-baseline gap-4 mb-12">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">01</span>
+        <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">01</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">Impact at a glance</h2>
       </div>
       <div
-        class="stat-grid grid grid-cols-2 md:grid-cols-4 gap-px bg-[--color-surface-2] border border-[--color-surface-2] rounded-[18px] overflow-hidden"
+        class="stat-grid grid grid-cols-2 md:grid-cols-4 gap-px bg-[var(--color-surface-2)] border border-[var(--color-surface-2)] rounded-[18px] overflow-hidden"
       >
         {
           metrics.map((m) => (
-            <div data-reveal class="mcell bg-[--color-surface-deep] px-6 py-9">
+            <div data-reveal class="mcell bg-[var(--color-surface-deep)] px-6 py-9">
               <div
-                class="count text-[clamp(34px,4.4vw,50px)] font-semibold tracking-[-0.035em] text-[--color-text] leading-none"
+                class="count text-[clamp(34px,4.4vw,50px)] font-semibold tracking-[-0.035em] text-[var(--color-text)] leading-none"
                 style="font-variant-numeric:tabular-nums"
                 data-to={m.to}
                 data-prefix={m.prefix}
@@ -251,7 +251,7 @@ const posts = [
               >
                 {fmtCount(m)}
               </div>
-              <div class="mt-3 text-[13.5px] leading-[1.5] text-[--color-text-muted]">{m.label}</div>
+              <div class="mt-3 text-[13.5px] leading-[1.5] text-[var(--color-text-muted)]">{m.label}</div>
             </div>
           ))
         }
@@ -259,17 +259,17 @@ const posts = [
     </section>
 
     <!-- 02 · PRIMER -->
-    <section id="platform" class="py-20 border-t border-[--color-hairline] scroll-mt-24">
+    <section id="platform" class="py-20 border-t border-[var(--color-hairline)] scroll-mt-24">
       <div data-reveal class="flex items-baseline gap-4 mb-3.5">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">02</span>
+        <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">02</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">
-          Primer <span class="text-[--color-text-faint] font-normal">· open-source project</span>
+          Primer <span class="text-[var(--color-text-faint)] font-normal">· open-source project</span>
         </h2>
       </div>
-      <p data-reveal class="text-[16px] leading-[1.6] text-[--color-text-muted] max-w-[720px] mb-7">
+      <p data-reveal class="text-[16px] leading-[1.6] text-[var(--color-text-muted)] max-w-[720px] mb-7">
         An unopinionated, batteries-included agent-orchestration platform. Instead of one giant agent
         with everything crammed into its prompt, Primer orchestrates
-        <span class="text-[--color-text-soft]">fleets of small, focused agents</span>, each with a
+        <span class="text-[var(--color-text-soft)]">fleets of small, focused agents</span>, each with a
         clean working context, runnable on your own hardware.
       </p>
 
@@ -279,8 +279,8 @@ const posts = [
         class="flex gap-4 items-start rounded-xl px-6 py-5 max-w-[760px] mb-11"
         style="background:color-mix(in oklab,var(--color-accent) 4%,transparent);border:1px solid color-mix(in oklab,var(--color-accent) 25%,transparent);border-left:3px solid var(--color-accent)"
       >
-        <span class="font-mono text-[11px] text-[--color-accent] tracking-[0.1em] mt-[3px] whitespace-nowrap">THE BET</span>
-        <p class="text-[16px] leading-[1.6] text-[--color-text]">
+        <span class="font-mono text-[11px] text-[var(--color-accent)] tracking-[0.1em] mt-[3px] whitespace-nowrap">THE BET</span>
+        <p class="text-[16px] leading-[1.6] text-[var(--color-text)]">
           A small model given a clean, purpose-built context can rival a much larger one. A lever on
           any model, large or small.
         </p>
@@ -386,7 +386,7 @@ const posts = [
             platformStats.map((s) => (
               <div style="background:var(--color-surface-deep);padding:24px 22px">
                 <div
-                  class="count text-[clamp(26px,3vw,34px)] font-semibold tracking-[-0.03em] text-[--color-accent] leading-none"
+                  class="count text-[clamp(26px,3vw,34px)] font-semibold tracking-[-0.03em] text-[var(--color-accent)] leading-none"
                   style="font-variant-numeric:tabular-nums"
                   data-to={s.to}
                   data-prefix={s.prefix}
@@ -406,16 +406,16 @@ const posts = [
           href="https://github.com/primerhq/primer"
           target="_blank"
           rel="noopener noreferrer"
-          class="prim-link inline-flex items-center gap-2.5 mt-7 text-[14px] text-[--color-accent] font-medium"
+          class="prim-link inline-flex items-center gap-2.5 mt-7 text-[14px] text-[var(--color-accent)] font-medium"
           >View Primer on GitHub <span>→</span></a
         >
       </div>
     </section>
 
     <!-- 03 · COST DONUT -->
-    <section class="py-20 border-t border-[--color-hairline]">
+    <section class="py-20 border-t border-[var(--color-hairline)]">
       <div data-reveal class="flex items-baseline gap-4 mb-11">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">03</span>
+        <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">03</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">Engineering for cost</h2>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-12 items-center">
@@ -456,17 +456,17 @@ const posts = [
           </svg>
         </div>
         <div data-reveal>
-          <p class="text-[18px] leading-[1.6] text-[--color-text-soft] max-w-[560px] mb-6">
-            Cut EKS cluster spend by <span class="text-[--color-accent] font-semibold">40%</span>
+          <p class="text-[18px] leading-[1.6] text-[var(--color-text-soft)] max-w-[560px] mb-6">
+            Cut EKS cluster spend by <span class="text-[var(--color-accent)] font-semibold">40%</span>
             without compromising reliability, through workload-aware right-sizing and aggressive but
             safe consolidation.
           </p>
           <ul class="list-none flex flex-col gap-3.5">
             {
               costLevers.map((c) => (
-                <li class="flex gap-3.5 text-[15px] leading-[1.5] text-[--color-text-soft] items-start">
+                <li class="flex gap-3.5 text-[15px] leading-[1.5] text-[var(--color-text-soft)] items-start">
                   <span
-                    class="flex-none mt-1.5 w-1.5 h-1.5 rounded-full bg-[--color-accent]"
+                    class="flex-none mt-1.5 w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]"
                     style="box-shadow:0 0 8px color-mix(in oklab,var(--color-accent) 60%,transparent)"
                   />
                   <span>{c}</span>
@@ -479,13 +479,13 @@ const posts = [
     </section>
 
     <!-- 04 · GATEWAY CONSOLIDATION -->
-    <section id="gateway" class="py-20 border-t border-[--color-hairline]">
+    <section id="gateway" class="py-20 border-t border-[var(--color-hairline)]">
       <div data-reveal class="flex items-baseline gap-4 mb-3.5">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">04</span>
+        <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">04</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">From 12 gateways to 1</h2>
       </div>
-      <p data-reveal class="text-[16px] leading-[1.6] text-[--color-text-muted] max-w-[720px] mb-11">
-        At Careem I built a <span class="text-[--color-text-soft]">self-service API Gateway platform on Kong</span>,
+      <p data-reveal class="text-[16px] leading-[1.6] text-[var(--color-text-muted)] max-w-[720px] mb-11">
+        At Careem I built a <span class="text-[var(--color-text-soft)]">self-service API Gateway platform on Kong</span>,
         then reliably migrated live public traffic off 12 legacy reverse proxies and gateways onto it,
         without dropping a request.
       </p>
@@ -541,7 +541,7 @@ const posts = [
           {
             gwMigration.map((m) => (
               <div class="rounded-xl px-4 py-[18px]" style="background:var(--color-surface-deep);border:1px solid var(--color-hairline)">
-                <div class="font-mono text-[11px] text-[--color-accent] mb-2.5">{m.step}</div>
+                <div class="font-mono text-[11px] text-[var(--color-accent)] mb-2.5">{m.step}</div>
                 <div class="text-[13.5px] font-semibold text-[var(--color-text)] mb-1.5">{m.title}</div>
                 <div class="text-[12px] leading-[1.45] text-[var(--color-text-muted)]">{m.desc}</div>
               </div>
@@ -557,7 +557,7 @@ const posts = [
             gwStats.map((s) => (
               <div style="background:var(--color-surface-deep);padding:24px 22px">
                 <div
-                  class="count text-[clamp(24px,3vw,32px)] font-semibold tracking-[-0.03em] text-[--color-accent] leading-none"
+                  class="count text-[clamp(24px,3vw,32px)] font-semibold tracking-[-0.03em] text-[var(--color-accent)] leading-none"
                   style="font-variant-numeric:tabular-nums"
                   data-to={s.to}
                   data-prefix={s.prefix}
@@ -576,9 +576,9 @@ const posts = [
     </section>
 
     <!-- 05 · EXPERIENCE TIMELINE -->
-    <section id="work" class="py-20 border-t border-[--color-hairline] scroll-mt-24">
+    <section id="work" class="py-20 border-t border-[var(--color-hairline)] scroll-mt-24">
       <div data-reveal class="flex items-baseline gap-4 mb-12">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">05</span>
+        <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">05</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">Experience</h2>
       </div>
       <div class="relative pl-[30px]">
@@ -597,16 +597,16 @@ const posts = [
               />
               <div class="exp-row grid grid-cols-1 sm:grid-cols-[160px_1fr] gap-3.5 sm:gap-[30px]">
                 <div>
-                  <div class="font-mono text-[12px] text-[--color-text-dim]">{j.period}</div>
-                  <div class="mt-[7px] text-[14px] font-medium text-[--color-text-muted]">{j.company}</div>
+                  <div class="font-mono text-[12px] text-[var(--color-text-dim)]">{j.period}</div>
+                  <div class="mt-[7px] text-[14px] font-medium text-[var(--color-text-muted)]">{j.company}</div>
                 </div>
                 <div>
-                  <h3 class="text-[20px] font-semibold tracking-[-0.01em] text-[--color-text] mb-[7px]">{j.role}</h3>
-                  <p class="text-[14.5px] leading-[1.6] text-[--color-text-muted] mb-4 max-w-[600px]">{j.summary}</p>
+                  <h3 class="text-[20px] font-semibold tracking-[-0.01em] text-[var(--color-text)] mb-[7px]">{j.role}</h3>
+                  <p class="text-[14.5px] leading-[1.6] text-[var(--color-text-muted)] mb-4 max-w-[600px]">{j.summary}</p>
                   <ul class="list-none flex flex-col gap-2.5">
                     {j.points.map((p) => (
-                      <li class="flex gap-3 text-[14px] leading-[1.55] text-[--color-text-soft] max-w-[640px]">
-                        <span class="flex-none mt-[7px] w-[5px] h-[5px] rounded-full bg-[--color-accent]" />
+                      <li class="flex gap-3 text-[14px] leading-[1.55] text-[var(--color-text-soft)] max-w-[640px]">
+                        <span class="flex-none mt-[7px] w-[5px] h-[5px] rounded-full bg-[var(--color-accent)]" />
                         <span>{p}</span>
                       </li>
                     ))}
@@ -620,16 +620,16 @@ const posts = [
     </section>
 
     <!-- 06 · SKILLS -->
-    <section id="skills" class="py-20 border-t border-[--color-hairline] scroll-mt-24">
+    <section id="skills" class="py-20 border-t border-[var(--color-hairline)] scroll-mt-24">
       <div data-reveal class="flex items-baseline gap-4 mb-12">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">06</span>
+        <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">06</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">Skills &amp; Stack</h2>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-14 gap-y-10">
         {
           skills.map((g) => (
             <div data-reveal>
-              <h3 class="font-mono text-[12px] tracking-[0.08em] uppercase text-[--color-text-dim] mb-4">{g.cat}</h3>
+              <h3 class="font-mono text-[12px] tracking-[0.08em] uppercase text-[var(--color-text-dim)] mb-4">{g.cat}</h3>
               <div class="flex flex-wrap gap-2">
                 {g.items.map((t) => <span class="chip">{t}</span>)}
               </div>
@@ -642,9 +642,9 @@ const posts = [
     <!-- 07 · FROM THE BLOG -->
     {
       blogPosts.length > 0 && (
-        <section id="blog" class="py-20 border-t border-[--color-hairline] scroll-mt-24">
+        <section id="blog" class="py-20 border-t border-[var(--color-hairline)] scroll-mt-24">
           <div data-reveal class="flex items-baseline gap-4 mb-12">
-            <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">07</span>
+            <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">07</span>
             <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">From the blog</h2>
           </div>
           <div class="flex flex-col">
@@ -652,27 +652,27 @@ const posts = [
               <a
                 data-reveal
                 href={`/blog/${post.id}/`}
-                class="wrow group grid grid-cols-[1fr_auto] gap-6 items-center py-[26px] border-t border-[--color-hairline]"
+                class="wrow group grid grid-cols-[1fr_auto] gap-6 items-center py-[26px] border-t border-[var(--color-hairline)]"
               >
                 <div>
-                  <div class="font-mono text-[12px] text-[--color-text-dim] tracking-[0.04em] mb-2.5">
+                  <div class="font-mono text-[12px] text-[var(--color-text-dim)] tracking-[0.04em] mb-2.5">
                     {fmtPostDate(post.data.pubDate)}
                     {post.data.tags.length > 0 && (
                       <span> · {post.data.tags.slice(0, 3).map((t) => `#${t}`).join(" ")}</span>
                     )}
                   </div>
-                  <h3 class="text-[19px] font-[550] tracking-[-0.01em] leading-[1.35] text-[--color-text] max-w-[680px]">
+                  <h3 class="text-[19px] font-[550] tracking-[-0.01em] leading-[1.35] text-[var(--color-text)] max-w-[680px]">
                     {post.data.title}
                   </h3>
                 </div>
-                <span class="arr text-[22px] text-[--color-text-faint]" aria-hidden="true">→</span>
+                <span class="arr text-[22px] text-[var(--color-text-faint)]" aria-hidden="true">→</span>
               </a>
             ))}
           </div>
           <a
             data-reveal
             href="/blog"
-            class="prim-link inline-flex items-center gap-2.5 mt-8 text-[14px] text-[--color-accent] font-medium"
+            class="prim-link inline-flex items-center gap-2.5 mt-8 text-[14px] text-[var(--color-accent)] font-medium"
           >
             All posts <span>→</span>
           </a>
@@ -681,9 +681,9 @@ const posts = [
     }
 
     <!-- 08 · SELECTED WRITING (elsewhere) -->
-    <section id="writing" class="py-20 border-t border-[--color-hairline] scroll-mt-24">
+    <section id="writing" class="py-20 border-t border-[var(--color-hairline)] scroll-mt-24">
       <div data-reveal class="flex items-baseline gap-4 mb-12">
-        <span class="font-mono text-[13px] text-[--color-accent] tracking-[0.1em]">08</span>
+        <span class="font-mono text-[13px] text-[var(--color-accent)] tracking-[0.1em]">08</span>
         <h2 class="text-[clamp(26px,4vw,36px)] font-semibold tracking-[-0.025em]">Selected Writing</h2>
       </div>
       <div class="flex flex-col">
@@ -694,13 +694,13 @@ const posts = [
               href={post.url}
               target="_blank"
               rel="noopener noreferrer"
-              class="wrow group grid grid-cols-[1fr_auto] gap-6 items-center py-[26px] border-t border-[--color-hairline]"
+              class="wrow group grid grid-cols-[1fr_auto] gap-6 items-center py-[26px] border-t border-[var(--color-hairline)]"
             >
               <div>
-                <div class="font-mono text-[12px] text-[--color-text-dim] tracking-[0.04em] mb-2.5">{post.meta}</div>
-                <h3 class="text-[19px] font-[550] tracking-[-0.01em] leading-[1.35] text-[--color-text] max-w-[680px]">{post.title}</h3>
+                <div class="font-mono text-[12px] text-[var(--color-text-dim)] tracking-[0.04em] mb-2.5">{post.meta}</div>
+                <h3 class="text-[19px] font-[550] tracking-[-0.01em] leading-[1.35] text-[var(--color-text)] max-w-[680px]">{post.title}</h3>
               </div>
-              <span class="arr text-[22px] text-[--color-text-faint]" aria-hidden="true">↗</span>
+              <span class="arr text-[22px] text-[var(--color-text-faint)]" aria-hidden="true">↗</span>
             </a>
           ))
         }
@@ -708,10 +708,10 @@ const posts = [
     </section>
 
     <!-- CONTACT -->
-    <section id="contact" class="pt-[88px] pb-16 border-t border-[--color-hairline] scroll-mt-24">
+    <section id="contact" class="pt-[88px] pb-16 border-t border-[var(--color-hairline)] scroll-mt-24">
       <div
         data-reveal
-        class="relative overflow-hidden rounded-[24px] border border-[--color-border] text-center"
+        class="relative overflow-hidden rounded-[24px] border border-[var(--color-border)] text-center"
         style="background:linear-gradient(135deg,color-mix(in oklab,var(--color-accent) 8%,var(--color-surface)),var(--color-bg));padding:clamp(40px,6vw,76px)"
       >
         <div
@@ -721,11 +721,11 @@ const posts = [
         >
         </div>
         <div class="relative">
-          <div class="font-mono text-[12.5px] uppercase tracking-[0.12em] text-[--color-accent] mb-6">Open to relocation</div>
-          <h2 class="text-[clamp(30px,5vw,50px)] font-semibold tracking-[-0.03em] leading-[1.06] text-[--color-text] mb-6">
+          <div class="font-mono text-[12.5px] uppercase tracking-[0.12em] text-[var(--color-accent)] mb-6">Open to relocation</div>
+          <h2 class="text-[clamp(30px,5vw,50px)] font-semibold tracking-[-0.03em] leading-[1.06] text-[var(--color-text)] mb-6">
             Let's build reliable<br />platforms together.
           </h2>
-          <p class="text-[17px] leading-[1.6] text-[--color-text-muted] max-w-[540px] mx-auto mb-9">
+          <p class="text-[17px] leading-[1.6] text-[var(--color-text-muted)] max-w-[540px] mx-auto mb-9">
             Senior IC roles: Staff SRE, Principal Platform Engineer, or Cloud Infrastructure Architect.
             Visa-sponsored relocation from UAE.
           </p>
@@ -857,7 +857,8 @@ const posts = [
   </style>
 
   <script>
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const reduce = motionPreference.matches;
     const DONUT_FULL = 578.05;
     const DONUT_PCT = 0.4;
 
@@ -938,67 +939,90 @@ const posts = [
       );
       document.querySelectorAll("[data-reveal],[data-line]").forEach((el) => io.observe(el));
 
-      // hero particle network
-      const cv = document.getElementById("netcanvas");
-      if (cv) {
-        const ctx = cv.getContext("2d");
-        let w, h, dpr, nodes;
-        const N = 46;
-        const setup = () => {
-          dpr = Math.min(window.devicePixelRatio || 1, 2);
-          const r = cv.getBoundingClientRect();
-          w = r.width;
-          h = r.height || 600;
-          cv.width = w * dpr;
-          cv.height = h * dpr;
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          if (!nodes) {
-            nodes = Array.from({ length: N }, () => ({
-              x: Math.random() * w,
-              y: Math.random() * h,
-              vx: (Math.random() - 0.5) * 0.28,
-              vy: (Math.random() - 0.5) * 0.28,
-              r: Math.random() * 1.6 + 0.7,
-            }));
-          }
-        };
-        setup();
-        window.addEventListener("resize", setup);
-        const draw = () => {
-          ctx.clearRect(0, 0, w, h);
-          for (const n of nodes) {
-            n.x += n.vx;
-            n.y += n.vy;
-            if (n.x < 0 || n.x > w) n.vx *= -1;
-            if (n.y < 0 || n.y > h) n.vy *= -1;
-          }
-          for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-              const a = nodes[i];
-              const b = nodes[j];
-              const dx = a.x - b.x;
-              const dy = a.y - b.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 130) {
-                ctx.strokeStyle = "rgba(34,211,238," + 0.13 * (1 - dist / 130) + ")";
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(a.x, a.y);
-                ctx.lineTo(b.x, b.y);
-                ctx.stroke();
-              }
+    }
+
+    // Only animate the hero while it is visible and motion is allowed.
+    const cv = document.getElementById("netcanvas");
+    if (cv) {
+      const ctx = cv.getContext("2d");
+      let w, h, dpr, nodes;
+      const N = 46;
+      let frame = 0;
+      let inView = false;
+      let pageActive = true;
+      const canAnimate = () => inView && pageActive && !document.hidden && !motionPreference.matches;
+      const setup = () => {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const r = cv.getBoundingClientRect();
+        w = r.width;
+        h = r.height || 600;
+        cv.width = w * dpr;
+        cv.height = h * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (!nodes) {
+          nodes = Array.from({ length: N }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.28,
+            vy: (Math.random() - 0.5) * 0.28,
+            r: Math.random() * 1.6 + 0.7,
+          }));
+        }
+      };
+      setup();
+      window.addEventListener("resize", setup);
+      const draw = () => {
+        frame = 0;
+        if (!canAnimate()) return;
+        ctx.clearRect(0, 0, w, h);
+        for (const n of nodes) {
+          n.x += n.vx;
+          n.y += n.vy;
+          if (n.x < 0 || n.x > w) n.vx *= -1;
+          if (n.y < 0 || n.y > h) n.vy *= -1;
+        }
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodes[i];
+            const b = nodes[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 130) {
+              ctx.strokeStyle = "rgba(34,211,238," + 0.13 * (1 - dist / 130) + ")";
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
             }
           }
-          for (const n of nodes) {
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(34,211,238,0.55)";
-            ctx.fill();
-          }
-          requestAnimationFrame(draw);
-        };
-        draw();
-      }
+        }
+        for (const n of nodes) {
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(34,211,238,0.55)";
+          ctx.fill();
+        }
+        frame = requestAnimationFrame(draw);
+      };
+      const syncAnimation = () => {
+        if (canAnimate()) {
+          if (!frame) frame = requestAnimationFrame(draw);
+        } else if (frame) {
+          cancelAnimationFrame(frame);
+          frame = 0;
+        }
+      };
+      const visibilityObserver = new IntersectionObserver(([entry]) => {
+        inView = entry.isIntersecting;
+        syncAnimation();
+      });
+      visibilityObserver.observe(cv);
+      document.addEventListener("visibilitychange", syncAnimation);
+      motionPreference.addEventListener("change", syncAnimation);
+      window.addEventListener("pagehide", () => { pageActive = false; syncAnimation(); });
+      window.addEventListener("pageshow", () => { pageActive = true; syncAnimation(); });
     }
   </script>
 </Base>

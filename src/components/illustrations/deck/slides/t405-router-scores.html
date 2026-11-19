@@ -88,7 +88,7 @@
         heads.push(el('text', { 'class': 'eh', x: colX(j) + CW / 2, y: 66 }, body, 'E' + (j + 1)));
         for (var i = 0; i !== 4; i++) {
           var v = R[i][j], a = 0.1 + 0.9 * Math.abs(v) / RMAX;
-          el('rect', { x: colX(j), y: rowY(i), width: CW, height: RH, rx: 6, fill: v >= 0 ? 'var(--color-accent)' : 'rgb(154,154,163)', 'fill-opacity': a.toFixed(3) }, body);
+          el('rect', { x: colX(j), y: rowY(i), width: CW, height: RH, rx: 6, fill: v >= 0 ? 'var(--color-accent)' : 'var(--color-text-muted)', 'fill-opacity': a.toFixed(3) }, body);
         }
       }
       // scores: dashed placeholders, then numbers and bars
@@ -135,7 +135,7 @@
           var sc = SC[k], top = TOP.indexOf(k) !== -1, h = sc * BS * a;
           var g = clamp(a * 1.6 - k * 0.08);
           bars[k].setAttribute('y', h >= 0 ? BY - h : BY); bars[k].setAttribute('height', Math.abs(h));
-          bars[k].setAttribute('fill', top ? 'rgb(34,211,238)' : 'rgb(106,106,115)');
+          bars[k].setAttribute('fill', top ? 'var(--color-accent)' : 'var(--color-text-dim)');
           snum[k].style.opacity = g.toFixed(3);
           snum[k].style.fill = top ? 'var(--color-accent)' : 'var(--color-text-muted)';
           sbox[k].style.opacity = (1 - g).toFixed(3);

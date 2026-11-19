@@ -59,7 +59,7 @@
       var CY = Deck.rgb('--color-accent'), SOFT = Deck.rgb('--color-text-soft'), MUT = Deck.rgb('--color-text-muted'), DIM = Deck.rgb('--color-text-dim');
       var COL = [CY, [70, 158, 176], Deck.rgb('--color-text')];       // cyan, muted cyan, near white: one per token
       function mixv(a, b, t) { t = Math.max(0, Math.min(1, t)); return a.map(function (v, i) { return Math.round(v + (b[i] - v) * t); }); }
-      function rgb(a) { return 'rgb(' + a.join(',') + ')'; }
+      function rgb(a) { return Deck.color(a); }
       function el(tag, attrs, parent, text) {
         var e = document.createElementNS(NS, tag);
         Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });

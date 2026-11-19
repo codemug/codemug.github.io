@@ -1,0 +1,147 @@
+Notices extracted from v86 commit 315b2b0b758703ef0e6cc7b4088d6068f83f3c20 lib/zstd/zstddeclib.c
+
+/*
+ * Copyright (c) 2016-2020, Yann Collet, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+ */
+
+/* ******************************************************************
+ * debug
+ * Part of FSE library
+ * Copyright (c) 2013-2020, Yann Collet, Facebook, Inc.
+ *
+ * You can contact the author at :
+ * - Source repository : https://github.com/Cyan4973/FiniteStateEntropy
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+****************************************************************** */
+
+/* ******************************************************************
+ * Common functions of New Generation Entropy library
+ * Copyright (c) 2016-2020, Yann Collet, Facebook, Inc.
+ *
+ *  You can contact the author at :
+ *  - FSE+HUF source repository : https://github.com/Cyan4973/FiniteStateEntropy
+ *  - Public forum : https://groups.google.com/forum/#!forum/lz4c
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+****************************************************************** */
+
+/* ******************************************************************
+ * FSE : Finite State Entropy codec
+ * Public Prototypes declaration
+ * Copyright (c) 2013-2020, Yann Collet, Facebook, Inc.
+ *
+ * You can contact the author at :
+ * - Source repository : https://github.com/Cyan4973/FiniteStateEntropy
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+****************************************************************** */
+
+/* ******************************************************************
+ * bitstream
+ * Part of FSE library
+ * Copyright (c) 2013-2020, Yann Collet, Facebook, Inc.
+ *
+ * You can contact the author at :
+ * - Source repository : https://github.com/Cyan4973/FiniteStateEntropy
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+****************************************************************** */
+
+/* ******************************************************************
+ * huff0 huffman codec,
+ * part of Finite State Entropy library
+ * Copyright (c) 2013-2020, Yann Collet, Facebook, Inc.
+ *
+ * You can contact the author at :
+ * - Source repository : https://github.com/Cyan4973/FiniteStateEntropy
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+****************************************************************** */
+
+/* ******************************************************************
+ * FSE : Finite State Entropy decoder
+ * Copyright (c) 2013-2020, Yann Collet, Facebook, Inc.
+ *
+ *  You can contact the author at :
+ *  - FSE source repository : https://github.com/Cyan4973/FiniteStateEntropy
+ *  - Public forum : https://groups.google.com/forum/#!forum/lz4c
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+****************************************************************** */
+
+/*
+ * xxHash - Extremely Fast Hash algorithm
+ * Header File
+ * Copyright (c) 2012-2020, Yann Collet, Facebook, Inc.
+ *
+ * You can contact the author at :
+ * - xxHash source repository : https://github.com/Cyan4973/xxHash
+ * 
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+*/
+
+/*
+ *  xxHash - Fast Hash algorithm
+ *  Copyright (c) 2012-2020, Yann Collet, Facebook, Inc.
+ *
+ *  You can contact the author at :
+ *  - xxHash homepage: http://www.xxhash.com
+ *  - xxHash source repository : https://github.com/Cyan4973/xxHash
+ * 
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+*/
+
+/* ******************************************************************
+ * huff0 huffman decoder,
+ * part of Finite State Entropy library
+ * Copyright (c) 2013-2020, Yann Collet, Facebook, Inc.
+ *
+ *  You can contact the author at :
+ *  - FSE+HUF source repository : https://github.com/Cyan4973/FiniteStateEntropy
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+****************************************************************** */
+
+/*
+ * Copyright (c) 2018-2020, Facebook, Inc.
+ * All rights reserved.
+ *
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
+ */

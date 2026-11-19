@@ -168,11 +168,11 @@
       }
 
       Deck.slide('s07-dot-intro', {
-        enter: function () { st = T[0]; draw(st); },
+        enter: function () { st = Object.assign({}, T[0]); draw(st); },
         step: function (n, prev, c) {
           var target = T[n], from = { phi: st.phi, s1: st.s1, s2: st.s2, dim: st.dim };
           if (cancel) cancel();
-          if (c.instant) { st = target; draw(st); return; }
+          if (c.instant) { st = Object.assign({}, target); draw(st); return; }
           cancel = Deck.tween(900, function (t) {
             st.phi = Deck.lerp(from.phi, target.phi, t);
             st.s1 = Deck.lerp(from.s1, target.s1, t);

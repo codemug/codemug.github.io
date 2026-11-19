@@ -62,10 +62,10 @@
 
       var topBars = [], botBars = [];
       VALUES.forEach(function (v, i) {
-        topBars.push(el('rect', { 'class': 'bar', x: colx(i).toFixed(1), y: (v >= 0 ? ZT - Math.abs(v) * S : ZT).toFixed(1), width: BW, height: Math.max(0.01, Math.abs(v) * S).toFixed(1), fill: 'rgb(' + MUTED.join(',') + ')' }, gc));
+        topBars.push(el('rect', { 'class': 'bar', x: colx(i).toFixed(1), y: (v >= 0 ? ZT - Math.abs(v) * S : ZT).toFixed(1), width: BW, height: Math.max(0.01, Math.abs(v) * S).toFixed(1), fill: Deck.color(MUTED) }, gc));
       });
       DEQUANT.forEach(function (d, i) {
-        botBars.push(el('rect', { 'class': 'bar', x: colx(i).toFixed(1), width: BW, fill: 'rgb(' + ACC.join(',') + ')' }, gc));
+        botBars.push(el('rect', { 'class': 'bar', x: colx(i).toFixed(1), width: BW, fill: Deck.color(ACC) }, gc));
       });
 
       // ---- the two bottom numbers (step 2)
@@ -75,7 +75,7 @@
         el('text', { 'class': 'big a', x: 225, y: 474 }, gn, times4),
         el('text', { 'class': 'small', x: 304, y: 474 }, gn, 'fewer bytes'),
         el('text', { 'class': 'small', x: 508, y: 474 }, gn, 'error:'),
-        el('text', { 'class': 'big', x: 616, y: 474, fill: 'rgb(' + TEXT.join(',') + ')' }, gn, REL_RMSE.toFixed(2)),
+        el('text', { 'class': 'big', x: 616, y: 474, fill: Deck.color(TEXT) }, gn, REL_RMSE.toFixed(2)),
         el('text', { 'class': 'small', x: 762, y: 474 }, gn, 'of the weight spread'),
         el('text', { 'class': 'note', x: 755, y: 504 }, gn, 'rmse / std, plain rounding, groups of 32')
       ];
