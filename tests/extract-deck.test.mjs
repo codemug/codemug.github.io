@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { extractSlides, rewriteViewportUnits, unscopedSelectors, extractBaseCss, isDecorative, main } from '../scripts/extract-deck.mjs';
 
-const HAVE_DECK = existsSync('deck.html');
-const deck = () => readFileSync('deck.html', 'utf8');
+const FIXTURE = new URL('./fixtures/deck-source.html', import.meta.url);
+const deck = () => readFileSync(FIXTURE, 'utf8');
 
 test('rewriteViewportUnits converts to the 1280x720 frame', () => {
   assert.equal(
@@ -42,12 +42,12 @@ test('isDecorative marks covers, about-me and title slides', () => {
 });
 
 test('a fixup whose slide is missing from the deck is an error', () => {
-  assert.throws(() => extractSlides('<section class="slide" id="s99-x">\n</section>'), /fixup target s15-model-folder is not in the deck/);
+  assert.throws(() => extractSlides('<section class="slide" id="s99-x">\n</section>'), /fixup target s07-dot-intro is not in the deck/);
 });
 
-test('extractSlides finds all 123 slides of both parts', { skip: !HAVE_DECK }, () => {
+test('extractSlides reads representative metadata and source from both parts', () => {
   const s = extractSlides(deck());
-  assert.equal(s.length, 123);
+  assert.equal(s.length, 18);
   assert.equal(s[0].id, 's01-cover');
   assert.equal(s.at(-1).id, 't709-native-support');
   const s30 = s.find((x) => x.id === 's30-ball-3d');
@@ -59,10 +59,10 @@ test('extractSlides finds all 123 slides of both parts', { skip: !HAVE_DECK }, (
   const t606 = s.find((x) => x.id === 't606-kv-memory');
   assert.equal(t606.statement, 'The cache is why inference eats memory.');
   assert.ok(s.every((x) => !x.html.includes('<iframe')));
-  assert.equal(s.filter((x) => !isDecorative(x.id)).length, 111);
+  assert.equal(s.filter((x) => !isDecorative(x.id)).length, 16);
 });
 
-test('main writes the non-decorative slides and keeps hand-authored ones', { skip: !HAVE_DECK }, () => {
+test('main writes the non-decorative slides and keeps hand-authored ones', () => {
   const dir = mkdtempSync(join(tmpdir(), 'deck-extract-test-'));
   try {
     const slidesDir = join(dir, 'slides');
@@ -70,7 +70,7 @@ test('main writes the non-decorative slides and keeps hand-authored ones', { ski
     writeFileSync(join(slidesDir, 's04-vec-many.html'), 'pre-seeded');
     writeFileSync(join(slidesDir, 'x01-trainpass.html'), 'hand-authored');
 
-    main('deck.html', dir);
+    main(FIXTURE, dir);
 
     assert.equal(existsSync(join(slidesDir, 's04-vec-many.html')), false, 'pre-seeded s04 should be removed');
     assert.equal(existsSync(join(slidesDir, 'x01-trainpass.html')), true, 'x01-trainpass should be kept');
@@ -80,13 +80,13 @@ test('main writes the non-decorative slides and keeps hand-authored ones', { ski
     assert.equal(existsSync(join(slidesDir, 't100-title-finetuning.html')), false, 'decorative t100-title-finetuning should not exist');
 
     const manifest = JSON.parse(readFileSync(join(dir, 'slides.json'), 'utf8'));
-    assert.equal(Object.keys(manifest).length, 111);
+    assert.equal(Object.keys(manifest).length, 16);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('extracted slides carry no viewport units in their styles', { skip: !HAVE_DECK }, () => {
+test('extracted slides carry no viewport units in their styles', () => {
   const s = extractSlides(deck());
   for (const x of s) {
     // the sampling board's srcdoc is its own document with its own viewport: left as is
@@ -97,13 +97,13 @@ test('extracted slides carry no viewport units in their styles', { skip: !HAVE_D
   }
 });
 
-test('slide styles are id-scoped and keyframes do not clash with the site', { skip: !HAVE_DECK }, () => {
+test('slide styles are id-scoped and keyframes do not clash with the site', () => {
   const s = extractSlides(deck()).filter((x) => !isDecorative(x.id));
   assert.deepEqual(s.flatMap(unscopedSelectors), []);
   assert.ok(!s.some((x) => /@keyframes\s+(flow|pulse|rise)\b/.test(x.html)));
 });
 
-test('extractBaseCss scopes the deck base styles under the figure frame', { skip: !HAVE_DECK }, () => {
+test('extractBaseCss scopes the deck base styles under the figure frame', () => {
   const css = extractBaseCss(deck());
   const selectors = [];
   // every rule selector (outside @media headers) must start with the frame scope
@@ -117,7 +117,7 @@ test('extractBaseCss scopes the deck base styles under the figure frame', { skip
   assert.ok(!/(^|[\s,}])(html|body)\b/.test(css), 'page-level rules must not be ported');
 });
 
-test('s15 measures its rows in frame pixels (divides by the figure scale)', { skip: !HAVE_DECK }, () => {
+test('s15 measures its rows in frame pixels (divides by the figure scale)', () => {
   const s15 = extractSlides(deck()).find((x) => x.id === 's15-model-folder').html;
   assert.ok(s15.includes('k = Deck.scale(term)'));
   assert.ok(s15.includes('((a.top - t0) / k).toFixed(1)'));
@@ -127,7 +127,7 @@ test('s15 measures its rows in frame pixels (divides by the figure scale)', { sk
 // colours the slides hard-code for the dark theme: they must follow the site theme instead
 const TOKEN_TRIPLES = /\[\s*(34,\s*211,\s*238|237,\s*237,\s*240|196,\s*196,\s*203|154,\s*154,\s*163|106,\s*106,\s*115|74,\s*74,\s*82)\s*\]/;
 
-test('slide scripts read theme colours live instead of hard-coding dark-theme RGB', { skip: !HAVE_DECK }, () => {
+test('slide scripts read theme colours live instead of hard-coding dark-theme RGB', () => {
   const s = extractSlides(deck()).filter((x) => !isDecorative(x.id));
   const left = s.filter((x) => TOKEN_TRIPLES.test(x.html.replace(/srcdoc="[^"]*"/g, ''))).map((x) => x.id);
   assert.deepEqual(left, []);
@@ -137,12 +137,12 @@ test('slide scripts read theme colours live instead of hard-coding dark-theme RG
   assert.ok(s45.includes("'var(--color-text-faint)'"), 's45 ghost arrow follows the theme');
 });
 
-test('s34 says "what kind of influence" in the deck itself', { skip: !HAVE_DECK }, () => {
+test('s34 says "what kind of influence" in the deck itself', () => {
   const s34 = extractSlides(deck()).find((x) => x.id === 's34-key').html;
   assert.ok(s34.includes('Embedding × Wk = key: what kind of influence this token has to offer.'));
 });
 
-test('t706 shows llama.cpp\'s Q4_K bits per weight', { skip: !HAVE_DECK }, () => {
+test('t706 shows llama.cpp\'s Q4_K bits per weight', () => {
   const t706 = extractSlides(deck()).find((x) => x.id === 't706-block-scales').html;
   assert.ok(t706.includes("'~4.9 bits'"), 't706 on-screen label has ~4.9 bits');
   assert.ok(t706.includes("'~4.7 bits'"), 't706 on-screen label has ~4.7 bits');
@@ -151,29 +151,58 @@ test('t706 shows llama.cpp\'s Q4_K bits per weight', { skip: !HAVE_DECK }, () =>
   assert.ok(!t706.includes("'~4 bits'"), 't706 does not include ~4 bits');
 });
 
-test('t106 uses theme tokens for switch values', { skip: !HAVE_DECK }, () => {
+test('t106 uses theme tokens for switch values', () => {
   const t106 = extractSlides(deck()).find((x) => x.id === 't106-template-knobs').html;
   assert.ok(t106.includes("w.v.style.fill = f > 0.5 ? 'var(--color-accent)' : 'var(--color-text-muted)';"), 't106 uses theme vars for switch value fill');
   assert.ok(!t106.includes("w.v.style.fill = f > 0.5 ? 'rgb(34,211,238)' : 'rgb(154,154,163)';"), 't106 does not hard-code switch value rgb');
 });
 
-test('t405 uses theme tokens for scores and winner headers', { skip: !HAVE_DECK }, () => {
+test('t405 uses theme tokens for scores and winner headers', () => {
   const t405 = extractSlides(deck()).find((x) => x.id === 't405-router-scores').html;
   assert.ok(t405.includes("snum[k].style.fill = top ? 'var(--color-accent)' : 'var(--color-text-muted)';"), 't405 uses theme vars for score fill');
   assert.ok(t405.includes("heads[k].style.fill = (top && a > 0.5) ? 'var(--color-accent)' : '';"), 't405 uses theme vars for winner header fill');
   assert.ok(!t405.includes("snum[k].style.fill = top ? 'rgb(34,211,238)' : 'rgb(196,196,203)';"), 't405 does not hard-code score rgb');
 });
 
-test('t606 uses color-bg for request block labels so it counts as knockout text', { skip: !HAVE_DECK }, () => {
+test('t606 uses color-bg for request block labels so it counts as knockout text', () => {
   const t606 = extractSlides(deck()).find((x) => x.id === 't606-kv-memory').html;
   assert.ok(t606.includes('.rql{font-size:22px;text-anchor:middle;fill:var(--color-bg);font-weight:700;}'), 't606 uses color-bg for rql fill');
   assert.ok(!t606.includes('.rql{font-size:22px;text-anchor:middle;fill:var(--color-surface-deep);font-weight:700;}'), 't606 does not use surface-deep for rql fill');
 });
 
-test('t607 uses Deck.loop inside enter for pipe animation', { skip: !HAVE_DECK }, () => {
+test('t607 uses Deck.loop inside enter for pipe animation', () => {
   const t607 = extractSlides(deck()).find((x) => x.id === 't607-prefill-vs-decode').html;
   assert.ok(t607.includes('stopPipe = Deck.loop(animatePipe);'), 't607 uses Deck.loop inside enter');
   assert.ok(!t607.includes('function runPipe()'), 't607 does not define runPipe with raw rAF');
 });
 
 
+
+
+test('quantization notes agree with the displayed bit costs', () => {
+  const slide = extractSlides(deck()).find(s => s.id === 't706-block-scales');
+  assert.match(slide.notes, /about 4\.9 bits per weight for Q4_K_M and about 4\.7 for Q4_K_S/);
+});
+
+test('generated animation adaptations survive extraction', () => {
+  const slides = extractSlides(deck());
+  const get = id => slides.find(s => s.id === id).html;
+  assert.match(get('s07-dot-intro'), /st = Object\.assign\(\{\}, T\[0\]\)/);
+  assert.match(get('s07-dot-intro'), /st = Object\.assign\(\{\}, target\)/);
+  assert.match(get('s03-vec3d'), /c\.instant \|\| Deck\.reduced/);
+  assert.match(get('t703-fewer-bits'), /fill: Deck\.color\(TEXT\)/);
+});
+
+// Optional full-source integration adds coverage locally; fixture regressions above
+// always run on a clean checkout and never depend on this untracked input.
+if (existsSync('deck.html')) test('full local deck matches the checked-in generated slides and metadata', () => {
+  const slides = extractSlides(readFileSync('deck.html', 'utf8'));
+  assert.equal(slides.length, 123);
+  const content = slides.filter(s => !isDecorative(s.id));
+  assert.equal(content.length, 111);
+  const manifest = JSON.parse(readFileSync('src/components/illustrations/deck/slides.json', 'utf8'));
+  for (const { id, html, ...meta } of content) {
+    assert.equal(html + '\n', readFileSync(`src/components/illustrations/deck/slides/${id}.html`, 'utf8'), id);
+    assert.deepEqual(meta, manifest[id], id);
+  }
+});

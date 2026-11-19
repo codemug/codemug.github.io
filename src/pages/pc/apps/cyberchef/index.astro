@@ -1,0 +1,12 @@
+---
+import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
+---
+<UtilityLayout title="CyberChef">
+  <header><h1>CyberChef</h1><a href="/pc/vendor/cyberchef/CyberChef_v11.5.0.html" target="_blank" rel="noopener">Open full page ↗</a><a href="/third-party/cyberchef/NOTICE" target="_blank" rel="noopener">Notices</a></header>
+  <p class="utility-note">Version 11.5.0 · Self-hosted. Use CyberChef’s Save recipe and output download controls to keep your work. URL-fetching operations use the network.</p>
+  <nav class="cyberchef-mobile-nav" aria-label="CyberChef panes"><label for="cyberchef-pane">Workbench pane</label><select id="cyberchef-pane"><option value="operations">Operations</option><option value="recipe">Recipe</option><option value="input">Input</option><option value="output">Output</option></select></nav>
+  <main class="utility-frame"><iframe id="cyberchef-frame" title="CyberChef recipe workbench" src="/pc/vendor/cyberchef/CyberChef_v11.5.0.html"></iframe><div class="utility-loading" id="cyberchef-loading" role="status"><span id="cyberchef-status">Loading CyberChef…</span><button id="cyberchef-retry" hidden>Retry</button></div></main>
+  <script>import '../../../../scripts/pc/apps/cyberchef.mjs';</script>
+</UtilityLayout>
+
+<style>.cyberchef-mobile-nav{display:none}@media(max-width:639px){.cyberchef-mobile-nav{display:flex;align-items:center;gap:12px;padding:8px 14px}.cyberchef-mobile-nav select{flex:1}}</style>

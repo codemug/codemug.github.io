@@ -116,6 +116,15 @@ export function isDecorative(id) {
 
 /* Slide-specific adaptations to the article's scaled frame. Each [old, new] must match once. */
 const FIXUPS = {
+  // Never alias the canonical target table: animation mutates the working state.
+  's07-dot-intro': [
+    ['st = T[0]; draw(st);', 'st = Object.assign({}, T[0]); draw(st);'],
+    ['st = target; draw(st); return;', 'st = Object.assign({}, target); draw(st); return;'],
+  ],
+  // A reduced-motion loop runs once at t=0: start it at the finished 3D pose.
+  's03-vec3d': [
+    ['var skip = c.instant ? WAIT + GROW + 1.2 : 0;', 'var skip = (c.instant || Deck.reduced) ? WAIT + GROW + 1.2 : 0;'],
+  ],
   // positions its tags from getBoundingClientRect deltas, which the frame's CSS scale shrinks
   's15-model-folder': [
     ['var t0 = term.getBoundingClientRect().top;', 'var t0 = term.getBoundingClientRect().top, k = Deck.scale(term);'],
@@ -200,6 +209,15 @@ const FIXUPS = {
   ],
 };
 
+// Speaker notes are extracted separately from markup, so their adaptations must
+// also match exactly once instead of silently retaining stale numbers.
+const NOTE_FIXUPS = {
+  't706-block-scales': [[
+    'about 4.5 bits per weight for Q4_K_M and about 4 for Q4_K_S',
+    'about 4.9 bits per weight for Q4_K_M and about 4.7 for Q4_K_S',
+  ]],
+};
+
 /* Slide scripts interpolate colours from RGB triples of the dark theme's tokens. Each becomes a
    live Deck.rgb() array that follows the site theme. */
 const TOKEN_RGB = {
@@ -213,8 +231,19 @@ function liveColors(js) {
   });
 }
 
-function applyFixups(id, html) {
-  for (const [from, to] of FIXUPS[id] || []) {
+// Direct RGB serialization freezes a token at initial page load. Keep static SVG
+// attributes as CSS variables, including helper functions called with token arrays.
+// Interpolated arrays still serialize to RGB through Deck.color().
+function staticColors(js) {
+  return js.replace(/'rgb\(' \+ (\w+)\.join\(','\) \+ '\)'/g, 'Deck.color($1)')
+    .replace(/(['"])rgb\((\d+),(\d+),(\d+)\)\1/g, (m, quote, r, g, b) => {
+      const token = TOKEN_RGB[`${r},${g},${b}`];
+      return token ? `${quote}var(${token})${quote}` : m;
+    });
+}
+
+function applyFixups(id, html, rules = FIXUPS) {
+  for (const [from, to] of rules[id] || []) {
     const n = html.split(from).length - 1;
     if (n !== 1) throw new Error(`fixup for ${id} matched ${n} times: ${from}`);
     html = html.replace(from, to);
@@ -245,7 +274,7 @@ export function extractSlides(html) {
         '<style>' + mapSelectors(rewriteViewportUnits(css), (sel) => (isScoped(sel, id) ? sel : `#${id} ${sel}`)) + '</style>')
       .replace(/style="([^"]*)"/g, (_, css) => `style="${rewriteViewportUnits(css)}"`)
       .replace(/<script>([\s\S]*?)<\/script>/g, (_, js) => '<script>' + liveColors(js) + '</script>');
-    body = applyFixups(id, restore(out));
+    body = restore(applyFixups(id, out).replace(/<script>([\s\S]*?)<\/script>/g, (_, js) => '<script>' + staticColors(js) + '</script>'));
 
     slides.push({
       id,
@@ -253,7 +282,7 @@ export function extractSlides(html) {
       tool: attr('data-tool') || null,
       kicker: text((raw.match(/<p class="kicker[^"]*">([\s\S]*?)<\/p>/) || [, ''])[1]),
       statement: text((raw.match(/<p class="statement[^"]*">([\s\S]*?)<\/p>/) || [, ''])[1]),
-      notes: notesM ? text(notesM[1]) : '',
+      notes: applyFixups(id, notesM ? text(notesM[1]) : '', NOTE_FIXUPS),
       html: body,
     });
     i = j;

@@ -1,0 +1,383 @@
+<!-- Small extraction fixture: original deck CSS and representative source fragments.
+     This is parser input, not a runnable presentation. No fonts, shader bundle or images. -->
+<style>
+  :root{
+    --font-sans:"Inter",ui-sans-serif,system-ui,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,monospace;
+    --color-bg:#0a0a0b;
+    --color-surface:#131316;
+    --color-surface-2:#1a1a1f;
+    --color-surface-deep:#0d0d0f;
+    --color-border:#26262d;
+    --color-border-strong:#34343d;
+    --color-hairline:#242429;
+    --color-hairline-2:#1c1c21;
+    --color-text:#ededf0;
+    --color-text-soft:#c4c4cb;
+    --color-text-muted:#9a9aa3;
+    --color-text-dim:#6a6a73;
+    --color-text-faint:#4a4a52;
+    --color-accent:#22d3ee;
+    --d-teal:#1c3a40;
+    --d-fill-soft:#101315;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font-sans);
+    background:var(--color-bg);
+    color:var(--color-text);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* ============ TYPE ============ */
+  .kicker{font-family:var(--font-mono);font-size:clamp(10px,1.2vw,12.5px);font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--color-accent);}
+  .step{font-family:var(--font-mono);font-size:clamp(9px,1vw,11px);color:var(--color-text-faint);letter-spacing:.06em;margin-top:6px;}
+  .heading{font-size:clamp(24px,4vw,42px);font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:balance;text-align:center;}
+  .display{font-size:clamp(34px,6.5vw,68px);font-weight:700;letter-spacing:-.03em;line-height:1.05;text-wrap:balance;text-align:center;}
+  .statement{font-size:clamp(19px,2.6vw,30px);font-weight:500;letter-spacing:-.01em;line-height:1.4;text-wrap:balance;text-align:center;max-width:780px;margin-top:clamp(10px,1.6vh,18px);}
+  .sub{font-family:var(--font-mono);font-size:clamp(12px,1.4vw,15px);color:var(--color-text-muted);margin-top:14px;text-align:center;}
+  .num-mark{position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);font-size:clamp(120px,26vw,300px);font-weight:700;opacity:.045;color:var(--color-accent);pointer-events:none;font-variant-numeric:tabular-nums;}
+
+  .stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;margin-top:clamp(16px,3vh,32px);min-height:0;}
+
+  /* shared primitives used across diagrams */
+  .chip{font-family:var(--font-mono);font-size:clamp(15px,2.4vw,22px);background:var(--color-surface-deep);border:1px solid var(--color-border);border-radius:9px;padding:10px 15px;color:var(--color-text);}
+  .chip.dim{color:var(--color-text-faint);border-color:var(--color-hairline-2);}
+  .pill{font-family:var(--font-mono);font-size:clamp(14px,2.2vw,20px);border:1px solid color-mix(in oklab,var(--color-accent) 40%,transparent);background:color-mix(in oklab,var(--color-accent) 8%,transparent);color:var(--color-accent);border-radius:10px;padding:10px 17px;display:inline-flex;}
+  .pill.wrong{border-color:var(--color-border);background:var(--color-surface-deep);color:var(--color-text-muted);}
+  .box{font-family:var(--font-mono);font-size:clamp(14px,2.2vw,19px);border:1px solid var(--d-teal);background:var(--d-fill-soft);color:var(--color-text);border-radius:11px;padding:12px 24px;}
+  .ar{color:var(--color-text-dim);font-family:var(--font-mono);font-size:clamp(16px,2.4vw,22px);}
+  .mut{font-family:var(--font-mono);font-size:clamp(13px,1.8vw,16px);color:var(--color-text-dim);}
+  .vbar{display:flex;gap:5px;}
+  .vbar i{width:clamp(16px,2.4vw,22px);height:clamp(16px,2.4vw,22px);border-radius:4px;border:1px solid var(--color-hairline);display:block;background:color-mix(in oklab,var(--color-accent) calc(var(--v,0)*1%),var(--color-surface-2));}
+
+  svg.diagram{width:100%;max-width:clamp(380px,58vw,760px);height:auto;font-family:var(--font-mono);}
+  svg.diagram .axis{stroke:var(--color-hairline);stroke-width:1;}
+  svg.diagram .vec{stroke-width:2.5;fill:none;stroke-linecap:round;}
+  svg.diagram .lab{font-size:11px;fill:var(--color-text-muted);}
+  svg.diagram .lab.a{fill:var(--color-accent);}
+  svg.diagram .lab.dim{fill:var(--color-text-faint);}
+  svg.diagram .grid-before{stroke:var(--color-hairline-2);fill:none;}
+  svg.diagram .grid-after{stroke:color-mix(in oklab,var(--color-accent) 45%,transparent);fill:none;stroke-dasharray:4 3;}
+  svg.diagram .fire{font-size:11px;}
+  svg.diagram .fire.a{fill:var(--color-accent);}
+  svg.diagram .fire.d{fill:var(--color-text-dim);}
+
+  /* ---- matrix formula ---- */
+  .formula-row{display:flex;align-items:center;justify-content:center;gap:clamp(14px,2.6vw,26px);font-family:var(--font-mono);font-size:clamp(20px,3.2vw,34px);color:var(--color-text);flex-wrap:wrap;}
+  .bracket-pair{display:flex;align-items:stretch;}
+  .bracket-edge{width:9px;border-top:3px solid var(--color-text-muted);border-bottom:3px solid var(--color-text-muted);}
+  .bracket-edge.left{border-left:3px solid var(--color-text-muted);}
+  .bracket-edge.right{border-right:3px solid var(--color-text-muted);}
+  .matrix-grid{display:grid;grid-template-columns:repeat(2,minmax(0.9em,auto));gap:0.3em 0.6em;padding:0.3em 0.4em;justify-items:center;align-items:center;}
+  .vec-grid{display:grid;grid-template-rows:repeat(2,auto);gap:0.4em;padding:0.3em 0.35em;justify-items:center;align-items:center;}
+  .formula-op{color:var(--color-text-dim);padding:0 2px;}
+  .formula-result .bracket-edge{border-color:var(--color-accent);}
+  .formula-result{color:var(--color-accent);}
+
+  /* ---- combined shear slide (formula + two panel diagrams) ---- */
+  .combo-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,3vh,34px);width:100%;height:100%;}
+  .combo-top .formula-row{font-size:clamp(15px,2.2vw,24px);}
+  .combo-bottom{display:flex;flex-direction:row;gap:clamp(20px,4vw,48px);justify-content:center;align-items:flex-start;width:100%;flex-wrap:wrap;}
+  .combo-panel{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;min-width:220px;max-width:380px;}
+  .panel-label{font-family:var(--font-mono);font-size:clamp(11px,1.4vw,14px);color:var(--color-text-dim);text-align:center;}
+  svg.diagram-small{max-width:clamp(220px,32vw,380px);}
+
+  /* ---- layer stack overview (ellipsis break) ---- */
+  .layer-ellipsis{font-family:var(--font-mono);font-size:clamp(20px,2.6vw,28px);color:var(--color-text-faint);text-align:center;line-height:1;margin:-4px 0;}
+
+  /* ---- attention score grid ---- */
+  .score-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;}
+  .score-grid{display:grid;gap:4px;font-family:var(--font-mono);}
+  .score-head{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 3px;}
+  .score-head .tag,.score-rowhead .tag{font-size:clamp(8px,1vw,10px);color:var(--color-text-faint);}
+  .score-head .tok,.score-rowhead .tok{font-size:clamp(11px,1.5vw,14px);background:var(--color-surface-deep);border:1px solid var(--color-border);border-radius:6px;padding:4px 7px;color:var(--color-text);white-space:nowrap;}
+  .score-rowhead{display:flex;align-items:center;gap:6px;justify-content:flex-end;padding:0 5px;}
+  .score-cell{display:flex;align-items:center;justify-content:center;font-size:clamp(10px,1.3vw,13px);color:var(--color-text-dim);padding:5px 2px;font-variant-numeric:tabular-nums;}
+  .score-cell.hi{color:var(--color-accent);font-weight:600;}
+
+  /* ---- loop ---- */
+  .loop-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(20px,4vh,40px);width:100%;}
+  .loop-stage .ctx{display:flex;gap:clamp(8px,1.4vw,14px);flex-wrap:wrap;justify-content:center;}
+  .loop-stage .gen{display:flex;align-items:center;gap:14px;}
+  .loop-stage .end{font-family:var(--font-mono);font-size:clamp(14px,2vw,18px);color:var(--color-text-dim);}
+
+  /* ---- tokens+embeddings ---- */
+  .tokemb-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(24px,4vh,40px);width:100%;}
+  .sentence-lg{font-size:clamp(26px,4.5vw,44px);font-weight:500;letter-spacing:-.01em;text-align:center;}
+  .words-row{display:flex;gap:clamp(10px,1.6vw,16px);flex-wrap:wrap;justify-content:center;}
+  .tw{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .tw.sp .piece{border-color:color-mix(in oklab,var(--color-accent) 45%,transparent);color:var(--color-accent);}
+  .tw .piece{font-family:var(--font-mono);font-size:clamp(15px,2.2vw,20px);background:var(--color-surface-deep);border:1px solid var(--color-border);border-radius:9px;padding:10px 14px;color:var(--color-text);}
+  .out{display:flex;flex-direction:column;gap:14px;}
+  .out .row{display:flex;align-items:center;gap:14px;}
+  .out .lead{font-family:var(--font-mono);font-size:clamp(13px,1.8vw,16px);color:var(--color-text-muted);width:92px;text-align:right;}
+  .note-lg{font-family:var(--font-mono);font-size:clamp(13px,1.6vw,15px);color:var(--color-text-dim);text-align:center;}
+
+  /* ---- stacked layers ---- */
+  .stack-stage{display:flex;flex-direction:column;gap:12px;width:100%;align-items:center;}
+  .lyr{display:flex;align-items:center;gap:10px;width:100%;max-width:460px;opacity:.32;transition:opacity .35s;}
+  .lyr .bd{flex:1;font-family:var(--font-mono);font-size:clamp(14px,2vw,17px);border:1px solid var(--color-border);background:var(--color-surface-deep);border-radius:9px;padding:14px 18px;text-align:center;color:var(--color-text-muted);}
+  .lyr.on{opacity:1;}
+  .lyr.hi .bd{border-color:color-mix(in oklab,var(--color-accent) 45%,transparent);color:var(--color-text);background:color-mix(in oklab,var(--color-accent) 6%,transparent);}
+  .stack-tag{font-family:var(--font-mono);font-size:clamp(13px,1.8vw,16px);color:var(--color-text-dim);margin-top:18px;text-align:center;}
+  .stack-tag b{color:var(--color-accent);font-weight:500;}
+
+  /* ---- next-token ---- */
+  .nw-stage{display:flex;flex-direction:column;align-items:center;gap:clamp(20px,3vh,32px);width:100%;}
+  .nw-row{display:flex;align-items:center;gap:22px;}
+  .nw-vecs{display:flex;flex-direction:column;gap:8px;}
+  .nw-vecs .vbar{opacity:.4;padding:3px;border-radius:5px;}
+  .nw-vecs .vbar.last{opacity:1;outline:2px solid color-mix(in oklab,var(--color-accent) 45%,transparent);outline-offset:2px;}
+  .nw-scores{display:flex;flex-direction:column;gap:10px;}
+  .sc{display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:clamp(13px,1.8vw,17px);}
+  .sc .w{width:56px;color:var(--color-text-muted);text-align:right;}
+  .sc .bw{width:clamp(120px,16vw,220px);height:13px;background:var(--color-surface-2);border-radius:7px;overflow:hidden;}
+  .sc .bar{height:100%;background:var(--color-accent);border-radius:7px;}
+  .sc .val{color:var(--color-accent);width:36px;font-variant-numeric:tabular-nums;}
+  .loopback{font-family:var(--font-mono);font-size:clamp(13px,1.8vw,16px);color:var(--color-text-dim);text-align:center;}
+
+  /* ---- model spec comparison table ---- */
+  .spec-grid{display:grid;gap:3px;font-family:var(--font-mono);width:100%;max-width:920px;}
+  .spec-head{font-size:clamp(11px,1.5vw,15px);color:var(--color-accent);text-align:center;padding:10px 8px;font-weight:600;white-space:nowrap;}
+  .spec-label{font-size:clamp(11px,1.3vw,13px);color:var(--color-text-muted);text-align:left;padding:8px 10px;white-space:nowrap;}
+  .spec-cell{font-size:clamp(12px,1.6vw,15px);color:var(--color-text);text-align:center;padding:8px 6px;background:var(--color-surface-deep);border-radius:6px;font-variant-numeric:tabular-nums;}
+  .spec-cell.dim{color:var(--color-text-dim);font-style:italic;font-size:clamp(11px,1.4vw,13px);}
+  .spec-cell.hi{color:var(--color-accent);font-weight:600;}
+  .spec-label.hi{color:var(--color-accent);}
+
+  /* ---- generic scale visual ---- */
+  .vscale{display:flex;align-items:flex-end;justify-content:center;gap:clamp(20px,4vw,44px);height:clamp(140px,26vh,220px);width:100%;}
+  .vscale-col{width:clamp(46px,7vw,72px);height:100%;display:flex;flex-direction:column-reverse;background:var(--color-surface-2);border-radius:8px 8px 0 0;overflow:hidden;}
+  .vscale-fill{width:100%;background:var(--color-accent);border-radius:8px 8px 0 0;}
+  .vscale-labels{display:flex;justify-content:center;gap:clamp(20px,4vw,44px);width:100%;margin-top:10px;}
+  .vscale-labels span{width:clamp(46px,7vw,72px);text-align:center;font-family:var(--font-mono);font-size:clamp(11px,1.4vw,13px);color:var(--color-text-dim);}
+
+  /* ---- tool calling ---- */
+  .tool-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:16px;width:100%;max-width:640px;}
+  .tool-card{border:1px solid var(--color-border);background:var(--color-surface-deep);border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:8px;}
+  .tool-card .name{font-family:var(--font-mono);font-size:clamp(16px,2.2vw,20px);color:var(--color-accent);font-weight:600;}
+  .tool-card .desc{font-family:var(--font-sans);font-size:clamp(12px,1.6vw,14px);color:var(--color-text-muted);}
+  .tool-card .call{font-family:var(--font-mono);font-size:clamp(11px,1.4vw,13px);color:var(--color-text-dim);background:var(--color-surface-2);border-radius:6px;padding:6px 10px;}
+  .topk-wrap{border:1px solid color-mix(in oklab,var(--color-accent) 35%,transparent);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:9px;margin-bottom:8px;}
+  .topk-label{font-family:var(--font-mono);font-size:clamp(9px,1.1vw,11px);color:var(--color-accent);text-transform:uppercase;letter-spacing:.08em;}
+  .sc.picked .w,.sc.picked .val{color:var(--color-accent);font-weight:600;}
+  .pick-tag{font-family:var(--font-mono);font-size:clamp(9px,1.1vw,11px);color:var(--color-accent);background:color-mix(in oklab,var(--color-accent) 12%,transparent);border-radius:6px;padding:2px 7px;margin-left:4px;}
+  .sc.dim{opacity:.4;}
+
+/* ===== deck engine: layout, step reveal, chrome. Do not edit from a slide. ===== */
+html,body,code,pre{font-variant-ligatures:none;}
+.deck{height:100dvh;position:relative;overflow:hidden;}
+.slide{
+  height:100dvh;position:absolute;inset:0;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:clamp(44px,6vh,64px) clamp(20px,5vw,72px) clamp(36px,5.5vh,56px);
+  opacity:0;pointer-events:none;visibility:hidden;
+  transition:opacity .6s ease,visibility 0s .6s;
+}
+.slide.visible{opacity:1;pointer-events:auto;z-index:1;visibility:visible;transition:opacity .6s ease,visibility 0s;}
+.slide .reveal{opacity:0;transition:opacity .5s ease;}
+.slide.visible .reveal{opacity:1;}
+.slide.visible .reveal:nth-child(2){transition-delay:.06s;}
+.slide.visible .reveal:nth-child(3){transition-delay:.12s;}
+.slide .notes{display:none;}
+.stage svg.diagram{max-height:100%;}
+
+/* step visibility: an element with data-from="k" (and optional data-until="m") is shown while k <= step < m */
+[data-from]{opacity:0;transition:opacity .5s ease;}
+[data-from].on{opacity:1;}
+
+@media(prefers-reduced-motion:reduce){
+  .slide,.slide .reveal,[data-from]{transition:none!important;}
+}
+
+/* chrome */
+.deck-progress{position:fixed;top:0;left:0;height:2px;background:var(--color-accent);z-index:100;transition:width .3s ease;pointer-events:none;}
+.deck-dots{position:fixed;right:clamp(8px,1.6vw,18px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:100;max-height:80vh;}
+.deck-dot{width:5px;height:5px;border-radius:50%;background:var(--color-border-strong);opacity:.5;border:none;padding:0;cursor:pointer;transition:opacity .2s,transform .2s,background .2s;flex-shrink:0;}
+.deck-dot:hover{opacity:.8;}
+.deck-dot.active{opacity:1;transform:scale(1.8);background:var(--color-accent);}
+.deck-counter{position:fixed;bottom:clamp(12px,2vh,22px);right:clamp(14px,2vw,24px);font-family:var(--font-mono);font-size:11.5px;color:var(--color-text-dim);z-index:100;font-variant-numeric:tabular-nums;}
+.deck-hints{position:fixed;bottom:clamp(12px,2vh,22px);left:clamp(14px,2vw,24px);font-family:var(--font-mono);font-size:11px;color:var(--color-text-dim);opacity:.55;z-index:100;transition:opacity .5s ease;white-space:nowrap;}
+.deck-hints.faded{opacity:0;pointer-events:none;}
+.deck-brand{position:fixed;top:clamp(12px,2vh,22px);left:clamp(14px,2vw,24px);font-family:var(--font-mono);font-size:11px;color:var(--color-text-faint);z-index:100;letter-spacing:.02em;}
+.deck-pips{position:fixed;bottom:clamp(14px,2.2vh,24px);left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:100;}
+.deck-pips i{width:6px;height:6px;border-radius:50%;background:var(--color-border-strong);transition:background .25s,transform .25s;}
+.deck-pips i.done{background:var(--color-text-dim);}
+.deck-pips i.now{background:var(--color-accent);transform:scale(1.35);}
+.deck-tools{position:fixed;top:clamp(10px,1.8vh,20px);left:50%;transform:translateX(-50%);display:flex;gap:16px;z-index:100;transition:opacity .4s ease;}
+.deck-tools.off{opacity:0;}
+.deck-tools svg{width:22px;height:22px;color:var(--color-text-faint);opacity:.55;transition:color .3s,opacity .3s;}
+.deck-tools svg.on{color:var(--color-accent);opacity:1;}
+.deck-notes{position:fixed;left:0;right:0;bottom:0;padding:14px clamp(20px,5vw,72px) 18px;background:rgba(10,10,11,.94);border-top:1px solid var(--color-border);font-family:var(--font-mono);font-size:13px;line-height:1.5;color:var(--color-text-soft);z-index:120;display:none;}
+body.show-notes .deck-notes{display:block;}
+@media(max-width:640px){.deck-dots{display:none;}}
+
+/* terminal: for slides that show REAL command output (copy it verbatim from deck/data/qwen38.json) */
+.term{width:min(100%,1000px);background:var(--color-surface-deep);border:1px solid var(--color-border);border-radius:12px;overflow:hidden;font-family:var(--font-mono);}
+.term-bar{display:flex;gap:7px;padding:10px 14px;border-bottom:1px solid var(--color-hairline);}
+.term-bar i{width:9px;height:9px;border-radius:50%;background:var(--color-border-strong);display:block;}
+.term-body{padding:clamp(14px,2.4vh,22px) clamp(16px,2.4vw,26px);font-size:clamp(13px,1.5vw,19px);line-height:1.55;color:var(--color-text-soft);white-space:pre;overflow:hidden;}
+.term .p{color:var(--color-text-dim);}
+.term .c{color:var(--color-text);}
+.term .hi{color:var(--color-accent);}
+.term .dim{color:var(--color-text-faint);}
+
+</style>
+<section class="slide" id="s01-cover" data-steps="0" data-needs="shaders" style="justify-content:center;">
+  <aside class="notes">SAY: we start with the maths a transformer is made of, then open the box.</aside>
+<script>
+</script>
+</section>
+<section class="slide" id="s03-vec3d" data-steps="0" data-tool="vector">
+  <p class="kicker reveal">refresher 1</p>
+  <p class="statement reveal">3 numbers: a vector in 3D space.</p>
+  <aside class="notes">SAY: plays by itself. Two numbers become three: a third dimension appears (one toward you along z) and the camera turns slowly so the depth reads. Real models just keep adding numbers.</aside>
+<script>
+          var skip = c.instant ? WAIT + GROW + 1.2 : 0; // jumped straight here (hash, export): show the finished state
+</script>
+</section>
+<section class="slide" id="s07-dot-intro" data-steps="4" data-tool="dot">
+  <p class="kicker reveal">refresher 2</p>
+  <p class="statement reveal">The dot product: one number for how similar two vectors are.</p>
+  <aside class="notes">SAY: multiply matching entries and add. Pointing the same way gives a big positive number, at right angles zero, opposite gives negative.</aside>
+<script>
+        enter: function () { st = T[0]; draw(st); },
+          if (c.instant) { st = target; draw(st); return; }
+</script>
+</section>
+<section class="slide" id="s15-model-folder" data-steps="2">
+  <p class="kicker reveal">tokens</p>
+  <p class="statement reveal">A downloaded model is just a folder of files.</p>
+  <aside class="notes">SAY: this is the real Qwen3.8-27B folder: a vocabulary (tokenizer.json), a config and 55.6 GB of numbers (the safetensors shards). The listing is real; ls hides dotfiles, so .gitattributes is not shown, and the middle shards are elided with an ellipsis.</aside>
+<script>
+        var t0 = term.getBoundingClientRect().top;
+          g.el.style.top = (a.top - t0).toFixed(1) + 'px';
+          g.el.style.height = (b.bottom - a.top).toFixed(1) + 'px';
+</script>
+</section>
+<section class="slide" id="s26-nudge-all" data-steps="1">
+  <p class="kicker reveal">training</p>
+  <p class="statement reveal">Nudge every number a little, millions of times.</p>
+  <aside class="notes">SAY: after millions of tiny corrections the numbers stop being random. Similar tokens end up pointing similar ways. This is where embeddings come from. (Toy: 24 tokens, 2 dimensions and invented final positions; the counter is a toy too. Real training runs on trillions of tokens and tunes billions of numbers, not just the embedding table.)</aside>
+<script>
+      var GREY = [106, 106, 115], CYAN = [34, 211, 238], LG = [154, 154, 163], LW = [237, 237, 240];
+</script>
+</section>
+<section class="slide" id="s30-ball-3d" data-steps="4" data-tool="vector matrix">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Each ball is the same vector, transformed in a different direction.</p>
+  <aside class="notes">SAY: golf ball, oddball and tarball are all transformations of ball, each in its own direction. The starting vector is the same; what changes is the matrix that acts on it. Attention's job is to apply the right one from the context. (A toy picture in 3 numbers; the real vector has 5,120.)</aside>
+<script>
+</script>
+<style>.example, #s30-ball-3d .scoped {width:12vw;} @media(min-width:1px){.nested{height:3vh}}</style>
+</section>
+<section class="slide" id="s34-key" data-steps="3" data-tool="matrix">
+  <p class="kicker reveal">attention</p>
+  <p class="statement reveal">Embedding × Wk = key: what kind of influence this token has to offer.</p>
+  <aside class="notes">SAY: the key is what a token can be matched against: what kind of influence it has to offer. Only tar's multiplication is shown; the keys of odd and golf are given toy numbers. Toy numbers: real queries, keys and values have thousands of numbers, and real models also use token positions (nearby words weigh more).</aside>
+<script>
+</script>
+</section>
+<section class="slide" id="s41-wu-wd-intro" data-steps="3" data-tool="matrix">
+  <p class="kicker reveal">feed-forward</p>
+  <p class="statement reveal">Feed-forward has two matrices: Wu widens the vector, Wd narrows it back.</p>
+  <aside class="notes">SAY: after attention, every token goes through the feed-forward part on its own. It is built from two matrices. Wu makes the vector much longer: 5,120 numbers become 17,408. Wd brings it back to 5,120. In between, something happens to the long vector; the next slides open each piece. (Real numbers from Qwen3.8-27B: hidden_size 5,120, intermediate_size 17,408; layer 3 has up_proj stored as [17,408 x 5,120] and down_proj as [5,120 x 17,408], stored as [out, in]. In the row-vector convention used in this deck Wu has 5,120 rows and 17,408 columns, and each column is one question. 5,120 x 17,408 = 89,128,960 numbers per matrix. Simplification: the real layer also has a gate_proj of the same shape; the toy folds it into the silencing step. The cells are drawn schematically, not real values.)</aside>
+<script>
+</script>
+</section>
+<section class="slide" id="s45-ffn-recap" data-steps="1">
+  <p class="kicker reveal">feed-forward</p>
+  <p class="statement reveal">Attention reads the sentence. Feed-forward recalls what training stored.</p>
+  <aside class="notes">SAY: attention is the only place tokens talk to each other. Feed-forward works on one token at a time using stored knowledge. (Toy picture: the arc thicknesses and the six detector bars are illustrative, and the two-axis plane stands in for 5,120 real dimensions. The tokens are the real tokenization of the question from Qwen3.8-27B, shortened.)</aside>
+<script>
+      setArrow(ghost, X0, 4, '#4a4a52');
+</script>
+</section>
+<section class="slide" id="t100-title-finetuning" data-steps="0" style="justify-content:center;">
+  <aside class="notes">SAY: chapter 1. Fine-tuning does not add anything new to the model; it nudges the same weights a little. Five sliders, each drifting a hair, one of them highlighted. Decoration only: the sliders stand for weights, they are not real values.</aside>
+<script>
+</script>
+</section>
+<section class="slide" id="t106-template-knobs" data-steps="3">
+  <p class="kicker reveal">fine-tuning</p>
+  <p class="statement reveal">The template is a behaviour knob. No weight changes.</p>
+  <aside class="notes">SAY: the chat template is code that runs before the model, and its options are knobs on behaviour. Switch one thing and the rendered prompt changes, the weights do not. Each switch is flipped on its own against the baseline (a combined switch state is not shown, and with thinking off the template emits no reasoning-effort sentence at all). Step 1: without the assistant cue (add_generation_prompt = false) the prompt ends at the end of the user turn, so the model has no turn to answer in and keeps writing as the user. Step 2: enable_thinking = false makes the template pre-fill an empty think block, and no system turn is emitted. Step 3: reasoning_effort = low injects a different one-sentence instruction; medium injects nothing. REAL: all four renders are real Qwen3.8-27B chat_template.jinja output for the toy instruction (part2.json chat.variants.default, no_generation_prompt, thinking_off, effort_low; the xhigh sentence is effort_xhigh = default). The two reasoning-effort sentences are cut with "..." (full: "Reasoning effort is set to xhigh. Please think carefully through the task, validate key assumptions, consider plausible alternatives, and prioritize correctness, consistency, and clarity in the final answer." and "Reasoning effort is set to low. Keep your thinking brief and focused, moving directly to the conclusion without unnecessary elaboration."). Honest detail: this template has NO default "You are Qwen" system prompt; the only thing it injects by default is the reasoning-effort sentence. The user line is wrapped at the space before end for the slide.</aside>
+<script>
+          w.v.style.fill = f > 0.5 ? 'rgb(34,211,238)' : 'rgb(154,154,163)';
+</script>
+</section>
+<section class="slide" id="t405-router-scores" data-steps="3" data-tool="matrix dot">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">The router: one score per expert.</p>
+  <aside class="notes">SAY: the router is just one small matrix. Multiply the token by it and you get one number per expert: a score. Look at E2 alone: dot the token with column E2, four products, 2.10. The two biggest scores are E2 and E5. Toy numbers: x = [0.3, 0.5, -0.2, 0.7], and the router matrix is built so that column j dotted with x gives exactly the toy score (column j = score_j * x / |x|^2), which is why the grid looks like copies of x; a trained router has no such pattern. Real: the router shape is read from the Qwen3-30B-A3B files (deck/data/part2.json, key moe.qwen3_30b_a3b.router), hidden size 2,048 by 128 experts, so 262,144 numbers per layer, against 4,718,592 numbers in one expert (3 x 2,048 x 768, same file, key moe.qwen3_30b_a3b.active.one_expert_ffn_params). Qwen3.8-27B itself has no router: it is dense.</aside>
+<script>
+          snum[k].style.fill = top ? 'rgb(34,211,238)' : 'rgb(196,196,203)';
+          heads[k].style.fill = (top && a > 0.5) ? 'rgb(34,211,238)' : '';
+</script>
+</section>
+<section class="slide" id="t406-top2" data-steps="4" data-tool="softmax">
+  <p class="kicker reveal">mixture of experts</p>
+  <p class="statement reveal">Top 2 run. The other 6 sit out.</p>
+  <aside class="notes">SAY: the router gave every expert a score. Keep the two highest, E2 and E5, and run only those; the other six do not run at all, which is where the saving comes from. Each running expert is a normal feed-forward (Wu then Wd) and produces an output vector. The two scores 2.1 and 1.8 go through softmax and become the weights 0.57 and 0.43. Scale each output by its weight, add them, and add the result back onto the token. Toy numbers: x = [0.3, 0.5, -0.2, 0.7], router scores for the first token, expert outputs o2 = [0.8, 0.2] and o5 = [0.1, 0.9] as 2-number vectors so that they can be drawn; the small plane shows x as its first two numbers only. The weights are computed in the page as softmax over the two scores (0.5744 and 0.4256) and rounded to 0.57 and 0.43; the arithmetic on the slide uses the rounded weights. Real models differ in how many experts run (Mixtral: 2 of 8; Qwen3-30B-A3B: 8 of 128).</aside>
+<script>
+</script>
+</section>
+<section class="slide" id="t606-kv-memory" data-steps="3">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">The cache is why inference eats memory.</p>
+  <aside class="notes">SAY: the cache is per request and per token. 16 of the 64 layers are full attention and store K and V for every token: 16 x 2 x 4 heads x 256 x 2 bytes = 65,536 B = 64 KiB per token. One request keeps 0.25 GiB at 4k context and 16 GiB at the full 262k. The other 48 layers are linear attention with a fixed-size state: about 148 MiB per request, an ESTIMATE from the config shapes (fp32 recurrent + bf16 conv, engine-specific). The weights are 55,562,855,904 B = 51.7 GiB in bf16 (real, safetensors index), and every in-flight request reserves its own KV: four 131k requests total about 83.7 GiB. If all 64 layers were cached, per-token bytes are 4x (262,144 B) and the row reaches about 179.7 GiB. bf16 cache, no cache quantization here; serving engines page the cache in blocks. GiB = 2 to the 30 bytes.</aside>
+<style>
+    #t606-kv-memory .rql{font-size:22px;text-anchor:middle;fill:var(--color-surface-deep);font-weight:700;}
+</style>
+</section>
+<section class="slide" id="t607-prefill-vs-decode" data-steps="2">
+  <p class="kicker reveal">kv cache</p>
+  <p class="statement reveal">Prefill: many tokens per weight read. Decode: one.</p>
+  <aside class="notes">SAY: prefill and decode look identical from the outside but are different beasts. Prefill reads the 51.7 GiB of weights once and applies them to every prompt token at once: lots of arithmetic per weight, so compute-bound (the 90/45 numbers are illustrative, not measured). Decode reads the same weights to produce a single new token: the model is almost entirely memory-bandwidth. Different bottlenecks, different optimisations. The pipe shows the weights streaming out of memory on every step; one column of the grid is the work of one decoded token.</aside>
+<script>
+      function runPipe() {
+        var t0 = null;
+        function frame(ts) {
+          if (t0 === null) t0 = ts;
+          var ph = (ts - t0) / 1500; // one pipe traversal per 1.5 s
+          pips.forEach(function (s, i) {
+            var x = PX0 + 2 + ((ph + i / 4) % 1) * (PX1 - PX0 - 16);
+            s.setAttribute('x', x.toFixed(1));
+          });
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+      runPipe();
+      Deck.slide('t607-prefill-vs-decode', {
+        enter: function () { s1 = 0; s2 = 0; draw(); },
+
+</script>
+</section>
+<section class="slide" id="t703-fewer-bits" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">Fewer bits per weight, almost the same model.</p>
+  <aside class="notes">SAY: these are 32 real weights from one tensor of Qwen3.8-27B, a single group of 32, in bf16 on top. The bottom chart is the same group after int4 rounding: every weight moves to the nearest of 16 levels, so each cyan bar is a touch shorter or taller than its grey twin, and the differences are small but visible. Storing a 4-bit level index plus one shared scale per group costs about half a byte per weight instead of two: 4 times fewer bytes. The round-trip error is 0.097 of the weight spread, measured as rmse over std on the full 327,680 weights of the tensor. (Data: first_group of the real tensor in deck/data/part2.json; relative_rmse from quant.int4_rtn.group_32, plain round-to-nearest, symmetric, groups of 32.)</aside>
+<script>
+      var MUTED = [154, 154, 163], TEXT = [237, 237, 240], DIM = [106, 106, 115], FAINT = [74, 74, 82], ACC = [34, 211, 238];
+        el('text', { 'class': 'big', x: 616, y: 474, fill: 'rgb(' + TEXT.join(',') + ')' }, gn, REL_RMSE.toFixed(2)),
+</script>
+</section>
+<section class="slide" id="t706-block-scales" data-steps="2">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">4-bit formats carry a scale for each block.</p>
+  <aside class="notes">SAY: four bits give only 16 levels, so a single scale for a whole tensor would be far too coarse. These formats cut the weights into small blocks and store one scale per block: the 4-bit values multiply that scale to get back to a real size. NVFP4 uses blocks of 16 values with an FP8 scale; MXFP4 uses a shared block scale (the slide does not give a block size on purpose); the GGUF Q4_K formats mix different precisions per block, and the average cost lands at about 4.5 bits per weight for Q4_K_M and about 4 for Q4_K_S, because the scales themselves cost bits. (Layout and figures from the blog's table. Toy: the hex digits in the cells are made up, only to show 4-bit values; the wider cells in the GGUF row only suggest that blocks differ in how many bits they use.)</aside>
+<script>
+      <desc id="t706-block-scales-d">Three rows. NVFP4: a block of 16 four-bit values multiplied by one separate FP8 scale cell. MXFP4: a block of four-bit values multiplied by a shared block scale cell. GGUF Q4_K_M and Q4_K_S: several blocks, each with its own scale, the blocks mixed in how many bits they use per value, about 4.5 bits per weight for Q4_K_M and about 4 bits for Q4_K_S.</desc>
+      caption(r2, [['mixed per block:  Q4_K_M ', 0], ['~4.5 bits', 1], ['  ·  Q4_K_S ', 0], ['~4 bits', 1]]);
+</script>
+</section>
+<section class="slide" id="t709-native-support" data-steps="1">
+  <p class="kicker reveal">quantization</p>
+  <p class="statement reveal">Whether the GPU multiplies FP8 or FP4 natively depends on its generation.</p>
+  <aside class="notes">SAY: this is where part 2 hands over. Quantization only pays off if the GPU can do the maths in that format directly, and which formats it multiplies natively (FP8, FP4) depends on its generation. So the next questions are about the hardware: how much memory, how much bandwidth, which interconnect, and which GPU. That is part 3. (No per-generation support table here on purpose: it needs vendor documentation as its source, so it belongs in part 3. Nothing on this slide is a measurement.)</aside>
+<script>
+</script>
+</section>

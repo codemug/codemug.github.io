@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { vertStaticDevRoutes } from './scripts/pc/vert/dev-plugin.mjs';
 
 import tailwindcss from '@tailwindcss/vite';
 
@@ -12,7 +13,7 @@ export default defineConfig({
   site: 'https://usmanshahid.is-a.dev',
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss(), vertStaticDevRoutes()]
   },
 
   build: {

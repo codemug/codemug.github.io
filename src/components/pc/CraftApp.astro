@@ -1,0 +1,15 @@
+---
+import {releases} from '../../../scripts/pc/craft/releases.mjs';
+const {id}=Astro.props,app=releases[id];
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="robots" content="noindex"/><title>{app.title} · WebPC</title></head>
+<body data-app={id}><header><strong>{app.title}</strong><span id="status" role="status">Opening editor…</span><nav aria-label="Files and audio">
+<button id="open" disabled>{id==='lightcraft'?'Import photos…':'Open file…'}</button><button id="restore" hidden={id==='lightcraft'} disabled>Reopen saved</button><button id="download" hidden={id==='lightcraft'} disabled>Download saved</button><button id="retry" hidden={id==='lightcraft'} disabled>Retry browser copy</button><button id="audio" hidden={id!=='soundcraft'} disabled>Enable audio</button><button id="help">Help</button></nav></header>
+<p id="error" role="alert" hidden></p><iframe id="editor" title={`${app.title} editor`} allow="fullscreen; clipboard-read; clipboard-write"></iframe>
+<input id="file" type="file" accept={app.accept} hidden/>
+<dialog id="help-dialog"><h1>{app.title}</h1><p>{app.help}</p><p>This is the official {app.version} browser release, running locally. No account or backend is configured. Browser data is specific to this device and can be cleared; keep important file downloads. The native canvas interface needs a modern browser and is most comfortable in a maximized desktop window.</p><p><a href={`https://github.com/storytold/${id}/tree/v${app.version}`} target="_blank" rel="noopener">Upstream source</a> · <a href={`/third-party/${id}/WEBPC.txt`} target="_blank">Licenses and provenance</a></p><form method="dialog"><button>Close help</button></form></dialog>
+<script>import '../../../scripts/pc/craft/app.mjs';</script>
+</body></html>
+<style is:global>
+:root{font-family:system-ui,sans-serif;color:#28313c;background:#f5f6f8;color-scheme:light;--panel:#fff;--line:#d2d9e3}html[data-theme=dark]{color:#e8e9f1;background:#1d2030;color-scheme:dark;--panel:#292d40;--line:#464c65}*{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden}body{display:flex;flex-direction:column;font-size:12px}header{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line)}nav{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:5px 8px;cursor:pointer}button:disabled{opacity:.5;cursor:default}button:focus-visible{outline:2px solid #9682ff}iframe{border:0;flex:1;min-height:0;width:100%;background:#202124}#error{padding:7px 12px;margin:0;background:#fff0cc;color:#624207}dialog{max-width:560px;max-height:85vh;overflow:auto;background:var(--panel);color:inherit;border:1px solid var(--line);border-radius:12px;line-height:1.6;padding:24px}dialog::backdrop{background:#0009}h1{font-size:20px}a{color:#8067d6}@media(max-width:600px){header{gap:5px}nav{margin:0}button{font-size:11px;padding:4px 5px}}
+</style>

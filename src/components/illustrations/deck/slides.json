@@ -753,7 +753,7 @@
     "tool": null,
     "kicker": "quantization",
     "statement": "4-bit formats carry a scale for each block.",
-    "notes": "SAY: four bits give only 16 levels, so a single scale for a whole tensor would be far too coarse. These formats cut the weights into small blocks and store one scale per block: the 4-bit values multiply that scale to get back to a real size. NVFP4 uses blocks of 16 values with an FP8 scale; MXFP4 uses a shared block scale (the slide does not give a block size on purpose); the GGUF Q4_K formats mix different precisions per block, and the average cost lands at about 4.5 bits per weight for Q4_K_M and about 4 for Q4_K_S, because the scales themselves cost bits. (Layout and figures from the blog's table. Toy: the hex digits in the cells are made up, only to show 4-bit values; the wider cells in the GGUF row only suggest that blocks differ in how many bits they use.)"
+    "notes": "SAY: four bits give only 16 levels, so a single scale for a whole tensor would be far too coarse. These formats cut the weights into small blocks and store one scale per block: the 4-bit values multiply that scale to get back to a real size. NVFP4 uses blocks of 16 values with an FP8 scale; MXFP4 uses a shared block scale (the slide does not give a block size on purpose); the GGUF Q4_K formats mix different precisions per block, and the average cost lands at about 4.9 bits per weight for Q4_K_M and about 4.7 for Q4_K_S, because the scales themselves cost bits. (Layout and figures from the blog's table. Toy: the hex digits in the cells are made up, only to show 4-bit values; the wider cells in the GGUF row only suggest that blocks differ in how many bits they use.)"
   },
   "t707-gptq-awq": {
     "steps": 2,

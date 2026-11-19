@@ -37,6 +37,7 @@ const navLinks = [
   { label: "Writing", href: "/blog", hideSmall: false },
   { label: "Work", href: "/#work", hideSmall: true },
   { label: "Contact", href: "/#contact", hideSmall: false },
+  { label: "WebPC", href: "/pc/", hideSmall: false },
 ];
 
 const personJsonLd = {
@@ -224,33 +225,34 @@ const articleJsonLd =
     </div>
 
     <header
-      class="sticky top-0 z-50 border-b border-[--color-hairline-2] backdrop-blur-md"
+      class="sticky top-0 z-50 border-b border-[var(--color-hairline-2)] backdrop-blur-md"
       style="background:color-mix(in oklab,var(--color-bg) 70%,transparent)"
     >
       <nav
-        class="max-w-[1040px] mx-auto px-6 sm:px-8 py-4 flex items-center justify-between"
+        class="max-w-[1040px] mx-auto px-4 sm:px-8 py-4 flex items-center justify-between"
       >
         <a
           href="/"
           class="flex items-center gap-3 font-mono text-[13px] tracking-[0.01em]"
         >
           <span
-            class="inline-block w-[9px] h-[9px] rounded-full bg-[--color-accent] shadow-[0_0_12px_var(--color-accent)]"
+            class="inline-block w-[9px] h-[9px] rounded-full bg-[var(--color-accent)] shadow-[0_0_12px_var(--color-accent)]"
             style="animation:pulse 2.4s ease-in-out infinite"></span>
-          <span class="text-[--color-text] font-medium"
-            >usmanshahid<span class="text-[--color-text-dim]">.is-a.dev</span></span
+          <span class="text-[var(--color-text)] font-medium"
+            >usmanshahid<span class="hidden sm:inline text-[var(--color-text-dim)]">.is-a.dev</span></span
           >
         </a>
         <div
-          class="flex items-center gap-4 sm:gap-7 text-[13.5px] text-[--color-text-muted]"
+          class="flex items-center gap-3 sm:gap-7 text-[13.5px] text-[var(--color-text-muted)]"
         >
           {
             navLinks.map((link) => (
               <a
                 href={link.href}
                 class:list={[
-                  "transition-colors hover:text-[--color-text]",
+                  "transition-colors hover:text-[var(--color-text)]",
                   link.hideSmall && "hidden sm:inline",
+                  link.label === "Contact" && "hidden min-[400px]:inline",
                 ]}
               >
                 {link.label}
@@ -262,7 +264,7 @@ const articleJsonLd =
             type="button"
             aria-label="Toggle color theme"
             title="Toggle color theme"
-            class="ml-0.5 inline-flex items-center justify-center w-8 h-8 rounded-md border border-[--color-border] text-[--color-text-muted] hover:text-[--color-text] hover:border-[--color-border-strong] hover:bg-[--color-surface] transition-colors"
+            class="ml-0.5 inline-flex items-center justify-center w-8 h-8 rounded-md border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-surface)] transition-colors"
           >
             <svg
               class="w-4 h-4 hidden dark-show"
@@ -301,7 +303,7 @@ const articleJsonLd =
     </main>
 
     <footer
-      class="relative z-10 border-t border-[--color-hairline] text-[13.5px] text-[--color-text-dim]"
+      class="relative z-10 border-t border-[var(--color-hairline)] text-[13.5px] text-[var(--color-text-dim)]"
     >
       <div
         class="max-w-[1040px] mx-auto px-6 sm:px-8 py-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
@@ -312,19 +314,19 @@ const articleJsonLd =
             href="https://github.com/codemug"
             target="_blank"
             rel="noopener noreferrer"
-            class="transition-colors hover:text-[--color-text]">GitHub</a
+            class="transition-colors hover:text-[var(--color-text)]">GitHub</a
           >
           <a
             href="https://linkedin.com/in/u-manshahid"
             target="_blank"
             rel="noopener noreferrer"
-            class="transition-colors hover:text-[--color-text]">LinkedIn</a
+            class="transition-colors hover:text-[var(--color-text)]">LinkedIn</a
           >
           <a
             href="https://medium.com/@usmanshahid"
             target="_blank"
             rel="noopener noreferrer"
-            class="transition-colors hover:text-[--color-text]">Medium</a
+            class="transition-colors hover:text-[var(--color-text)]">Medium</a
           >
         </div>
       </div>

@@ -99,7 +99,20 @@ Core developer for **NCache Enterprise** (Redis-class distributed cache for .NET
 - **Languages:** Go (production), Python (production), Java (production), C# / .NET (production)
 - **Data / Storage internals:** B+ Tree indexing (NosDB), distributed-cache internals (NCache), Mongo, LDAP, JDBC, Avro / Protobuf
 
-## Selected Writing
+## Native Blog
+
+Canonical home: https://usmanshahid.is-a.dev/blog/
+RSS: https://usmanshahid.is-a.dev/rss.xml
+
+- [Primer: a context-optimised AI platform on 16 GB VRAM](https://usmanshahid.is-a.dev/blog/gaming-pc-agent-platform/) — local agents, context management, and orchestration; the small-model thesis is a hypothesis.
+- [An SRE's guide to deploying LLMs, Part 1](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-1/) — transformer mechanics, with interactive diagrams.
+- [Part 2](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-2/) — training, reasoning, serving memory, and quantization.
+- [Part 3](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-3/) — hardware and inference-engine tradeoffs.
+- [Part 4](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-4/) — deploying Qwen3.8-27B on AWS with Terraform, EKS, Karpenter, vLLM and Helm.
+- [Part 5](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-5/) — request routing, observability, autoscaling and tiered KV caching.
+- [Part 6](https://usmanshahid.is-a.dev/blog/sre-guide-deploying-llms-part-6/) — tokenomics: API versus self-hosting costs, with an interactive calculator.
+
+## Selected External Writing
 
 - **LLM Tool Calling Series · Part 1** — [Understanding Tool Calling and the Model Context Protocol (MCP)](https://usmanshahid.medium.com/llm-tool-calling-series-part-1-understanding-tool-calling-and-the-model-context-protocol-mcp-911a7c422fd8) · Medium, June 2025. **Published before MCP became mainstream** — a primer on what MCP is and why tool-calling matters for production LLM systems.
 - **LLM Tool Calling Series · Part 2** — [Enabling MCP on Your Existing Microservices](https://usmanshahid.medium.com/llm-tool-calling-series-part-2-enabling-mcp-on-your-existing-microservices-bfc9ce7dc67f) · Medium, October 2025. **Practical deep-dive** on how to retrofit existing microservices to expose MCP endpoints — drawn from the Careem AI Agent Platform implementation.

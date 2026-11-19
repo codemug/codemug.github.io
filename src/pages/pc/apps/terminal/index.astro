@@ -1,0 +1,34 @@
+---
+import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
+---
+<UtilityLayout title="Linux Terminal">
+  <header class="linux-header"><h1>Linux Terminal</h1><button id="linux-start">Start Linux</button><button id="linux-pause" disabled>Pause</button><button id="linux-restart" disabled>Restart</button><button id="linux-save" disabled>Save session</button></header>
+  <p class="utility-note">Alpine Linux · 32-bit · Bash, Python, Node.js · offline. Uses 512 MB guest RAM plus browser overhead. Files and processes are kept only when you save a session.</p>
+  <div class="linux-tools" aria-label="Session and keyboard controls">
+    <button id="linux-restore" disabled>Restore saved</button><button id="linux-export" disabled>Export session</button><button id="linux-import">Import session</button>
+    <button id="linux-fit" disabled title="Run stty at an idle shell prompt; do not use inside a running program">Fit guest</button>
+    <button data-linux-key="interrupt" disabled aria-label="Send Control C">Ctrl+C</button><button data-linux-key="tab" disabled aria-label="Send Tab">Tab</button><button data-linux-key="escape" disabled aria-label="Send Escape">Esc</button>
+    <button id="linux-help" aria-expanded="false" aria-controls="linux-help-panel">Help</button>
+    <input id="linux-backup" type="file" accept=".webpcvm,application/octet-stream" hidden/>
+  </div>
+  <section id="linux-help-panel" class="linux-help" hidden>
+    <p>This is a real Linux kernel running locally in a v86 worker. Try <code>python3 hello.py</code>, <code>node hello.js</code>, <code>nano notes.txt</code>, or <code>echo hello | tr a-z A-Z</code>. Ctrl+C interrupts programs. The touch buttons send keys to the guest.</p>
+    <p><strong>Save session</strong> captures memory, processes, terminal, and changed files in this browser’s IndexedDB. <strong>Restore saved</strong> resumes the last checkpoint; <strong>Export session</strong> downloads the current one. Imports are checked before replacing a running guest. Restart starts a clean guest and keeps the saved checkpoint. Checkpoints require this exact Linux image and emulator version. Save/export before refreshing or clearing browser data; other tabs can replace the browser’s latest save.</p>
+    <p>The display fits the window automatically. After resizing, use <strong>Fit guest</strong> at an idle shell prompt to update Linux’s rows/columns. It visibly runs <code>stty</code>; do not use it inside nano or another active program.</p>
+    <p>No public network relay is configured. The guest cannot browse the Internet, install packages online, SSH, or access your computer’s files. General networking needs a separately hosted relay; this app does not supply one. 64-bit programs are unsupported. Large workloads and checkpoints may exceed a mobile browser’s memory.</p>
+    <p><button id="linux-legacy" hidden>Export legacy files</button> The previous command workspace’s <code>pc:terminal:v1</code> data is left untouched. Legacy JSON is not a Linux checkpoint.</p>
+    <p><a href="/third-party/terminal/README.txt" target="_blank" rel="noopener">Runtime, guest licenses, and source provenance</a></p>
+  </section>
+  <p class="utility-status" id="terminal-status" role="status">Ready to start. Linux downloads only when you start or restore a session.</p>
+  <main id="terminal" aria-label="Linux serial console"></main>
+  <script>import '../../../../scripts/pc/apps/terminal.mjs';</script>
+  <style>
+    .linux-tools { display:flex; flex-wrap:wrap; gap:6px; padding:8px 14px; border-bottom:1px solid var(--color-border); }
+    .linux-tools button { font-size:11px; min-height:34px; padding:6px 8px; }
+    .linux-help { padding:8px 14px; overflow:auto; max-height:45vh; border-bottom:1px solid var(--color-border); font-size:12px; line-height:1.6; }
+    .linux-help p { margin:6px 0 12px; }
+    .linux-help code { font-family:var(--font-mono); }
+    #terminal { min-height:140px; }
+    @media(max-width:600px) { .linux-tools { padding:8px; } .linux-tools button { min-height:40px; } .linux-header h1 { width:100%; } }
+  </style>
+</UtilityLayout>

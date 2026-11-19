@@ -104,7 +104,7 @@
           var g = $('grid');
           if (!gridLines.length) for (var i = 0; i < GX.length + GZ.length; i++) { var l = document.createElementNS(NS, 'line'); l.setAttribute('class', 'grid'); g.appendChild(l); gridLines.push(l); }
           if (S.stop) S.stop();
-          var skip = c.instant ? WAIT + GROW + 1.2 : 0; // jumped straight here (hash, export): show the finished state
+          var skip = (c.instant || Deck.reduced) ? WAIT + GROW + 1.2 : 0; // jumped straight here (hash, export): show the finished state
           frame(skip);
           S.stop = Deck.loop(function (t) { frame(t + skip); });
         },

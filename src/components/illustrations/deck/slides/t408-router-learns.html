@@ -72,13 +72,13 @@
         r.label = el('text', { 'class': 'st', x: TX0, y: r.y - 32 }, sl);
         el('tspan', { 'class': 'sl' }, r.label, r.name);
         r.sc = el('tspan', {}, r.label, '');
-        r.ghost = el('circle', { cx: TX0 + r.w * TW, cy: r.y, r: 15, fill: 'none', stroke: 'rgb(106,106,115)', 'stroke-width': 3, 'stroke-dasharray': '5 4' }, sl);
+        r.ghost = el('circle', { cx: TX0 + r.w * TW, cy: r.y, r: 15, fill: 'none', stroke: 'var(--color-text-dim)', 'stroke-width': 3, 'stroke-dasharray': '5 4' }, sl);
         r.arUp = el('path', { fill: 'none', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, sl);
         r.arDn = el('path', { fill: 'none', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', stroke: 'rgb(138,138,148)' }, sl);
         r.knob = el('circle', { cy: r.y, r: 15 }, sl);
         r.val = el('text', { 'class': 'val', y: r.y - 28 }, sl, '');
       });
-      var gNote = el('text', { 'class': 'note', x: 830, y: 408, fill: 'rgb(154,154,163)' }, sl, 'if it hurt: a little lower');
+      var gNote = el('text', { 'class': 'note', x: 830, y: 408, fill: 'var(--color-text-muted)' }, sl, 'if it hurt: a little lower');
 
       function arrowD(x1, x2, y) {            // a short horizontal arrow with a head at x2
         var dir = x2 >= x1 ? 1 : -1;

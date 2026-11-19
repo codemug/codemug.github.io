@@ -1,0 +1,6 @@
+---
+import '../../styles/global.css';
+import '../../styles/pc-utilities.css';
+const { title } = Astro.props;
+---
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="robots" content="noindex"/><title>{title} · WebPC</title><script is:inline>try{document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark'}catch{}</script></head><body><slot/></body></html>

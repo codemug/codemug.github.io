@@ -1,0 +1,37 @@
+---
+const { id } = Astro.props;
+---
+<svg class:list={['pc-app-icon', `pc-icon-${id}`]} viewBox="0 0 64 64" fill="none" aria-hidden="true">
+  {id === 'sheets' ? <>
+    <path class="pc-icon-sheet" d="M15 5h25l12 12v40a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z" />
+    <path class="pc-icon-fold" d="M40 5v12h12" />
+    <rect x="20" y="27" width="24" height="23" rx="2" stroke="currentColor" stroke-width="2" />
+    <path d="M20 35h24M20 42h24M29 27v23" stroke="currentColor" stroke-width="2" />
+  </> : id === 'docs' ? <>
+    <path class="pc-icon-sheet" d="M15 5h25l12 12v40a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path class="pc-icon-fold" d="M40 5v12h12"/><path d="M21 28h22M21 36h22M21 44h16" stroke="currentColor" stroke-width="2"/>
+  </> : id === 'slides' ? <>
+    <rect class="pc-icon-monitor" x="6" y="10" width="52" height="36" rx="4" stroke="currentColor" stroke-width="2"/><path d="m27 20 14 8-14 8V20ZM24 55l8-9 8 9" stroke="currentColor" stroke-width="2"/>
+  </> : id === 'terminal' ? <>
+    <rect class="pc-icon-monitor" x="5" y="10" width="54" height="44" rx="5" stroke="currentColor" stroke-width="2"/><path d="m16 23 10 9-10 9m16 0h15" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </> : id === 'cyberchef' ? <>
+    <path class="pc-icon-monitor" d="M18 29a11 11 0 0 1-2-22 13 13 0 0 1 23 0 11 11 0 0 1 9 21v18H18V29Z" stroke="currentColor" stroke-width="2"/><path d="M18 39h30M19 54h28M25 18v12m14-12v12" stroke="currentColor" stroke-width="2"/>
+  </> : id === 'vert' ? <>
+    <path class="pc-icon-monitor" d="M9 12h34l12 12v29H9V12Z" stroke="currentColor" stroke-width="2"/><path d="m18 29 6 15 6-15m4 4h13m-4-5 5 5-5 5M19 20h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </> : id === 'ai-agent' ? <>
+    <rect class="pc-icon-monitor" x="7" y="9" width="50" height="43" rx="12" stroke="currentColor" stroke-width="2"/><path d="M19 43V26a7 7 0 0 1 14 0v17m-14-9h14m11-7v16m0-25v2M21 56l-4 4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </> : id === 'lightcraft' ? <>
+    <rect class="pc-icon-monitor" x="6" y="10" width="52" height="44" rx="6" stroke="currentColor" stroke-width="2"/><circle cx="21" cy="24" r="5" stroke="currentColor" stroke-width="2"/><path d="m9 48 15-15 10 8 10-14 12 17" stroke="currentColor" stroke-width="2"/>
+  </> : id === 'figcraft' ? <>
+    <path class="pc-icon-monitor" d="m32 6 24 15v23L32 58 8 44V21L32 6Z" stroke="currentColor" stroke-width="2"/><path d="m19 45 8-26 17 20-25 6Zm8-26 8 14" stroke="currentColor" stroke-width="2"/><circle cx="35" cy="33" r="4" stroke="currentColor" stroke-width="2"/>
+  </> : id === 'pdfcraft' ? <>
+    <path class="pc-icon-sheet" d="M15 5h25l12 12v40a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path class="pc-icon-fold" d="M40 5v12h12"/><path d="M21 27h22M21 34h16m-15 15 15-10 4 5-15 10-5 1 1-6Z" stroke="currentColor" stroke-width="2"/>
+  </> : id === 'soundcraft' ? <>
+    <rect class="pc-icon-monitor" x="6" y="10" width="52" height="44" rx="7" stroke="currentColor" stroke-width="2"/><path d="M16 29v6m8-14v22m8-26v30m8-23v16m8-11v6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </> : id === 'vscode' ? <>
+    <path class="pc-icon-monitor" d="m43 7 14 6v38l-14 6-25-19-9 7-5-4V23l5-4 9 7L43 7Z" stroke="currentColor" stroke-width="2"/><path d="m18 26 25 20V18L18 38m25-31v50" stroke="currentColor" stroke-width="2"/>
+  </> : <>
+    <rect class="pc-icon-monitor" x="6" y="9" width="52" height="37" rx="5" stroke="currentColor" stroke-width="2" />
+    <path d="M24 55h16M32 46v9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+    <path d="M24 27h16M32 19v16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+  </>}
+</svg>

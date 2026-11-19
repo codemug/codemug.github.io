@@ -55,7 +55,7 @@
       }
       function paint(r, v) {                     // positive = cyan, negative = grey, strength = opacity
         var a = Math.min(1, Math.abs(v));
-        r.setAttribute('fill', v >= 0 ? 'rgb(' + CY.join(',') + ')' : 'rgb(' + GR.join(',') + ')');
+        r.setAttribute('fill', v >= 0 ? Deck.color(CY) : Deck.color(GR));
         r.setAttribute('fill-opacity', (0.06 + 0.9 * a).toFixed(2));
       }
 

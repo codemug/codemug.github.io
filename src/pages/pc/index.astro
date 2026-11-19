@@ -1,0 +1,24 @@
+---
+import '../../styles/global.css';
+import '../../styles/pc.css';
+import Desktop from '../../components/pc/Desktop.astro';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>WebPC · Usman Shahid</title>
+    <meta name="description" content="A desktop in your browser. Open Sheets, arrange your windows, and make yourself at home." />
+    <link rel="canonical" href="https://usmanshahid.is-a.dev/pc/" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || (!saved && matchMedia('(prefers-color-scheme: light)').matches)) document.documentElement.dataset.theme = 'light';
+      } catch {}
+    </script>
+  </head>
+  <body><Desktop /></body>
+</html>

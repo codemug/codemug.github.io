@@ -1,10 +1,10 @@
 // Generate public/og-image.png from scripts/og-template.html using Playwright.
-// Run from the parent career-ops directory (which has Playwright installed):
-//   cd .. && node cv/scripts/gen-og.mjs
+// Run after npm ci and npx playwright install chromium:
+//   node scripts/gen-og.mjs
 //
-// Output: cv/public/og-image.png (1200x630, ready for Open Graph cards).
+// Output: public/og-image.png (1200x630, ready for Open Graph cards).
 
-import { chromium } from "playwright";
+import { chromium } from "@playwright/test";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 

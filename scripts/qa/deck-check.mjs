@@ -1,29 +1,24 @@
 #!/usr/bin/env node
 // Browser QA for the deck figures (figure.dk) on one page.
 //
-// Usage: node scripts/qa/deck-check.mjs <url> [--reduced] [--shots] [--only=a,b]
+// Usage: node scripts/qa/deck-check.mjs <url> [--reduced] [--shots] [--only=a,b] [--min-contrast=2]
 //   default   : states, stress, autoplay-in-view, expand at 360px, off-screen rAF
 //   --reduced : no figure may advance by itself under prefers-reduced-motion
 //   --shots   : screenshot every state at 360/768/1280 px into /tmp/deck-qa/
 //
-// Needs Playwright, which is not a repo dependency: set PLAYWRIGHT_MODULE to its
-// path, or keep the sibling install at ../immigration/career-ops/node_modules/playwright.
+// Install the repository browser: npx playwright install chromium.
 
-import { createRequire } from 'node:module';
+import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const require = createRequire(import.meta.url);
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || resolve(repo, '../immigration/career-ops/node_modules/playwright'));
 
 const args = process.argv.slice(2);
 const url = args.find((a) => !a.startsWith('--'));
 const REDUCED = args.includes('--reduced');
 const SHOTS = args.includes('--shots');
+const MIN_CONTRAST = +(args.find(a => a.startsWith('--min-contrast=')) || '--min-contrast=2').split('=')[1];
+if (!Number.isFinite(MIN_CONTRAST) || MIN_CONTRAST < 1 || MIN_CONTRAST > 21) throw new Error('--min-contrast must be between 1 and 21');
 const ONLY = (args.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
-if (!url) { console.error('usage: deck-check.mjs <url> [--reduced] [--shots] [--only=a,b]'); process.exit(2); }
+if (!url) { console.error('usage: deck-check.mjs <url> [--reduced] [--shots] [--only=a,b] [--min-contrast=2]'); process.exit(2); }
 
 const failures = [];
 const fail = (who, msg) => failures.push(`${who}: ${msg}`);
@@ -189,7 +184,10 @@ if (REDUCED) {
     await m.ctx.close();
   }
 
-  // light theme: no visible text in any state may fall under 2:1 contrast against the page
+  // Gross light-theme contrast smoke check only, NOT a WCAG audit: SVG shapes may
+  // have their own backgrounds and intentional faded/knockout labels are excluded.
+  // Use --min-contrast=4.5 for a stricter diagnostic; manually verify backgrounds.
+  console.log(`Contrast smoke threshold ${MIN_CONTRAST}:1 (not WCAG conformance)`);
   const L = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
   const lp = await L.newPage();
   await lp.goto(url, { waitUntil: 'load' });
@@ -204,7 +202,7 @@ if (REDUCED) {
     for (let k = 0; k < states; k++) {
       if (k > 0) await lp.click(`${sel} .dk-next`);
       await lp.waitForTimeout(80);
-      const low = await lp.$eval(sel, (fig) => {
+      const low = await lp.$eval(sel, (fig, minContrast) => {
         const lum = (c) => { const m = (c.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]; };
         const bgColor = getComputedStyle(fig).backgroundColor;
         const bg = lum(bgColor);
@@ -221,10 +219,10 @@ if (REDUCED) {
           if (!/^rgb/.test(col)) return;
           if (col === bgColor) return; // a knockout label, drawn in the page colour on a filled shape
           const a = lum(col), ratio = (Math.max(a, bg) + 0.05) / (Math.min(a, bg) + 0.05);
-          if (ratio < 2) out.push(`"${el.textContent.trim().slice(0, 24)}" ${col} ${ratio.toFixed(2)}:1`);
+          if (ratio < minContrast) out.push(`"${el.textContent.trim().slice(0, 24)}" ${col} ${ratio.toFixed(2)}:1`);
         });
         return out;
-      });
+      }, MIN_CONTRAST);
       if (low.length) { fail(f.name, `light theme, state ${k}: ${low.length} low-contrast texts, e.g. ${low.slice(0, 3).join('; ')}`); break; }
     }
   }
@@ -233,7 +231,8 @@ if (REDUCED) {
   // embedded interactive documents (the sampling board): the reader drives them
   const bp = await open({ width: 768, height: 900 });
   const boards = await bp.page.$$eval('figure.dk', (els) => els.filter((f) => f.querySelector('iframe[data-dk-srcdoc]')).map((f) => f.dataset.fig));
-  for (const name of boards) {
+  if (!boards.length) console.log('SKIP embedded-board interaction: no iframe figures on this page');
+  for (const name of boards.filter(name => !ONLY.length || ONLY.includes(name))) {
     const sel = figSel(name);
     await bp.page.locator(sel).scrollIntoViewIfNeeded();
     const s0 = await readState(bp.page, sel);
@@ -253,7 +252,8 @@ if (REDUCED) {
   // backdrop of their own (their body stays transparent and their color-scheme matches)
   const t = await open({ width: 1280, height: 900 });
   const withFrame = await t.page.$$eval('figure.dk', (els) => els.filter((f) => f.querySelector('iframe[data-dk-srcdoc]')).map((f) => f.dataset.fig));
-  for (const name of withFrame) {
+  if (!withFrame.length) console.log('SKIP embedded-document theme: no iframe figures on this page');
+  for (const name of withFrame.filter(name => !ONLY.length || ONLY.includes(name))) {
     const sel = figSel(name);
     await t.page.locator(sel).scrollIntoViewIfNeeded();
     await t.page.waitForTimeout(2500);
