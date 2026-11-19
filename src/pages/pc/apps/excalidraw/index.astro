@@ -1,0 +1,9 @@
+---
+import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
+---
+<UtilityLayout title="Excalidraw">
+  <header><h1>Excalidraw</h1><a href="/pc/vendor/excalidraw/index.html" target="_blank" rel="noopener">Open full page ↗</a><a href="/third-party/excalidraw/LICENSE" target="_blank" rel="noopener">Licence</a></header>
+  <p class="utility-note" id="excalidraw-note">Version 0.18.1 · Self-hosted, runs entirely in your browser. Your drawing autosaves to this browser (WebPC key <code>pc:excalidraw:scene:v1</code>) and is restored on open; use Export → Save to disk for a <code>.excalidraw</code> file. Fonts are served locally. This edition has no accounts, no cloud sync and no collaboration; the Excalidraw library, Excalidraw+ and share links open in a new tab only when you click them. The page is locked to this site: pasted external image or GIF URLs will not load; use a file you have instead.</p>
+  <main class="utility-frame"><iframe id="excalidraw-frame" title="Excalidraw" src="/pc/vendor/excalidraw/index.html"></iframe><div class="utility-loading" id="excalidraw-loading" role="status"><span id="excalidraw-status">Loading Excalidraw…</span><button id="excalidraw-retry" hidden>Retry</button></div></main>
+  <script>import '../../../../scripts/pc/apps/excalidraw.mjs';</script>
+</UtilityLayout>
