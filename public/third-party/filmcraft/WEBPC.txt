@@ -2,4 +2,4 @@ FilmCraft 0.20.1
 Upstream: https://github.com/storytold/filmcraft/tree/v0.20.1
 Release: https://github.com/storytold/filmcraft/releases/download/v0.20.1/filmcraft-web-0.20.1.zip
 SHA-256: 1cf3072e3f3b6535fcd024d6f6ab2a16cf7776345d868037dc630de0ad0dbbb8
-Official WASM, JavaScript and embedded assets are preserved. WebPC adds a small entry script for storage safety, focus and SoundCraft audio/session handling. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.
+Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

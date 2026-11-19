@@ -30,7 +30,7 @@ html, body { margin: 0; height: 100%; }
 .pk-table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .pk-table th { position: sticky; top: 0; background: var(--pk-card); text-align: left; padding: 5px 10px; border-bottom: 1px solid var(--pk-border); white-space: nowrap; }
 .pk-table td { padding: 4px 10px; border-bottom: 1px solid var(--pk-border); white-space: nowrap; }
-.pk-table td:nth-child(n + 3) { white-space: normal; min-width: 220px; }
+.pk-table td:nth-child(n + 3) { white-space: normal; }
 tr.pk-row { cursor: pointer; }
 tr.pk-row:hover { background: var(--pk-out-bg); }
 tr.pk-row.pk-sel { background: var(--pk-accent); color: var(--pk-accent-fg); }

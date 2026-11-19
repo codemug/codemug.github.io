@@ -2,4 +2,4 @@ DeckCraft 0.18.1
 Upstream: https://github.com/storytold/deckcraft/tree/v0.18.1
 Release: https://github.com/storytold/deckcraft/releases/download/v0.18.1/deckcraft-web-0.18.1.zip
 SHA-256: 3196e537fcfab538aaa2e88584bc74e29bb584459b916ab584ac22fbafe32db5
-Official WASM, JavaScript and embedded assets are preserved. WebPC adds a small entry script for storage safety, focus and SoundCraft audio/session handling. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.
+Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

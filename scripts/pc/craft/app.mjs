@@ -66,7 +66,7 @@ addEventListener('beforeunload',event=>{if(ready&&(dirty||pending||saveError||id
 addEventListener('pagehide',pause);
 document.addEventListener('pointerdown',()=>parent.postMessage({type:'pc:focus',appId:id},location.origin),true);
 // Assign only after listeners exist; no readiness or save event can race setup.
-frame.src=`/pc/vendor/${id}/index.html?webgl${id==='soundcraft'?'&empty':standalone?`&standalone${config.nosw?'&nosw':''}`:'&host=parent&control'}${id==='lightcraft'?'&store=idb':''}`;
+frame.src=`/pc/vendor/${id}/index.html?webgl${standalone?`&standalone${config.nosw?'&nosw':''}`:'&host=parent&control'}${id==='lightcraft'?'&store=idb':''}`;
 // Standalone apps have no host protocol: hand the iframe its copy rules (the native
 // document pattern from releases.mjs), its documented open method and loading element.
-frame.addEventListener('load',()=>{if(standalone)frame.contentWindow?.postMessage({type:'pc:standalone',native:nativeSource(id),open:config.open||null,dirty:config.dirty||null,loading:config.loading??`${id}_loading`},location.origin);});
+frame.addEventListener('load',()=>{if(standalone)frame.contentWindow?.postMessage({type:'pc:standalone',native:nativeSource(id),open:config.open||null,dirty:config.dirty||null,loading:config.loading??`${id}_loading`,appVersion:config.version},location.origin);});

@@ -48,7 +48,7 @@ test('Craft recovery accepts native documents without replacing them with export
 });
 test('Standalone entries carry a mode, an open method, a SHA-256 and a rebuildable native pattern',()=>{
   const standalone=Object.entries(releases).filter(([,r])=>r.mode==='standalone');
-  assert.ok(standalone.length>=5,'all five no-protocol apps are standalone');
+  assert.ok(standalone.length>=6,'all six no-protocol apps are standalone');
   for(const [id,entry] of standalone){
     assert.match(entry.sha256,/^[0-9a-f]{64}$/);
     assert.ok(entry.open,`${id} declares how it opens files`);
@@ -64,6 +64,9 @@ test('Standalone entries carry a mode, an open method, a SHA-256 and a rebuildab
   assert.equal(releases.photocraft.open,'drop');
   assert.equal(releases.materialcraft.open,'drop');
   assert.equal(releases.texturecraft.open,'drop');
+  assert.equal(releases.soundcraft.open,'drop');
+  assert.equal(releases.soundcraft.loading,'soundcraft_loading');
+  assert.ok(new RegExp(nativeSource('soundcraft'),'i').test('session.scraftz'),'pattern rebuilds case-insensitive');
   assert.ok(new RegExp(nativeSource('vectorcraft'),'i').test('x.vectorcraft'),'pattern rebuilds case-insensitive');
   assert.equal(nativeFile('vectorcraft','x.vectorcraft'),true,'nativeFile agrees with nativeSource');
 });
