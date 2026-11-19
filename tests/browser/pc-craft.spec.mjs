@@ -63,6 +63,18 @@ test('SoundCraft plays actual imported audio, exports media bundle, restores it 
  const again=await saved(page,async()=>{await frame.locator('canvas').click({position:{x:500,y:300}});await page.keyboard.press('ControlOrMeta+s');});expect(Object.keys((await JSZip.loadAsync(again.bytes)).files).some(x=>/Audio Files\/tone\.wav$/.test(x))).toBe(true);await page.screenshot({path:'/tmp/webpc-soundcraft-final.png'});
 });
 
+ test('FilmCraft suspends its audio on window close and resumes it on the next editor gesture',async({page})=>{
+  let frame=await open(page,'filmcraft');
+  await frame.locator('canvas').click({position:{x:500,y:300}});
+  await expect.poll(()=>frame.evaluate(()=>webpcAudio.states().filter(x=>x!=='closed'))).toContain('running');
+  // Closing the WebPC window only hides the cached iframe: audio must stop with it.
+  expect(await page.evaluate(()=>pcBeforeClose())).toBe(true);
+  await expect.poll(()=>frame.evaluate(()=>webpcAudio.states().filter(x=>x!=='closed'))).toEqual(['suspended']);
+  await frame.locator('canvas').click({position:{x:500,y:300}});
+  await expect.poll(()=>frame.evaluate(()=>webpcAudio.states().filter(x=>x!=='closed'))).toContain('running');
+  await page.screenshot({path:'/tmp/webpc-filmcraft-final.png'});
+ });
+
 test('Craft assets are lazy and the desktop caches SoundCraft while closing suspends audio',async({page})=>{
  const requests=[];page.on('request',r=>requests.push(r.url()));await page.goto('/pc/',{waitUntil:'domcontentloaded'});expect(requests.filter(x=>/\/vendor\/(lightcraft|figcraft|pdfcraft|soundcraft)\//.test(x))).toEqual([]);
  await page.locator('[data-shortcut="soundcraft"]').dblclick();const win=page.locator('[data-window="soundcraft"]');await expect(win).toHaveAttribute('data-load','ready',{timeout:60000});const outer=await win.locator('iframe').elementHandle().then(e=>e.contentFrame()),frame=page.frames().find(f=>f.url().includes('/vendor/soundcraft/'));

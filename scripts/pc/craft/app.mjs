@@ -6,7 +6,7 @@ const status=text=>$('status').textContent=text;
 const error=text=>{$('error').textContent=text;$('error').hidden=!text;};
 function download(name,bytes){const url=URL.createObjectURL(new Blob([bytes])),link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
 function post(type,fields={}){frame.contentWindow.postMessage({type:`${id}:${type}`,...fields},location.origin);}
-function pause(){if(id==='soundcraft'){frame.contentWindow?.webpcAudio?.suspend();$('audio').textContent='Enable audio';}}
+function pause(){frame.contentWindow?.webpcAudio?.suspend();if(id==='soundcraft')$('audio').textContent='Enable audio';}
 async function keep(file){
  lastFile=file;pending++;$('download').disabled=false;$('retry').disabled=false;
  try{await storedFile(id,'write',file);saveError=false;error('');$('restore').disabled=false;status(`Downloaded · browser copy saved: ${file.name}`);}

@@ -16,6 +16,11 @@ test('Craft recovery accepts native documents without replacing them with export
   assert.equal(nativeFile('filmcraft','Edit.FCPROJ'),true);
   assert.equal(nativeFile('filmcraft','final.mp4'),false,'video exports are not projects');
   assert.equal(nativeFile('filmcraft','mix.wav'),false);
+  assert.equal(nativeFile('cadcraft','drawing.dxf'),true);
+  assert.equal(nativeFile('cadcraft','Drawing.DXF'),true);
+  assert.equal(nativeFile('cadcraft','drawing.dwg'),true,'DWG is a selectable save format');
+  assert.equal(nativeFile('cadcraft','drawing.svg'),false,'SVG is an export');
+  assert.equal(nativeFile('cadcraft','symbols.shx'),false);
 });
 test('Craft save messages need a bounded filename and actual binary data',()=>{
  assert.equal(validSave({name:'a.pdf',bytes:new Uint8Array([1,2])}),true);
