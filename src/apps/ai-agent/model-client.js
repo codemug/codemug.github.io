@@ -2,15 +2,15 @@
 // rejects every waiter, and prevents old worker events from reaching a new chat.
 export class ModelClient {
   constructor({ createWorker = () => new Worker(new URL('./worker.js', import.meta.url), { type: 'module' }), progress = () => {}, failure = () => {} } = {}) {
-    this.createWorker = createWorker; this.progress = progress; this.failure = failure; this.pending = new Map(); this.nextId = 0; this.ready = false;
+    this.createWorker = createWorker; this.progress = progress; this.failure = failure; this.pending = new Map(); this.nextId = 0; this.ready = false; this.vision = false;
   }
   stop() {
-    this.worker?.terminate(); this.worker = null; this.ready = false;
+    this.worker?.terminate(); this.worker = null; this.ready = false; this.vision = false;
     const error = new DOMException('Stopped', 'AbortError');
     for (const request of this.pending.values()) request.reject(error);
     this.pending.clear();
   }
-  async load(key) {
+  async load(key, { vision = false } = {}) {
     this.stop();
     const worker = this.createWorker(); this.worker = worker;
     worker.onmessage = ({ data }) => {
@@ -22,7 +22,7 @@ export class ModelClient {
       if (data.type === 'token') return request.token?.(data.text);
       this.pending.delete(id);
       if (data.type === 'error') request.reject(new Error(data.message));
-      else { if (data.type === 'ready') this.ready = true; request.resolve(data); }
+      else { if (data.type === 'ready') { this.ready = true; this.vision = Boolean(data.vision); } request.resolve(data); }
     };
     worker.onerror = event => {
       if (this.worker !== worker) return;
@@ -32,7 +32,7 @@ export class ModelClient {
       this.pending.clear(); this.stop(); this.failure(error);
     };
     const promise = new Promise((resolve, reject) => this.pending.set('load', { resolve, reject }));
-    worker.postMessage({ type: 'load', key });
+    worker.postMessage({ type: 'load', key, vision });
     try { await promise; } catch (error) { if (this.worker === worker) this.stop(); throw error; }
   }
   request(type, payload, token) {

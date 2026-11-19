@@ -2,10 +2,11 @@ import { ModelClient } from './model-client.js';
 import { AgentSession } from './session.js';
 import { ConversationStore, validateConversation, MODEL_KEY, LEGACY_MODEL_KEY } from './storage.js';
 import { MODELS, DEFAULT_MODEL } from './models.js';
+import { checkImage, IMAGE_MAX_SIDE } from './agent.js';
 import { webSearch, httpGet } from './web.js';
 import { runJavaScript } from './sandbox.js';
 const $ = id => document.getElementById(id);
-const store = new ConversationStore(); let initialized = false, loading = false, loadVersion = 0, selected = DEFAULT_MODEL;
+const store = new ConversationStore(); let initialized = false, loading = false, loadVersion = 0, selected = DEFAULT_MODEL, pendingImage = null;
 try { const saved = localStorage.getItem(MODEL_KEY) ?? localStorage.getItem(LEGACY_MODEL_KEY); if (MODELS[saved]) selected = saved; } catch {}
 for (const [key, model] of Object.entries(MODELS)) $('model').add(new Option(`${model.label} · ${model.size}`, key));
 $('model').value = selected;
@@ -18,6 +19,16 @@ function controls() {
   $('send').disabled = !initialized || !client.ready || Boolean(session.active) || loading;
   $('new-chat').disabled = !initialized; $('import').disabled = !initialized; $('previous').disabled = !initialized;
   $('model-state').textContent = loading ? 'Loading…' : client.ready ? session.active ? 'Working locally' : 'Ready · on device' : 'Not loaded';
+  imageInputControls();
+}
+// Image input is only offered by the Qwen vision models; LFM3 is text-only.
+function imageInputControls() {
+  const vision = Boolean(MODELS[selected]?.vision);
+  const box = $('image-input');
+  box.disabled = !vision || loading || Boolean(session.active);
+  if (!vision) box.checked = false;
+  $('attach').disabled = !box.checked;
+  $('image-note').textContent = vision ? `+${MODELS[selected].vision.size} when first used` : 'Qwen models only';
 }
 const nearBottom = () => $('conversation').scrollHeight - $('conversation').scrollTop - $('conversation').clientHeight < 100;
 function follow(wasNear) { if (wasNear) $('conversation').scrollTop = $('conversation').scrollHeight; }
@@ -82,7 +93,7 @@ function modelInfo() {
   const link = document.createElement('a'); link.href = `https://huggingface.co/${model.repo}/tree/${model.revision}`; link.target = '_blank'; link.rel = 'noopener'; link.textContent = `${model.label} · ${model.license}`;
   $('model-license').replaceChildren(link, document.createTextNode('. Model weights have their own license. Sizes are approximate; small models may miss tools or return incorrect answers.'));
 }
-$('load-model').addEventListener('click', async () => {
+async function doLoad(vision) {
   cancel(); const version = ++loadVersion; loading = true; controls(); error(''); $('progress').hidden = false; $('progress').removeAttribute('value'); status('Checking WebGPU…');
   try {
     if (!navigator.gpu) throw new Error('WebGPU is unavailable. Use a compatible browser/device with hardware acceleration. Your saved conversation is still available.');
@@ -90,14 +101,16 @@ $('load-model').addEventListener('click', async () => {
     if (version !== loadVersion) return;
     if (!adapter) throw new Error('No WebGPU adapter is available. Your saved conversation is still available.');
     if (!adapter.features.has('shader-f16')) throw new Error('This WebGPU device does not support shader-f16, required by these models.');
-    status(`Loading ${MODELS[selected].label} · first download ${MODELS[selected].size}…`);
-    await client.load(selected); if (version !== loadVersion) return;
+    const spec = MODELS[selected];
+    status(vision && spec.vision ? `Loading ${spec.label} with image support · ${spec.size} + ${spec.vision.size} vision encoder…` : `Loading ${spec.label} · first download ${spec.size}…`);
+    await client.load(selected, { vision }); if (version !== loadVersion) return;
     status('Model ready. Messages are processed on this device.'); $('message').focus();
   } catch (err) { if (version === loadVersion && err.name !== 'AbortError') error(err.message); }
   finally { if (version === loadVersion) { loading = false; $('progress').hidden = true; controls(); } }
-});
+}
+$('load-model').addEventListener('click', () => doLoad($('image-input').checked));
 $('stop').addEventListener('click', () => cancel());
-$('model').addEventListener('change', () => { cancel('Model changed. Load it when you’re ready.'); selected = $('model').value; try { localStorage.setItem(MODEL_KEY, selected); } catch {} modelInfo(); });
+$('model').addEventListener('change', () => { cancel('Model changed. Load it when you’re ready.'); selected = $('model').value; try { localStorage.setItem(MODEL_KEY, selected); } catch {} if (!MODELS[selected].vision) clearPendingImage(); modelInfo(); controls(); });
 $('new-chat').addEventListener('click', async () => {
   if ((session.history.length || session.active) && !confirm('Start a new chat? The current stored chat will be kept as the previous record. Export it first if you need a permanent copy.')) return;
   cancel(); error(''); await session.newChat(); controls(); $('message').focus();
@@ -105,8 +118,68 @@ $('new-chat').addEventListener('click', async () => {
 $('composer').addEventListener('submit', async event => {
   event.preventDefault(); if ($('send').disabled) return;
   const text = $('message').value; if (!text.trim()) return;
-  $('message').value = ''; error('');
-  try { await session.send(text); } catch (err) { error(err.message); } controls();
+  error('');
+  try {
+    let image = null;
+    if (pendingImage) {
+      if (!MODELS[selected].vision) clearPendingImage();
+      else {
+        // First image with a text-loaded model: fetch the vision encoder now, on demand.
+        if (client.ready && !client.vision) await doLoad(true);
+        if (!client.ready) throw new Error('The model did not finish loading. Send the message again.');
+        image = { name: pendingImage.name, width: pendingImage.width, height: pendingImage.height, data: pendingImage.data };
+      }
+    }
+    await session.send(text, image);
+    $('message').value = '';
+    if (image) clearPendingImage();
+  } catch (err) { error(err.message); }
+  controls();
+});
+// ---------- image input (Qwen models) ----------
+function clearPendingImage() {
+  pendingImage = null;
+  $('image-chip').hidden = true;
+  imageInputControls();
+}
+function renderImageChip() {
+  $('image-chip').hidden = false;
+  $('image-preview').src = pendingImage.url;
+  $('image-name').textContent = `${pendingImage.name} · ${pendingImage.width}×${pendingImage.height}`;
+  $('image-name').title = 'Images are not kept after a reload; the chat stores a text marker.';
+}
+async function prepareImage(file) {
+  const problem = checkImage(file);
+  if (problem) { error(problem); return; }
+  let bitmap;
+  try { bitmap = await createImageBitmap(file); } catch { error('Could not decode that image. Try a PNG, JPEG or WebP.'); return; }
+  // Downscale the longest side to 768 px (keeps the pixel payload small; the model rescales internally).
+  const scale = Math.min(1, IMAGE_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height); bitmap.close();
+  const { data } = canvas.getContext('2d').getImageData(0, 0, width, height);
+  pendingImage = { name: file.name.slice(0, 100) || 'image.png', width, height, data: new Uint8Array(data), url: canvas.toDataURL('image/png') };
+  renderImageChip(); error('');
+}
+$('attach').addEventListener('click', () => { if (!$('attach').disabled) $('image-file').click(); });
+$('image-file').addEventListener('change', async () => {
+  const file = $('image-file').files?.[0]; $('image-file').value = '';
+  if (!file) return;
+  if (!$('image-input').checked) { error('Turn on Image input first (Qwen models only).'); return; }
+  await prepareImage(file);
+});
+$('image-remove').addEventListener('click', () => clearPendingImage());
+$('image-input').addEventListener('change', async () => {
+  const spec = MODELS[selected];
+  if (!spec.vision || !$('image-input').checked) { if (!$('image-input').checked) clearPendingImage(); imageInputControls(); return; }
+  imageInputControls();
+  // Enabling Image input with a loaded text-only model fetches the vision encoder now, on demand.
+  if (client.ready && !client.vision) {
+    status(`Downloading image support for ${spec.label} (${spec.vision.size})…`);
+    await doLoad(true);
+  }
 });
 $('message').addEventListener('keydown', event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); $('composer').requestSubmit(); } });
 for (const button of document.querySelectorAll('[data-prompt]')) button.addEventListener('click', () => { $('message').value = button.dataset.prompt; $('message').focus(); });

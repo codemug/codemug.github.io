@@ -1,4 +1,5 @@
 // Lazy default adapter keeps storage rules independently testable without a browser.
+import { stripImages } from './agent.js';
 const get = (...args) => import('./vendor/idb-keyval.js').then(module => module.get(...args));
 const setMany = (...args) => import('./vendor/idb-keyval.js').then(module => module.setMany(...args));
 export const STORE_KEY = 'pc:ai-agent:conversation:v1';
@@ -15,7 +16,8 @@ export function validateConversation(value) {
     if (message.tool_calls != null && (!Array.isArray(message.tool_calls) || message.tool_calls.some(call => !call?.function || typeof call.id !== 'string' || typeof call.function.name !== 'string' || !call.function.arguments || typeof call.function.arguments !== 'object'))) throw new Error('Invalid tool-call record.');
   }
   if ((value.summary?.length ?? 0) > 20000) throw new Error('The conversation summary is too large.');
-  return structuredClone({ version: 1, history: value.history, summary: value.summary ?? '', savedAt: value.savedAt ?? Date.now() });
+  // Image payloads (pixels) are stripped here, the save boundary: stored and imported records keep only the marker text in content.
+  return structuredClone({ version: 1, history: stripImages(value.history), summary: value.summary ?? '', savedAt: value.savedAt ?? Date.now() });
 }
 
 export class ConversationStore {

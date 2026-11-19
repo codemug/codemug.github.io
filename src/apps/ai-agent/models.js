@@ -8,6 +8,9 @@ export const MODELS = {
       "embed_tokens": "q4f16",
       "decoder_model_merged": "q4f16"
     },
+    "vision": {
+      "size": "~62 MB"
+    },
     "license": "Apache-2.0",
     "revision": "9a4c21d8f724176b0a7edaaed36303044451886e"
   },
@@ -18,6 +21,9 @@ export const MODELS = {
     "dtype": {
       "embed_tokens": "q4f16",
       "decoder_model_merged": "q4f16"
+    },
+    "vision": {
+      "size": "~197 MB"
     },
     "license": "Apache-2.0 (base model)",
     "revision": "ed446636739bf426e73c5a00714fd8e010d36c21"

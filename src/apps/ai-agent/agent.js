@@ -254,3 +254,31 @@ export function transcriptText(messages, maxToolChars = 300) {
     return [m.content ? `Assistant: ${m.content}` : "", ...calls].filter(Boolean).join("\n");
   }).filter(Boolean).join("\n");
 }
+
+// ---------- image input ----------
+export const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+export const IMAGE_MAX_BYTES = 10_000_000;
+export const IMAGE_MAX_SIDE = 768;
+
+/**
+ * Boundary validation for an attached image (a File or {type,size}).
+ * @returns {string|null} a human-readable problem, or null when the image may be used.
+ */
+export function checkImage(file) {
+  if (!file || !IMAGE_TYPES.includes(file.type)) return `Only PNG, JPEG and WebP images are accepted${file?.type ? ` (${file.type})` : ""}.`;
+  if (file.size > IMAGE_MAX_BYTES) return `That image is ${Math.ceil(file.size / 1_000_000)} MB; the limit is 10 MB.`;
+  return null;
+}
+
+/** The text stored for a sent image; the pixels themselves are never persisted. */
+export function imageMarker(image) {
+  return `[image: ${image.name}, ${image.width}×${image.height}]`;
+}
+
+/** Drop image payloads ({name,width,height,data}) from a history before it is stored or exported. */
+export function stripImages(history) {
+  return history.map((m) => {
+    const { image, ...rest } = m;
+    return rest;
+  });
+}
