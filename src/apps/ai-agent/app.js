@@ -1,4 +1,5 @@
 import { ModelClient } from './model-client.js';
+import { CloudClient } from './cloud-client.js';
 import { AgentSession } from './session.js';
 import { ConversationStore, validateConversation, MODEL_KEY, LEGACY_MODEL_KEY } from './storage.js';
 import { MODELS, DEFAULT_MODEL } from './models.js';
@@ -6,29 +7,37 @@ import { checkImage, IMAGE_MAX_SIDE } from './agent.js';
 import { webSearch, httpGet } from './web.js';
 import { runJavaScript } from './sandbox.js';
 const $ = id => document.getElementById(id);
+// Cloud models are opt-in per session: the key lives only in CloudClient's memory and is never persisted.
+const CLOUD_MODELS = { 'cloud:anthropic': 'Claude · cloud (your key)', 'cloud:openai': 'OpenAI-compatible · cloud (your key)' };
+const isCloud = key => Boolean(CLOUD_MODELS[key]);
 const store = new ConversationStore(); let initialized = false, loading = false, loadVersion = 0, selected = DEFAULT_MODEL, pendingImage = null;
 try { const saved = localStorage.getItem(MODEL_KEY) ?? localStorage.getItem(LEGACY_MODEL_KEY); if (MODELS[saved]) selected = saved; } catch {}
 for (const [key, model] of Object.entries(MODELS)) $('model').add(new Option(`${model.label} · ${model.size}`, key));
+for (const [key, label] of Object.entries(CLOUD_MODELS)) $('model').add(new Option(label, key));
 $('model').value = selected;
+const cloud = new CloudClient();
+// The session talks to whichever backend is active: the local worker or the BYOK cloud client.
+function bindClient() { session.client = isCloud(selected) ? cloud : client; }
 const status = text => { $('status').textContent = text; };
 const error = text => { $('error').textContent = text; $('error').hidden = !text; };
 function storageError(text) { $('storage-warning').hidden = false; $('storage-warning').querySelector('span').textContent = `${text} Your chat is still in memory; export it before closing.`; $('save-state').textContent = 'Not saved — export your chat'; }
 function controls() {
-  $('load-model').disabled = !initialized || loading || Boolean(session.active) || client.ready;
-  $('stop').disabled = !(loading || session.active || client.ready);
-  $('send').disabled = !initialized || !client.ready || Boolean(session.active) || loading;
+  $('load-model').disabled = !initialized || loading || Boolean(session.active) || client.ready || isCloud(selected);
+  $('stop').disabled = !(loading || session.active || client.ready || cloud.ready);
+  $('send').disabled = !initialized || !session.client.ready || Boolean(session.active) || loading;
   $('new-chat').disabled = !initialized; $('import').disabled = !initialized; $('previous').disabled = !initialized;
-  $('model-state').textContent = loading ? 'Loading…' : client.ready ? session.active ? 'Working locally' : 'Ready · on device' : 'Not loaded';
+  $('model-state').textContent = loading ? 'Loading…' : cloud.ready ? `Cloud · ${cloud.host}` : client.ready ? session.active ? 'Working locally' : 'Ready · on device' : 'Not loaded';
   imageInputControls();
 }
-// Image input is only offered by the Qwen vision models; LFM3 is text-only.
+// Image input is offered by the Qwen vision models and by an active cloud model; LFM3 is text-only.
 function imageInputControls() {
-  const vision = Boolean(MODELS[selected]?.vision);
+  const cloudSelected = isCloud(selected);
+  const vision = Boolean(MODELS[selected]?.vision) || (cloudSelected && cloud.ready);
   const box = $('image-input');
   box.disabled = !vision || loading || Boolean(session.active);
   if (!vision) box.checked = false;
   $('attach').disabled = !box.checked;
-  $('image-note').textContent = vision ? `+${MODELS[selected].vision.size} when first used` : 'Qwen models only';
+  $('image-note').textContent = cloudSelected ? (cloud.ready ? `sent to ${cloud.host}` : 'enable it in Settings') : (MODELS[selected]?.vision ? `+${MODELS[selected].vision.size} when first used` : 'Qwen models only');
 }
 const nearBottom = () => $('conversation').scrollHeight - $('conversation').scrollTop - $('conversation').clientHeight < 100;
 function follow(wasNear) { if (wasNear) $('conversation').scrollTop = $('conversation').scrollHeight; }
@@ -81,13 +90,18 @@ const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScr
   else if (type === 'tool-start') toolCard(data);
   else if (type === 'tool-result') toolResult(data.toolCard, data.result);
 } });
-function cancel(text = 'Stopped. Load the model again to continue; cached downloads are kept.') {
+function cancel(text = isCloud(selected) ? 'Stopped. Send the message again to continue.' : 'Stopped. Load the model again to continue; cached downloads are kept.') {
   loadVersion++; loading = false; session.cancel(); $('progress').hidden = true;
   document.querySelectorAll('.message-body:empty').forEach(el => { el.textContent = 'Stopped.'; });
   document.querySelectorAll('.tool summary').forEach(el => { if (el.textContent.endsWith('· running')) el.textContent = el.textContent.replace('· running', '· stopped'); });
   controls(); status(text);
 }
 function modelInfo() {
+  if (isCloud(selected)) {
+    $('download-note').textContent = 'Cloud model: nothing downloads locally. Enter your API key in Settings and confirm the opt-in; your prompts, tool results and attached images go to the provider named there.';
+    $('model-license').replaceChildren(document.createTextNode('The provider sets its own terms and pricing; the key is used only in this browser session.'));
+    return;
+  }
   const model = MODELS[selected];
   $('download-note').textContent = `Load ${model.label} when ready: ${model.size} of model files from Hugging Face. No model files download automatically. Chat and computation stay on device; web tools make the requests you ask for.`;
   const link = document.createElement('a'); link.href = `https://huggingface.co/${model.repo}/tree/${model.revision}`; link.target = '_blank'; link.rel = 'noopener'; link.textContent = `${model.label} · ${model.license}`;
@@ -110,10 +124,18 @@ async function doLoad(vision) {
 }
 $('load-model').addEventListener('click', () => doLoad($('image-input').checked));
 $('stop').addEventListener('click', () => cancel());
-$('model').addEventListener('change', () => { cancel('Model changed. Load it when you’re ready.'); selected = $('model').value; try { localStorage.setItem(MODEL_KEY, selected); } catch {} if (!MODELS[selected].vision) clearPendingImage(); modelInfo(); controls(); });
+$('model').addEventListener('change', () => {
+  cancel('Model changed. Load it when you’re ready.');
+  selected = $('model').value;
+  cloud.clear(); bindClient();
+  if (!isCloud(selected)) { try { localStorage.setItem(MODEL_KEY, selected); } catch {} if (!MODELS[selected].vision) clearPendingImage(); }
+  modelInfo(); controls();
+});
 $('new-chat').addEventListener('click', async () => {
   if ((session.history.length || session.active) && !confirm('Start a new chat? The current stored chat will be kept as the previous record. Export it first if you need a permanent copy.')) return;
-  cancel(); error(''); await session.newChat(); controls(); $('message').focus();
+  cancel(); error(''); cloud.clear(); bindClient(); await session.newChat();
+  if (isCloud(selected)) status('New chat started. The cloud key was cleared — confirm the cloud model in Settings to continue.');
+  controls(); $('message').focus();
 });
 $('composer').addEventListener('submit', async event => {
   event.preventDefault(); if ($('send').disabled) return;
@@ -122,12 +144,15 @@ $('composer').addEventListener('submit', async event => {
   try {
     let image = null;
     if (pendingImage) {
-      if (!MODELS[selected].vision) clearPendingImage();
+      if (isCloud(selected)) {
+        if (!cloud.ready) { clearPendingImage(); throw new Error('Confirm the cloud model in Settings first (your key was cleared).'); }
+        image = { name: pendingImage.name, width: pendingImage.width, height: pendingImage.height, data: pendingImage.data, type: pendingImage.type };
+      } else if (!MODELS[selected].vision) clearPendingImage();
       else {
         // First image with a text-loaded model: fetch the vision encoder now, on demand.
         if (client.ready && !client.vision) await doLoad(true);
         if (!client.ready) throw new Error('The model did not finish loading. Send the message again.');
-        image = { name: pendingImage.name, width: pendingImage.width, height: pendingImage.height, data: pendingImage.data };
+        image = { name: pendingImage.name, width: pendingImage.width, height: pendingImage.height, data: pendingImage.data, type: pendingImage.type };
       }
     }
     await session.send(text, image);
@@ -160,7 +185,7 @@ async function prepareImage(file) {
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height); bitmap.close();
   const { data } = canvas.getContext('2d').getImageData(0, 0, width, height);
-  pendingImage = { name: file.name.slice(0, 100) || 'image.png', width, height, data: new Uint8Array(data), url: canvas.toDataURL('image/png') };
+  pendingImage = { name: file.name.slice(0, 100) || 'image.png', width, height, data: new Uint8Array(data), type: file.type, url: canvas.toDataURL('image/png') };
   renderImageChip(); error('');
 }
 $('attach').addEventListener('click', () => { if (!$('attach').disabled) $('image-file').click(); });
@@ -172,6 +197,7 @@ $('image-file').addEventListener('change', async () => {
 });
 $('image-remove').addEventListener('click', () => clearPendingImage());
 $('image-input').addEventListener('change', async () => {
+  if (isCloud(selected)) { if (!$('image-input').checked) clearPendingImage(); imageInputControls(); return; }
   const spec = MODELS[selected];
   if (!spec.vision || !$('image-input').checked) { if (!$('image-input').checked) clearPendingImage(); imageInputControls(); return; }
   imageInputControls();
@@ -180,6 +206,26 @@ $('image-input').addEventListener('change', async () => {
     status(`Downloading image support for ${spec.label} (${spec.vision.size})…`);
     await doLoad(true);
   }
+});
+// ---------- cloud model (BYOK, opt-in per session) ----------
+const cloudProvider = () => document.querySelector('input[name="cloud-provider"]:checked').value;
+function cloudNotice() {
+  const host = cloudProvider() === 'anthropic' ? 'api.anthropic.com' : 'the host in your base URL';
+  $('cloud-notice').textContent = `By confirming, you agree that your prompts, tool results and any attached image are sent to ${host}. The key is kept in memory only and cleared on reload or New chat.`;
+  $('cloud-model').placeholder = cloudProvider() === 'anthropic' ? 'claude-opus-5-5 (cheaper: claude-sonnet-5-5, claude-haiku-5-5)' : 'model name served by this endpoint';
+  $('cloud-base-row').hidden = cloudProvider() !== 'openai';
+  $('cloud-effort').hidden = cloudProvider() !== 'anthropic';
+  if (cloudProvider() === 'anthropic' && !$('cloud-model').value.trim()) $('cloud-model').value = 'claude-opus-5-5';
+}
+for (const radio of document.querySelectorAll('input[name="cloud-provider"]')) radio.addEventListener('change', cloudNotice);
+$('cloud-use').addEventListener('click', () => {
+  error('');
+  try {
+    const { host } = cloud.configure({ provider: cloudProvider(), model: $('cloud-model').value, baseUrl: $('cloud-base').value.trim() || null, key: $('cloud-key').value, effort: $('cloud-effort-select').value });
+    $('cloud-key').value = ''; // the key never lingers in the DOM after opt-in
+    status(`Cloud model ready. Your prompts are sent to ${host}.`);
+    bindClient(); controls();
+  } catch (err) { error(err.message); }
 });
 $('message').addEventListener('keydown', event => { if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) { event.preventDefault(); $('composer').requestSubmit(); } });
 for (const button of document.querySelectorAll('[data-prompt]')) button.addEventListener('click', () => { $('message').value = button.dataset.prompt; $('message').focus(); });
@@ -216,10 +262,10 @@ window.pcFlush = () => {
   if (unsaved()) { error(store.pending ? 'Saving is still in progress. Try closing again after it completes.' : 'This chat could not be saved. Retry save or Export before closing.'); return false; }
   return true;
 };
-window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; return window.pcFlush(); };
+window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); bindClient(); return window.pcFlush(); };
 addEventListener('beforeunload', event => { if (unsaved()) { event.preventDefault(); event.returnValue = ''; } });
-addEventListener('pagehide', () => { loadVersion++; session.cancel(); });
-modelInfo(); controls();
+addEventListener('pagehide', () => { loadVersion++; cloud.clear(); session.cancel(); });
+modelInfo(); cloudNotice(); bindClient(); controls();
 try {
   const { value, migrated } = await store.restore(); session.history = value.history; session.summary = value.summary; render(value);
   if (migrated) status('Previous conversation copied safely. The original record was kept. Load a model to continue.');

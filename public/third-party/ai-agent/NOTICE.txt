@@ -18,6 +18,10 @@ idb-keyval 6.2.1, Jake Archibald, Apache-2.0.
 https://github.com/jakearchibald/idb-keyval/tree/v6.2.1
 npm dist/index.js, unchanged except an attribution comment.
 
+Anthropic TypeScript SDK 1.11.0 (bundled), Anthropic, Apache-2.0.
+https://www.npmjs.com/package/@anthropic-ai/sdk/v/1.11.0
+vendor/anthropic-sdk.mjs is an esbuild 0.27.7 browser bundle (minified, production) of the pinned npm package, rebuilt by scripts/pc/prepare-ai-agent.mjs and verified by SHA-256. It exports only Anthropic and the typed error classes the app uses. It is used only after the user's explicit per-session cloud opt-in; the API key never leaves memory except in requests to the chosen provider.
+
 Model repositories and immutable revisions: models.js.
 Qwen3.5-0.8B ONNX OPT: Apache-2.0 in the pinned conversion repository.
 Qwen3.5-2B ONNX OPT: upstream Qwen/Qwen3.5-2B is Apache-2.0; the conversion repository does not supply its own license metadata. Weights are not redistributed here.

@@ -148,6 +148,33 @@ export function toolSchemas(tools) {
   }));
 }
 
+const TYPES = {
+  string: (v) => typeof v === "string",
+  number: (v) => typeof v === "number" && Number.isFinite(v),
+  boolean: (v) => typeof v === "boolean",
+  array: (v) => Array.isArray(v),
+  object: (v) => v !== null && typeof v === "object" && !Array.isArray(v),
+};
+
+/**
+ * Validate a parsed tool input against a tool's JSON-Schema parameters. The cloud tools run
+ * `strict` schemas, so missing, extra or mistyped fields become error tool_results before running.
+ * @returns {{ ok: true } | { ok: false, error: string }}
+ */
+export function validateToolInput(parameters, args) {
+  if (!TYPES.object(args)) return { ok: false, error: "Tool input must be a JSON object" };
+  const properties = parameters?.properties ?? {};
+  for (const key of Object.keys(args)) {
+    const property = properties[key];
+    if (!property) return { ok: false, error: `Unexpected field "${key}" is not allowed` };
+    if (property.type && !TYPES[property.type]?.(args[key])) return { ok: false, error: `Field "${key}" must be ${property.type}` };
+  }
+  for (const key of parameters?.required ?? []) {
+    if (!(key in args)) return { ok: false, error: `Missing required field "${key}"` };
+  }
+  return { ok: true };
+}
+
 /** Parse a parameter value: numbers, booleans and JSON objects come back typed, the rest as strings. */
 function parseValue(raw) {
   const text = raw.trim();

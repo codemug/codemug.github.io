@@ -8,3 +8,6 @@
 #image-chip img{width:26px;height:26px;object-fit:cover;border-radius:4px;flex:none}
 #image-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #image-remove{padding:0 4px;font-size:11px;line-height:1}
+#cloud-provider .check{margin-right:14px;white-space:nowrap}
+#cloud-model,#cloud-base{min-width:230px;max-width:320px}
+#cloud-key{min-width:230px;max-width:320px}
