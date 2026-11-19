@@ -1,8 +1,8 @@
 # WebPC Files app
 
 Files is a WebPC-native app at `/pc/apps/files/`: a breadcrumb file manager over the browser's own
-[OPFS](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/getDirectory) storage. Phase 1 is
-self-contained; letting other apps open and save through Files is a later task.
+[OPFS](https://developer.mozilla.org/en-US/docs/Web/API/FileSystemHandle/getDirectory) storage. Phase 2 adds
+the cross-app bridge (below).
 
 ## Storage scope (hard rule)
 
@@ -30,6 +30,26 @@ instead of a broken UI.
   Focusable rows with visible focus states.
 - The page follows the desktop theme through the standard `pc:theme` message, and
   `pcBeforeClose` returns false only while an upload or delete is in flight.
+
+## Cross-app bridge
+
+Every WebPC app is same-origin, so pages import `src/scripts/pc/files/store.mjs` directly — no desktop broker.
+
+- **`src/scripts/pc/files/picker.mjs`** — the shared read-only picker (`pickFile`): a `<dialog>` that lists
+  `webpc-files/` with navigable folders, filters files by an `<input accept>`-style list (extension groups and
+  MIME wildcards; OPFS files carry no MIME, so common extensions are classified against wildcard groups),
+  with arrow keys / Enter / Escape and a Cancel button, visible focus, an opaque themed panel (host tokens
+  `--panel`/`--line` on Craft wrapper pages, site tokens on utility pages) and a dimmed backdrop. Resolves `{name, bytes}` or null. Its runtime rows use a
+  contained global style (`.wp-picker`) that works on both Astro and non-Astro pages.
+- **Craft wrappers** (`scripts/pc/craft/app.mjs`) — **Open from Files** opens the picker with the app's own
+  `accept` and feeds the pick through the same path as the file input (`openFile` → `${id}:open`, 256 MB check);
+  **Save copy to Files** writes the last saved file to `webpc-files/<app title>/<name>`, creating the folder,
+  asks before overwriting an existing file, and broadcasts afterwards.
+- **BroadcastChannel `webpc-files`** — `{type:'changed', path}`: the Files app listens and refreshes the
+  current folder on every `changed`, without a reload.
+- **Media Player** — its "Open from Files" uses the same picker with `audio/*,video/*`; it stays read-only.
+- **`store.exists(path, name)`** — reports `'file' | 'folder' | null`; used for the overwrite and folder-conflict
+  checks. The pure accept-list logic is unit-tested in `tests/pc-files-picker.test.mjs`.
 
 ## Known limits
 

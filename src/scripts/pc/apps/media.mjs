@@ -1,11 +1,10 @@
 import{setupApp}from'./common.mjs';
-import*as store from'../files/store.mjs';
+import{pickFile}from'../files/picker.mjs';
 import{createPlaylist,addItems,nextIndex,prevIndex,advance,removeAt,mediaKind}from'../media/playlist.mjs';
 const stage=document.getElementById('media-stage'),video=document.getElementById('media-video'),titleEl=document.getElementById('media-title'),statusEl=document.getElementById('media-status');
 const playBtn=document.getElementById('media-play'),prevBtn=document.getElementById('media-prev'),nextBtn=document.getElementById('media-next'),repeatBtn=document.getElementById('media-repeat'),seek=document.getElementById('media-seek'),timeEl=document.getElementById('media-time'),durEl=document.getElementById('media-duration'),muteBtn=document.getElementById('media-mute'),vol=document.getElementById('media-volume'),fsBtn=document.getElementById('media-fullscreen');
-const input=document.getElementById('media-input'),listEl=document.getElementById('media-list'),filesPanel=document.getElementById('media-files'),filesList=document.getElementById('media-files-list');
+const input=document.getElementById('media-input'),listEl=document.getElementById('media-list');
 const playlist=createPlaylist();
-let filesFound=[];
 const esc=text=>text.replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 const fmt=seconds=>{const s=Math.max(0,Math.floor(seconds||0));return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
 function status(text,error=false){statusEl.textContent=text;statusEl.dataset.error=error;}
@@ -124,41 +123,16 @@ document.getElementById('media-open').addEventListener('click',()=>input.click()
 document.getElementById('media-main').addEventListener('dragover',event=>event.preventDefault());
 document.getElementById('media-main').addEventListener('drop',event=>{event.preventDefault();addFromFiles(event.dataTransfer.files);});
 
-// Open from Files: read-only walk of the Files app's storage.
-async function openFromFiles(){
- filesPanel.hidden=false;
- filesList.innerHTML='<li class="mp-busy">Scanning Files storage…</li>';
+// Open from Files: the shared picker over the Files app's storage (read-only).
+document.getElementById('media-open-files').addEventListener('click',async()=>{
  try{
-  const found=[];
-  const walk=async path=>{
-   for(const item of await store.list(path)){
-    const at=path?`${path}/${item.name}`:item.name;
-    if(item.kind==='folder')await walk(at);
-    else{const kind=mediaKind(item.name);if(kind)found.push({name:at,kind});}
-   }
-  };
-  await walk('');
-  filesFound=found;
-  filesList.innerHTML=found.length?found.map((file,i)=>`<li data-f="${i}" tabindex="0"><span class="mp-name">${esc(file.name)}</span><span class="mp-kind">${file.kind}</span></li>`).join(''):'<li class="mp-busy">No audio or video files in Files storage yet. Upload some in the Files app.</li>';
-  status(`Found ${found.length} media ${found.length===1?'file':'files'} in Files storage (read-only).`);
- }catch(error){
-  filesList.innerHTML='';
-  status(error.message,true);
- }
-}
-document.getElementById('media-open-files').addEventListener('click',openFromFiles);
-filesList.addEventListener('click',async event=>{
- const row=event.target.closest('li[data-f]');
- if(!row)return;
- const file=filesFound[Number(row.dataset.f)];
- const slash=file.name.lastIndexOf('/');
- const dir=slash<0?'':file.name.slice(0,slash),name=slash<0?file.name:file.name.slice(slash+1);
- try{
-  const{data}=await store.read(dir,name);
+  const picked=await pickFile({accept:'audio/*,video/*',title:'Open from Files'});
+  if(!picked)return;
+  const kind=mediaKind(picked.name);
+  if(!kind){status(`"${picked.name}" is not audio or video.`,true);return;}
   const position=playlist.items.length;
-  addEntries([{name,kind:file.kind,blob:data}]);
+  addEntries([{name:picked.name,kind,blob:new Blob([picked.bytes])}]);
   load(position);
-  filesPanel.hidden=true;
  }catch(error){status(error.message,true);}
 });
 

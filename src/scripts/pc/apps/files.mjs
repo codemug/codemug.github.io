@@ -130,4 +130,7 @@ if(!store.available()){
  setupApp('files');
  status('Ready. Files stay in this browser only.');
  render();usageLine();
+ // Other apps (Craft wrappers, Media Player) broadcast when they write into
+ // webpc-files/; refresh the current folder so new files appear without reload.
+ if(typeof BroadcastChannel!=='undefined')new BroadcastChannel('webpc-files').onmessage=event=>{if(event.data?.type==='changed'&&!busy)render();};
 }

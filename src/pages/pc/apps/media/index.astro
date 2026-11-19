@@ -29,10 +29,6 @@ import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
       <h2>Playlist</h2>
       <ul id="media-list"></ul>
     </section>
-    <section id="media-files" class="media-files" aria-label="Media in Files storage" hidden>
-      <h2>Media in Files storage <span class="media-readonly">read-only</span></h2>
-      <ul id="media-files-list"></ul>
-    </section>
   </main>
   <p class="utility-note">Space plays/pauses · ←/→ seek 5 s · ↑/↓ volume · N/P next/previous · M mute · F fullscreen. Volume is remembered in this browser. Open from Files reads the Files app's storage (webpc-files/) without changing it.</p>
   <style>
@@ -47,22 +43,20 @@ import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
     .media-transport button { font-size:12px; min-height:32px; padding:4px 8px; }
     #media-seek { flex:1; min-width:120px; }
     .media-time { font-size:11px; font-variant-numeric:tabular-nums; color:var(--color-text-muted); }
-    .media-list-section h2, .media-files h2 { font-size:12px; margin:0 0 6px; }
-    .media-readonly { font-size:10px; color:var(--color-text-muted); font-weight:400; }
-    #media-list, #media-files-list { list-style:none; margin:0; padding:0; border:1px solid var(--color-border); border-radius:6px; background:var(--color-surface); max-height:220px; overflow:auto; }
+    .media-list-section h2 { font-size:12px; margin:0 0 6px; }
+    #media-list { list-style:none; margin:0; padding:0; border:1px solid var(--color-border); border-radius:6px; background:var(--color-surface); max-height:220px; overflow:auto; }
     @media(max-width:600px) { .media-transport button { min-height:38px; } }
   </style>
-  <!-- Rows are created by innerHTML in media.mjs, so these rules are global,
-       contained by the two list containers. -->
+  <!-- Playlist rows are created by innerHTML in media.mjs, so these rules are
+       global, contained by the playlist container. -->
   <style is:global>
-    #media-list li, #media-files-list li { display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid var(--color-border); font-size:12px; cursor:pointer; }
-    #media-list li:last-child, #media-files-list li:last-child { border-bottom:0; }
-    #media-list li:focus-visible, #media-files-list li:focus-visible, #media-list li.sel:focus-visible { outline:2px solid var(--color-accent); outline-offset:-2px; }
+    #media-list li { display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid var(--color-border); font-size:12px; cursor:pointer; }
+    #media-list li:last-child { border-bottom:0; }
+    #media-list li:focus-visible, #media-list li.sel:focus-visible { outline:2px solid var(--color-accent); outline-offset:-2px; }
     #media-list li.sel { background:var(--color-accent-soft, color-mix(in srgb, var(--color-accent) 12%, transparent)); }
     .mp-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .mp-kind { font-size:10px; color:var(--color-text-muted); text-transform:uppercase; }
     .mp-remove { min-height:0; padding:0 6px; font-size:14px; line-height:1.2; }
-    .mp-busy { color:var(--color-text-muted); cursor:default; }
   </style>
   <script>import '../../../../scripts/pc/apps/media.mjs';</script>
 </UtilityLayout>

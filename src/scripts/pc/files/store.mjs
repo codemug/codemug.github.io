@@ -76,6 +76,15 @@ export async function read(path,name){
   return{name:blob.name,data:blob,modified:blob.lastModified};
 }
 
+// What, if anything, exists at path/name: 'file', 'folder' or null.
+export async function exists(path,name){
+  if(validateName(name))throw new Error(validateName(name));
+  const parent=await dirHandle(path);
+  try{await openDir(parent,name,false);return'folder';}catch{}
+  try{await openFile(parent,name,false);return'file';}catch{}
+  return null;
+}
+
 // OPFS has no rename; copy then delete is the portable equivalent.
 export async function rename(path,from,to){
   if(validateName(from))throw new Error(validateName(from));
