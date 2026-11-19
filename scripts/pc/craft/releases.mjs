@@ -7,8 +7,28 @@ export const releases = {
   cadcraft: { title:'CADCraft', version:'0.20.1', sha256:'300e870c50b66d371055915ba95e3ddbfd4c45431466d5214743b5dcab95a0e1', description:'Draw and edit CAD drawings (DXF, DWG).', accept:'.dxf,.dwg,.shx', help:'Open a .dxf drawing or import DXF, DWG or SHX files, then use the native drawing tools. Save downloads the DXF drawing and keeps a browser copy of the last saved .dxf; other exports download normally. Reopen saved restores that copy; changes after Save are not autosaved. A new WebPC session starts on the Start tab, not with a blank drawing.' },
   gridcraft: { title:'GridCraft', version:'0.19.1', sha256:'48c5d1b101befebb3c5ba3b7a14914f01c3207934813ed07dc4251b7ae116a78', description:'Create and edit spreadsheets (XLSX, CSV, ODS).', accept:'.xlsx,.xlsm,.xls,.xlsb,.ods,.csv,.tsv,.txt,.slk,.json', help:'Open a spreadsheet or import XLSX, ODS, CSV and other grid formats, then work in the native grid. Save downloads the .xlsx workbook and keeps a browser copy of the last saved workbook; PDF exports download normally. Reopen saved restores that copy; changes after Save are not autosaved. A new WebPC session starts with an empty workbook.' },
   deckcraft: { title:'DeckCraft', version:'0.18.1', sha256:'3196e537fcfab538aaa2e88584bc74e29bb584459b916ab584ac22fbafe32db5', description:'Build slide decks and present them.', accept:'.deckcraft,.pptx,.potx,.ppsx,.txt,.md', help:'Open a deck or a .txt/.md outline, or start blank, then use the native slide editor. Save downloads the deck in its own format and keeps a browser copy of the last saved .deckcraft or presentation file; PDF, picture and outline exports download normally. Reopen saved restores that copy; changes after Save are not autosaved. A new WebPC session starts with an empty presentation.' },
+  vectorcraft: { title:'VectorCraft', version:'0.24.1', sha256:'de31befd175476f252e3563b4b1fdc6c887d5842b33fb7d1f5fdf007dc7633aa', mode:'standalone', open:'openFile', dirty:'docInspect', description:'Draw and edit vector illustrations.', accept:'.vectorcraft,.svg,.svgz,.pdf,.ai,.eps,.dxf,.emf,.wmf,image/*', help:'Open a .vectorcraft document or import SVG, PDF, AI and other vector formats, then draw with the native tools. Save downloads the document in its own format and keeps a browser copy of the last saved .vectorcraft; SVG, PDF and other exports download normally. Reopen saved restores that copy; changes after Save are not autosaved. A new WebPC session starts with an empty document.' },
+  photocraft: { title:'PhotoCraft', version:'0.23.1', sha256:'3a498eb517bca6cec89f9c6b1fc6448269a05428c8a3a4637c16817da157f03c', mode:'standalone', open:'drop', description:'Edit photos and layers, non-destructively.', accept:'.pcraft,.psd,.psb,.xcf,.ora,.kra,.krz,.pdn,image/*', help:'Open a .pcraft document or import Photoshop, Krita, GIMP or flat images, then work in the native editor. Save downloads the document and keeps a browser copy of the last saved .pcraft; image exports download normally. Reopen saved restores that copy; changes after Save are not autosaved. Closing or reloading asks first while the open document has unsaved changes.' },
+  effectcraft: { title:'EffectCraft', version:'0.24.1', sha256:'8adc985f345d73207abc69a27938905aba1729b63c6c9b332d0244a7567424f1', mode:'standalone', open:'addFile', loading:'loading', nosw:true, description:'Composite video, audio and images with effects.', accept:'.ecproj,video/*,audio/*,image/*', help:'Open a .ecproj project or import media, then composite on the native timeline. The project also keeps itself in EffectCraft’s own browser storage; File ▸ Save downloads the project and keeps a browser copy of the last saved .ecproj, and GIF, PNG and zip exports download normally. Audio starts on your first click or key press in the editor, per browser autoplay rules. Closing the WebPC window stops playback. A new WebPC session restores the last EffectCraft session.' },
+  materialcraft: { title:'MaterialCraft', version:'0.4.1', sha256:'73b8c319881fd7218737d30b5eeb033801a17427bcf3d31920da32a1fbb1ffec', mode:'standalone', open:'drop', description:'Build shader graphs for game engines.', accept:'.sbs,.mcraft,image/*', help:'Open a .sbs or .mcraft package, or drop images in as bitmaps, then build the graph in the native editor. Save downloads the package and keeps a browser copy of the last saved package; other exports download normally. Reopen saved restores that copy; changes after Save are not autosaved. A new WebPC session starts with an empty graph.' },
+  texturecraft: { title:'TextureCraft', version:'0.6.1', sha256:'6dea6a9f77a161cba3258ab4c6db591bdb4dd32b7385d16a7db997ab671a5f3b', mode:'standalone', open:'drop', description:'Bake and author textures for 3D meshes.', accept:'.tcraft,.glb,.gltf,.fbx,.dae,.obj,.stl,.ply,image/*', help:'Open a .tcraft project or import meshes and images, then bake and author textures in the native editor. Save downloads the project and keeps a browser copy of the last saved .tcraft; texture-set and mesh exports download normally. Reopen saved restores that copy; changes after Save are not autosaved. Closing asks first while the project has unsaved changes.' },
 };
 export function releaseUrl(id) { const r=releases[id]; return `https://github.com/storytold/${id}/releases/download/v${r.version}/${id}-web-${r.version}.zip`; }
+const nativePatterns={
+  pdfcraft:/\.pdf$/i,
+  soundcraft:/\.scraftz$/i,
+  filmcraft:/\.fcproj$/i,
+  cadcraft:/(\.dxf|\.dwg)$/i,
+  gridcraft:/\.xlsx$/i,
+  deckcraft:/(\.deckcraft|\.pptx|\.potx|\.ppsx)$/i,
+  vectorcraft:/\.vectorcraft$/i,
+  photocraft:/\.pcraft$/i,
+  effectcraft:/\.ecproj$/i,
+  // The web save downloads an SBS package as a <name>_sbs.zip transport zip (web_files.rs:142).
+  materialcraft:/(\.sbs|\.mcraft|_sbs\.zip)$/i,
+  texturecraft:/\.tcraft$/i,
+};
+export function nativeSource(id) { const pattern=nativePatterns[id]; return pattern?pattern.source:null; }
 export function nativeFile(id,name,bytes) {
   if(id==='figcraft'){
     if(/\.figcraft$/i.test(name))return true;
@@ -16,6 +36,7 @@ export function nativeFile(id,name,bytes) {
     // Variable/style JSON exports are not documents and must not replace recovery.
     try{const data=JSON.parse(new TextDecoder().decode(bytes));return data.format==='figcraft'&&Array.isArray(data.pages)&&data.nodes!==null&&typeof data.nodes==='object';}catch{return false;}
   }
-  return id==='pdfcraft'?/\.pdf$/i.test(name):id==='soundcraft'?/\.scraftz$/i.test(name):id==='filmcraft'?/\.fcproj$/i.test(name):id==='cadcraft'?/(\.dxf|\.dwg)$/i.test(name):id==='gridcraft'?/\.xlsx$/i.test(name):id==='deckcraft'?/(\.deckcraft|\.pptx|\.potx|\.ppsx)$/i.test(name):false;
+  const pattern=nativePatterns[id];
+  return pattern?pattern.test(name):false;
 }
 export function validSave(data) { return typeof data?.name==='string' && data.name.length>0 && data.name.length<=255 && (data.bytes instanceof ArrayBuffer || ArrayBuffer.isView(data.bytes)); }

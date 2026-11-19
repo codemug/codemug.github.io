@@ -1,6 +1,6 @@
-import {releases,nativeFile,validSave} from './releases.mjs';
+import {releases,nativeFile,nativeSource,validSave} from './releases.mjs';
 import {storedFile} from './storage.mjs';
-const $=id=>document.getElementById(id),id=document.body.dataset.app,config=releases[id],frame=$('editor');
+const $=id=>document.getElementById(id),id=document.body.dataset.app,config=releases[id],frame=$('editor'),standalone=config.mode==='standalone',noDirty=standalone&&!config.dirty;
 let ready=false,dirty=false,pending=0,saveError=false,lastFile=null;
 const status=text=>$('status').textContent=text;
 const error=text=>{$('error').textContent=text;$('error').hidden=!text;};
@@ -38,10 +38,13 @@ $('download').onclick=()=>{if(lastFile)download(lastFile.name,lastFile.bytes);};
 $('retry').onclick=()=>{if(lastFile)void keep(lastFile);};
 $('audio').onclick=async()=>{try{if($('audio').textContent==='Pause audio'){pause();return;}const running=await frame.contentWindow.webpcAudio.resume();if(!running)throw new Error('Audio could not start. Click Enable audio again.');$('audio').textContent='Pause audio';error('');}catch(e){error(e.message);}};
 $('help').onclick=()=>$('help-dialog').showModal();
-window.pcBeforeClose=()=>{pause();if(!ready)return true;if(id==='soundcraft')return true;return !dirty&&!pending&&!saveError;};
+window.pcBeforeClose=()=>{pause();if(!ready)return true;if(id==='soundcraft'||noDirty)return true;return !dirty&&!pending&&!saveError;};
 window.pcFlush=()=>!dirty&&!pending&&!saveError;
-addEventListener('beforeunload',event=>{if(ready&&(dirty||pending||saveError||id==='soundcraft')){event.preventDefault();event.returnValue='';}});
+addEventListener('beforeunload',event=>{if(ready&&(dirty||pending||saveError||id==='soundcraft'||noDirty)){event.preventDefault();event.returnValue='';}});
 addEventListener('pagehide',pause);
 document.addEventListener('pointerdown',()=>parent.postMessage({type:'pc:focus',appId:id},location.origin),true);
 // Assign only after listeners exist; no readiness or save event can race setup.
-frame.src=`/pc/vendor/${id}/index.html?webgl${id==='soundcraft'?'&empty':'&host=parent&control'}${id==='lightcraft'?'&store=idb':''}`;
+frame.src=`/pc/vendor/${id}/index.html?webgl${id==='soundcraft'?'&empty':standalone?`&standalone${config.nosw?'&nosw':''}`:'&host=parent&control'}${id==='lightcraft'?'&store=idb':''}`;
+// Standalone apps have no host protocol: hand the iframe its copy rules (the native
+// document pattern from releases.mjs), its documented open method and loading element.
+frame.addEventListener('load',()=>{if(standalone)frame.contentWindow?.postMessage({type:'pc:standalone',native:nativeSource(id),open:config.open||null,dirty:config.dirty||null,loading:config.loading??`${id}_loading`},location.origin);});

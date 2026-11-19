@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {nativeFile,validSave} from '../scripts/pc/craft/releases.mjs';
+import {nativeFile,nativeSource,validSave,releases} from '../scripts/pc/craft/releases.mjs';
 const json=value=>new TextEncoder().encode(JSON.stringify(value));
 test('Craft recovery accepts native documents without replacing them with exports',()=>{
   assert.equal(nativeFile('figcraft','design.figcraft'),true);
@@ -30,6 +30,42 @@ test('Craft recovery accepts native documents without replacing them with export
   assert.equal(nativeFile('deckcraft','template.potx'),true);
   assert.equal(nativeFile('deckcraft','show.pdf'),false,'PDF export is a copy');
   assert.equal(nativeFile('deckcraft','outline.md'),false,'outlines open untitled');
+  assert.equal(nativeFile('vectorcraft','art.vectorcraft'),true);
+  assert.equal(nativeFile('vectorcraft','Art.VECTORCRAFT'),true);
+  assert.equal(nativeFile('vectorcraft','art.svg'),false,'SVG is an export');
+  assert.equal(nativeFile('vectorcraft','art.pdf'),false);
+  assert.equal(nativeFile('photocraft','photo.pcraft'),true);
+  assert.equal(nativeFile('photocraft','photo.psd'),false,'PSD imports are not PhotoCraft documents');
+  assert.equal(nativeFile('effectcraft','project.ecproj'),true);
+  assert.equal(nativeFile('effectcraft','clip.mp4'),false,'media imports are not projects');
+  assert.equal(nativeFile('materialcraft','graph.sbs'),true);
+  assert.equal(nativeFile('materialcraft','graph.mcraft'),true);
+  assert.equal(nativeFile('materialcraft','graph_sbs.zip'),true,'web save downloads the transport zip');
+  assert.equal(nativeFile('materialcraft','texture.png'),false,'images import as bitmaps');
+  assert.equal(nativeFile('texturecraft','project.tcraft'),true);
+  assert.equal(nativeFile('texturecraft','project_textures.zip'),false,'texture-set export');
+  assert.equal(nativeFile('texturecraft','mesh.glb'),false,'meshes import, projects open');
+});
+test('Standalone entries carry a mode, an open method, a SHA-256 and a rebuildable native pattern',()=>{
+  const standalone=Object.entries(releases).filter(([,r])=>r.mode==='standalone');
+  assert.ok(standalone.length>=5,'all five no-protocol apps are standalone');
+  for(const [id,entry] of standalone){
+    assert.match(entry.sha256,/^[0-9a-f]{64}$/);
+    assert.ok(entry.open,`${id} declares how it opens files`);
+    assert.ok(entry.accept&&entry.help,`${id} declares open formats and help`);
+    assert.ok(nativeSource(id),`${id} has a native pattern`);
+  }
+  const entry=releases.vectorcraft;
+  assert.equal(entry.open,'openFile');
+  assert.equal(entry.dirty,'docInspect','documented docInspect reports a dirty flag');
+  for(const [id,other] of standalone)if(id!=='vectorcraft')assert.equal(other.dirty,undefined,`${id} documents no dirty field: conservative fallback`);
+  assert.equal(releases.effectcraft.open,'addFile');
+  assert.equal(releases.effectcraft.loading,'loading');
+  assert.equal(releases.photocraft.open,'drop');
+  assert.equal(releases.materialcraft.open,'drop');
+  assert.equal(releases.texturecraft.open,'drop');
+  assert.ok(new RegExp(nativeSource('vectorcraft'),'i').test('x.vectorcraft'),'pattern rebuilds case-insensitive');
+  assert.equal(nativeFile('vectorcraft','x.vectorcraft'),true,'nativeFile agrees with nativeSource');
 });
 test('Craft save messages need a bounded filename and actual binary data',()=>{
   assert.equal(validSave({name:'a.pdf',bytes:new Uint8Array([1,2])}),true);

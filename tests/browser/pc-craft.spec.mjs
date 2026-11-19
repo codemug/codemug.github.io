@@ -83,3 +83,56 @@ test('Craft assets are lazy and the desktop caches SoundCraft while closing susp
  await page.locator('[data-shortcut="soundcraft"]').dblclick();expect(await frame.evaluate(()=>window.webpcIdentity)).toBe('same cached session');await expect(outer.locator('#audio')).toHaveText('Enable audio');expect(requests.filter(x=>/\/vendor\/(lightcraft|figcraft|pdfcraft)\//.test(x))).toEqual([]);
  await page.setViewportSize({width:390,height:844});expect(await outer.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);await page.screenshot({path:'/tmp/webpc-craft-mobile.png'});
 });
+
+test('VectorCraft runs standalone: the generic seam reads ready, the documented API opens a file and a native save is copied',async({page})=>{
+ const external=[];page.on('request',r=>{if(/^https?:/.test(r.url())&&new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
+ const frame=await open(page,'vectorcraft');
+ await expect(page.locator('#open')).toBeEnabled();
+ await page.locator('#file').setInputFiles({name:'vector.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="10"><rect width="20" height="10" fill="#4a7dfc"/></svg>')});
+ await expect.poll(async()=>frame.evaluate(async()=>{const d=await window.vectorcraft.docInspect().catch(()=>null);return d?.fileInfoTitle??null;}),{timeout:20000}).toBe('vector.svg');
+ await frame.evaluate(()=>window.vectorcraft.execute('file.save',{path:'standalone-check.vectorcraft'}));
+ await expect(page.locator('#status')).toContainText('browser copy saved: standalone-check.vectorcraft',{timeout:20000});
+ expect(external).toEqual([]);
+ await page.screenshot({path:'/tmp/webpc-vectorcraft-final.png'});
+});
+
+ const orangePng=async(page)=>Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='orange';x.fillRect(0,0,64,64);return c.toDataURL().split(',')[1];}),'base64');
+
+ test('PhotoCraft opens standalone and a wrapper file drop opens a document on the tab bar',async({page})=>{
+  const external=[];page.on('request',r=>{if(/^https?:/.test(r.url())&&new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
+  const frame=await open(page,'photocraft');
+  expect(frame.url()).toContain('standalone');
+  await page.locator('#file').setInputFiles({name:'photo.png',mimeType:'image/png',buffer:await orangePng(page)});
+  await expect(page.locator('#error')).toBeHidden();
+  await expect(page.locator('#status')).toHaveText('Save in the editor to download and keep a browser copy');
+  expect(external).toEqual([]);
+  await page.screenshot({path:'/tmp/webpc-photocraft-final.png'});
+ });
+
+ test('EffectCraft opens standalone, imports through addFile, and window close suspends its audio',async({page})=>{
+  const external=[];page.on('request',r=>{if(/^https?:/.test(r.url())&&new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
+  const frame=await open(page,'effectcraft');
+  expect(frame.url()).toContain('standalone');expect(frame.url()).toContain('nosw');
+  await page.locator('#file').setInputFiles({name:'spec-photo.png',mimeType:'image/png',buffer:await orangePng(page)});
+  await expect.poll(async()=>JSON.stringify(await frame.evaluate(async()=>window.effectcraft.files().catch(()=>[]))),{timeout:30000}).toContain('spec-photo.png');
+  await frame.locator('canvas').click({position:{x:500,y:300}});
+  await expect.poll(()=>frame.evaluate(()=>webpcAudio.states().filter(x=>x!=='closed'))).toContain('running');
+  expect(await page.evaluate(()=>pcBeforeClose())).toBe(true);
+  await expect.poll(()=>frame.evaluate(()=>webpcAudio.states().filter(x=>x!=='closed'))).toEqual(['suspended']);
+  expect(external).toEqual([]);
+  await page.screenshot({path:'/tmp/webpc-effectcraft-final.png'});
+ });
+
+ test('MaterialCraft and TextureCraft open standalone and accept wrapper file drops',async({page})=>{
+  for(const id of ['materialcraft','texturecraft']){
+   const external=[];page.on('request',r=>{if(/^https?:/.test(r.url())&&new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
+   const frame=await open(page,id);
+   expect(frame.url()).toContain('standalone');
+   await page.locator('#file').setInputFiles({name:'photo.png',mimeType:'image/png',buffer:await orangePng(page)});
+   await expect(page.locator('#error')).toBeHidden();
+   await expect(page.locator('#status')).toHaveText('Save in the editor to download and keep a browser copy');
+   expect(external).toEqual([]);
+   await page.screenshot({path:`/tmp/webpc-${id}-final.png`});
+   page.removeAllListeners('request');
+  }
+ });

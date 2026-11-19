@@ -1,0 +1,5 @@
+MaterialCraft 0.4.1
+Upstream: https://github.com/storytold/materialcraft/tree/v0.4.1
+Release: https://github.com/storytold/materialcraft/releases/download/v0.4.1/materialcraft-web-0.4.1.zip
+SHA-256: 73b8c319881fd7218737d30b5eeb033801a17427bcf3d31920da32a1fbb1ffec
+Official WASM, JavaScript and embedded assets are preserved. WebPC adds a small entry script for storage safety, focus and SoundCraft audio/session handling. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.
