@@ -1,0 +1,49 @@
+---
+import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
+---
+<UtilityLayout title="Files">
+  <header class="files-header"><h1>Files</h1>
+    <button id="files-new">New folder</button><button id="files-upload">Upload</button><input id="files-input" type="file" multiple hidden/>
+    <button id="files-download" disabled>Download</button><button id="files-rename" disabled>Rename</button><button id="files-delete" disabled>Delete</button>
+    <button id="files-keep" title="Ask the browser to keep these files even when storage is tight">Keep my files</button>
+  </header>
+  <p class="utility-note" id="files-usage">Storage usage…</p>
+  <p class="utility-status" id="files-status" role="status">Opening storage…</p>
+  <main class="files-main">
+    <nav id="files-crumbs" aria-label="Folder path"></nav>
+    <div id="files-list" aria-label="Files and folders">
+      <table class="files-table">
+        <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Modified</th></tr></thead>
+        <tbody id="files-rows"></tbody>
+      </table>
+      <p id="files-empty" class="files-empty" hidden>No folders or files here yet. Create a folder or upload files.</p>
+    </div>
+  </main>
+  <p class="utility-note">Files are stored only in this browser, in the Files area of the browser’s file storage. Other apps keep their own separate areas. Enter opens a folder, Backspace goes up, Delete deletes, F2 renames.</p>
+  <style>
+    .files-header { gap:6px; }
+    .files-header button { font-size:12px; min-height:34px; padding:5px 9px; }
+    .files-main { padding:0; overflow:auto; }
+    #files-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:2px; padding:8px 14px; border-bottom:1px solid var(--color-border); font-size:12px; }
+    #files-crumbs button { background:none; border:0; border-radius:4px; padding:3px 6px; min-height:0; font-size:12px; }
+    #files-crumbs button:hover { background:var(--color-surface); border-color:var(--color-accent); }
+    #files-crumbs .current { color:var(--color-text-muted); padding:3px 6px; }
+    .files-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .files-table th { text-align:left; font-weight:550; font-size:11px; color:var(--color-text-muted); padding:6px 14px; border-bottom:1px solid var(--color-border); }
+    .files-empty { padding:14px; color:var(--color-text-muted); font-size:12px; margin:0; }
+    @media(max-width:600px) { .files-header button { min-height:40px; } .files-table th:nth-child(4) { display:none; } }
+  </style>
+  <!-- Rows are created by innerHTML in files.mjs, so Astro's scoped <style> never
+       sees them; these rules are global, contained by .files-table. -->
+  <style is:global>
+    .files-table td { padding:6px 14px; border-bottom:1px solid var(--color-border); max-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .files-table td.name { max-width:none; overflow-wrap:anywhere; }
+    .files-table tr[tabindex]:focus-visible { outline:2px solid var(--color-accent); outline-offset:-2px; }
+    .files-table tr.sel td { background:var(--color-accent-soft, color-mix(in srgb, var(--color-accent) 12%, transparent)); }
+    .files-table td.name::before { display:inline-block; width:14px; margin-right:2px; opacity:.75; }
+    .files-table tr[data-kind="folder"] td.name::before { content:'▸'; }
+    .files-table tr[data-kind="file"] td.name::before { content:'▪'; }
+    @media(max-width:600px) { .files-table td:nth-child(4) { display:none; } }
+  </style>
+  <script>import '../../../../scripts/pc/apps/files.mjs';</script>
+</UtilityLayout>
