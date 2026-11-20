@@ -102,8 +102,11 @@ test('legacy frame buttons activate natively with Enter and Space', async ({ pag
 });
 
 test('legacy timers suspend offscreen and on motion changes, preserving user pause', async ({ page }) => {
-  await page.goto('/blog/gaming-pc-agent-platform/', { waitUntil: 'domcontentloaded' });
+  // Install the fake clock before the page loads: a timer the figure starts during load would
+  // otherwise be a real one, which the fake clearInterval can't stop, so frames kept advancing
+  // while paused or offscreen whenever a real tick landed mid-test (seen on slow CI runners).
   await page.clock.install();
+  await page.goto('/blog/gaming-pc-agent-platform/', { waitUntil: 'domcontentloaded' });
   const fig = page.locator('.fp.pr1');
   await fig.scrollIntoViewIfNeeded();
   await expect(fig.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
