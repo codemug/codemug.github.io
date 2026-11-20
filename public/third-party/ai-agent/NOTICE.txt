@@ -26,6 +26,18 @@ Embedding model: Xenova/all-MiniLM-L6-v2, Xenova (Hugging Face), Apache-2.0 (mod
 https://huggingface.co/Xenova/all-MiniLM-L6-v2
 Pinned to immutable revision 751bff37182d3f1213fa05d7196b954e230abad9 (onnx/model_quantized.onnx, q8, about 23 MB). The weights are not shipped in the website: they download from Hugging Face only when the user clicks "Build search index", into the browser cache. The Apache-2.0 license text below is the standard license; the model card declares Apache-2.0. The embedding index is memory only and never leaves the device.
 
+OCR model: onnx-community/Florence-2-base-ft, onnx-community (Hugging Face), MIT (model card frontmatter at the pinned revision: license: mit; base model microsoft/Florence-2-base-ft, declared mit on Hugging Face).
+https://huggingface.co/onnx-community/Florence-2-base-ft
+Pinned to immutable revision e88a44eaf3791a35eae0c5a47b3dbcd36e67eb6f. The weights are not shipped in the website: they download from Hugging Face only on first use of the OCR tool (on demand, with progress and cancel), into the browser cache. The per-device quantised ONNX files are used: q4f16 on the WebGPU device (onnx/vision_encoder_q4f16.onnx, onnx/encoder_model_q4f16.onnx, onnx/decoder_model_merged_q4f16.onnx, onnx/embed_tokens_q4f16.onnx, about 213 MB in total) and q8 "quantized" on the WASM device (the same four files with the _quantized suffix, about 262 MB). fp32 (the four files without a suffix, about 1.09 GB) is only a last resort, used automatically if the quantised load fails, and a progress note says so.
+
+Background-removal model (default): Xenova/modnet, Xenova (Hugging Face), Apache-2.0 (model card frontmatter at the pinned revision: license: apache-2.0).
+https://huggingface.co/Xenova/modnet
+Pinned to immutable revision fa2fa546052fba4c08921230a26cc69a333fca12 (onnx/model_quantized.onnx, q8, about 6.3 MB). Downloaded only on first use of the remove_background tool (on demand, with progress and cancel), into the browser cache, on the WebGPU device when available and otherwise WASM. It runs through the vendored Transformers.js 4.3.2 'background-removal' pipeline, which maps the modnet model type to the bundle's generic segmentation class. The Apache-2.0 license text below is the standard license; the model card declares Apache-2.0.
+
+Background-removal model (optional, higher quality): onnx-community/BiRefNet_lite-ONNX, onnx-community (Hugging Face), MIT (model card frontmatter at the pinned revision: license: mit; base model ZhengPeng7/BiRefNet_lite, declared mit on Hugging Face).
+https://huggingface.co/onnx-community/BiRefNet_lite-ONNX
+Pinned to immutable revision de15b22ba131738a16dff04aab8bdf8dc32e3ac1 (onnx/model_fp16.onnx, fp16, about 109 MB; the fp32 file is about 213 MB). Downloaded only on first use when the user selects it in Settings (on demand, with progress and cancel), into the browser cache, on the WebGPU device only (ORT WASM is fp32-only and the repo ships no fp32-appropriate small variant). It runs through the same 'background-removal' pipeline. No LICENSE file is published in either repository; the MIT copy below carries the model authors' attribution, and the licence is as declared by the Hugging Face cards. RMBG was excluded for its non-commercial licence.
+
 Model repositories and immutable revisions: models.js.
 Qwen3.5-0.8B ONNX OPT: Apache-2.0 in the pinned conversion repository.
 Qwen3.5-2B ONNX OPT: upstream Qwen/Qwen3.5-2B is Apache-2.0; the conversion repository does not supply its own license metadata. Weights are not redistributed here.

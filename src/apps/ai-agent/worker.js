@@ -1,4 +1,5 @@
 // LLM worker: loads one model at a time on WebGPU and streams generated text back.
+import "./hf-pin.js"; // also installs the fetch pinning (must precede the bundle import)
 import {
   AutoTokenizer, AutoModelForCausalLM, TextStreamer, InterruptableStoppingCriteria, Tensor, DynamicCache, ones, env,
   AutoProcessor, Qwen3_5ForConditionalGeneration, RawImage,

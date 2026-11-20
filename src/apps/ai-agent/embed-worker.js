@@ -1,10 +1,11 @@
 // AI-3 embedding worker: Xenova/all-MiniLM-L6-v2 (q8 ONNX, about 23 MB) on the WASM
 // device, pinned revision, in its own worker — the chat model worker stays untouched.
 // Message protocol matches ModelClient: load → progress/ready, embed → done/error.
+import { HF_PINNED } from "./hf-pin.js"; // also installs the fetch pinning (must precede the bundle import)
 import { pipeline, env } from "./vendor/transformers.min.js";
 
 const MODEL = "Xenova/all-MiniLM-L6-v2";
-const REVISION = "751bff37182d3f1213fa05d7196b954e230abad9"; // sha from the Hugging Face model API, verified
+const REVISION = HF_PINNED[MODEL]; // sha from the Hugging Face model API, verified (hf-pin.js is the source of truth)
 const vendorUrl = (file) => new URL(`./vendor/${file}`, import.meta.url).href;
 env.allowLocalModels = false;
 env.backends.onnx.wasm.numThreads = 1;
