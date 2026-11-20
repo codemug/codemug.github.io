@@ -1,7 +1,7 @@
 // Unit tests for AI-7/AI-8 Part A: the pure vision helpers (validation, result shaping,
 // downscale plan, engine metadata, tool schemas) and that neither new module touches browser
 // storage APIs. vision-worker.js is asserted on as text (it imports the browser bundle,
-// so it is not imported here). agent.js/session.js are the AI-4 lane's and are not imported.
+// so it is not imported here). agent.js and session.js have their own tests and are not imported here.
 // Run: node --test tests/pc-ai-agent-vision.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

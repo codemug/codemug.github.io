@@ -71,12 +71,10 @@ gzip magic before inflating (the local dev server transparently decodes `.gz` vi
 - `node --test tests/pc-packets.test.mjs` — 10 tests for the pure helpers: capture magic
   detection (pcap LE/BE, micro/nano, pcapng, unknown/too-short), hex-dump formatting
   (fixed-width lines, offsets, ASCII gutter), base64 decode (known vectors + round-trip).
-- Headless check (`.lanes/scratch/packets/check-packets.mjs`, via
-  `bash .lanes/with-server.sh node …`): 0 non-localhost requests on load; fixture
+- Headless check (a Playwright script against the dev server, not committed): 0 non-localhost requests on load; fixture
   (1 Ethernet/IPv4/UDP/DNS packet for `example.com`) loads with protocol DNS; selecting
   the packet shows `example.com: type A, class IN` in the tree; filter `udp` keeps it,
-  `tcp` hides it; a bogus filter shows the engine's error visibly. Screenshots:
-  `packets-light.png`, `packets-dark.png`, `packets-wrapper-light.png`,
-  `packets-wrapper-dark.png` in `.lanes/scratch/packets/`.
+  `tcp` hides it; a bogus filter shows the engine's error visibly. Light and dark screenshots
+  of the page and its wrapper were reviewed.
 
 **Status: run — all checks pass; vendor is 21 MB.**
