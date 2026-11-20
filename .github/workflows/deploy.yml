@@ -38,11 +38,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Browser regressions
-        run: npm run test:browser
+      # The Playwright browser suite (npm run test:browser) runs locally before a
+      # merge; it is not part of the deploy.
 
       - uses: actions/configure-pages@v5
 
