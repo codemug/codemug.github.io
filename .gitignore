@@ -23,8 +23,6 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# Generated pinned spreadsheet SDK and fonts (npm run assets:pc)
-public/pc/vendor/
+# WebPC build downloaded by npm run webpc (from github.com/codemug/webpc)
+.webpc/
 
-# Rebuilt AGPL corresponding-source download; checked-in patches reproduce it.
-public/third-party/vert/modified-source.tar.gz

@@ -1,2 +1,0 @@
-@zxcvbn-ts/core@4.3.0 — declared license: MIT
-No licence text file is shipped in this npm package; the text is at the project repository (https://github.com/zxcvbn-ts/zxcvbn.git). See WEBPC.txt.

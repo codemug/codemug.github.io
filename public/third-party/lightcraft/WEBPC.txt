@@ -1,5 +1,0 @@
-LightCraft 0.21.1
-Upstream: https://github.com/storytold/lightcraft/tree/v0.21.1
-Release: https://github.com/storytold/lightcraft/releases/download/v0.21.1/lightcraft-web-0.21.1.zip
-SHA-256: 57147383a46eaab3b0cc036acf9443b221450c6a19f5dc303ae165bb9678b8cb
-Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

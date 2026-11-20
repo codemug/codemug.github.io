@@ -1,9 +1,0 @@
----
-import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
----
-<UtilityLayout title="Packet Viewer">
-  <header><h1>Packet Viewer</h1><a href="/pc/vendor/packets/index.html" target="_blank" rel="noopener">Open full page ↗</a><a href="/third-party/packets/WEBPC.txt" target="_blank" rel="noopener">Licences</a></header>
-  <p class="utility-note" id="packets-note">Runs entirely in this browser. Wireshark 4.6's dissectors run locally as WebAssembly (via wiregasm): your capture files are read and dissected here, never uploaded or sent to any server. The engine (about 21 MB) loads only when you open a capture or click "Load engine".</p>
-  <main class="utility-frame"><iframe id="packets-frame" title="Packet Viewer" src="/pc/vendor/packets/index.html"></iframe><div class="utility-loading" id="packets-loading" role="status"><span id="packets-status">Loading Packet Viewer…</span><button id="packets-retry" hidden>Retry</button></div></main>
-  <script>import '../../../../scripts/pc/apps/packets.mjs';</script>
-</UtilityLayout>
