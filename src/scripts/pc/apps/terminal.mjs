@@ -5,24 +5,27 @@ import '@xterm/xterm/css/xterm.css';
 import { setupApp, download } from './common.mjs';
 import { packCheckpoint, unpackCheckpoint } from './linux-checkpoint.mjs';
 import { readSession, writeSession } from './linux-store.mjs';
+import { validateExecRequest, buildExecCommand, findSentinel, parseExecResult, parseExecPartial, isAtShellPrompt, toSentBytes, MAX_OUTPUT } from './terminal-exec.mjs';
 const $ = selector => document.querySelector(selector);
 const base = new URL('/pc/vendor/terminal/', location.href).href;
 const term = new Terminal({ cursorBlink: true, fontFamily: getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim(), fontSize: 13, scrollback: 1200 });
 const fit = new FitAddon(), serialize = new SerializeAddon();
 term.loadAddon(fit); term.loadAddon(serialize); term.open($('#terminal'));
 let active = null, running = false, busy = false, booted = false, dirty = false, saved = null, release = null, outputTail = '', bootTimer;
+let exec = null; // { phase:'prompt'|'run', req, sentCommand?, buffer?, done?, trimmed?, timer?, startedAt? } — one exec slot at a time
 let requestId = 0;
 const report = (text, error = false) => { $('#terminal-status').textContent = text; $('#terminal-status').dataset.error = String(error); };
 const flushScreen = () => new Promise(resolve => term.write('', resolve));
 function controls() {
-  $('#linux-start').disabled = busy || !!active;
-  $('#linux-pause').disabled = busy || !active; $('#linux-pause').textContent = running ? 'Pause' : 'Resume';
-  $('#linux-restart').disabled = busy || !active;
-  for (const id of ['save', 'export']) $(`#linux-${id}`).disabled = busy || !active || !booted;
-  $('#linux-restore').disabled = busy || !saved;
-  $('#linux-import').disabled = busy;
-  $('#linux-fit').disabled = busy || !active || !booted || !running;
-  document.querySelectorAll('[data-linux-key]').forEach(button => button.disabled = busy || !active || !running);
+  const blocked = busy || exec !== null;
+  $('#linux-start').disabled = blocked || !!active;
+  $('#linux-pause').disabled = blocked || !active; $('#linux-pause').textContent = running ? 'Pause' : 'Resume';
+  $('#linux-restart').disabled = blocked || !active;
+  for (const id of ['save', 'export']) $(`#linux-${id}`).disabled = blocked || !active || !booted;
+  $('#linux-restore').disabled = blocked || !saved;
+  $('#linux-import').disabled = blocked;
+  $('#linux-fit').disabled = blocked || !active || !booted || !running;
+  document.querySelectorAll('[data-linux-key]').forEach(button => button.disabled = blocked || !active || !running);
 }
 async function manifest() {
   if (!release) { const response = await fetch(`${base}release.json`); if (!response.ok) throw new Error('Linux is temporarily unavailable. Reload the page or try again later.'); release = await response.json(); }
@@ -37,7 +40,8 @@ function spawn(checkpoint) {
   worker.onmessage = ({ data }) => {
     if (data.type === 'initialized') resolveReady(client);
     else if (data.type === 'output' && active === client) {
-      term.write(data.bytes); outputTail = (outputTail + decoder.decode(data.bytes, { stream: true })).slice(-3000);
+      const text = decoder.decode(data.bytes, { stream: true });
+      term.write(data.bytes); outputTail = (outputTail + text).slice(-3000); feedExec(text);
       if (!booted && /webpc:[^\r\n]*# /.test(outputTail)) { booted = true; clearTimeout(bootTimer); report('Linux is running · offline · save a session to keep your work.'); controls(); }
     } else if (data.type === 'error') {
       rejectReady(new Error(data.message));
@@ -111,14 +115,94 @@ async function restore(blob) {
 $('#linux-restore').onclick = () => action(() => restore(saved));
 $('#linux-import').onclick = () => $('#linux-backup').click();
 $('#linux-backup').onchange = event => { const file = event.target.files[0]; event.target.value = ''; if (file) action(() => restore(file)); };
-const input = text => { if (!busy && active && running) { active.worker.postMessage({ type: 'input', text }); dirty = true; } };
+const input = text => { if (exec !== null) return; if (!busy && active && running) { active.worker.postMessage({ type: 'input', text }); dirty = true; } };
 term.onData(input);
 $('#linux-fit').onclick = () => { if (confirm(`At an idle shell prompt? Run stty rows ${term.rows} cols ${term.cols}. Do not send this inside an active program.`)) { input(`stty rows ${term.rows} cols ${term.cols}\r`); term.focus(); } };
 for (const button of document.querySelectorAll('[data-linux-key]')) button.onclick = () => { input({ interrupt: '\x03', tab: '\t', escape: '\x1b' }[button.dataset.linuxKey]); term.focus(); };
 $('#linux-help').onclick = () => { const hidden = !$('#linux-help-panel').hidden; $('#linux-help-panel').hidden = hidden; $('#linux-help').setAttribute('aria-expanded', String(!hidden)); };
 try { $('#linux-legacy').hidden = localStorage.getItem('pc:terminal:v1') === null; } catch { /* No access to legacy storage. */ }
 $('#linux-legacy').onclick = () => { try { const raw = localStorage.getItem('pc:terminal:v1'); if (raw !== null) download('webpc-legacy-files.json', raw); } catch { report('Legacy browser storage is unavailable.', true); } };
+// Exec service: other same-origin pages post {type:'exec-request', id, from, lang, code,
+// timeoutMs} on BroadcastChannel('webpc-terminal'). Any same-origin page (including
+// third-party bundles) can post, so every run needs a visible approval click; one run at
+// a time; output is captured until the sentinel line (see terminal-exec.mjs).
+const execChannel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel('webpc-terminal');
+const execRespond = message => execChannel?.postMessage(message);
+function handleExecRequest(data) {
+  const check = validateExecRequest(data);
+  if (!check.ok) { if (typeof data?.id === 'string' && data.id.length <= 200) execRespond({ type: 'exec-error', id: data.id, reason: 'invalid' }); return; }
+  if (exec !== null) { execRespond({ type: 'exec-error', id: check.id, reason: 'busy' }); return; }
+  if (!active || !running || !booted) { execRespond({ type: 'exec-error', id: check.id, reason: 'not-running' }); return; }
+  exec = { phase: 'prompt', req: check };
+  $('#exec-meta').textContent = `From: ${check.from} · Language: ${check.lang}`;
+  $('#exec-code').textContent = check.code;
+  $('#exec-prompt').hidden = false;
+  $('#exec-deny').focus();
+  report(`A command from ${check.from} is waiting for your approval.`);
+  controls();
+}
+execChannel?.addEventListener('message', event => handleExecRequest(event.data));
+$('#exec-deny').onclick = () => {
+  const slot = exec; if (!slot || slot.phase !== 'prompt') return;
+  exec = null; $('#exec-prompt').hidden = true; controls();
+  execRespond({ type: 'exec-error', id: slot.req.id, reason: 'denied' });
+  report('Command denied — nothing was run.');
+};
+$('#exec-run').onclick = () => {
+  const slot = exec; if (!slot || slot.phase !== 'prompt') return;
+  $('#exec-prompt').hidden = true;
+  void runExec(slot.req);
+};
+async function runExec(req) {
+  if (!isAtShellPrompt(outputTail)) { exec = null; execRespond({ type: 'exec-error', id: req.id, reason: 'busy' }); return; }
+  if (!active || !running) { exec = null; execRespond({ type: 'exec-error', id: req.id, reason: 'not-running' }); return; }
+  const sentCommand = buildExecCommand(req.id, req.lang, req.code);
+  const slot = { phase: 'run', req, sentCommand, buffer: '', done: false, trimmed: false, timer: null, startedAt: Date.now() };
+  exec = slot;
+  report(`Running ${req.lang} command from ${req.from}… your keystrokes are ignored until it finishes.`);
+  controls();
+  slot.timer = setTimeout(() => { void onExecTimeout(slot); }, req.timeoutMs);
+  active.worker.postMessage({ type: 'input', text: toSentBytes(sentCommand) });
+}
+function feedExec(text) {
+  const slot = exec;
+  if (!slot || slot.phase !== 'run' || slot.done) return;
+  slot.buffer += text;
+  if (slot.buffer.length > 524288) { slot.buffer = slot.buffer.slice(-524288); slot.trimmed = true; }
+  if (findSentinel(slot.buffer, slot.req.id)) finishExec(slot);
+}
+function finishExec(slot) {
+  if (slot.done) return;
+  slot.done = true; clearTimeout(slot.timer);
+  const result = parseExecResult(slot.buffer, slot.req.id, slot.sentCommand, slot.req.lang);
+  const durationMs = Date.now() - slot.startedAt;
+  exec = null;
+  report(`Command finished · exit ${result.exitCode} · ${durationMs} ms${result.truncated || slot.trimmed ? ' · output truncated' : ''}.`);
+  controls();
+  execRespond({ type: 'exec-result', id: slot.req.id, exitCode: result.exitCode, output: result.output, truncated: result.truncated || slot.trimmed, durationMs });
+}
+async function onExecTimeout(slot) {
+  if (slot.done) return;
+  if (active) active.worker.postMessage({ type: 'input', text: '\x03' }); // Ctrl+C, then wait for the shell prompt
+  const deadline = Date.now() + 10000;
+  while (!slot.done && Date.now() < deadline) { if (isAtShellPrompt(outputTail)) break; await new Promise(resolve => setTimeout(resolve, 250)); }
+  if (slot.done) return;
+  slot.done = true; clearTimeout(slot.timer);
+  const durationMs = Date.now() - slot.startedAt;
+  exec = null;
+  // Partial output: the same normalization and cut as a normal result — after the
+  // OUT marker line for heredoc runs (or empty if it never arrived), after the
+  // echoed command for sh (it can wrap at the console width) — minus the trailing
+  // shell prompt and blank-line artifacts (see parseExecPartial).
+  let output = parseExecPartial(slot.buffer, slot.req.id, slot.sentCommand, slot.req.lang);
+  const truncated = slot.trimmed || output.length > MAX_OUTPUT;
+  if (output.length > MAX_OUTPUT) output = output.slice(-MAX_OUTPUT);
+  report('Command timed out and was interrupted (Ctrl+C).', true);
+  controls();
+  execRespond({ type: 'exec-error', id: slot.req.id, reason: 'timeout', output, truncated, durationMs });
+}
 window.pcBeforeClose = () => {
+  if (exec?.phase === 'run' && !exec.done) { report('A command is still running. Wait for it to finish or time out before closing.', true); return false; }
   if (busy) { report('Wait for the current Linux session operation to finish before closing.', true); return false; }
   if (active && dirty && !confirm('Hide Linux without saving a new checkpoint? This page keeps its memory, but a refresh loses changes.')) return false;
   if (active && running) { active.request('pause').catch(error => report(error.message, true)); running = false; report('Linux paused while hidden. Resume to continue.'); controls(); }

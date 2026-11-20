@@ -20,6 +20,12 @@ import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
     <p><a href="/third-party/terminal/README.txt" target="_blank" rel="noopener">Runtime, guest licenses, and source provenance</a></p>
   </section>
   <p class="utility-status" id="terminal-status" role="status">Ready to start. Linux downloads only when you start or restore a session.</p>
+  <section id="exec-prompt" class="exec-prompt" hidden role="dialog" aria-labelledby="exec-prompt-title">
+    <h2 id="exec-prompt-title">Another app wants to run this in Linux</h2>
+    <p id="exec-meta" class="exec-meta"></p>
+    <pre id="exec-code" tabindex="0"></pre>
+    <div class="exec-actions"><button id="exec-run">Run</button><button id="exec-deny">Deny</button></div>
+  </section>
   <main id="terminal" aria-label="Linux serial console"></main>
   <script>import '../../../../scripts/pc/apps/terminal.mjs';</script>
   <style>
@@ -29,6 +35,11 @@ import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
     .linux-help p { margin:6px 0 12px; }
     .linux-help code { font-family:var(--font-mono); }
     #terminal { min-height:140px; }
-    @media(max-width:600px) { .linux-tools { padding:8px; } .linux-tools button { min-height:40px; } .linux-header h1 { width:100%; } }
+    .exec-prompt { padding:8px 14px; border-bottom:1px solid var(--color-border); background:var(--color-surface); }
+    .exec-prompt h2 { font-size:13px; margin:0 0 6px; }
+    .exec-meta { margin:0 0 6px; font-size:12px; color:var(--color-text-muted); }
+    .exec-prompt pre { margin:0 0 8px; padding:8px; max-height:200px; overflow:auto; font-family:var(--font-mono); font-size:12px; line-height:1.5; white-space:pre-wrap; background:var(--color-bg); border:1px solid var(--color-border-strong); }
+    .exec-actions { display:flex; gap:6px; }
+    @media(max-width:600px) { .linux-tools { padding:8px; } .linux-tools button { min-height:40px; } .linux-header h1 { width:100%; } .exec-prompt { padding:8px; } .exec-actions button { min-height:40px; } }
   </style>
 </UtilityLayout>
