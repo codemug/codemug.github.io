@@ -44,7 +44,7 @@ export function downscalePlan(width, height, maxDim = OCR_MAX_DIM) {
 // revisions): 'modnet' is the default; 'birefnet' is the higher-quality option (WebGPU only,
 // because its only small-enough ONNX is fp16 and ORT WASM is fp32-only).
 export const BGBM_ENGINES = [
-  { id: 'modnet', name: 'MODNet', sizeMB: 6.3, note: 'Best for people and portraits.' },
+  { id: 'modnet', name: 'MODNet', sizeMB: 24.7, note: 'Best for people and portraits.' },
   { id: 'birefnet', name: 'BiRefNet Lite', sizeMB: 109.2, webgpuOnly: true, note: 'General objects (needs a GPU with fp16).' },
 ];
 

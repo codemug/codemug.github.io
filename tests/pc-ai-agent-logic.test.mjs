@@ -130,4 +130,17 @@ assert.match(timedOut.error, /time limit/); assert.equal(timedOut.output, "parti
 assert.ok(execReplyToToolResult({ type: "exec-error", id: "a", reason: "mystery" }).error);
 assert.ok(execReplyToToolResult(undefined).error, "a missing reply is an error, not a result");
 
+// Vision tools (AI-7/AI-8): present only when the host provides executors; `source` is required.
+const vt = createTools({
+  webSearch: async () => ({ results: [] }), httpGet: async () => ({ content: "p" }), runJavaScript: async () => ({ result: 1 }),
+  allowedHosts: () => new Set(),
+  ocrImage: async (s) => ({ text: "read:" + s }), removeBackground: async (s) => ({ download: s + "-nobg.png" }),
+});
+assert.ok(vt.ocr_image && vt.remove_background, "the vision tools register with host executors");
+assert.deepEqual(vt.ocr_image.parameters.required, ["source"]); assert.deepEqual(vt.remove_background.parameters.required, ["source"]);
+assert.match(vt.ocr_image.description, /Florence-2/); assert.match(vt.remove_background.description, /MODNet/);
+assert.deepEqual(await runToolCall(vt, { name: "ocr_image", arguments: { source: "attached" } }), { text: "read:attached" });
+assert.deepEqual(await runToolCall(vt, { name: "remove_background", arguments: { source: "cat.png" } }), { download: "cat.png-nobg.png" });
+assert.ok(!tools.ocr_image && !tools.remove_background, "absent without host executors (the base tools host has no vision)");
+
 console.log("agent.js: all checks passed");

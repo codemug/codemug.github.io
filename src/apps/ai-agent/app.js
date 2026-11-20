@@ -10,6 +10,9 @@ import { MODELS, DEFAULT_MODEL } from './models.js';
 import { checkImage, IMAGE_MAX_SIDE } from './agent.js';
 import { webSearch, httpGet } from './web.js';
 import { runJavaScript } from './sandbox.js';
+import * as fileStore from './store.mjs';
+import { resolveInGrants } from './file-tools.js';
+import { BGBM_ENGINES, ocrTextResult, nobgName, downscalePlan, OCR_MAX_DIM, MAX_IMAGE_BYTES, validateImageFile } from './vision-tools.js';
 const $ = id => document.getElementById(id);
 // Cloud models are opt-in per session: the key lives only in CloudClient's memory and is never persisted.
 const CLOUD_MODELS = { 'cloud:anthropic': 'Claude · cloud (your key)', 'cloud:openai': 'OpenAI-compatible · cloud (your key)' };
@@ -45,6 +48,7 @@ function imageInputControls() {
   if (!vision) box.checked = false;
   $('attach').disabled = !box.checked;
   $('image-note').textContent = isChrome(selected) ? 'Chrome built-in model is text-only' : cloudSelected ? (cloud.ready ? `sent to ${cloud.host}` : 'enable it in Settings') : (MODELS[selected]?.vision ? `+${MODELS[selected].vision.size} when first used` : 'Qwen models only');
+  applyVisionGates();
 }
 const nearBottom = () => $('conversation').scrollHeight - $('conversation').scrollTop - $('conversation').clientHeight < 100;
 function follow(wasNear) { if (wasNear) $('conversation').scrollTop = $('conversation').scrollHeight; }
@@ -159,6 +163,7 @@ function applyFileGates() {
   fileTools.write = on ? fileHost.write : undefined;
   fileTools.search = searchHost.has() ? searchFiles : undefined;
   renderIndexControls();
+  applyVisionGates();
 }
 function renderFileGrants() {
   const box = $('files-grants'); box.replaceChildren();
@@ -200,6 +205,127 @@ $('files-build').addEventListener('click', async () => {
   }
 });
 $('files-cancel-index').addEventListener('click', () => { indexAbort?.abort(); embedClient.stop(); });
+// ---------- vision tools (AI-7/AI-8): OCR + background removal ----------
+// Each runs in its own worker (vision-worker.js) on the pinned local models, independent of the
+// chat model: first use downloads the model with a size disclosure in the status line, then
+// everything runs on this device. Tools are offered while an attached image is possible (image
+// input) or a file grant is present; 'attached' resolves to the image attached to the current turn.
+const VISION_ENGINE_KEY = 'webpc-ai-agent-vision-engine';
+const visionTools = { engine: 'modnet', ocr: undefined, remove: undefined };
+{ const savedEngine = localStorage.getItem(VISION_ENGINE_KEY); if (BGBM_ENGINES.some((e) => e.id === savedEngine)) visionTools.engine = savedEngine; }
+let visionWorker = null, visionSeq = 0;
+const visionPending = new Map();
+function visionWorkerStop() {
+  const error = new Error('Stopped.');
+  for (const wait of visionPending.values()) wait.reject(error);
+  visionPending.clear();
+  visionWorker?.terminate(); visionWorker = null;
+}
+function visionRequest(type, payload) {
+  if (!visionWorker) {
+    visionWorker = new Worker(new URL('./vision-worker.js', import.meta.url), { type: 'module' });
+    visionWorker.onmessage = ({ data }) => {
+      if (data.type === 'progress') {
+        const total = Number(data.total);
+        status(`Downloading vision model${total ? ` · about ${Math.round(total / 1048576)} MB from Hugging Face` : ''}${data.message ? ` · ${data.message}` : ''}${data.file && data.file !== 'fallback' ? ` · ${data.file}` : ''}`);
+        return;
+      }
+      const wait = visionPending.get(data.id);
+      if (!wait) return;
+      visionPending.delete(data.id);
+      if (data.type === 'done') wait.resolve(data);
+      else wait.reject(new Error(data.message));
+    };
+    visionWorker.onerror = () => visionWorkerStop(); // uncaught worker error: drop the worker, reject the waiters
+  }
+  const id = `vision-${Date.now()}-${visionSeq++}`;
+  return new Promise((resolve, reject) => {
+    visionPending.set(id, { resolve, reject });
+    visionWorker.postMessage({ ...payload, type, id });
+  });
+}
+// Resolve the tool's `source`: 'attached' (this turn's image) or a path of an image inside a grant.
+async function visionSource(source) {
+  if (source === 'attached') {
+    if (!pendingImage) return { error: 'No image is attached to this message. Attach one with the paperclip, or pass a path of an image inside a granted folder.' };
+    const canvas = document.createElement('canvas'); canvas.width = pendingImage.width; canvas.height = pendingImage.height;
+    canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(pendingImage.data), pendingImage.width, pendingImage.height), 0, 0);
+    const blob = await new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Could not encode the attached image.'))), 'image/png'));
+    return { blob, name: pendingImage.name };
+  }
+  if (!fileGrants.length) return { error: 'No file grants. Use source "attached" for the attached image, or grant a folder in Settings.' };
+  const resolved = resolveInGrants(fileGrants, source);
+  if (resolved.error) return resolved;
+  const slash = resolved.path.lastIndexOf('/');
+  const base = slash >= 0 ? resolved.path.slice(slash + 1) : resolved.path;
+  const parent = slash >= 0 ? resolved.path.slice(0, slash) : '';
+  let kind, data;
+  try {
+    kind = await fileStore.exists(parent, base);
+    if (kind === 'folder') return { error: `"${resolved.path}" is a folder; ocr_image and remove_background take an image file.` };
+    if (kind === null) return { error: `"${resolved.path}" does not exist inside the grants.` };
+    ({ data } = await fileStore.read(parent, base));
+  } catch { return { error: `"${resolved.path}" could not be read inside the grants.` }; }
+  const problem = validateImageFile({ name: base, type: data.type ?? '', size: data.size });
+  if (problem) return { error: problem };
+  return { blob: data, name: base, path: resolved.path };
+}
+const ocrImage = async (source) => {
+  const src = await visionSource(source);
+  if (src.error) return src;
+  try {
+    const { text } = await visionRequest('ocr', { image: await src.blob.arrayBuffer() });
+    return { text: ocrTextResult(text), source: src.name };
+  } catch (err) { return { error: err.message === 'Stopped.' ? 'OCR was stopped.' : err.message }; }
+};
+const removeBackground = async (source) => {
+  const src = await visionSource(source);
+  if (src.error) return src;
+  const engine = BGBM_ENGINES.find((e) => e.id === visionTools.engine) ?? BGBM_ENGINES[0];
+  try {
+    const done = await visionRequest('bgbm', { image: await src.blob.arrayBuffer(), model: engine.id });
+    const png = done.png;
+    if (src.path) {
+      // Granted source: save next to the source after the write confirmation (same gate as write_file).
+      const target = nobgName(src.path);
+      const slash = target.lastIndexOf('/');
+      const base = slash >= 0 ? target.slice(slash + 1) : target;
+      const parent = slash >= 0 ? target.slice(0, slash) : '';
+      try { await fileStore.list(parent); } catch { return { error: `The folder "${parent}" does not exist yet; cannot save "${base}".` }; }
+      const kind = await fileStore.exists(parent, base);
+      if (kind === 'folder') return { error: `"${base}" is a folder; cannot save the background-removed image there.` };
+      if (!confirm(`Save the background-removed image to "${target}" (transparent PNG, ${Math.round(png.size / 1024)} KB)${kind === 'file' ? ' — this OVERWRITES the existing file' : ''}?`)) return { error: 'Save cancelled by the user.' };
+      await fileStore.write(parent, base, new Uint8Array(await png.arrayBuffer()));
+      if (typeof BroadcastChannel !== 'undefined') new BroadcastChannel('webpc-files').postMessage({ type: 'changed' });
+      status(`Saved ${target}.`);
+      return { saved: target, width: done.width, height: done.height, overwritten: kind === 'file' };
+    }
+    // Attached source: there is no grant to save into — offer a download instead.
+    const name = nobgName(src.name);
+    const url = URL.createObjectURL(png);
+    const link = document.createElement('a'); link.href = url; link.download = name; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    return { download: name, width: done.width, height: done.height, note: 'Download started — check the browser downloads.' };
+  } catch (err) { return { error: err.message === 'Stopped.' ? 'Background removal was stopped.' : err.message }; }
+};
+function visionEnabled() {
+  return fileGrants.length > 0 || Boolean(MODELS[selected]?.vision) || (isCloud(selected) && cloud.ready);
+}
+function applyVisionGates() {
+  const on = visionEnabled();
+  visionTools.ocr = on ? ocrImage : undefined;
+  visionTools.remove = on ? removeBackground : undefined;
+}
+function renderVisionEngine() {
+  $('vision-engine').value = visionTools.engine;
+  const engine = BGBM_ENGINES.find((e) => e.id === visionTools.engine) ?? BGBM_ENGINES[0];
+  $('vision-note').textContent = `ocr_image downloads the OCR model (about 262 MB) once; remove_background downloads about ${engine.sizeMB} MB (${engine.name}) on first use. After the download both run entirely on this device; the vision tools themselves send nothing.`;
+}
+$('vision-engine').addEventListener('change', () => {
+  visionTools.engine = $('vision-engine').value;
+  try { localStorage.setItem(VISION_ENGINE_KEY, visionTools.engine); } catch {}
+  renderVisionEngine();
+});
 applyFileGates(); renderFileGrants();
 // AI-4: the run_code tool reaches the Linux terminal app's exec service over a same-origin
 // BroadcastChannel: the terminal page shows the approval prompt and runs the code in its guest.
@@ -225,7 +351,7 @@ function runCode(lang, code, timeoutMs) {
     execChannel.postMessage({ type: 'exec-request', id, from: 'AI Agent', lang, code, timeoutMs });
   });
 }
-const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, runCode, chrome: chromeTools, files: fileTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
+const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, runCode, chrome: chromeTools, files: fileTools, vision: visionTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
   if (type === 'busy') { controls(); if (!data) status(client.ready ? 'Ready for your next question.' : 'Load a model to continue.'); }
   else if (type === 'status') status(data);
   else if (type === 'error') error(data);
@@ -239,7 +365,7 @@ const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScr
   else if (type === 'tool-result') toolResult(data.toolCard, data.result);
 } });
 function cancel(text = isCloud(selected) || isChrome(selected) ? 'Stopped. Send the message again to continue.' : 'Stopped. Load the model again to continue; cached downloads are kept.') {
-  loadVersion++; loading = false; session.cancel(); $('progress').hidden = true;
+  loadVersion++; loading = false; session.cancel(); visionWorkerStop(); $('progress').hidden = true;
   document.querySelectorAll('.message-body:empty').forEach(el => { el.textContent = 'Stopped.'; });
   document.querySelectorAll('.tool summary').forEach(el => { if (el.textContent.endsWith('· running')) el.textContent = el.textContent.replace('· running', '· stopped'); });
   controls(); status(text);
@@ -298,7 +424,7 @@ $('model').addEventListener('change', () => {
 });
 $('new-chat').addEventListener('click', async () => {
   if ((session.history.length || session.active) && !confirm('Start a new chat? The current stored chat will be kept as the previous record. Export it first if you need a permanent copy.')) return;
-  cancel(); error(''); cloud.clear(); indexAbort?.abort(); indexAbort = null; searchHost.dispose(); embedClient.stop(); fileGrants.length = 0; applyFileGates(); renderFileGrants(); bindClient(); await session.newChat();
+  cancel(); error(''); cloud.clear(); indexAbort?.abort(); indexAbort = null; searchHost.dispose(); embedClient.stop(); visionWorkerStop(); fileGrants.length = 0; applyFileGates(); renderFileGrants(); bindClient(); await session.newChat();
   if (isCloud(selected)) status('New chat started. The cloud key was cleared — confirm the cloud model in Settings to continue.');
   controls(); $('message').focus();
 });
@@ -427,10 +553,10 @@ window.pcFlush = () => {
   if (unsaved()) { error(store.pending ? 'Saving is still in progress. Try closing again after it completes.' : 'This chat could not be saved. Retry save or Export before closing.'); return false; }
   return true;
 };
-window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); fileGrants.length = 0; bindClient(); return window.pcFlush(); };
+window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); visionWorkerStop(); fileGrants.length = 0; bindClient(); return window.pcFlush(); };
 addEventListener('beforeunload', event => { if (unsaved()) { event.preventDefault(); event.returnValue = ''; } });
-addEventListener('pagehide', () => { loadVersion++; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); fileGrants.length = 0; session.cancel(); });
-modelInfo(); cloudNotice(); bindClient(); controls();
+addEventListener('pagehide', () => { loadVersion++; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); visionWorkerStop(); fileGrants.length = 0; session.cancel(); });
+modelInfo(); cloudNotice(); renderVisionEngine(); bindClient(); controls();
 try {
   const { value, migrated } = await store.restore(); session.history = value.history; session.summary = value.summary; render(value);
   if (migrated) status('Previous conversation copied safely. The original record was kept. Load a model to continue.');

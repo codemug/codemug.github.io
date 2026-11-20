@@ -1,6 +1,7 @@
 // Pure agent logic (no DOM): tool definitions, tool-call parsing and visible-text extraction.
 // Qwen3.5 and LFM3 both emit: <tool_call>\n<function=NAME>\n<parameter=ARG>\nVALUE\n</parameter>\n</function>\n</tool_call>
 import { MAX_WRITE_CHARS } from "./file-tools.js";
+import { VISION_TOOL_SCHEMAS } from "./vision-tools.js";
 
 const SAFE_EXPRESSION = /^[\d\s+\-*/().,%^]+$/;
 const MAX_QUERY_CHARS = 200;
@@ -45,6 +46,8 @@ export function execReplyToToolResult(reply) {
  *   writeFile?: (path: string, content: string) => Promise<object>,
  *   searchFiles?: (query: string, k: number) => Promise<object>,
  *   runCode?: (lang: string, code: string, timeoutMs: number) => Promise<object>,
+ *   ocrImage?: (source: string) => Promise<object>,
+ *   removeBackground?: (source: string) => Promise<object>,
  * }} host
  */
 export function createTools(host) {
@@ -240,6 +243,18 @@ export function createTools(host) {
       if (n < 1 || n > 10) return { error: "k must be an integer from 1 to 10" };
       return host.searchFiles(q, n);
     },
+  };
+  // Vision tools (AI-7/AI-8): OCR and background removal on the pinned local models, in their own
+  // worker (vision-worker.js). source is 'attached' (the attached image) or a path of an image
+  // inside a granted folder; the host resolves the source, drives the first-use model download
+  // and the save-with-confirmation / download offer. The models are independent of the chat model.
+  if (host.ocrImage) tools.ocr_image = {
+    ...VISION_TOOL_SCHEMAS.ocr_image,
+    run: ({ source }) => host.ocrImage(String(source ?? "")),
+  };
+  if (host.removeBackground) tools.remove_background = {
+    ...VISION_TOOL_SCHEMAS.remove_background,
+    run: ({ source }) => host.removeBackground(String(source ?? "")),
   };
   return tools;
 }
