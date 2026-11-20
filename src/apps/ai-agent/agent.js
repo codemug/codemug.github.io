@@ -8,6 +8,25 @@ const MAX_CODE_CHARS = 10_000;
 const MAX_CHROME_TEXT_CHARS = 4_000;
 const LANG_CODE = /^[a-z]{2,3}(-[A-Za-z]{2,8})*$/;
 
+/**
+ * A terminal exec-service reply (exec-result / exec-error over BroadcastChannel) reduced to the
+ * model-facing tool result. `no-terminal` is synthesized by the bridge when the wall timer
+ * expires without any reply (the terminal app is not open, or approval/run is still pending).
+ */
+export function execReplyToToolResult(reply) {
+  if (reply?.type === "exec-result") return { exitCode: reply.exitCode, output: String(reply.output ?? ""), truncated: reply.truncated === true };
+  if (reply?.type === "exec-error" && reply.reason === "timeout") return { error: "The run exceeded its time limit and was interrupted with Ctrl+C.", output: String(reply.output ?? ""), truncated: reply.truncated === true };
+  const reason = reply?.type === "exec-error" ? reply.reason : "invalid";
+  const message = {
+    "not-running": "The Linux guest is not running. The user needs to open the Linux Terminal app and press Start Linux first.",
+    denied: "The user denied this run.",
+    busy: "Another command is already running in the terminal; try again shortly.",
+    "no-terminal": "No reply from the Linux Terminal app: it may not be open, or the run is still waiting for the user's approval. Check the terminal window before trying again.",
+    invalid: "The run request was rejected.",
+  }[reason] ?? `The run failed (${String(reason)}).`;
+  return { error: message };
+}
+
 /** @typedef {{ name: string, arguments: Record<string, unknown> }} ToolCall */
 
 /**
@@ -25,6 +44,7 @@ const LANG_CODE = /^[a-z]{2,3}(-[A-Za-z]{2,8})*$/;
  *   readFile?: (path: string) => Promise<object>,
  *   writeFile?: (path: string, content: string) => Promise<object>,
  *   searchFiles?: (query: string, k: number) => Promise<object>,
+ *   runCode?: (lang: string, code: string, timeoutMs: number) => Promise<object>,
  * }} host
  */
 export function createTools(host) {
@@ -85,6 +105,29 @@ export function createTools(host) {
         if (!src.trim() || src.length > MAX_CODE_CHARS) return { error: `code must be 1 to ${MAX_CODE_CHARS} characters` };
         return host.runJavaScript(src);
       },
+    },
+  };
+  // Guest Linux runs (AI-4), offered when the host wires the terminal app's exec service
+  // (BroadcastChannel bridge). The terminal app asks the user to approve every run, so the
+  // reply only arrives once the run finishes, is denied, or the guest is not running.
+  if (host.runCode) tools.run_code = {
+    description: "Run code in WebPC's Linux guest (real Alpine Linux) and return its exit code and output. lang is python, node or sh; for SQL use Python's sqlite3 module. The user approves every run in the terminal app. Output is the last 64 KB (truncated flags the head).",
+    parameters: {
+      type: "object",
+      properties: {
+        code: { type: "string", description: `Code to run (max ${MAX_CODE_CHARS} characters)` },
+        lang: { type: "string", description: "python, node or sh" },
+        timeout_ms: { type: "number", description: "Optional run limit in milliseconds, 1-120000 (default 30000); the run is interrupted with Ctrl+C at the limit and the partial output is returned" },
+      },
+      required: ["code", "lang"],
+    },
+    run: ({ code, lang, timeout_ms }) => {
+      const src = String(code ?? "");
+      if (!src.trim() || src.length > MAX_CODE_CHARS) return { error: `code must be 1 to ${MAX_CODE_CHARS} characters` };
+      if (lang !== "python" && lang !== "node" && lang !== "sh") return { error: "lang must be python, node or sh" };
+      const timeout = timeout_ms === undefined ? 30000 : timeout_ms;
+      if (typeof timeout !== "number" || !Number.isFinite(timeout) || timeout < 1 || timeout > 120000) return { error: "timeout_ms must be a number from 1 to 120000" };
+      return host.runCode(lang, src, timeout).then(execReplyToToolResult);
     },
   };
   // Chrome built-in on-device tools, offered only when the app reports the matching API available or

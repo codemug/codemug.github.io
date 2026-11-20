@@ -201,7 +201,31 @@ $('files-build').addEventListener('click', async () => {
 });
 $('files-cancel-index').addEventListener('click', () => { indexAbort?.abort(); embedClient.stop(); });
 applyFileGates(); renderFileGrants();
-const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, chrome: chromeTools, files: fileTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
+// AI-4: the run_code tool reaches the Linux terminal app's exec service over a same-origin
+// BroadcastChannel: the terminal page shows the approval prompt and runs the code in its guest.
+// The reply arrives when the run finishes, is denied, or the guest is not running; the wall timer
+// only bounds the wait for a closed terminal app (or a run still pending the user's approval).
+// The pending map entry is deleted exactly once, by the settle guard (delete-once = first settle
+// wins, so the late wall timer cannot double-resolve a settled run).
+const execChannel = new BroadcastChannel('webpc-terminal');
+const execPending = new Map();
+let execSeq = 0;
+execChannel.onmessage = (event) => {
+  const reply = event.data;
+  if (!reply || (reply.type !== 'exec-result' && reply.type !== 'exec-error')) return;
+  const settle = execPending.get(reply.id);
+  if (settle) settle(reply);
+};
+function runCode(lang, code, timeoutMs) {
+  const id = `agent-${Date.now()}-${execSeq++}`;
+  return new Promise((resolve) => {
+    const settle = (reply) => { if (execPending.delete(id)) resolve(reply); };
+    execPending.set(id, settle);
+    setTimeout(() => settle({ type: 'exec-error', id, reason: 'no-terminal' }), timeoutMs + 60000); // run limit + time for the user to approve
+    execChannel.postMessage({ type: 'exec-request', id, from: 'AI Agent', lang, code, timeoutMs });
+  });
+}
+const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, runCode, chrome: chromeTools, files: fileTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
   if (type === 'busy') { controls(); if (!data) status(client.ready ? 'Ready for your next question.' : 'Load a model to continue.'); }
   else if (type === 'status') status(data);
   else if (type === 'error') error(data);

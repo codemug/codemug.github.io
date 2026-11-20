@@ -88,6 +88,15 @@ test('the system prompt mentions the grants (and nothing else changes)', () => {
   assert.equal(systemPrompt({ host: 'api.anthropic.com' }), systemPrompt({ host: 'api.anthropic.com' }, null), 'a null/absent grant list keeps the no-access sentence');
 });
 
+test('the system prompt mentions the guest code runs only when run_code is offered', () => {
+  assert.ok(systemPrompt({ ready: true }).includes("You have no access to the computer's filesystem"), 'default keeps the no-access sentence');
+  const guest = systemPrompt({ ready: true }, null, true);
+  assert.ok(!guest.includes('You have no access to the computer\'s filesystem or other desktop apps'), guest);
+  assert.ok(guest.includes('run_code') && guest.includes('virtual machine'), guest);
+  const both = systemPrompt({ ready: true }, [{ root: 'notes', kind: 'folder' }], true);
+  assert.ok(both.includes('list_files') && both.includes('run_code'), 'grants and guest runs both apply');
+});
+
 test('the session offers the file tools while grants exist and keeps them out of the persisted record', async () => {
   const names = [];
   const client = { ready: true, count: () => Promise.resolve(1), stop: () => {}, generate: (messages, schemas) => { names.push(schemas.map((s) => s.function.name)); return 'Done.'; } };

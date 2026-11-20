@@ -1,7 +1,7 @@
 // Run: node agent.test.mjs   (pure logic checks; the browser parts are verified in Chrome)
 import assert from "node:assert/strict";
 import { createTools, parseToolCalls, runToolCall, visibleText, toolSchemas,
-  checkUrl, hostsIn, cleanUntrusted, clearOldToolResults, splitForCompaction, transcriptText, chunkText, stampUserMessages, dropStampEcho } from "../src/apps/ai-agent/agent.js";
+  checkUrl, hostsIn, cleanUntrusted, clearOldToolResults, splitForCompaction, transcriptText, chunkText, stampUserMessages, dropStampEcho, execReplyToToolResult } from "../src/apps/ai-agent/agent.js";
 
 const hostCalls = [];
 const tools = createTools({
@@ -96,5 +96,38 @@ assert.equal(dropStampEcho(`[${T}] Sure.`, T), "Sure.");
 assert.equal(dropStampEcho("Tuesday, Nov", T), "");
 assert.equal(dropStampEcho("The capital is Paris.", T), "The capital is Paris.");
 assert.equal(dropStampEcho("It is Tuesday.", T), "It is Tuesday.");
+
+// run_code (AI-4): runs code in the Linux guest through the terminal app's exec service
+// (host.runCode posts over BroadcastChannel; here a stand-in records the calls).
+const execCalls = [];
+const codeTools = createTools({
+  webSearch: async () => ({ results: [] }), httpGet: async () => ({ content: "page" }),
+  runJavaScript: async () => ({ result: 6 }), allowedHosts: () => new Set(),
+  runCode: async (lang, code, timeout) => (execCalls.push([lang, code, timeout]), { type: "exec-result", id: "agent-1", exitCode: 0, output: "4\n", truncated: false }),
+});
+const codeRun = (args) => runToolCall(codeTools, { name: "run_code", arguments: args });
+assert.deepEqual(await codeRun({ code: "print(2+2)", lang: "python" }), { exitCode: 0, output: "4\n", truncated: false });
+assert.ok((await codeRun({ code: "x" })).error, "missing lang");
+assert.ok((await codeRun({ code: "x", lang: "ruby" })).error, "unknown lang");
+assert.ok((await codeRun({ code: " ", lang: "sh" })).error, "blank code");
+assert.ok((await codeRun({ code: "x".repeat(10001), lang: "sh" })).error, "oversized code");
+assert.ok((await codeRun({ code: "x", lang: "sh", timeout_ms: 0 })).error, "timeout below 1");
+assert.ok((await codeRun({ code: "x", lang: "sh", timeout_ms: 120001 })).error, "timeout above max");
+assert.ok((await codeRun({ code: "x", lang: "sh", timeout_ms: "30000" })).error, "string timeout rejected");
+assert.deepEqual(await codeRun({ code: "echo hi", lang: "sh", timeout_ms: 120000 }), { exitCode: 0, output: "4\n", truncated: false });
+assert.deepEqual(execCalls, [["python", "print(2+2)", 30000], ["sh", "echo hi", 120000]], "default timeout is 30000");
+assert.ok((await run("run_code", { code: "x", lang: "sh" })).error, "absent without host.runCode");
+
+// Exec-reply normalization: results keep exit code/output/truncation; errors become readable
+// messages, a timeout keeps the partial output, unknown reasons are reported.
+assert.deepEqual(execReplyToToolResult({ type: "exec-result", id: "a", exitCode: 1, output: "boom", truncated: true }), { exitCode: 1, output: "boom", truncated: true });
+assert.match(execReplyToToolResult({ type: "exec-error", id: "a", reason: "not-running" }).error, /not running/i);
+assert.match(execReplyToToolResult({ type: "exec-error", id: "a", reason: "denied" }).error, /denied/i);
+assert.match(execReplyToToolResult({ type: "exec-error", id: "a", reason: "busy" }).error, /already running/i);
+assert.match(execReplyToToolResult({ type: "exec-error", id: "a", reason: "no-terminal" }).error, /No reply/i);
+const timedOut = execReplyToToolResult({ type: "exec-error", id: "a", reason: "timeout", output: "partial", truncated: true, durationMs: 30000 });
+assert.match(timedOut.error, /time limit/); assert.equal(timedOut.output, "partial"); assert.equal(timedOut.truncated, true);
+assert.ok(execReplyToToolResult({ type: "exec-error", id: "a", reason: "mystery" }).error);
+assert.ok(execReplyToToolResult(undefined).error, "a missing reply is an error, not a result");
 
 console.log("agent.js: all checks passed");
