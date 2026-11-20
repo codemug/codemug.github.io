@@ -682,6 +682,6 @@
   "vm": {
     "memoryMiB": 512,
     "vgaMiB": 8,
-    "cmdline": "rw root=host9p rootfstype=9p rootflags=trans=virtio,cache=loose modules=virtio_pci tsc=reliable console=ttyS0,115200 loglevel=3 slub_debug=F"
+    "cmdline": "rw root=host9p rootfstype=9p rootflags=trans=virtio,cache=loose modules=virtio_pci tsc=reliable console=ttyS0,115200 loglevel=3 slub_debug=FZP"
   }
 }
