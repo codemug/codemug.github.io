@@ -55,3 +55,10 @@ test('mediaKind prefers MIME, falls back to the extension', () => {
   assert.equal(mediaKind('x.mp3', 'application/pdf'), 'audio'); // odd MIME: name wins
   assert.ok(isMedia('a.flac') && isMedia('a.webm') && !isMedia('a.docx'));
 });
+
+test('mediaKind needs a real extension, not a name ending in one', () => {
+  assert.equal(mediaKind('remov', ''), null);
+  assert.equal(mediaKind('notes.txt-mp3', ''), null);
+  assert.equal(mediaKind('song.MP3', ''), 'audio');
+  assert.equal(mediaKind('clip.webm', ''), 'video');
+});

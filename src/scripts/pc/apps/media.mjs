@@ -154,7 +154,7 @@ window.pcBeforeClose=()=>{video.pause();return true;};
 window.addEventListener('pagehide',()=>video.pause());
 if('mediaSession'in navigator)for(const[action,handler]of[['play',()=>video.play().catch(()=>{})],['pause',()=>video.pause()],['previoustrack',doPrev],['nexttrack',doNext]])try{navigator.mediaSession.setActionHandler(action,handler);}catch{}
 
-const savedVolume=parseFloat(localStorage.getItem('pc:media:volume'));
+let savedVolume=NaN;try{savedVolume=parseFloat(localStorage.getItem('pc:media:volume'));}catch{}
 setVolume(Number.isFinite(savedVolume)?savedVolume:0.8,false);
 setupApp('media');
 status('Ready. Open audio or video, or drop files here.');

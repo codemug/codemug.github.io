@@ -56,7 +56,10 @@ async function pruneBr(stage) {
   for (const name of [`CyberChef_v${version}.html`, 'assets/main.js', 'assets/main.css']) await access(join(stage, name));
   let text = '';
   try { text = await readFile(join(root, 'public/third-party/cyberchef/NOTICE'), 'utf8'); } catch { }
-  text = text.replace('WebPC serves the upstream web release unmodified in /pc/vendor/cyberchef/.', 'WebPC serves the upstream web release in /pc/vendor/cyberchef/, minus the precompressed .br siblings (see below).');
+  const unmodified = 'WebPC serves the upstream web release unmodified in /pc/vendor/cyberchef/.';
+  const cut = 'WebPC serves the upstream web release in /pc/vendor/cyberchef/, minus the precompressed .br siblings (see below).';
+  if (!text.includes(unmodified) && !text.includes(cut)) throw new Error('CyberChef NOTICE: the "served unmodified" sentence changed; update prepare-cyberchef.mjs so the NOTICE stays accurate.');
+  text = text.replace(unmodified, cut);
   const note = `WebPC size cut (2026-11-20): the ${br.length} precompressed .br sibling files are removed from the prepared bundle. GitHub Pages serves the original files and does not negotiate precompression, so nothing references them. No other bytes of the upstream release are modified.`;
   if (!text.includes(note)) text = text.trimEnd() + '\n\n' + note + '\n';
   await mkdir(dirname(join(root, 'public/third-party/cyberchef/NOTICE')), { recursive: true });

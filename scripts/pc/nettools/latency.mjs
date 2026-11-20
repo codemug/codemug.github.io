@@ -50,7 +50,9 @@ export function mount(content) {
     btn.disabled = true; err.setAttribute('hidden', 'true');
     out.textContent = `Measuring ${count} HTTP round-trip(s) via ${host}…`;
     try {
-      const settled = await Promise.allSettled(Array.from({ length: count }, () => timeOne(c.value)));
+      // One request at a time: concurrent samples would measure their own contention.
+      const settled = [];
+      for (let i = 0; i < count; i++) settled.push(await timeOne(c.value).then(value => ({ status: 'fulfilled', value }), reason => ({ status: 'rejected', reason })));
       const ok = settled.filter(s => s.status === 'fulfilled').map(s => s.value);
       const failed = count - ok.length;
       if (!ok.length) throw new Error(`All ${count} round-trip(s) to ${host} failed (network error, or the origin rejected the cross-origin probe).`);

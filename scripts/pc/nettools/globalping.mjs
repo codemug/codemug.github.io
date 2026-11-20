@@ -101,7 +101,7 @@ export function mount(content) {
     try {
       const created = await fetchJson(API, { method: 'POST', body, service: 'Globalping' });
       out.textContent = `Globalping measurement ${created.id}: collecting from ${body.limit} probe(s)… (cap 60 s)`;
-      const final = await pollGlobalping(`${API}/${created.id}`);
+      const final = await pollGlobalping(`${API}/${encodeURIComponent(created.id)}`);
       out.textContent = formatGlobalping(final);
     } catch (e) { showErr(e?.message ?? String(e)); }
     finally { btn.disabled = false; }

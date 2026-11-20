@@ -82,8 +82,6 @@ async function prepare() {
     await writeFile(join(stage, 'webpc-config.js'), '// Set before the bundle loads so every font resolves to the local copy under this path (never a CDN).\nwindow.EXCALIDRAW_ASSET_PATH = "/pc/vendor/excalidraw/";\n');
     await writeFile(join(stage, 'index.html'), '<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta http-equiv="Content-Security-Policy" content="default-src \'self\'; script-src \'self\'; style-src \'self\' \'unsafe-inline\'; font-src \'self\' data: blob:; img-src \'self\' data: blob:; connect-src \'self\' blob: data:; worker-src \'self\' blob:; frame-src \'self\'; object-src \'none\'"/><meta name="robots" content="noindex"/><title>Excalidraw</title><link rel="stylesheet" href="./excalidraw.css"/><script src="./webpc-config.js"></script></head><body style="margin:0;overflow:hidden"><div id="excalidraw-root" style="height:100vh"></div><script type="module" src="./excalidraw.js"></script></body></html>');
     await writeFile(join(stage, '.release.json'), JSON.stringify({ version: versions.excalidraw, integrity, url: 'npm @excalidraw/excalidraw@0.18.1', fingerprint }));
-    await rm(out, { recursive: true, force: true });
-    await rename(stage, out);
     const thirdParty = join(root, 'public/third-party/excalidraw');
     await mkdir(thirdParty, { recursive: true });
     const response = await fetch(license.url, { signal: AbortSignal.timeout(60000) });
@@ -92,6 +90,10 @@ async function prepare() {
     await writeFile(join(thirdParty, license.name), text);
     await writeBundleNotices(result.metafile, root, join(thirdParty, 'BUNDLED-NOTICES.txt'));
     await writeFile(join(thirdParty, 'WEBPC.txt'), `Excalidraw ${versions.excalidraw} (MIT)\nUpstream: https://github.com/excalidraw/excalidraw\nRelease: npm @excalidraw/excalidraw@0.18.1 (lockfile integrity ${integrity}; the package ships no licence file, so the repo LICENSE at tag v0.18.1 is pinned by SHA-256)\nWebPC changes: bundles the npm package with the installed react/react-dom ${versions.react}; self-hosts all fonts (webpc-config.js sets EXCALIDRAW_ASSET_PATH to /pc/vendor/excalidraw/ before the bundle loads, and the prep step strips the upstream esm.sh CDN fallback from the bundle's createUrls() so every font src is local-only — no CDN font requests are possible); adds a CSP meta (script-src 'self', worker-src 'self' blob: — the bundled image-blob-reduce helper's data:-URL worker is blocked but has a built-in fallback, third-party connect/frame sources blocked — in-page third-party embeds cannot load); the scene autosaves to the WebPC-namespaced localStorage key pc:excalidraw:scene:v1 and is restored on open. No collaboration props are passed, so the bundled room/collab client (firebase/cloudfunctions URLs in the bundle) is inactive. Excalidraw+ / library / share links are user-click new-tab links only. See docs/webpc/excalidraw.md.\n`);
+    // Swap in the prepared output (with its marker) only after the licence and notices are written,
+    // so a failed licence fetch makes the next run prepare again instead of saying "already prepared".
+    await rm(out, { recursive: true, force: true });
+    await rename(stage, out);
     console.log(`Prepared Excalidraw ${versions.excalidraw}.`);
   } finally { await rm(stage, { recursive: true, force: true }); }
 }

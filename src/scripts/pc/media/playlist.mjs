@@ -46,8 +46,8 @@ export function removeAt(playlist,i){
   return playlist;
 }
 
-const AUDIO_EXT=/(mp3|wav|ogg|oga|m4a|aac|flac|opus|weba|amr|aiff?)$/i;
-const VIDEO_EXT=/(mp4|m4v|webm|mov|mkv|ogv|avi|3gp)$/i;
+const AUDIO_EXT=/\.(mp3|wav|ogg|oga|m4a|aac|flac|opus|weba|amr|aiff?)$/i;
+const VIDEO_EXT=/\.(mp4|m4v|webm|mov|mkv|ogv|avi|3gp)$/i;
 
 // 'audio' | 'video' | null — MIME first, then the file name.
 export function mediaKind(name,type){

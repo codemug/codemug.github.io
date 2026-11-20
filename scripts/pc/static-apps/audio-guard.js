@@ -32,8 +32,11 @@
     },
     // Resume only the contexts WebPC itself suspended (generic gesture resume),
     // never ones the app suspended on purpose.
+    // Each WebPC suspend is undone at most once, so a later suspend by the app itself stays.
     resumeGuarded() {
-      return Promise.all([...webpcSuspended].filter(c => c.state === 'suspended').map(c => c.resume()));
+      const targets = [...webpcSuspended];
+      webpcSuspended.clear();
+      return Promise.all(targets.filter(c => c.state === 'suspended').map(c => c.resume()));
     },
     states() { return [...contexts].map(c => c.state); },
   };
