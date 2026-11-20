@@ -1,0 +1,5 @@
+SQLiteViz 0.32.1
+Upstream: https://github.com/lana-k/sqliteviz
+Release: https://github.com/lana-k/sqliteviz/releases/download/0.32.1/dist.zip
+SHA-256: 6989a740b598570e684a95d0f561980723be6c4aa7f4e97faf119610866abe46
+Official Vite build, unmodified. All asset URLs are relative, so it serves from the /pc/vendor/sqliteviz/ sub-path. The bundled service worker is scoped to /pc/vendor/sqliteviz/ and only precaches its own assets. Map charts can fetch tiles and fonts from public map tile servers when the user creates a map (user-initiated, like CyberChef URL-fetch operations). See docs/webpc/static-apps.md.

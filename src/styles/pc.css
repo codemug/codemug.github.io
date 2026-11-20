@@ -9,9 +9,6 @@
   --pc-wallpaper-line: color-mix(in srgb, var(--color-accent) 14%, var(--color-bg));
   --pc-selection: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
   --pc-window-shadow: #00000060;
-  --pc-sheet: #198757;
-  --pc-sheet-fold: #65c795;
-  --pc-sheet-ink: #ffffff;
   --pc-error: #f87171;
   --pc-error-ink: #18181b;
   --pc-link: var(--color-accent);
@@ -53,12 +50,35 @@ body { margin: 0; }
 .pc-shortcut { width: 94px; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; padding: 8px 4px; border-radius: 8px; background: transparent; user-select: none; }
 .pc-shortcut > span { font-size: 12px; line-height: 1.5; white-space: nowrap; }
 .pc-shortcut[aria-pressed="true"] { background: var(--pc-selection); box-shadow: inset 0 0 0 1px var(--color-border-strong); }
-.pc-app-icon { width: 54px; height: 54px; }
-.pc-icon-sheets { color: var(--pc-sheet-ink); }
-.pc-icon-sheet { fill: var(--pc-sheet); }
-.pc-icon-fold { fill: var(--pc-sheet-fold); }
-.pc-icon-vert, .pc-icon-ai-agent, .pc-icon-lightcraft, .pc-icon-figcraft, .pc-icon-pdfcraft, .pc-icon-soundcraft, .pc-icon-docs, .pc-icon-slides, .pc-icon-terminal, .pc-icon-cyberchef, .pc-icon-vscode, .pc-icon-about { color: var(--color-accent); }
-.pc-icon-monitor { fill: var(--color-surface); }
+.pc-app-icon { width: 54px; height: 54px; border-radius: 22%; background: linear-gradient(135deg, var(--from, #94a3b8), var(--to, #475569)); box-shadow: inset 0 1px 0 #ffffff5c, inset 0 -1px 0 #00000030; color: #fff; }
+.pc-app-icon g { opacity: .95; }
+.pc-icon-gridcraft { --from: #38bdf8; --to: #0f766e; }
+.pc-icon-docs { --from: #60a5fa; --to: #1e40af; }
+.pc-icon-deckcraft { --from: #22d3ee; --to: #0e7490; }
+.pc-icon-pdfcraft { --from: #3b82f6; --to: #172554; }
+.pc-icon-lightcraft { --from: #fcd34d; --to: #f59e0b; }
+.pc-icon-figcraft { --from: #f472b6; --to: #be185d; }
+.pc-icon-soundcraft { --from: #f43f5e; --to: #9f1239; }
+.pc-icon-beepbox { --from: #e879f9; --to: #a21caf; }
+.pc-icon-filmcraft { --from: #fb923c; --to: #c2410c; }
+.pc-icon-cadcraft { --from: #fda4af; --to: #881337; }
+.pc-icon-vectorcraft { --from: #f87171; --to: #b91c1c; }
+.pc-icon-photocraft { --from: #f9a8d4; --to: #db2777; }
+.pc-icon-effectcraft { --from: #fb7185; --to: #be185d; }
+.pc-icon-materialcraft { --from: #fbbf24; --to: #db2777; }
+.pc-icon-texturecraft { --from: #d946ef; --to: #701a75; }
+.pc-icon-excalidraw { --from: #fde047; --to: #ca8a04; }
+.pc-icon-terminal { --from: #818cf8; --to: #4338ca; }
+.pc-icon-vscode { --from: #a5b4fc; --to: #3730a3; }
+.pc-icon-packets { --from: #64748b; --to: #1e293b; }
+.pc-icon-sqliteviz { --from: #a78bfa; --to: #6d28d9; }
+.pc-icon-cyberchef { --from: #c084fc; --to: #9333ea; }
+.pc-icon-ai-agent { --from: #2dd4bf; --to: #115e59; }
+.pc-icon-vert { --from: #4ade80; --to: #15803d; }
+.pc-icon-files { --from: #8b5cf6; --to: #4c1d95; }
+.pc-icon-media { --from: #10b981; --to: #065f46; }
+.pc-icon-nettools { --from: #a3e635; --to: #3f6212; }
+.pc-icon-about { --from: #94a3b8; --to: #475569; }
 .pc-desktop-hint { position: absolute; left: 28px; bottom: 20px; margin: 0; font: 10px var(--font-mono); color: var(--color-text-muted); max-width: calc(100% - 56px); line-height: 1.7; }
 .pc-touch-hint { display: none; }
 .pc-windows { position: absolute; inset: 0; pointer-events: none; }

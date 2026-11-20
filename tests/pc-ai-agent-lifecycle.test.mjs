@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { AgentSession } from '../src/apps/ai-agent/session.js';
 import { ModelClient } from '../src/apps/ai-agent/model-client.js';
 import { ConversationStore, STORE_KEY, BACKUP_KEY, LEGACY_KEY } from '../src/apps/ai-agent/storage.js';
@@ -28,6 +29,47 @@ test('summary is transactional across cancellation and preserves recent tool pai
  const wait=deferred();let calls=0;const client={ready:true,stop(){},count:async()=>5000,generate:async()=>++calls===1?'new reply':wait.promise};const {session}=setup(client);
  session.history=Array.from({length:8},(_,i)=>({role:i%2?'assistant':'user',content:`turn ${i}`}));
  const run=session.send('last turn');await tick();assert.equal(calls,2);await session.newChat();wait.resolve('old summary');await run;assert.deepEqual(session.history,[]);assert.equal(session.summary,'');
+});
+test('compaction works on cloud and Chrome clients: object replies and no onToken (review 1)',async()=>{
+  const calls=[];
+  const client={ready:true,stop(){},count:async()=>5000,generate:async(messages,schemas)=>{calls.push(schemas.length);return schemas.length?'Turn answer.':{text:'Compact notes.',toolCalls:[]}}};
+  const {session,events}=setup(client);
+  session.history=Array.from({length:6},(_,i)=>({role:i%2?'assistant':'user',content:i%2?`a${i}`:'q'.repeat(5000)}));
+  await session.send('last turn');
+  assert.equal(calls.at(-1),0,'the summarizer call offers no tools');
+  assert.equal(session.summary,'Compact notes.','visibleText got the object reply, not a TypeError');
+  assert.equal(session.history.length,4,'older turns condensed, the last two user turns kept');
+  assert.ok(!events.some(([t])=>t==='error'),'no error event');
+});
+test('an attached image is dropped from stored history after the turn (review 8)',async()=>{
+  const client={ready:true,stop(){},count:async()=>100,generate:async()=>'done'};
+  const {session}=setup(client);
+  const image={name:'p.png',width:2,height:2,data:new Uint8Array([1]),type:'image/png'};
+  await session.send('look at this',image);
+  const first=session.history.find((m)=>m.role==='user');
+  assert.ok(first.content.includes('[image: p.png, 2×2]'),'the marker text stays in the history');
+  assert.equal(first.image,undefined,'the image payload is dropped after the turn (stored/saved chats stay small)');
+  assert.equal(session.history.filter((m)=>m.image).length,0,'no message keeps an image payload');
+});
+test('an unknown tool called with arguments reports the unknown tool, not a field error (review 15)',async()=>{
+  const callText='\u003ctool_call\u003e\n\u003cfunction=frobnicate\u003e\n\u003cparameter=x\u003e\n1\n\u003c/parameter\u003e\n\u003c/function\u003e\n\u003c/tool_call\u003e';
+  let round=0;
+  const client={ready:true,stop(){},count:async()=>100,generate:async()=>++round===1?callText:'done'};
+  const {session}=setup(client);
+  await session.send('do it');
+  const toolMsg=session.history.find((m)=>m.role==='tool');
+  const error=JSON.parse(toolMsg.content).error;
+  assert.match(error,/Unknown tool frobnicate/,'the tool is checked before validation');
+  assert.ok(!error.includes('Unexpected field'),`no schema-field error for an unknown tool: ${error}`);
+});
+test('app.js: one Files channel, attach gated during a turn, pcFlush before the clears (reviews 14/16/19)',()=>{
+  const src=readFileSync(new URL('../src/apps/ai-agent/app.js',import.meta.url),'utf8');
+  assert.match(src,/const filesChangeChannel\s*=\s*typeof BroadcastChannel/,'one module-level Files channel');
+  assert.ok(!/new BroadcastChannel\('webpc-files'\)\.postMessage/.test(src),'no per-save BroadcastChannel in the remove_background save');
+  assert.ok(src.includes("filesChangeChannel?.postMessage({ type: 'changed' })"),'the save posts through the shared channel');
+  assert.match(src,/\$\('attach'\)\.disabled\s*=\s*!box\.checked \|\| loading \|\| Boolean\(session\.active\)/,'the attach button is disabled while a turn is active');
+  const body=src.slice(src.indexOf('window.pcBeforeClose'));
+  assert.match(body,/if \(!window\.pcFlush\(\)\) return false;.*cloud\.clear\(\)/s,'pcFlush runs first and the clears happen only when it allows the close');
 });
 test('worker termination rejects prefill/download waiters and rejects stale events',async()=>{
  const workers=[];const client=new ModelClient({createWorker:()=>{const w={postMessage(data){this.sent=data},terminate(){this.terminated=true}};workers.push(w);return w}});

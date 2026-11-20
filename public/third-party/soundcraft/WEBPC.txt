@@ -2,4 +2,4 @@ SoundCraft 0.20.1
 Upstream: https://github.com/storytold/soundcraft/tree/v0.20.1
 Release: https://github.com/storytold/soundcraft/releases/download/v0.20.1/soundcraft-web-0.20.1.zip
 SHA-256: ca7c03c53cf4b7ec9ae26ef2cbde5d86566d006127040fe694fb95f9773a34e4
-Official WASM, JavaScript and embedded assets are preserved. WebPC adds a small entry script for storage safety, focus and SoundCraft audio/session handling. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.
+Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

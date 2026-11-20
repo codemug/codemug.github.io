@@ -1,0 +1,62 @@
+---
+import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
+---
+<UtilityLayout title="Media Player">
+  <header class="media-header"><h1>Media Player</h1>
+    <button id="media-open">Open…</button><input id="media-input" type="file" accept="audio/*,video/*" multiple hidden/>
+    <button id="media-open-files">Open from Files</button>
+  </header>
+  <p class="utility-status" id="media-status" role="status">Opening…</p>
+  <main id="media-main" class="media-main" aria-label="Player">
+    <section id="media-stage" class="media-stage">
+      <video id="media-video"></video>
+      <p id="media-title" class="media-title">Nothing playing</p>
+    </section>
+    <div class="media-transport" aria-label="Transport controls">
+      <button id="media-prev" disabled>⏮</button>
+      <button id="media-play">▶ Play</button>
+      <button id="media-next" disabled>⏭</button>
+      <button id="media-repeat" aria-label="Repeat off">↻ off</button>
+      <input id="media-seek" type="range" min="0" max="1" step="0.01" value="0" aria-label="Seek"/>
+      <span id="media-time" class="media-time">0:00</span>
+      <span class="media-time" aria-hidden="true">/</span>
+      <span id="media-duration" class="media-time">0:00</span>
+      <button id="media-mute">Mute</button>
+      <input id="media-volume" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"/>
+      <button id="media-fullscreen">Fullscreen</button>
+    </div>
+    <section class="media-list-section" aria-label="Playlist">
+      <h2>Playlist</h2>
+      <ul id="media-list"></ul>
+    </section>
+  </main>
+  <p class="utility-note">Space plays/pauses · ←/→ seek 5 s · ↑/↓ volume · N/P next/previous · M mute · F fullscreen. Volume is remembered in this browser. Open from Files reads the Files app's storage (webpc-files/) without changing it.</p>
+  <style>
+    .media-header { gap:6px; }
+    .media-header button { font-size:12px; min-height:34px; padding:5px 9px; }
+    .media-main { display:flex; flex-direction:column; gap:10px; padding:14px; }
+    .media-stage { background:var(--color-surface); border:1px solid var(--color-border); border-radius:6px; padding:10px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+    #media-video { width:100%; max-height:46vh; background:#000; border-radius:4px; }
+    .media-stage.audio #media-video { display:none; }
+    .media-title { margin:0; font-size:13px; font-weight:550; max-width:100%; overflow-wrap:anywhere; text-align:center; }
+    .media-transport { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--color-border); border-radius:6px; background:var(--color-surface); }
+    .media-transport button { font-size:12px; min-height:32px; padding:4px 8px; }
+    #media-seek { flex:1; min-width:120px; }
+    .media-time { font-size:11px; font-variant-numeric:tabular-nums; color:var(--color-text-muted); }
+    .media-list-section h2 { font-size:12px; margin:0 0 6px; }
+    #media-list { list-style:none; margin:0; padding:0; border:1px solid var(--color-border); border-radius:6px; background:var(--color-surface); max-height:220px; overflow:auto; }
+    @media(max-width:600px) { .media-main { padding:10px; } .media-transport button { min-height:38px; } }
+  </style>
+  <!-- Playlist rows are created by innerHTML in media.mjs, so these rules are
+       global, contained by the playlist container. -->
+  <style is:global>
+    #media-list li { display:flex; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid var(--color-border); font-size:12px; cursor:pointer; }
+    #media-list li:last-child { border-bottom:0; }
+    #media-list li:focus-visible, #media-list li.sel:focus-visible { outline:2px solid var(--color-accent); outline-offset:-2px; }
+    #media-list li.sel { background:var(--color-accent-soft, color-mix(in srgb, var(--color-accent) 12%, transparent)); }
+    .mp-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mp-kind { font-size:10px; color:var(--color-text-muted); text-transform:uppercase; }
+    .mp-remove { min-height:0; padding:0 6px; font-size:14px; line-height:1.2; }
+  </style>
+  <script>import '../../../../scripts/pc/apps/media.mjs';</script>
+</UtilityLayout>

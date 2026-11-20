@@ -1,9 +1,33 @@
 // Pure agent logic (no DOM): tool definitions, tool-call parsing and visible-text extraction.
 // Qwen3.5 and LFM3 both emit: <tool_call>\n<function=NAME>\n<parameter=ARG>\nVALUE\n</parameter>\n</function>\n</tool_call>
+import { MAX_WRITE_CHARS } from "./file-tools.js";
+import { MAX_MESSAGE_CHARS } from "./storage.js";
+import { VISION_TOOL_SCHEMAS } from "./vision-tools.js";
 
 const SAFE_EXPRESSION = /^[\d\s+\-*/().,%^]+$/;
 const MAX_QUERY_CHARS = 200;
 const MAX_CODE_CHARS = 10_000;
+const MAX_CHROME_TEXT_CHARS = 4_000;
+const LANG_CODE = /^[a-z]{2,3}(-[A-Za-z]{2,8})*$/;
+
+/**
+ * A terminal exec-service reply (exec-result / exec-error over BroadcastChannel) reduced to the
+ * model-facing tool result. `no-terminal` is synthesized by the bridge when the wall timer
+ * expires without any reply (the terminal app is not open, or approval/run is still pending).
+ */
+export function execReplyToToolResult(reply) {
+  if (reply?.type === "exec-result") return { exitCode: reply.exitCode, output: String(reply.output ?? ""), truncated: reply.truncated === true };
+  if (reply?.type === "exec-error" && reply.reason === "timeout") return { error: "The run exceeded its time limit and was interrupted with Ctrl+C.", output: String(reply.output ?? ""), truncated: reply.truncated === true };
+  const reason = reply?.type === "exec-error" ? reply.reason : "invalid";
+  const message = {
+    "not-running": "The Linux guest is not running. The user needs to open the Linux Terminal app and press Start Linux first.",
+    denied: "The user denied this run.",
+    busy: "Another command is already running in the terminal; try again shortly.",
+    "no-terminal": "No reply from the Linux Terminal app: it may not be open, or the run is still waiting for the user's approval. Check the terminal window before trying again.",
+    invalid: "The run request was rejected.",
+  }[reason] ?? `The run failed (${String(reason)}).`;
+  return { error: message };
+}
 
 /** @typedef {{ name: string, arguments: Record<string, unknown> }} ToolCall */
 
@@ -15,10 +39,20 @@ const MAX_CODE_CHARS = 10_000;
  *   httpGet: (url: string) => Promise<object>,
  *   runJavaScript: (code: string) => Promise<object>,
  *   allowedHosts: () => Set<string>,
+ *   translate?: (text: string, target: string, source: string) => Promise<object>,
+ *   summarize?: (text: string, type: string) => Promise<object>,
+ *   detectLanguage?: (text: string) => Promise<object>,
+ *   listFiles?: (path: string) => Promise<object>,
+ *   readFile?: (path: string) => Promise<object>,
+ *   writeFile?: (path: string, content: string) => Promise<object>,
+ *   searchFiles?: (query: string, k: number) => Promise<object>,
+ *   runCode?: (lang: string, code: string, timeoutMs: number) => Promise<object>,
+ *   ocrImage?: (source: string) => Promise<object>,
+ *   removeBackground?: (source: string) => Promise<object>,
  * }} host
  */
 export function createTools(host) {
-  return {
+  const tools = {
     calculate: {
       description: "Evaluate an arithmetic expression with + - * / ^ % and parentheses, e.g. (12.5*4)/3.",
       parameters: {
@@ -77,6 +111,153 @@ export function createTools(host) {
       },
     },
   };
+  // Guest Linux runs (AI-4), offered when the host wires the terminal app's exec service
+  // (BroadcastChannel bridge). The terminal app asks the user to approve every run, so the
+  // reply only arrives once the run finishes, is denied, or the guest is not running.
+  if (host.runCode) tools.run_code = {
+    description: "Run code in WebPC's Linux guest (real Alpine Linux) and return its exit code and output. lang is python, node or sh; for SQL use Python's sqlite3 module. The user approves every run in the terminal app. Output is the last 64 KB (truncated flags the head).",
+    parameters: {
+      type: "object",
+      properties: {
+        code: { type: "string", description: `Code to run (max ${MAX_CODE_CHARS} characters)` },
+        lang: { type: "string", description: "python, node or sh" },
+        timeout_ms: { type: "number", description: "Optional run limit in milliseconds, 1-120000 (default 30000); the run is interrupted with Ctrl+C at the limit and the partial output is returned" },
+      },
+      required: ["code", "lang"],
+    },
+    run: ({ code, lang, timeout_ms }) => {
+      const src = String(code ?? "");
+      if (!src.trim() || src.length > MAX_CODE_CHARS) return { error: `code must be 1 to ${MAX_CODE_CHARS} characters` };
+      if (lang !== "python" && lang !== "node" && lang !== "sh") return { error: "lang must be python, node or sh" };
+      const timeout = timeout_ms === undefined ? 30000 : timeout_ms;
+      if (typeof timeout !== "number" || !Number.isFinite(timeout) || timeout < 1 || timeout > 120000) return { error: "timeout_ms must be a number from 1 to 120000" };
+      return host.runCode(lang, src, timeout).then(execReplyToToolResult);
+    },
+  };
+  // Chrome built-in on-device tools, offered only when the app reports the matching API available or
+  // downloadable (see chrome-ai.js). They run on the page, and their results are untrusted tool data.
+  if (host.translate) tools.translate = {
+    description: `Translate text on this device with Chrome's Translator API. target_language is a BCP 47 code like 'fr'; call detect_language first when the source language is unknown (otherwise English is assumed).`,
+    parameters: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: `Text to translate (max ${MAX_CHROME_TEXT_CHARS} characters)` },
+        target_language: { type: "string", description: "BCP 47 target language code, e.g. 'fr'" },
+        source_language: { type: "string", description: "BCP 47 source language code; omit to assume English" },
+      },
+      required: ["text", "target_language"],
+    },
+    run: ({ text, target_language, source_language }) => {
+      const t = String(text ?? "");
+      if (!t.trim() || t.length > MAX_CHROME_TEXT_CHARS) return { error: `text must be 1 to ${MAX_CHROME_TEXT_CHARS} characters` };
+      if (typeof target_language !== "string" || !LANG_CODE.test(target_language)) return { error: "target_language must be a BCP 47 code like 'fr' or 'de-CH'" };
+      const source = source_language == null ? "en" : String(source_language);
+      if (!LANG_CODE.test(source)) return { error: "source_language must be a BCP 47 code" };
+      return host.translate(t, target_language, source);
+    },
+  };
+  if (host.summarize) tools.summarize = {
+    description: "Summarize text on this device with Chrome's Summarizer API.",
+    parameters: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: `Text to summarize (max ${MAX_CHROME_TEXT_CHARS} characters)` },
+        type: { type: "string", description: "key-points (default), tldr, teaser or headline" },
+      },
+      required: ["text"],
+    },
+    run: ({ text, type }) => {
+      const t = String(text ?? "");
+      if (!t.trim() || t.length > MAX_CHROME_TEXT_CHARS) return { error: `text must be 1 to ${MAX_CHROME_TEXT_CHARS} characters` };
+      const kind = type == null ? "key-points" : String(type);
+      if (!["key-points", "tldr", "teaser", "headline"].includes(kind)) return { error: "type must be key-points, tldr, teaser or headline" };
+      return host.summarize(t, kind);
+    },
+  };
+  if (host.detectLanguage) tools.detect_language = {
+    description: "Detect the language of text on this device with Chrome's Language Detector API. Returns the detected code and confidence.",
+    parameters: {
+      type: "object",
+      properties: { text: { type: "string", description: `Text to inspect (max ${MAX_CHROME_TEXT_CHARS} characters)` } },
+      required: ["text"],
+    },
+    run: ({ text }) => {
+      const t = String(text ?? "");
+      if (!t.trim() || t.length > MAX_CHROME_TEXT_CHARS) return { error: `text must be 1 to ${MAX_CHROME_TEXT_CHARS} characters` };
+      return host.detectLanguage(t);
+    },
+  };
+  // Files tools (AI-2), offered only while the user has at least one grant: paths are relative to the
+  // Files app root, the resolver rejects escapes, and results are untrusted tool data like the others.
+  if (host.listFiles) tools.list_files = {
+    description: "List folders and files inside your grants. path is relative to the Files app root, not to a grant: omit it (or use '') to list the grants themselves, or pass a folder inside a granted folder.",
+    parameters: {
+      type: "object",
+      properties: { path: { type: "string", description: "Folder to list, relative to the Files app root (e.g. notes when the grant is notes/)" } },
+      required: [],
+    },
+    run: ({ path }) => host.listFiles(path == null ? "" : String(path)),
+  };
+  if (host.readFile) tools.read_file = {
+    description: "Read a granted text file (txt, md, csv, json, html, xml, js, py and similar; UTF-8, at most 200 KB). path is relative to the Files app root (e.g. notes/a.txt when the grant is notes/). PDFs are not supported — PDFCraft is.",
+    parameters: {
+      type: "object",
+      properties: { path: { type: "string", description: "File to read, relative to the Files app root" } },
+      required: ["path"],
+    },
+    run: ({ path }) => host.readFile(String(path ?? "")),
+  };
+  if (host.writeFile) tools.write_file = {
+    description: "Create or update a text file inside a granted FOLDER; the user confirms every write and overwrites are announced. path is relative to the Files app root, inside the granted folder. The parent folder must already exist.",
+    parameters: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File to write, relative to the Files app root, inside the granted folder" },
+        content: { type: "string", description: `Full file content, UTF-8 (max ${MAX_WRITE_CHARS} characters)` },
+      },
+      required: ["path", "content"],
+    },
+    run: ({ path, content }) => {
+      const p = String(path ?? ""); const c = String(content ?? "");
+      if (!p.trim() || p.length > 200) return { error: "path must be 1 to 200 characters" };
+      if (c.length > MAX_WRITE_CHARS) return { error: `content is too large (max ${MAX_WRITE_CHARS} characters)` };
+      return host.writeFile(p, c);
+    },
+  };
+  // Files search (AI-3): offered only while the in-memory index has chunks. Runs the local embedding
+  // model on this device; the returned chunks are untrusted tool data like the other file tools.
+  if (host.searchFiles) tools.search_files = {
+    description: "Search the granted files by meaning (local embedding model, on this device). Returns the most similar chunks: path, similarity score (0-1) and a snippet.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: `What to look for (max ${MAX_QUERY_CHARS} characters)` },
+        k: { type: "number", description: "How many chunks to return (integer 1-10, default 5)" },
+      },
+      required: ["query"],
+    },
+    run: ({ query, k }) => {
+      const q = String(query ?? "");
+      if (!q.trim() || q.length > MAX_QUERY_CHARS) return { error: `query must be 1 to ${MAX_QUERY_CHARS} characters` };
+      if (k !== undefined && (typeof k !== "number" || !Number.isInteger(k))) return { error: "k must be an integer from 1 to 10" };
+      const n = k === undefined ? 5 : k;
+      if (n < 1 || n > 10) return { error: "k must be an integer from 1 to 10" };
+      return host.searchFiles(q, n);
+    },
+  };
+  // Vision tools (AI-7/AI-8): OCR and background removal on the pinned local models, in their own
+  // worker (vision-worker.js). source is 'attached' (the attached image) or a path of an image
+  // inside a granted folder; the host resolves the source, drives the first-use model download
+  // and the save-with-confirmation / download offer. The models are independent of the chat model.
+  if (host.ocrImage) tools.ocr_image = {
+    ...VISION_TOOL_SCHEMAS.ocr_image,
+    run: ({ source }) => host.ocrImage(String(source ?? "")),
+  };
+  if (host.removeBackground) tools.remove_background = {
+    ...VISION_TOOL_SCHEMAS.remove_background,
+    run: ({ source }) => host.removeBackground(String(source ?? "")),
+  };
+  return tools;
 }
 
 /**
@@ -148,14 +329,52 @@ export function toolSchemas(tools) {
   }));
 }
 
-/** Parse a parameter value: numbers, booleans and JSON objects come back typed, the rest as strings. */
-function parseValue(raw) {
-  const text = raw.trim();
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
+const TYPES = {
+  string: (v) => typeof v === "string",
+  number: (v) => typeof v === "number" && Number.isFinite(v),
+  boolean: (v) => typeof v === "boolean",
+  array: (v) => Array.isArray(v),
+  object: (v) => v !== null && typeof v === "object" && !Array.isArray(v),
+};
+
+/**
+ * Validate a parsed tool input against a tool's JSON-Schema parameters. The cloud tools run
+ * `strict` schemas, so missing, extra or mistyped fields become error tool_results before running.
+ * @returns {{ ok: true } | { ok: false, error: string }}
+ */
+export function validateToolInput(parameters, args) {
+  if (!TYPES.object(args)) return { ok: false, error: "Tool input must be a JSON object" };
+  const properties = parameters?.properties ?? {};
+  for (const key of Object.keys(args)) {
+    const property = properties[key];
+    if (!property) return { ok: false, error: `Unexpected field "${key}" is not allowed` };
+    if (property.type && !TYPES[property.type]?.(args[key])) return { ok: false, error: `Field "${key}" must be ${property.type}` };
   }
+  for (const key of parameters?.required ?? []) {
+    if (!(key in args)) return { ok: false, error: `Missing required field "${key}"` };
+  }
+  return { ok: true };
+}
+
+/**
+ * A local model's tool-call arguments arrive as raw strings (parseToolCalls keeps them raw).
+ * Convert them by the schema's field type before validation: string keeps the raw text (a value
+ * like {"a":1} is a valid string), number/integer and boolean and JSON object/array convert when
+ * possible; a failed conversion keeps the raw value so validation reports it.
+ */
+export function coerceArgs(parameters, args) {
+  if (!TYPES.object(args)) return args;
+  const properties = parameters?.properties ?? {};
+  const out = { ...args };
+  for (const [key, value] of Object.entries(args)) {
+    const type = properties[key]?.type;
+    if (typeof value !== "string" || !type) continue; // already typed or unschemaed: validation reports it
+    const text = value.trim();
+    if (type === "number" || type === "integer") { const n = Number(text); if (Number.isFinite(n)) out[key] = n; }
+    else if (type === "boolean") { if (text === "true") out[key] = true; else if (text === "false") out[key] = false; }
+    else if (type === "object" || type === "array") { try { out[key] = JSON.parse(text); } catch { /* keep the raw string; validation reports it */ } }
+  }
+  return out;
 }
 
 /** @returns {ToolCall[]} */
@@ -166,11 +385,60 @@ export function parseToolCalls(text) {
     if (!fn) continue;
     const args = {};
     for (const [, key, value] of fn[2].matchAll(/<parameter=([\w.-]+)>([\s\S]*?)<\/parameter>/g)) {
-      args[key] = parseValue(value);
+      args[key] = value.trim(); // raw strings; the session coerces them by schema type (coerceArgs)
     }
     calls.push({ name: fn[1], arguments: args });
   }
   return calls;
+}
+
+// ---------- tool-result serialization: the single place tool results become stored messages ----------
+
+/**
+ * Model markup a tool result could use to forge a chat turn or a tool call on local models:
+ * the "<" that opens a tool_call, function or think block (and the "<|" separator) becomes the
+ * visible, non-markup "‹" (and stays that way in every later copy of the stored message).
+ */
+export function neutraliseMarkup(text) {
+  return String(text ?? "").replace(/<(?=\||\/tool_call\b|function=|think|\/think)/g, "‹");
+}
+
+/**
+ * Every string in a tool result is untrusted data: drop invisible characters and neutralise markup.
+ * Nothing else changes (not cleanUntrusted's whitespace and link rewriting): file text and run_code
+ * output must keep their indentation and links. toolResultText bounds the length.
+ */
+export function sanitizeToolResult(value) {
+  const walk = (v) => {
+    if (typeof v === "string") return neutraliseMarkup(v.replace(INVISIBLE, ""));
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === "object") { const out = {}; for (const [k, val] of Object.entries(v)) out[k] = walk(val); return out; }
+    return v;
+  };
+  return walk(value);
+}
+
+/**
+ * Serialize a tool result to the stored message text, keeping the WHOLE message below the
+ * store's per-message cap: when JSON.stringify overruns it, the longest string field is cut
+ * (halving, until the JSON-escaped form fits) and the result is flagged truncated. Covers the
+ * 85 KB quoted-CSV case (read_file budgets the raw text; quotes and newlines double the JSON).
+ */
+export function toolResultText(result, maxChars = MAX_MESSAGE_CHARS) {
+  const clean = sanitizeToolResult(result);
+  const text = JSON.stringify(clean);
+  if (text.length <= maxChars) return text;
+  let key = null;
+  for (const [k, v] of Object.entries(clean)) if (typeof v === "string" && (key === null || v.length > clean[key].length)) key = k;
+  if (key === null) return text; // no string field to cut
+  const marker = "…[truncated]";
+  let cut = clean[key];
+  for (let i = 0; i < 20 && cut.length > 0; i++) {
+    const candidate = JSON.stringify({ ...clean, [key]: `${cut}${marker}`, truncated: true });
+    if (candidate.length <= maxChars) return candidate;
+    cut = cut.slice(0, Math.floor(cut.length / 2));
+  }
+  return JSON.stringify({ ...clean, [key]: marker, truncated: true });
 }
 
 /** Run one call against the tool table; unknown tools, thrown errors and rejections become `{error}` results. */
@@ -253,4 +521,32 @@ export function transcriptText(messages, maxToolChars = 300) {
     const calls = (m.tool_calls ?? []).map((c) => `Assistant called ${c.function.name}(${JSON.stringify(c.function.arguments)})`);
     return [m.content ? `Assistant: ${m.content}` : "", ...calls].filter(Boolean).join("\n");
   }).filter(Boolean).join("\n");
+}
+
+// ---------- image input ----------
+export const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+export const IMAGE_MAX_BYTES = 10_000_000;
+export const IMAGE_MAX_SIDE = 768;
+
+/**
+ * Boundary validation for an attached image (a File or {type,size}).
+ * @returns {string|null} a human-readable problem, or null when the image may be used.
+ */
+export function checkImage(file) {
+  if (!file || !IMAGE_TYPES.includes(file.type)) return `Only PNG, JPEG and WebP images are accepted${file?.type ? ` (${file.type})` : ""}.`;
+  if (file.size > IMAGE_MAX_BYTES) return `That image is ${Math.ceil(file.size / 1_000_000)} MB; the limit is 10 MB.`;
+  return null;
+}
+
+/** The text stored for a sent image; the pixels themselves are never persisted. */
+export function imageMarker(image) {
+  return `[image: ${image.name}, ${image.width}×${image.height}]`;
+}
+
+/** Drop image payloads ({name,width,height,data}) from a history before it is stored or exported. */
+export function stripImages(history) {
+  return history.map((m) => {
+    const { image, ...rest } = m;
+    return rest;
+  });
 }

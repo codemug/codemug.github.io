@@ -1,0 +1,6 @@
+PhotoCraft 0.23.1
+Upstream: https://github.com/storytold/photocraft/tree/v0.23.1
+Release: https://github.com/storytold/photocraft/releases/download/v0.23.1/photocraft-web-0.23.1.zip
+SHA-256: 3a498eb517bca6cec89f9c6b1fc6448269a05428c8a3a4637c16817da157f03c
+Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.
+Packaging workaround: the 0.23.1 archive ships its eframe snippet at root snippets/ only, while the app imports it from app/snippets/, so preparation copies snippets/ to app/snippets/ (skipped when a future release already ships app/snippets/).

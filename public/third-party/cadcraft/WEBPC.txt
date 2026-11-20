@@ -1,0 +1,5 @@
+CADCraft 0.20.1
+Upstream: https://github.com/storytold/cadcraft/tree/v0.20.1
+Release: https://github.com/storytold/cadcraft/releases/download/v0.20.1/cadcraft-web-0.20.1.zip
+SHA-256: 300e870c50b66d371055915ba95e3ddbfd4c45431466d5214743b5dcab95a0e1
+Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

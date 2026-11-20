@@ -1,37 +1,64 @@
 ---
 const { id } = Astro.props;
+// The tile colour comes from CSS (.pc-icon-<id> --from/--to on .pc-app-icon); the
+// SVG draws only the white glyph. No defs/ids: one icon renders several times per page.
 ---
 <svg class:list={['pc-app-icon', `pc-icon-${id}`]} viewBox="0 0 64 64" fill="none" aria-hidden="true">
-  {id === 'sheets' ? <>
-    <path class="pc-icon-sheet" d="M15 5h25l12 12v40a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z" />
-    <path class="pc-icon-fold" d="M40 5v12h12" />
-    <rect x="20" y="27" width="24" height="23" rx="2" stroke="currentColor" stroke-width="2" />
-    <path d="M20 35h24M20 42h24M29 27v23" stroke="currentColor" stroke-width="2" />
-  </> : id === 'docs' ? <>
-    <path class="pc-icon-sheet" d="M15 5h25l12 12v40a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path class="pc-icon-fold" d="M40 5v12h12"/><path d="M21 28h22M21 36h22M21 44h16" stroke="currentColor" stroke-width="2"/>
-  </> : id === 'slides' ? <>
-    <rect class="pc-icon-monitor" x="6" y="10" width="52" height="36" rx="4" stroke="currentColor" stroke-width="2"/><path d="m27 20 14 8-14 8V20ZM24 55l8-9 8 9" stroke="currentColor" stroke-width="2"/>
-  </> : id === 'terminal' ? <>
-    <rect class="pc-icon-monitor" x="5" y="10" width="54" height="44" rx="5" stroke="currentColor" stroke-width="2"/><path d="m16 23 10 9-10 9m16 0h15" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-  </> : id === 'cyberchef' ? <>
-    <path class="pc-icon-monitor" d="M18 29a11 11 0 0 1-2-22 13 13 0 0 1 23 0 11 11 0 0 1 9 21v18H18V29Z" stroke="currentColor" stroke-width="2"/><path d="M18 39h30M19 54h28M25 18v12m14-12v12" stroke="currentColor" stroke-width="2"/>
-  </> : id === 'vert' ? <>
-    <path class="pc-icon-monitor" d="M9 12h34l12 12v29H9V12Z" stroke="currentColor" stroke-width="2"/><path d="m18 29 6 15 6-15m4 4h13m-4-5 5 5-5 5M19 20h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  </> : id === 'ai-agent' ? <>
-    <rect class="pc-icon-monitor" x="7" y="9" width="50" height="43" rx="12" stroke="currentColor" stroke-width="2"/><path d="M19 43V26a7 7 0 0 1 14 0v17m-14-9h14m11-7v16m0-25v2M21 56l-4 4" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-  </> : id === 'lightcraft' ? <>
-    <rect class="pc-icon-monitor" x="6" y="10" width="52" height="44" rx="6" stroke="currentColor" stroke-width="2"/><circle cx="21" cy="24" r="5" stroke="currentColor" stroke-width="2"/><path d="m9 48 15-15 10 8 10-14 12 17" stroke="currentColor" stroke-width="2"/>
-  </> : id === 'figcraft' ? <>
-    <path class="pc-icon-monitor" d="m32 6 24 15v23L32 58 8 44V21L32 6Z" stroke="currentColor" stroke-width="2"/><path d="m19 45 8-26 17 20-25 6Zm8-26 8 14" stroke="currentColor" stroke-width="2"/><circle cx="35" cy="33" r="4" stroke="currentColor" stroke-width="2"/>
-  </> : id === 'pdfcraft' ? <>
-    <path class="pc-icon-sheet" d="M15 5h25l12 12v40a3 3 0 0 1-3 3H15a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3Z"/><path class="pc-icon-fold" d="M40 5v12h12"/><path d="M21 27h22M21 34h16m-15 15 15-10 4 5-15 10-5 1 1-6Z" stroke="currentColor" stroke-width="2"/>
-  </> : id === 'soundcraft' ? <>
-    <rect class="pc-icon-monitor" x="6" y="10" width="52" height="44" rx="7" stroke="currentColor" stroke-width="2"/><path d="M16 29v6m8-14v22m8-26v30m8-23v16m8-11v6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-  </> : id === 'vscode' ? <>
-    <path class="pc-icon-monitor" d="m43 7 14 6v38l-14 6-25-19-9 7-5-4V23l5-4 9 7L43 7Z" stroke="currentColor" stroke-width="2"/><path d="m18 26 25 20V18L18 38m25-31v50" stroke="currentColor" stroke-width="2"/>
-  </> : <>
-    <rect class="pc-icon-monitor" x="6" y="9" width="52" height="37" rx="5" stroke="currentColor" stroke-width="2" />
-    <path d="M24 55h16M32 46v9" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-    <path d="M24 27h16M32 19v16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-  </>}
+  {id === 'gridcraft' ? <g>
+    <rect x="9" y="12" width="46" height="40" rx="4" stroke="currentColor" stroke-width="3"/><path d="M9 29h46M9 42h46M32 12v40" stroke="currentColor" stroke-width="2.5"/>
+  </g> : id === 'docs' ? <g>
+    <path d="M17 8h18l12 12v32a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="3"/><path d="M35 8v12h12M22 34h20M22 42h14" stroke="currentColor" stroke-width="2.5"/>
+  </g> : id === 'deckcraft' ? <g>
+    <rect x="9" y="10" width="46" height="31" rx="4" stroke="currentColor" stroke-width="3"/><path d="M17 20h14M17 28h20" stroke="currentColor" stroke-width="2.5"/><path d="m25 52 7-10 7 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g> : id === 'pdfcraft' ? <g>
+    <path d="M17 8h18l12 12v32a4 4 0 0 1-4 4H17a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="3"/><path d="M35 8v12h12M22 26h20" stroke="currentColor" stroke-width="2.5"/><rect x="19" y="34" width="26" height="12" rx="3" fill="currentColor"/>
+  </g> : id === 'lightcraft' ? <g>
+    <rect x="9" y="13" width="46" height="38" rx="5" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="26" r="4" fill="currentColor"/><path d="m13 47 11-11 8 7 9-11 10 14" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+  </g> : id === 'figcraft' ? <g>
+    <path d="M32 8c8 9 12 15 12 24a12 12 0 0 1-24 0c0-9 4-15 12-24Z" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="31" r="3.5" fill="currentColor"/><path d="M32 35v9" stroke="currentColor" stroke-width="2.5"/>
+  </g> : id === 'soundcraft' ? <g>
+    <path d="M14 27v10M22 20v24M30 15v34M38 22v20M46 18v28M54 26v12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </g> : id === 'beepbox' ? <g>
+    <circle cx="23" cy="45" r="7" fill="currentColor"/><path d="M30 45V16l15 5v9" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g> : id === 'filmcraft' ? <g>
+    <rect x="8" y="16" width="48" height="32" rx="4" stroke="currentColor" stroke-width="3"/><path d="M32 16v32" stroke="currentColor" stroke-width="2.5"/><path d="M14 21h5v5h-5ZM45 21h5v5h-5ZM14 38h5v5h-5ZM45 38h5v5h-5Z" fill="currentColor"/>
+  </g> : id === 'cadcraft' ? <g>
+    <path d="M16 48V14M16 48h32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M16 32a16 16 0 0 1 16 16" stroke="currentColor" stroke-width="2.5"/><path d="m16 48 22-22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  </g> : id === 'vectorcraft' ? <g>
+    <rect x="10" y="42" width="8" height="8" rx="1.5" fill="currentColor"/><rect x="46" y="14" width="8" height="8" rx="1.5" fill="currentColor"/><path d="M14 46C14 28 28 18 46 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </g> : id === 'photocraft' ? <g>
+    <rect x="20" y="9" width="35" height="39" rx="4" stroke="currentColor" stroke-width="2.5"/><rect x="9" y="16" width="35" height="39" rx="4" fill="currentColor"/>
+  </g> : id === 'effectcraft' ? <g>
+    <rect x="10" y="12" width="44" height="40" rx="6" stroke="currentColor" stroke-width="3"/><path d="m27 23 17 9-17 9Z" fill="currentColor"/>
+  </g> : id === 'materialcraft' ? <g>
+    <path d="M32 9 52 21v22L32 55 12 43V21L32 9Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="m12 21 20 12 20-12M32 33v22" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+  </g> : id === 'texturecraft' ? <g>
+    <rect x="12" y="12" width="40" height="40" rx="4" stroke="currentColor" stroke-width="3"/><path d="M16 16h12v12H16ZM36 36h12v12H36Z" fill="currentColor"/>
+  </g> : id === 'excalidraw' ? <g>
+    <path d="M15 21c-2-5 2-8 6-7h27c5 0 8 4 7 8L46 43c-1 5-4 8-9 7H18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="m38 47 11-11 9 9-11 11-10 3Z" fill="currentColor"/>
+  </g> : id === 'terminal' ? <g>
+    <rect x="8" y="12" width="48" height="40" rx="5" stroke="currentColor" stroke-width="3"/><path d="m18 26 9 8-9 8m12 0h14" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g> : id === 'vscode' ? <g>
+    <path d="M22 19 10 32l12 13M42 19l12 13-12 13M36 14l-8 36" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g> : id === 'packets' ? <g>
+    <rect x="9" y="12" width="46" height="40" rx="5" stroke="currentColor" stroke-width="3"/><path d="M15 32h7l4-8 6 16 4-8h13" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g> : id === 'sqliteviz' ? <g>
+    <ellipse cx="32" cy="17" rx="19" ry="7" stroke="currentColor" stroke-width="3"/><path d="M13 17v30c0 4 8.5 7 19 7s19-3 19-7V17" stroke="currentColor" stroke-width="3"/><path d="M13 32c0 4 8.5 7 19 7s19-3 19-7" stroke="currentColor" stroke-width="2.5"/>
+  </g> : id === 'cyberchef' ? <g>
+    <circle cx="32" cy="24" r="10" fill="currentColor"/><circle cx="21" cy="29" r="7" fill="currentColor"/><circle cx="43" cy="29" r="7" fill="currentColor"/><path d="M16 40h32v9a2 2 0 0 1-2 2H18a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="2.5"/>
+  </g> : id === 'ai-agent' ? <g>
+    <rect x="12" y="17" width="40" height="31" rx="9" stroke="currentColor" stroke-width="3"/><circle cx="25" cy="30" r="3.5" fill="currentColor"/><circle cx="39" cy="30" r="3.5" fill="currentColor"/><path d="M27 38h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="9" r="2.5" fill="currentColor"/><path d="M32 12v5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  </g> : id === 'vert' ? <g>
+    <path d="M15 30a17 17 0 0 1 30-12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="m44 12 8 4-7 6Z" fill="currentColor"/><path d="M49 34a17 17 0 0 1-30 12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="m20 52-8-4 7-6Z" fill="currentColor"/>
+  </g> : id === 'files' ? <g>
+    <path d="M10 20a4 4 0 0 1 4-4h11l6 6h19a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+  </g> : id === 'media' ? <g>
+    <circle cx="32" cy="32" r="21" stroke="currentColor" stroke-width="3"/><path d="m26 21 18 11-18 11Z" fill="currentColor"/>
+  </g> : id === 'nettools' ? <g>
+    <path d="m32 7 21 8v16c0 12-9 20-21 24C20 51 11 43 11 31V15Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="m24 31 6 6 11-11" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g> : id === 'about' ? <g>
+    <circle cx="32" cy="32" r="21" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="22" r="3" fill="currentColor"/><path d="M32 31v13" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </g> : <g>
+    <rect x="6" y="9" width="52" height="37" rx="5" stroke="currentColor" stroke-width="2"/><path d="M24 55h16M32 46v9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M24 27h16M32 19v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </g>}
 </svg>
