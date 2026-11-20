@@ -1,5 +1,0 @@
-EffectCraft 0.24.1
-Upstream: https://github.com/storytold/effectcraft/tree/v0.24.1
-Release: https://github.com/storytold/effectcraft/releases/download/v0.24.1/effectcraft-web-0.24.1.zip
-SHA-256: 8adc985f345d73207abc69a27938905aba1729b63c6c9b332d0244a7567424f1
-Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

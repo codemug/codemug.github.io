@@ -1,5 +1,0 @@
-Network and Security Tools (WebPC app, original code)
-Libraries (devDependencies, exact + lockfile integrity pinned):
-  @zxcvbn-ts/core@4.3.0, @zxcvbn-ts/language-common@4.2.0, @zxcvbn-ts/language-en@4.1.2, age-encryption@0.3.1
-Licenses: @zxcvbn-ts/* (MIT), age-encryption (BSD-3). Full texts in BUNDLED-NOTICES.txt.
-WebPC changes: esbuild-bundles scripts/pc/nettools/main.mjs (production, minified, ESM, code-splitting so the heavy tabs load lazily). The Subnet calculator and the password-strength / age file-encryption tools run fully locally (no network). DNS (Cloudflare or Google DoH), domain/IP (RDAP via rdap.org, crt.sh certificate transparency, Shodan InternetDB), global ping/traceroute/mtr (Globalping keyless API) and latency are user-initiated only (explicit click); each button and result names the receiving service; every fetch uses credentials:'omit', referrerPolicy:'no-referrer' and a 15 s timeout; all external results render as text (textContent, never innerHTML). Vendor CSP: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; img-src 'self' data:; object-src 'none'. See docs/webpc/nettools.md.

@@ -1,5 +1,0 @@
-TextureCraft 0.6.1
-Upstream: https://github.com/storytold/texturecraft/tree/v0.6.1
-Release: https://github.com/storytold/texturecraft/releases/download/v0.6.1/texturecraft-web-0.6.1.zip
-SHA-256: 6dea6a9f77a161cba3258ab4c6db591bdb4dd32b7385d16a7db997ab671a5f3b
-Official WASM, JavaScript and embedded assets are preserved. WebPC injects a shared audio guard (webpc-audio-guard.js) and a small entry script (webpc-bootstrap.js) for storage safety, focus, session handling and the SoundCraft Enable-audio gate. Precompressed siblings and hosting-specific header templates are omitted. See docs/webpc/craft-apps.md.

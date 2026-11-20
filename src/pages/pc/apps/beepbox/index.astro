@@ -1,9 +1,0 @@
----
-import UtilityLayout from '../../../../components/pc/UtilityLayout.astro';
----
-<UtilityLayout title="BeepBox">
-  <header><h1>BeepBox</h1><a href="/pc/vendor/beepbox/index.html" target="_blank" rel="noopener">Open full page ↗</a><a href="/third-party/beepbox/LICENSE.md" target="_blank" rel="noopener">Licence</a></header>
-  <p class="utility-note" id="beepbox-note">Version 4.2.2 · Self-hosted, runs entirely in your browser. Your song lives in the address-bar #hash, and WebPC keeps a copy of it across window closes. Export from the File menu: song (.json), WAV (.wav) or MIDI (.mid). The share/shorten menu items and the PayPal donation form send data to third parties only when you submit them. Closing this window suspends the audio; it keeps playing only while the window is open.</p>
-  <main class="utility-frame"><iframe id="beepbox-frame" title="BeepBox" src="/pc/vendor/beepbox/index.html"></iframe><div class="utility-loading" id="beepbox-loading" role="status"><span id="beepbox-status">Loading BeepBox…</span><button id="beepbox-retry" hidden>Retry</button></div></main>
-  <script>import '../../../../scripts/pc/apps/beepbox.mjs';</script>
-</UtilityLayout>

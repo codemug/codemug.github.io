@@ -3,6 +3,9 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  # Daily, so WebPC upgrades (published by github.com/codemug/webpc) reach the site.
+  schedule:
+    - cron: "0 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -37,6 +40,10 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # WebPC (/pc/) is built and tested in github.com/codemug/webpc; add its latest build.
+      - name: Add WebPC
+        run: npm run webpc
 
       # The Playwright browser suite (npm run test:browser) runs locally before a
       # merge; it is not part of the deploy.
