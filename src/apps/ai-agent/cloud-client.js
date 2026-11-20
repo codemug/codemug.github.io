@@ -45,8 +45,10 @@ export function openAIMapping(messages) {
 }
 
 export class CloudClient {
-  constructor({ fetch: fetcher = globalThis.fetch } = {}) {
-    this.fetch = fetcher; this.ready = false; this.provider = null; this.model = null; this.baseUrl = null; this.key = null; this.effort = 'medium'; this.active = null;
+  /** `loadSdk` is injectable so the Anthropic streaming path is unit-testable (default: the vendored bundle). */
+  constructor({ fetch: fetcher = globalThis.fetch, loadSdk = null } = {}) {
+    this.fetch = fetcher; this.loadSdk = loadSdk ?? (() => import('./vendor/anthropic-sdk.mjs'));
+    this.ready = false; this.provider = null; this.model = null; this.baseUrl = null; this.key = null; this.effort = 'medium'; this.active = null;
   }
   /** Validate and activate a provider. @returns {{ host: string }} the host prompts are sent to (for the opt-in notice). */
   configure({ provider, model, baseUrl = null, key, effort = 'medium' }) {
@@ -55,9 +57,9 @@ export class CloudClient {
     if (provider === 'anthropic') {
       this.provider = 'anthropic'; this.baseUrl = 'https://api.anthropic.com';
     } else {
-      let url; try { url = new URL(String(baseUrl ?? '')); } catch { throw new Error('Enter a full base URL, e.g. https://api.openai.com'); }
+      let url; try { url = new URL(String(baseUrl ?? '')); } catch { throw new Error('Enter a full base URL, e.g. https://api.openai.com/v1'); }
       if (url.protocol !== 'https:') throw new Error('The base URL must use https.');
-      this.provider = 'openai'; this.baseUrl = url.origin;
+      this.provider = 'openai'; this.baseUrl = url.origin + url.pathname.replace(/\/+$/, ''); // keep the path (api.openai.com/v1) without a trailing /
     }
     this.model = String(model).trim();
     this.effort = ['low', 'medium', 'high'].includes(effort) ? effort : 'medium';
@@ -71,12 +73,12 @@ export class CloudClient {
   /** New chat, switching to a local model, or closing the app: forget everything. */
   clear() { this.stop(); this.ready = false; this.provider = null; this.model = null; this.baseUrl = null; this.key = null; }
   count(messages) { return Promise.resolve(estimateTokens(messages)); }
-  async generate(messages, schemas, onToken) {
+  async generate(messages, schemas, onToken = () => {}) {
     if (!this.ready) throw new Error('Enable a cloud model in Settings first.');
     return this.provider === 'anthropic' ? this.generateAnthropic(messages, schemas, onToken) : this.generateOpenAI(messages, schemas, onToken);
   }
   async generateAnthropic(messages, schemas, onToken) {
-    const sdk = await import('./vendor/anthropic-sdk.mjs');
+    const sdk = await this.loadSdk();
     const { Anthropic, APIError, APIConnectionError, APIUserAbortError, AuthenticationError, RateLimitError } = sdk;
     const client = new Anthropic({ apiKey: this.key, dangerouslyAllowBrowser: true });
     const { system, messages: apiMessages } = anthropicMapping(messages);
@@ -95,7 +97,8 @@ export class CloudClient {
     this.active = new AbortController();
     try {
       const stream = client.beta.messages.stream(params, { signal: this.active.signal });
-      stream.on('text', (delta) => onToken(delta.text));
+      // The SDK's `text` event passes (textDelta: string, textSnapshot: string) — the delta itself is the text.
+      stream.on('text', (delta) => onToken(delta));
       const final = await stream.finalMessage();
       const toolCalls = (final.content ?? []).filter((b) => b.type === 'tool_use').map((b) => ({ name: b.name, arguments: b.input ?? {} }));
       const text = (final.content ?? []).filter((b) => b.type === 'text').map((b) => b.text).join('');
@@ -115,23 +118,27 @@ export class CloudClient {
     const body = { model: this.model, messages: apiMessages, stream: true };
     if (schemas.length) { body.tools = schemas; body.tool_choice = 'auto'; } // toolSchemas() is already the function format
     this.active = new AbortController();
-    let response;
     try {
-      response = await this.fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await this.fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST', signal: this.active.signal,
         headers: { 'content-type': 'application/json', authorization: `Bearer ${this.key}` },
         body: JSON.stringify(body),
       });
+      if (!response.ok) {
+        let detail = ''; try { detail = (await response.json()).error?.message ?? ''; } catch {}
+        const http = new Error(`The endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+        http.httpStatus = response.status;
+        throw http;
+      }
+      // One try/finally around the whole method: `active` must survive past the headers so
+      // stop() can still abort while parseSSE reads the body.
+      let accumulated = '';
+      const { text, toolCalls } = await parseSSE(response.body, (piece) => (accumulated += piece, onToken(piece)));
+      return { text, toolCalls };
     } catch (err) {
       if (err?.name === 'AbortError') throw new DOMException('Stopped', 'AbortError');
+      if (err?.httpStatus) throw err;
       throw new Error('Could not reach the OpenAI-compatible endpoint. Check the base URL and your connection.');
     } finally { this.active = null; }
-    if (!response.ok) {
-      let detail = ''; try { detail = (await response.json()).error?.message ?? ''; } catch {}
-      throw new Error(`The endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
-    }
-    let accumulated = '';
-    const { text, toolCalls } = await parseSSE(response.body, (piece) => (accumulated += piece, onToken(piece)));
-    return { text, toolCalls };
   }
 }

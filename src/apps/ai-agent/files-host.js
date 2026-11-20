@@ -18,7 +18,11 @@ export function createFileHost({ grants, confirm, note = () => {} }) {
   const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("webpc-files") : null;
   const list = async (raw) => {
     const resolved = resolveInGrants(grants, raw);
-    if (resolved.error) return resolved;
+    if (resolved.error) {
+      // list_files with no path: the grant roots themselves are the entry points to show.
+      if (!raw && (grants ?? []).length) return { entries: grants.map((g) => ({ name: g.root, kind: g.kind })), truncated: false };
+      return resolved;
+    }
     if (resolved.path) {
       const { base, parent } = split(resolved.path);
       const kind = await fileStore.exists(parent, base);

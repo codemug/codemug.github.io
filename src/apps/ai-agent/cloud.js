@@ -66,6 +66,18 @@ export function bytesToBase64(bytes) {
   return btoa(binary);
 }
 
+/**
+ * Decode the base64 payload of a data: URL into bytes. The attached image's pendingImage.url is
+ * a PNG data URL (canvas.toDataURL("image/png")): cloud turns send THOSE bytes, not the raw
+ * RGBA pixels of getImageData() labelled with the file's original type.
+ * @returns {Uint8Array}
+ */
+export function dataUrlBytes(url) {
+  const m = /^data:([^;,]*)(;base64)?,([\s\S]*)$/.exec(String(url ?? ""));
+  if (!m?.[2]) throw new Error("Not a base64 data URL.");
+  return Uint8Array.from(atob(m[3]), (c) => c.charCodeAt(0));
+}
+
 /** The image part of an AI-1 attached image ({name,width,height,data,type}) as Anthropic block. */
 export function anthropicImageBlock(image) {
   return { type: "image", source: { type: "base64", media_type: image.type ?? "image/png", data: bytesToBase64(image.data) } };

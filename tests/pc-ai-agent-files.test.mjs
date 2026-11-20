@@ -12,29 +12,37 @@ import { validateConversation } from '../src/apps/ai-agent/storage.js';
 const G = [{ root: 'notes', kind: 'folder' }];
 const err = (r) => r.error;
 
-test('the resolver maps grant-relative paths to webpc-files paths', () => {
-  assert.deepEqual(resolveInGrants(G, ''), { path: 'notes' }, 'empty path means the grant root');
-  assert.deepEqual(resolveInGrants(G, 'a.txt'), { path: 'notes/a.txt' });
-  assert.deepEqual(resolveInGrants(G, 'sub/b.txt'), { path: 'notes/sub/b.txt' });
-  assert.deepEqual(resolveInGrants(G, './a.txt'), { path: 'notes/a.txt' });
-  assert.deepEqual(resolveInGrants(G, 'a.txt/'), { path: 'notes/a.txt' });
+test('the resolver admits only Files-root-relative paths covered by a grant (review 7)', () => {
+  // A folder grant covers its own root path and everything below it (segment prefix).
+  assert.deepEqual(resolveInGrants(G, 'notes'), { path: 'notes' }, 'the grant root itself is a valid path');
+  assert.deepEqual(resolveInGrants(G, 'notes/a.txt'), { path: 'notes/a.txt' });
+  assert.deepEqual(resolveInGrants(G, 'notes/sub/b.txt'), { path: 'notes/sub/b.txt' });
+  assert.deepEqual(resolveInGrants(G, 'notes/./a.txt'), { path: 'notes/a.txt' });
+  assert.deepEqual(resolveInGrants(G, 'notes/a.txt/'), { path: 'notes/a.txt' });
   assert.deepEqual(resolveInGrants([{ root: '', kind: 'folder' }], 'x.md'), { path: 'x.md' }, 'a root grant covers the whole Files area');
-  assert.deepEqual(resolveInGrants([{ root: 'notes/a.txt', kind: 'file' }], ''), { path: 'notes/a.txt' }, 'a file grant resolves only its own file');
+  assert.deepEqual(resolveInGrants([{ root: '', kind: 'folder' }], ''), { path: '' }, 'a blank path is the Files root, covered by the root grant');
+  assert.ok(err(resolveInGrants(G, '')), 'a blank path is NOT the grant root; list_files lists the grant roots instead');
+  // A file grant covers exactly its own file, at its full path.
+  assert.deepEqual(resolveInGrants([{ root: 'notes/a.txt', kind: 'file' }], 'notes/a.txt'), { path: 'notes/a.txt' });
   assert.ok(err(resolveInGrants([{ root: 'notes/a.txt', kind: 'file' }], 'b.txt')), 'a file grant does not cover other files');
   assert.ok(err(resolveInGrants([{ root: 'notes/a.txt', kind: 'file' }], '', { forWrite: true })), 'file grants never allow writes');
-  assert.deepEqual(resolveInGrants([{ root: 'notes', kind: 'folder' }, { root: 'docs', kind: 'folder' }], 'x'), { path: 'notes/x' }, 'the first matching grant wins');
+  // Multiple folder grants: every grant is reachable at its full path; a path under no grant fails.
+  const two = [{ root: 'notes', kind: 'folder' }, { root: 'docs', kind: 'folder' }];
+  assert.deepEqual(resolveInGrants(two, 'docs/x'), { path: 'docs/x' }, 'every folder grant is reachable by its full path');
+  assert.deepEqual(resolveInGrants(two, 'notes/x'), { path: 'notes/x' });
+  assert.ok(err(resolveInGrants(two, 'x')), 'a path under no grant is rejected');
 });
 
 test('the resolver rejects escapes, absolute paths, backslashes, control chars and ..-style tricks', () => {
-  for (const raw of ['..', '../x', 'a/../b', '../../etc', '..', '/etc/passwd', '\\etc', 'a\\b', 'a\u0000b', 'a\nb']) {
+  for (const raw of ['..', '../x', 'a/../b', '../../etc', '..', '/etc/passwd', '\\etc', 'a\\b', 'a\u0000b', 'a\nb', 'a\u200Bb', 'a\u202Eb', 'a\u200E\u2023b', '\u{E0001}b']) {
     assert.ok(err(resolveInGrants(G, raw)), `rejected: ${JSON.stringify(raw)}`);
     assert.ok(err(resolveInGrants(G, raw, { forWrite: true })), `write rejected: ${JSON.stringify(raw)}`);
   }
-  // Case-sensitive: "Notes" is a new folder INSIDE the grant, not the grant root itself.
-  assert.deepEqual(resolveInGrants([{ root: 'notes', kind: 'folder' }], 'Notes/x'), { path: 'notes/Notes/x' });
-  // "..data" and "..." are names, not parents: allowed, and still inside the grant.
-  assert.deepEqual(resolveInGrants(G, '..data'), { path: 'notes/..data' });
-  assert.deepEqual(resolveInGrants(G, '...'), { path: 'notes/...' });
+  // Case-sensitive segment match: "Notes" is a different top-level folder, NOT inside the grant "notes".
+  assert.ok(err(resolveInGrants([{ root: 'notes', kind: 'folder' }], 'Notes/x')), 'Notes ≠ notes: rejected');
+  // "..data" and "..." are names, not parents: allowed at their full path, still inside the grant.
+  assert.deepEqual(resolveInGrants(G, 'notes/..data'), { path: 'notes/..data' });
+  assert.deepEqual(resolveInGrants(G, 'notes/...'), { path: 'notes/...' });
   assert.ok(err(resolveInGrants(G, undefined)), 'non-string input is rejected');
   assert.ok(err(resolveInGrants(G, 'a'.repeat(201))), 'overlong paths are rejected');
   assert.match(err(resolveInGrants([], 'x')), /Nothing yet|nothing yet/, 'no grants is a clear error');
@@ -113,4 +121,17 @@ test('the session offers the file tools while grants exist and keeps them out of
   const bare = new AgentSession({ client, store: { save: async () => {} }, webSearch: async () => ({}), httpGet: async () => ({}), runJavaScript: async () => ({}), emit: () => {}, files: { grants: null } });
   await bare.send('hi');
   assert.ok(!names.at(-1).includes('list_files'), 'no grants → no file tools');
+});
+
+test('a file grant after a folder grant, search-result paths and write gating (review 7)', () => {
+  const grants = [{ root: 'notes', kind: 'folder' }, { root: 'photos/a.txt', kind: 'file' }];
+  assert.deepEqual(resolveInGrants(grants, 'photos/a.txt'), { path: 'photos/a.txt' }, 'the file grant is reachable at its own full path');
+  assert.ok(err(resolveInGrants(grants, 'photos/b.txt')), 'the file grant does not cover sibling files');
+  assert.ok(err(resolveInGrants(grants, 'photos')), 'a bare folder is not the file grant');
+  // A search-result path (Files-root-relative) reads the right file, not notes/notes/a.txt.
+  assert.deepEqual(resolveInGrants([{ root: 'notes', kind: 'folder' }], 'notes/a.txt'), { path: 'notes/a.txt' });
+  // Writes need a covering FOLDER grant at the full path.
+  assert.deepEqual(resolveInGrants([{ root: 'notes', kind: 'folder' }], 'notes/new.txt', { forWrite: true }), { path: 'notes/new.txt' });
+  assert.ok(err(resolveInGrants([{ root: 'notes', kind: 'folder' }], 'a.txt', { forWrite: true })), 'a write outside the granted folder is rejected');
+  assert.ok(err(resolveInGrants([{ root: 'notes', kind: 'folder' }], 'notes/../x')), '.. is still rejected after a real segment');
 });

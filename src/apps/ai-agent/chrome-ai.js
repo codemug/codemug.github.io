@@ -107,7 +107,7 @@ export class ChromeModelClient {
       throw new Error(`Chrome could not load its on-device model: ${err?.message ?? err}`);
     } finally { this.active = null; }
   }
-  async generate(messages, schemas, onToken) {
+  async generate(messages, schemas, onToken = () => {}) {
     if (!this.ready || !this.scope.LanguageModel) throw new Error('Load the Chrome model first.');
     const toText = (content) => (typeof content === 'string' ? content : content.filter((p) => p.type === 'text').map((p) => p.text).join(' '));
     const controller = new AbortController(); this.active = controller;
@@ -115,10 +115,17 @@ export class ChromeModelClient {
       // tool messages belong to other backends; the on-device session takes system/user/assistant text only.
       const history = messages.slice(0, -1).filter((m) => m.role !== 'tool').map((m) => ({ role: m.role, content: toText(m.content) }));
       const text = toText(messages.at(-1).content);
-      const session = await this.scope.LanguageModel.create({ initialPrompts: history, signal: controller.signal });
-      let out = '';
-      for await (const chunk of session.promptStreaming(text, { signal: controller.signal })) { out += chunk; onToken(chunk); }
-      return out;
+      let onDeviceSession = null;
+      try {
+        onDeviceSession = await this.scope.LanguageModel.create({ initialPrompts: history, signal: controller.signal });
+        let out = '';
+        for await (const chunk of onDeviceSession.promptStreaming(text, { signal: controller.signal })) { out += chunk; onToken(chunk); }
+        return out;
+      } finally {
+        // The on-device session is one-shot: destroy it (success, error and abort alike), or every
+        // round leaks a LanguageModel session.
+        onDeviceSession?.destroy?.();
+      }
     } catch (err) {
       if (err?.name === 'AbortError' || controller.signal.aborted) throw new DOMException('Stopped', 'AbortError');
       if (err?.name === 'QuotaExceededError') throw new Error('The conversation is too long for the on-device model. Start a new chat or shorten the request.');

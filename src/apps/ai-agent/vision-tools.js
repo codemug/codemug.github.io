@@ -1,6 +1,7 @@
 // AI-7/AI-8 pure helpers for the vision tools: input validation, result shaping, the OCR
 // downscale plan, the background-removal engine metadata and the tool schemas. No DOM, no
 // storage: the heavy work (models + image processing) lives in vision-worker.js.
+import { resolveInGrants } from './file-tools.js';
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // same bound as the AI-1 attached image
 export const OCR_MAX_TEXT = 20_000; // OCR output bound
 export const OCR_MAX_DIM = 768; // longest side after downscaling, before OCR
@@ -30,6 +31,19 @@ export function nobgName(path) {
   const dot = p.lastIndexOf('.');
   const base = dot > slash ? p.slice(0, dot) : p; // strip a real file extension, keep dir
   return `${base}${NOBG_SUFFIX}`;
+}
+
+/**
+ * Where remove_background saves its result for a granted source: the target path, checked against
+ * the grants BEFORE the save gate (same gate as write_file: a covering FOLDER grant is required,
+ * a file grant on the source is not enough).
+ * @returns {{ target: string } | { error: string }}
+ */
+export function nobgTarget(grants, sourcePath) {
+  const target = nobgName(sourcePath);
+  const resolved = resolveInGrants(grants, target, { forWrite: true });
+  if (resolved.error) return { error: `Cannot save the background-removed image: the write target needs a granted folder covering "${target}". Grant that folder in Settings (a read-only file grant on the source is not enough).` };
+  return { target };
 }
 
 /** Aspect-preserving downscale so the longest side is at most maxDim; never upscales. */

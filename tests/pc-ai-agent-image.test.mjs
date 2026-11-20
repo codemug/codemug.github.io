@@ -80,11 +80,13 @@ test('the worker message for an image turn carries the image part, then the mark
   assert.equal(user.content[1].type, 'text');
   assert.ok(user.content[1].text.includes('[image: photo.png, 64×32]'));
   assert.ok(user.content[1].text.endsWith('what is this?'));
-  // The in-memory history keeps the pixels for follow-up turns (prompt() re-sends them each turn).
+  // After the turn the image payload is dropped from the stored history (review 8): the marker
+  // text stays, and the next prompt no longer re-sends the pixels.
   const inMemory = session.history.find((m) => m.role === 'user');
-  assert.ok(inMemory.image.data instanceof Uint8Array);
+  assert.equal(inMemory.image, undefined, 'no image payload after the turn');
+  assert.ok(inMemory.content.includes('[image: photo.png, 64×32]'), 'the marker text stays');
   const reprompted = session.prompt().findLast((m) => m.role === 'user');
-  assert.equal(reprompted.content[0].type, 'image');
+  assert.equal(typeof reprompted.content, 'string', 'the next prompt has no image part');
 });
 
 test('the stored snapshot after an image turn has no payload, only the marker', async () => {

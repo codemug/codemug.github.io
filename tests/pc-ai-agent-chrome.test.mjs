@@ -122,6 +122,33 @@ test('QuotaExceededError (context overflow) maps to a friendly error', async () 
   await assert.rejects(client.generate([{ role: 'user', content: 'x' }], [], () => {}), /too long for the on-device model/);
 });
 
+test('the on-device session is destroyed after every generate (success and error), and onToken has a default (review 17)', async () => {
+  let destroyed = 0;
+  const LM = {
+    availability: async () => 'available',
+    create: async () => ({
+      promptStreaming: async function* () { yield 'ok'; },
+      destroy: () => { destroyed += 1; },
+    }),
+  };
+  const client = new ChromeModelClient({ LanguageModel: LM });
+  client.ready = true;
+  // No onToken passed (compact-style calls): the default must not throw.
+  assert.equal(await client.generate([{ role: 'user', content: 'x' }], []), 'ok');
+  assert.equal(destroyed, 1, 'destroyed after a successful turn');
+  const LM2 = {
+    availability: async () => 'available',
+    create: async () => ({
+      promptStreaming: async function* () { const e = new Error('boom'); e.name = 'TypeError'; throw e; },
+      destroy: () => { destroyed += 1; },
+    }),
+  };
+  const failing = new ChromeModelClient({ LanguageModel: LM2 });
+  failing.ready = true;
+  await assert.rejects(failing.generate([{ role: 'user', content: 'x' }], [], () => {}), /on-device model error/);
+  assert.equal(destroyed, 2, 'destroyed after a failed turn too');
+});
+
 test('the session offers no tool schemas to a backend without tool calling', async () => {
   const calls = [];
   const client = { ready: true, supportsTools: false, count: () => Promise.resolve(1), generate: (messages, schemas) => { calls.push(schemas.length); return 'On-device answer.'; }, stop: () => {} };

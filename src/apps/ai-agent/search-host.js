@@ -18,10 +18,17 @@ import { chunkText, fileChanged, overCharBudget, searchResults, SearchIndex, DEF
 export function createSearchHost({ grants, embed, note = () => {}, onState = () => {} }) {
   const index = new SearchIndex();
   let busy = false;
-  const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("webpc-files") : null;
-  channel?.addEventListener("message", (event) => {
-    if (event.data?.type === "changed") refresh().catch(() => {});
-  });
+  // The Files refresh channel is (re)created lazily: dispose() closes it (New chat), and the next
+  // index build recreates it, so the auto-refresh is not dead for the rest of the session.
+  let channel = null;
+  const ensureChannel = () => {
+    if (channel) return;
+    channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("webpc-files") : null;
+    channel?.addEventListener("message", (event) => {
+      if (event.data?.type === "changed") refresh().catch(() => {});
+    });
+  };
+  ensureChannel();
 
   // Files app layout: folders first, then files; recursion gives every granted file's full path.
   async function walk(dir, out) {
@@ -46,6 +53,7 @@ export function createSearchHost({ grants, embed, note = () => {}, onState = () 
     if (busy) return { error: "An index build is already running." };
     if (!grants.length) return { error: "Grant a folder or file first." };
     busy = true;
+    ensureChannel(); // dispose() (New chat) may have closed it; recreate before the walk
     try {
       const found = await targets();
       const queue = []; // { path, meta, chunks }
@@ -112,6 +120,7 @@ export function createSearchHost({ grants, embed, note = () => {}, onState = () 
   };
   const dispose = () => {
     channel?.close();
+    channel = null; // the next indexFiles recreates it — New chat must not kill auto-refresh for good
     index.clear();
     onState();
   };

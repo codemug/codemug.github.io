@@ -1,12 +1,16 @@
 // AI-2: pure logic for the Files tools (unit-tested in Node, no DOM/OPFS).
 // Grants are per-session state owned by the app (never persisted); a grant is
 // { root: 'notes' | 'notes/a.txt', kind: 'folder' | 'file' } relative to the
-// Files app's webpc-files/ root. Tool paths are relative to the grant root.
+// Files app's webpc-files/ root. Tool paths are ALSO relative to that root (not to a
+// grant): the resolver admits a path only under a folder grant's root (segment prefix;
+// a "" folder grant covers everything) or exactly at a file grant's root.
 export const MAX_READ_BYTES = 200_000;
 export const MAX_WRITE_CHARS = 200_000;
 export const MAX_LIST_ENTRIES = 500;
 const MAX_PATH_CHARS = 200;
-const CONTROL = /[\u0000-\u001f\u007f]/;
+// Control characters, plus bidi controls and zero-width/variation characters: they let a written
+// path or file name visually spoof the confirm dialog (a direction override or an invisible tag).
+const CONTROL = /[\u0000-\u001f\u007f]|[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]|[\u{E0000}-\u{E007F}]/u;
 // read_file is text-only; PDFs get their own pointer to PDFCraft.
 export const TEXT_EXTS = new Set([
   "txt", "md", "markdown", "csv", "tsv", "json", "jsonl", "ndjson", "html", "htm", "xml",
@@ -24,29 +28,27 @@ export function extension(name) {
 /**
  * Resolve a model-supplied path against the current grants.
  * @param {Array<{root: string, kind: 'folder'|'file'}>} grants
- * @param {string} raw path relative to a grant root; "" or "." means the grant root itself.
+ * @param {string} raw path relative to the Files app root (webpc-files/), e.g. "notes/a.txt".
  * @param {{ forWrite?: boolean }} opts forWrite: true counts only FOLDER grants.
- * @returns {{ path: string } | { error: string }} the first matching webpc-files/-relative path.
+ * @returns {{ path: string } | { error: string }} the admitted path, or the grant list error.
  */
 export function resolveInGrants(grants, raw, { forWrite = false } = {}) {
   if (typeof raw !== "string" || raw.length > MAX_PATH_CHARS) return { error: `path must be a string of at most ${MAX_PATH_CHARS} characters` };
-  if (raw.startsWith("/") || raw.startsWith("\\")) return { error: "Absolute paths are not allowed; paths are relative to the granted folders." };
+  if (raw.startsWith("/") || raw.startsWith("\\")) return { error: "Absolute paths are not allowed; paths are relative to the Files app root." };
   if (raw.includes("\\")) return { error: "Backslashes are not allowed in paths." };
   if (CONTROL.test(raw)) return { error: "Paths cannot contain control characters." };
   // Case-sensitive, exact segment comparison: ".." (and only "..") is the escape; "..data" is a name.
   const segments = raw.split("/").filter((s) => s !== "" && s !== ".");
   if (segments.includes("..")) return { error: "Paths with .. are not allowed; they could reach outside the grants." };
   const usable = (grants ?? []).filter((g) => g && typeof g.root === "string" && (forWrite ? g.kind === "folder" : true));
-  for (const grant of usable) {
-    if (grant.kind === "file") {
-      if (!segments.length) return { path: grant.root };
-      continue;
-    }
-    const root = grant.root.split("/").filter(Boolean); // "" grants the whole Files root
-    return { path: [...root, ...segments].join("/") };
-  }
+  const covered = usable.some((g) => {
+    const root = g.root.split("/").filter(Boolean); // a "" folder grant covers the whole Files root
+    if (g.kind === "file") return root.length === segments.length && root.every((seg, i) => seg === segments[i]);
+    return root.every((seg, i) => segments[i] === seg); // segment prefix: the path is under the folder grant
+  });
+  if (covered) return { path: segments.join("/") };
   const listed = (grants ?? []).map((g) => `${g.root || "(Files root)"} (${g.kind})`).join(", ");
-  return { error: `No grant covers that path. Granted: ${listed || "nothing yet"}. The user can add grants in Settings.` };
+  return { error: `No grant covers that path. Paths are relative to the Files app root, not to a grant. Granted: ${listed || "nothing yet"}. The user can add grants in Settings.` };
 }
 
 /** NUL byte in the first 8 KB: the cheap, reliable binary marker for OPFS text. */

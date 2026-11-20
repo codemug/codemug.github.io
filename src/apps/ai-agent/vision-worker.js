@@ -5,8 +5,8 @@
 //    (onnx/*_quantized.onnx, about 262 MB): this ORT build's WebGPU EP rejects the Florence
 //    graph for every dtype (verified: q4f16 ~213 MB and fp32 both fail with a subgraph-output
 //    graph error), and WebGPU activity in the worker breaks later session creation, so no
-//    in-worker webgpu→wasm fallback. fp32 (about 1.09 GB) remains the last resort with a
-//    progress note.
+//    in-worker webgpu→wasm fallback. There is no automatic fp32 fall-back (about 1.09 GB):
+//    if the q8 load fails, the error is reported and the next request retries the load.
 //  - Background removal via the 'background-removal' pipeline: the bundle maps the modnet and
 //    birefnet model types to a generic segmentation class, so no model-specific export is needed.
 //    Default: Xenova/modnet (Apache-2.0), pinned revision, fp32 (about 24.7 MB), always on
@@ -29,7 +29,7 @@ const MODELS = {
     // dtype (verified: q4f16 and fp32 both fail with "subgraph output (logits) is an outer scope
     // value"), and WebGPU activity in this worker also breaks later session creation, so an
     // in-worker cross-device fallback is unreliable. WASM q8 loads fine (verified, 32.6 s).
-    dtype: 'q8', // onnx/*_quantized.onnx, about 262 MB; fp32 (about 1.09 GB) is the last resort
+    dtype: 'q8', // onnx/*_quantized.onnx, about 262 MB; a failed load is reported, no fp32 (about 1.09 GB) retry
   },
   'modnet-bgbm': {
     repo: 'Xenova/modnet',
@@ -98,10 +98,10 @@ async function loadModel(key) {
     if (p.file && typeof p.loaded === 'number') perFile.set(p.file, Math.max(perFile.get(p.file) ?? 0, p.loaded));
     postMessage({ type: 'progress', status: p.status, file: p.file, loaded: p.loaded, total: p.total, progress: p.progress });
   };
-  // Load plans: Florence and MODNet are pinned to WASM in this runtime (see MODELS comments);
-  // Florence's last resort is fp32. Any other model uses the preferred device with its dtype.
+  // Load plans: Florence and MODNet are pinned to WASM in this runtime (see MODELS comments).
+  // Florence has no fp32 last resort (about 1.09 GB): if the q8 load fails, the error is reported.
   const plans = key === 'florence-ocr'
-    ? [['wasm', 'q8'], ['wasm', 'fp32']]
+    ? [['wasm', 'q8']]
     : [[spec.device ?? device, spec.dtype]];
   const make = async (dev, dtype) => {
     const common = { revision: spec.revision, dtype, device: dev, progress_callback: progress };
@@ -132,7 +132,9 @@ async function loadModel(key) {
 }
 
 async function ensure(key) {
-  if (!state[key]) state[key] = loadModel(key);
+  // A failed load is NOT cached: a cached rejection would make the model unusable until the worker
+  // is terminated. The error is reported and the next request retries the load.
+  if (!state[key]) state[key] = loadModel(key).catch((err) => { delete state[key]; throw err; });
   return state[key];
 }
 

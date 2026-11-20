@@ -8,11 +8,13 @@ import { AgentSession } from './session.js';
 import { ConversationStore, validateConversation, MODEL_KEY, LEGACY_MODEL_KEY } from './storage.js';
 import { MODELS, DEFAULT_MODEL } from './models.js';
 import { checkImage, IMAGE_MAX_SIDE } from './agent.js';
+import { dataUrlBytes } from './cloud.js';
 import { webSearch, httpGet } from './web.js';
 import { runJavaScript } from './sandbox.js';
 import * as fileStore from './store.mjs';
 import { resolveInGrants } from './file-tools.js';
-import { BGBM_ENGINES, ocrTextResult, nobgName, downscalePlan, OCR_MAX_DIM, MAX_IMAGE_BYTES, validateImageFile, visionToolsEnabled } from './vision-tools.js';
+import { BGBM_ENGINES, ocrTextResult, nobgName, nobgTarget, downscalePlan, OCR_MAX_DIM, MAX_IMAGE_BYTES, validateImageFile, visionToolsEnabled } from './vision-tools.js';
+import { createExecClient } from './exec-client.js';
 const $ = id => document.getElementById(id);
 // Cloud models are opt-in per session: the key lives only in CloudClient's memory and is never persisted.
 const CLOUD_MODELS = { 'cloud:anthropic': 'Claude · cloud (your key)', 'cloud:openai': 'OpenAI-compatible · cloud (your key)' };
@@ -46,7 +48,7 @@ function imageInputControls() {
   const box = $('image-input');
   box.disabled = !vision || loading || Boolean(session.active);
   if (!vision) box.checked = false;
-  $('attach').disabled = !box.checked;
+  $('attach').disabled = !box.checked || loading || Boolean(session.active);
   $('image-note').textContent = isChrome(selected) ? 'Chrome built-in model is text-only' : cloudSelected ? (cloud.ready ? `sent to ${cloud.host}` : 'enable it in Settings') : (MODELS[selected]?.vision ? `+${MODELS[selected].vision.size} when first used` : 'Qwen models only');
   applyVisionGates();
 }
@@ -278,6 +280,8 @@ const ocrImage = async (source) => {
     return { text: ocrTextResult(text), source: src.name };
   } catch (err) { return { error: err.message === 'Stopped.' ? 'OCR was stopped.' : err.message }; }
 };
+// One channel for the Files app's refresh broadcasts: a per-save channel would leak a port on every save.
+const filesChangeChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('webpc-files') : null;
 const removeBackground = async (source) => {
   const src = await visionSource(source);
   if (src.error) return src;
@@ -286,8 +290,10 @@ const removeBackground = async (source) => {
     const done = await visionRequest('bgbm', { image: await src.blob.arrayBuffer(), model: engine.id });
     const png = done.png;
     if (src.path) {
-      // Granted source: save next to the source after the write confirmation (same gate as write_file).
-      const target = nobgName(src.path);
+      // Granted source: the write target needs a covering FOLDER grant before the save gate (same gate as write_file).
+      const gate = nobgTarget(fileGrants, src.path);
+      if (gate.error) return gate;
+      const target = gate.target;
       const slash = target.lastIndexOf('/');
       const base = slash >= 0 ? target.slice(slash + 1) : target;
       const parent = slash >= 0 ? target.slice(0, slash) : '';
@@ -296,7 +302,7 @@ const removeBackground = async (source) => {
       if (kind === 'folder') return { error: `"${base}" is a folder; cannot save the background-removed image there.` };
       if (!confirm(`Save the background-removed image to "${target}" (transparent PNG, ${Math.round(png.size / 1024)} KB)${kind === 'file' ? ' — this OVERWRITES the existing file' : ''}?`)) return { error: 'Save cancelled by the user.' };
       await fileStore.write(parent, base, new Uint8Array(await png.arrayBuffer()));
-      if (typeof BroadcastChannel !== 'undefined') new BroadcastChannel('webpc-files').postMessage({ type: 'changed' });
+      filesChangeChannel?.postMessage({ type: 'changed' });
       status(`Saved ${target}.`);
       return { saved: target, width: done.width, height: done.height, overwritten: kind === 'file' };
     }
@@ -330,28 +336,11 @@ $('vision-engine').addEventListener('change', () => {
 applyFileGates(); renderFileGrants();
 // AI-4: the run_code tool reaches the Linux terminal app's exec service over a same-origin
 // BroadcastChannel: the terminal page shows the approval prompt and runs the code in its guest.
-// The reply arrives when the run finishes, is denied, or the guest is not running; the wall timer
-// only bounds the wait for a closed terminal app (or a run still pending the user's approval).
-// The pending map entry is deleted exactly once, by the settle guard (delete-once = first settle
-// wins, so the late wall timer cannot double-resolve a settled run).
+// exec-client.js owns the pending map, the per-run wall timer, the 20 KB output cap and the
+// grace on not-running/busy (wait graceMs for the terminal page's exec-pending before failing).
 const execChannel = new BroadcastChannel('webpc-terminal');
-const execPending = new Map();
-let execSeq = 0;
-execChannel.onmessage = (event) => {
-  const reply = event.data;
-  if (!reply || (reply.type !== 'exec-result' && reply.type !== 'exec-error')) return;
-  const settle = execPending.get(reply.id);
-  if (settle) settle(reply);
-};
-function runCode(lang, code, timeoutMs) {
-  const id = `agent-${Date.now()}-${execSeq++}`;
-  return new Promise((resolve) => {
-    const settle = (reply) => { if (execPending.delete(id)) resolve(reply); };
-    execPending.set(id, settle);
-    setTimeout(() => settle({ type: 'exec-error', id, reason: 'no-terminal' }), timeoutMs + 60000); // run limit + time for the user to approve
-    execChannel.postMessage({ type: 'exec-request', id, from: 'AI Agent', lang, code, timeoutMs });
-  });
-}
+const exec = createExecClient(execChannel);
+const runCode = (lang, code, timeoutMs) => exec.run(lang, code, timeoutMs);
 const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, runCode, chrome: chromeTools, files: fileTools, vision: visionTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
   if (type === 'busy') { controls(); if (!data) status(client.ready ? 'Ready for your next question.' : 'Load a model to continue.'); }
   else if (type === 'status') status(data);
@@ -366,7 +355,7 @@ const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScr
   else if (type === 'tool-result') toolResult(data.toolCard, data.result);
 } });
 function cancel(text = isCloud(selected) || isChrome(selected) ? 'Stopped. Send the message again to continue.' : 'Stopped. Load the model again to continue; cached downloads are kept.') {
-  loadVersion++; loading = false; session.cancel(); visionWorkerStop(); $('progress').hidden = true;
+  loadVersion++; loading = false; session.cancel(); visionWorkerStop(); exec.cancelAll(); $('progress').hidden = true;
   document.querySelectorAll('.message-body:empty').forEach(el => { el.textContent = 'Stopped.'; });
   document.querySelectorAll('.tool summary').forEach(el => { if (el.textContent.endsWith('· running')) el.textContent = el.textContent.replace('· running', '· stopped'); });
   controls(); status(text);
@@ -438,7 +427,8 @@ $('composer').addEventListener('submit', async event => {
     if (pendingImage) {
       if (isCloud(selected)) {
         if (!cloud.ready) { clearPendingImage(); throw new Error('Confirm the cloud model in Settings first (your key was cleared).'); }
-        image = { name: pendingImage.name, width: pendingImage.width, height: pendingImage.height, data: pendingImage.data, type: pendingImage.type };
+        // The cloud turn sends the PNG bytes of the data URL, not the raw RGBA pixels of the original file.
+        image = { name: pendingImage.name, width: pendingImage.width, height: pendingImage.height, data: dataUrlBytes(pendingImage.url), type: 'image/png' };
       } else if (!MODELS[selected]?.vision) clearPendingImage();
       else {
         // First image with a text-loaded model: fetch the vision encoder now, on demand.
@@ -554,7 +544,8 @@ window.pcFlush = () => {
   if (unsaved()) { error(store.pending ? 'Saving is still in progress. Try closing again after it completes.' : 'This chat could not be saved. Retry save or Export before closing.'); return false; }
   return true;
 };
-window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); visionWorkerStop(); fileGrants.length = 0; bindClient(); return window.pcFlush(); };
+// pcFlush() FIRST: it may refuse the close (pending work), and nothing must be cleared then.
+window.pcBeforeClose = () => { if (!window.pcFlush()) return false; cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); visionWorkerStop(); fileGrants.length = 0; bindClient(); return true; };
 addEventListener('beforeunload', event => { if (unsaved()) { event.preventDefault(); event.returnValue = ''; } });
 addEventListener('pagehide', () => { loadVersion++; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); visionWorkerStop(); fileGrants.length = 0; session.cancel(); });
 modelInfo(); cloudNotice(); renderVisionEngine(); bindClient(); controls();

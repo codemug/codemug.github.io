@@ -43,7 +43,7 @@ export class ModelClient {
       this.worker.postMessage({ type, id, ...payload });
     });
   }
-  async generate(messages, tools, token) { return (await this.request('generate', { messages, tools }, token)).text; }
+  async generate(messages, tools, token = () => {}) { return (await this.request('generate', { messages, tools }, token)).text; }
   async count(messages, tools) { return (await this.request('count', { messages, tools })).tokens; }
   async embed(texts) { return (await this.request('embed', { texts })).vectors; }
 }

@@ -1,6 +1,7 @@
 // Pure agent logic (no DOM): tool definitions, tool-call parsing and visible-text extraction.
 // Qwen3.5 and LFM3 both emit: <tool_call>\n<function=NAME>\n<parameter=ARG>\nVALUE\n</parameter>\n</function>\n</tool_call>
 import { MAX_WRITE_CHARS } from "./file-tools.js";
+import { MAX_MESSAGE_CHARS } from "./storage.js";
 import { VISION_TOOL_SCHEMAS } from "./vision-tools.js";
 
 const SAFE_EXPRESSION = /^[\d\s+\-*/().,%^]+$/;
@@ -187,31 +188,31 @@ export function createTools(host) {
     },
   };
   // Files tools (AI-2), offered only while the user has at least one grant: paths are relative to the
-  // grant root, the resolver rejects escapes, and results are untrusted tool data like the others.
+  // Files app root, the resolver rejects escapes, and results are untrusted tool data like the others.
   if (host.listFiles) tools.list_files = {
-    description: "List the files and folders the user granted you, or a subfolder of them. Omit path (or use '') for the grant root.",
+    description: "List folders and files inside your grants. path is relative to the Files app root, not to a grant: omit it (or use '') to list the grants themselves, or pass a folder inside a granted folder.",
     parameters: {
       type: "object",
-      properties: { path: { type: "string", description: "Folder to list, relative to the grant root" } },
+      properties: { path: { type: "string", description: "Folder to list, relative to the Files app root (e.g. notes when the grant is notes/)" } },
       required: [],
     },
     run: ({ path }) => host.listFiles(path == null ? "" : String(path)),
   };
   if (host.readFile) tools.read_file = {
-    description: "Read a granted text file (txt, md, csv, json, html, xml, js, py and similar; UTF-8, at most 200 KB). PDFs are not supported — PDFCraft is.",
+    description: "Read a granted text file (txt, md, csv, json, html, xml, js, py and similar; UTF-8, at most 200 KB). path is relative to the Files app root (e.g. notes/a.txt when the grant is notes/). PDFs are not supported — PDFCraft is.",
     parameters: {
       type: "object",
-      properties: { path: { type: "string", description: "File to read, relative to the grant root" } },
+      properties: { path: { type: "string", description: "File to read, relative to the Files app root" } },
       required: ["path"],
     },
     run: ({ path }) => host.readFile(String(path ?? "")),
   };
   if (host.writeFile) tools.write_file = {
-    description: "Create or update a text file inside a granted FOLDER; the user confirms every write and overwrites are announced. The parent folder must already exist.",
+    description: "Create or update a text file inside a granted FOLDER; the user confirms every write and overwrites are announced. path is relative to the Files app root, inside the granted folder. The parent folder must already exist.",
     parameters: {
       type: "object",
       properties: {
-        path: { type: "string", description: "File to write, relative to the grant root" },
+        path: { type: "string", description: "File to write, relative to the Files app root, inside the granted folder" },
         content: { type: "string", description: `Full file content, UTF-8 (max ${MAX_WRITE_CHARS} characters)` },
       },
       required: ["path", "content"],
@@ -355,14 +356,25 @@ export function validateToolInput(parameters, args) {
   return { ok: true };
 }
 
-/** Parse a parameter value: numbers, booleans and JSON objects come back typed, the rest as strings. */
-function parseValue(raw) {
-  const text = raw.trim();
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
+/**
+ * A local model's tool-call arguments arrive as raw strings (parseToolCalls keeps them raw).
+ * Convert them by the schema's field type before validation: string keeps the raw text (a value
+ * like {"a":1} is a valid string), number/integer and boolean and JSON object/array convert when
+ * possible; a failed conversion keeps the raw value so validation reports it.
+ */
+export function coerceArgs(parameters, args) {
+  if (!TYPES.object(args)) return args;
+  const properties = parameters?.properties ?? {};
+  const out = { ...args };
+  for (const [key, value] of Object.entries(args)) {
+    const type = properties[key]?.type;
+    if (typeof value !== "string" || !type) continue; // already typed or unschemaed: validation reports it
+    const text = value.trim();
+    if (type === "number" || type === "integer") { const n = Number(text); if (Number.isFinite(n)) out[key] = n; }
+    else if (type === "boolean") { if (text === "true") out[key] = true; else if (text === "false") out[key] = false; }
+    else if (type === "object" || type === "array") { try { out[key] = JSON.parse(text); } catch { /* keep the raw string; validation reports it */ } }
   }
+  return out;
 }
 
 /** @returns {ToolCall[]} */
@@ -373,11 +385,60 @@ export function parseToolCalls(text) {
     if (!fn) continue;
     const args = {};
     for (const [, key, value] of fn[2].matchAll(/<parameter=([\w.-]+)>([\s\S]*?)<\/parameter>/g)) {
-      args[key] = parseValue(value);
+      args[key] = value.trim(); // raw strings; the session coerces them by schema type (coerceArgs)
     }
     calls.push({ name: fn[1], arguments: args });
   }
   return calls;
+}
+
+// ---------- tool-result serialization: the single place tool results become stored messages ----------
+
+/**
+ * Model markup a tool result could use to forge a chat turn or a tool call on local models:
+ * the "<" that opens a tool_call, function or think block (and the "<|" separator) becomes the
+ * visible, non-markup "‹" (and stays that way in every later copy of the stored message).
+ */
+export function neutraliseMarkup(text) {
+  return String(text ?? "").replace(/<(?=\||\/tool_call\b|function=|think|\/think)/g, "‹");
+}
+
+/**
+ * Every string in a tool result is untrusted data: drop invisible characters and neutralise markup.
+ * Nothing else changes (not cleanUntrusted's whitespace and link rewriting): file text and run_code
+ * output must keep their indentation and links. toolResultText bounds the length.
+ */
+export function sanitizeToolResult(value) {
+  const walk = (v) => {
+    if (typeof v === "string") return neutraliseMarkup(v.replace(INVISIBLE, ""));
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === "object") { const out = {}; for (const [k, val] of Object.entries(v)) out[k] = walk(val); return out; }
+    return v;
+  };
+  return walk(value);
+}
+
+/**
+ * Serialize a tool result to the stored message text, keeping the WHOLE message below the
+ * store's per-message cap: when JSON.stringify overruns it, the longest string field is cut
+ * (halving, until the JSON-escaped form fits) and the result is flagged truncated. Covers the
+ * 85 KB quoted-CSV case (read_file budgets the raw text; quotes and newlines double the JSON).
+ */
+export function toolResultText(result, maxChars = MAX_MESSAGE_CHARS) {
+  const clean = sanitizeToolResult(result);
+  const text = JSON.stringify(clean);
+  if (text.length <= maxChars) return text;
+  let key = null;
+  for (const [k, v] of Object.entries(clean)) if (typeof v === "string" && (key === null || v.length > clean[key].length)) key = k;
+  if (key === null) return text; // no string field to cut
+  const marker = "…[truncated]";
+  let cut = clean[key];
+  for (let i = 0; i < 20 && cut.length > 0; i++) {
+    const candidate = JSON.stringify({ ...clean, [key]: `${cut}${marker}`, truncated: true });
+    if (candidate.length <= maxChars) return candidate;
+    cut = cut.slice(0, Math.floor(cut.length / 2));
+  }
+  return JSON.stringify({ ...clean, [key]: marker, truncated: true });
 }
 
 /** Run one call against the tool table; unknown tools, thrown errors and rejections become `{error}` results. */

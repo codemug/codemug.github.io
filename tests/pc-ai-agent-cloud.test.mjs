@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTools, toolSchemas, validateToolInput } from '../src/apps/ai-agent/agent.js';
-import { anthropicToolDefinitions, parseSSE, anthropicImageBlock, openAIImagePart, refusalNotice, estimateTokens } from '../src/apps/ai-agent/cloud.js';
+import { anthropicToolDefinitions, parseSSE, anthropicImageBlock, openAIImagePart, refusalNotice, estimateTokens, dataUrlBytes } from '../src/apps/ai-agent/cloud.js';
 import { CloudClient, anthropicMapping, openAIMapping } from '../src/apps/ai-agent/cloud-client.js';
 import { AgentSession, systemPrompt } from '../src/apps/ai-agent/session.js';
 import { validateConversation } from '../src/apps/ai-agent/storage.js';
@@ -64,6 +64,18 @@ test('image blocks: Anthropic base64 source and OpenAI data URL', () => {
   const b64 = Buffer.from(image.data).toString('base64');
   assert.deepEqual(anthropicImageBlock(image), { type: 'image', source: { type: 'base64', media_type: 'image/png', data: b64 } });
   assert.deepEqual(openAIImagePart(image), { type: 'image_url', image_url: { url: `data:image/png;base64,${b64}` } });
+});
+
+test('cloud image turns send the PNG bytes decoded from the data URL, not raw RGBA pixels', () => {
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const attached = { name: 'p.jpeg', width: 1, height: 1, type: 'image/jpeg', data: new Uint8Array([1, 2, 3]), url: `data:image/png;base64,${Buffer.from(png).toString('base64')}` };
+  const pngBytes = dataUrlBytes(attached.url);
+  assert.deepEqual([...pngBytes], [...png], 'the decode returns the PNG bytes');
+  // What the app sends to the cloud: those bytes, labelled image/png regardless of the source file type.
+  const sent = { name: attached.name, width: attached.width, height: attached.height, data: pngBytes, type: 'image/png' };
+  assert.deepEqual(anthropicImageBlock(sent), { type: 'image', source: { type: 'base64', media_type: 'image/png', data: Buffer.from(png).toString('base64') } });
+  assert.throws(() => dataUrlBytes('https://x.example/a.png'), /base64 data URL/);
+  assert.throws(() => dataUrlBytes('data:text/plain,abc'), /base64 data URL/);
 });
 
 test('anthropic mapping: system out, tool_use blocks, tool results merged into one user message', () => {
@@ -135,7 +147,7 @@ test('cloud turn: key travels in the header only, never in the snapshot or expor
   const { session, saved } = cloudTurn({ cloud });
   await session.send('calculate 6*7');
   assert.equal(requests.length, 1);
-  assert.equal(requests[0].url, 'https://llm.example.test/chat/completions');
+  assert.equal(requests[0].url, 'https://llm.example.test/v1/chat/completions', 'the base URL path must be kept (dropping it 404s)');
   assert.match(requests[0].init.headers.authorization, /^Bearer sk-test-SECRET-123$/);
   const body = JSON.parse(requests[0].init.body);
   assert.equal(body.model, 'gpt-test'); assert.equal(body.stream, true); assert.equal(body.tool_choice, 'auto');
@@ -171,6 +183,61 @@ test('cloud tool round-trip keeps the provider tool-call id and stops on the fin
   assert.equal(requests[1].messages[3].role, 'tool');
   assert.equal(requests[1].messages[3].tool_call_id, 'call_x');
   assert.ok(!('tools' in requests[1]), 'no tools offered on the final round');
+});
+
+test('an OpenAI-compatible base URL keeps its path, with or without a trailing slash', async () => {
+  const requests = [];
+  const fetcher = async (url) => { requests.push(url); return sseStream([openAISSE({ content: 'ok' })]); };
+  for (const [baseUrl, expected] of [
+    ['https://api.openai.com/v1', 'https://api.openai.com/v1/chat/completions'],
+    ['https://llm.example.test/custom/v1/', 'https://llm.example.test/custom/v1/chat/completions'],
+    ['https://llm.example.test', 'https://llm.example.test/chat/completions'],
+  ]) {
+    const cloud = new CloudClient({ fetch: fetcher });
+    cloud.configure({ provider: 'openai', model: 'm', baseUrl, key: 'k' });
+    await cloud.generate([{ role: 'user', content: 'hi' }], []);
+    assert.equal(requests.at(-1), expected, `base URL ${baseUrl}`);
+  }
+});
+
+test('stop() aborts the OpenAI stream while the body is still being read', async () => {
+  let signal;
+  const fetcher = (url, init) => {
+    signal = init.signal;
+    // A body that only ends when the fetch signal aborts (like a slow SSE stream).
+    return new Response(new ReadableStream({
+      pull: () => new Promise((_, reject) => { signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true }); }),
+    }), { status: 200, headers: { 'content-type': 'text/event-stream' } });
+  };
+  const cloud = new CloudClient({ fetch: fetcher });
+  cloud.configure({ provider: 'openai', model: 'm', baseUrl: 'https://llm.example.test', key: 'k' });
+  const pending = cloud.generate([{ role: 'user', content: 'hi' }], []);
+  await new Promise((r) => setTimeout(r, 20)); // headers arrived; the body read is in flight
+  assert.ok(cloud.active, 'the AbortController must survive past the headers (stop() needs it)');
+  cloud.stop();
+  await assert.rejects(pending, (e) => e.name === 'AbortError' && e.message === 'Stopped');
+});
+
+test('anthropic streaming passes the SDK text delta to onToken (never undefined), and generate works without onToken', async () => {
+  const tokens = [];
+  const fakeSdk = {
+    Anthropic: class {
+      beta = { messages: { stream: () => ({
+        on: (event, cb) => { if (event === 'text') cb('part1 '); }, // SDK text event: (textDelta, textSnapshot)
+        finalMessage: async () => ({ stop_reason: 'end_turn', content: [{ type: 'text', text: 'part1 ' }] }),
+      }) } }
+    },
+    APIError: class extends Error {}, APIConnectionError: class extends Error {}, APIUserAbortError: class extends Error {},
+    AuthenticationError: class extends Error {}, RateLimitError: class extends Error {},
+  };
+  const cloud = new CloudClient({ fetch: async () => new Response(null), loadSdk: async () => fakeSdk });
+  cloud.configure({ provider: 'anthropic', model: 'claude-test', key: 'sk-test' });
+  const out = await cloud.generate([{ role: 'user', content: 'hi' }], [], (t) => tokens.push(t));
+  assert.deepEqual(tokens, ['part1 '], 'onToken must receive the delta string itself');
+  assert.equal(out.text, 'part1 ');
+  // compact() and friends call generate without an onToken: the default must not throw.
+  const again = await cloud.generate([{ role: 'user', content: 'hi' }], []);
+  assert.equal(again.text, 'part1 ');
 });
 
 test('configure: https-only base URL, nonempty key and model; clear() forgets the key', async () => {

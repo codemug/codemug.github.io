@@ -129,3 +129,12 @@ test('the index logic is memory only: no storage APIs in the pure modules', () =
   }
   assert.ok(/BroadcastChannel/.test(here('search-host.js')), 'the host listens on the Files refresh channel');
 });
+
+test('dispose() no longer kills the Files refresh channel for good (review 13)', () => {
+  const src = readFileSync(fileURLToPath(new URL('../src/apps/ai-agent/search-host.js', import.meta.url)), 'utf8');
+  assert.match(src, /let channel = null;/, 'the channel is mutable (recreatable), not a one-shot const');
+  assert.match(src, /const ensureChannel = \(\) => \{\s*if \(channel\) return;/, 'a lazy re-creator exists');
+  const body = src.slice(src.indexOf('async function indexFiles'), src.indexOf('async function refresh'));
+  assert.ok(body.includes('ensureChannel()'), 'indexFiles re-creates the channel before walking, so auto-refresh survives a New chat');
+  assert.match(src.slice(src.indexOf('const dispose')), /channel\?\.close\(\);\s*channel = null;/, 'dispose closes AND nulls the channel');
+});

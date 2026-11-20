@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  validateImageFile, ocrTextResult, nobgName, downscalePlan, BGBM_ENGINES,
+  validateImageFile, ocrTextResult, nobgName, nobgTarget, downscalePlan, BGBM_ENGINES,
   VISION_TOOL_SCHEMAS, MAX_IMAGE_BYTES, OCR_MAX_TEXT, visionToolsEnabled,
 } from '../src/apps/ai-agent/vision-tools.js';
 
@@ -91,4 +91,21 @@ test('neither vision module touches browser storage APIs', () => {
     const src = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
     assert.ok(!/indexedDB|opfs|navigator\.storage|localStorage|sessionStorage/i.test(src), `${file} must not use storage APIs`);
   }
+});
+
+test('remove_background save target needs a covering folder grant before the save gate (review 10)', () => {
+  assert.deepEqual(nobgTarget([{ root: 'notes', kind: 'folder' }], 'notes/cat.jpg'), { target: 'notes/cat-nobg.png' }, 'a folder grant covers the target');
+  const fileOnly = nobgTarget([{ root: 'notes/cat.jpg', kind: 'file' }], 'notes/cat.jpg');
+  assert.match(fileOnly.error, /granted folder/i, 'a read-only file grant on the source is not enough');
+  const noGrants = nobgTarget([], 'notes/cat.jpg');
+  assert.match(noGrants.error, /grant/i, 'no grants at all is a clear error');
+  const nested = nobgTarget([{ root: 'photos/2024', kind: 'folder' }], 'photos/2024/cat.jpg');
+  assert.deepEqual(nested, { target: 'photos/2024/cat-nobg.png' }, 'nested folder grants work at the full path');
+});
+
+test('Florence has no fp32 fall-back and a failed load is not cached (review 18)', () => {
+  const src = readFileSync(new URL('../src/apps/ai-agent/vision-worker.js', import.meta.url), 'utf8');
+  assert.ok(!src.includes("['wasm', 'q8'], ['wasm', 'fp32']"), 'no q8→fp32 plan pair (the 1.09 GB download is gone)');
+  assert.match(src, /\[\['wasm', 'q8'\]\]/, 'Florence loads a single wasm/q8 plan');
+  assert.match(src, /catch\(\(err\) => \{ delete state\[key\]; throw err; \}\)/, 'a failed load is removed from the cache, so the next request retries');
 });
