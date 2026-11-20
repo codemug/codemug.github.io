@@ -12,7 +12,7 @@ import { webSearch, httpGet } from './web.js';
 import { runJavaScript } from './sandbox.js';
 import * as fileStore from './store.mjs';
 import { resolveInGrants } from './file-tools.js';
-import { BGBM_ENGINES, ocrTextResult, nobgName, downscalePlan, OCR_MAX_DIM, MAX_IMAGE_BYTES, validateImageFile } from './vision-tools.js';
+import { BGBM_ENGINES, ocrTextResult, nobgName, downscalePlan, OCR_MAX_DIM, MAX_IMAGE_BYTES, validateImageFile, visionToolsEnabled } from './vision-tools.js';
 const $ = id => document.getElementById(id);
 // Cloud models are opt-in per session: the key lives only in CloudClient's memory and is never persisted.
 const CLOUD_MODELS = { 'cloud:anthropic': 'Claude · cloud (your key)', 'cloud:openai': 'OpenAI-compatible · cloud (your key)' };
@@ -309,7 +309,8 @@ const removeBackground = async (source) => {
   } catch (err) { return { error: err.message === 'Stopped.' ? 'Background removal was stopped.' : err.message }; }
 };
 function visionEnabled() {
-  return fileGrants.length > 0 || Boolean(MODELS[selected]?.vision) || (isCloud(selected) && cloud.ready);
+  // Attached image possible: a Qwen vision model, or a confirmed cloud model (image input is offered there).
+  return visionToolsEnabled({ grants: fileGrants, imageInput: Boolean(MODELS[selected]?.vision) || (isCloud(selected) && cloud.ready) });
 }
 function applyVisionGates() {
   const on = visionEnabled();

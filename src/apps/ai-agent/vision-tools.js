@@ -40,6 +40,15 @@ export function downscalePlan(width, height, maxDim = OCR_MAX_DIM) {
   return { width: Math.max(1, Math.round(w * scale)), height: Math.max(1, Math.round(h * scale)) };
 }
 
+/**
+ * Gate for the vision tools (Part B): offered while an image source is available — a file
+ * grant, or an attached image possible with the selected model (a Qwen vision model or a
+ * confirmed cloud model). Pure so the app's gating is unit-testable.
+ */
+export function visionToolsEnabled({ grants, imageInput } = {}) {
+  return (Array.isArray(grants) && grants.length > 0) || Boolean(imageInput);
+}
+
 // Background-removal engine choices for the Part B settings UI (the worker owns the repos and
 // revisions): 'modnet' is the default; 'birefnet' is the higher-quality option (WebGPU only,
 // because its only small-enough ONNX is fp16 and ORT WASM is fp32-only).

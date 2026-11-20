@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   validateImageFile, ocrTextResult, nobgName, downscalePlan, BGBM_ENGINES,
-  VISION_TOOL_SCHEMAS, MAX_IMAGE_BYTES, OCR_MAX_TEXT,
+  VISION_TOOL_SCHEMAS, MAX_IMAGE_BYTES, OCR_MAX_TEXT, visionToolsEnabled,
 } from '../src/apps/ai-agent/vision-tools.js';
 
 test('validateImageFile accepts png/jpeg/webp and the 10 MB boundary', () => {
@@ -74,6 +74,16 @@ test('the tool schemas require a source string for both tools', () => {
     assert.match(s.description, /attached/);
   }
   assert.equal(Object.keys(VISION_TOOL_SCHEMAS).length, 2);
+});
+
+test('visionToolsEnabled gates the tools on an available image source (Part B)', () => {
+  const grants = [{ root: 'photos', kind: 'folder' }];
+  assert.equal(visionToolsEnabled({ grants, imageInput: false }), true, 'a grant offers a source');
+  assert.equal(visionToolsEnabled({ grants: [], imageInput: true }), true, 'an attachable image offers a source');
+  assert.equal(visionToolsEnabled({ grants, imageInput: true }), true, 'both at once');
+  assert.equal(visionToolsEnabled({ grants: [], imageInput: false }), false, 'no grant and no attachable image: hidden');
+  assert.equal(visionToolsEnabled({ imageInput: true }), true, 'undefined grants are not an error');
+  assert.equal(visionToolsEnabled({}), false, 'nothing given: hidden');
 });
 
 test('neither vision module touches browser storage APIs', () => {
