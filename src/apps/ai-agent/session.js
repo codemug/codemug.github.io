@@ -66,7 +66,7 @@ export class AgentSession {
     const work = [...this.history, user];
     this.history = [...work]; this.emit('user', work.at(-1)); await this.persist();
     const options = { signal: run.controller.signal, allowReaderProxy: this.proxyAllowed() };
-    const tools = createTools({ allowedHosts: () => this.allowedHosts(work), webSearch: q => this.webSearch(q, options), httpGet: url => this.httpGet(url, options), runJavaScript: code => this.runJavaScript(code, options), translate: this.chrome?.translate, summarize: this.chrome?.summarize, detectLanguage: this.chrome?.detectLanguage, listFiles: this.files?.list, readFile: this.files?.read, writeFile: this.files?.write });
+    const tools = createTools({ allowedHosts: () => this.allowedHosts(work), webSearch: q => this.webSearch(q, options), httpGet: url => this.httpGet(url, options), runJavaScript: code => this.runJavaScript(code, options), translate: this.chrome?.translate, summarize: this.chrome?.summarize, detectLanguage: this.chrome?.detectLanguage, listFiles: this.files?.list, readFile: this.files?.read, writeFile: this.files?.write, searchFiles: this.files?.search });
     const schemas = toolSchemas(tools); const seen = new Map();
     try {
       this.check(run);

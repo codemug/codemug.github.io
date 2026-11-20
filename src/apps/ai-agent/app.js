@@ -3,6 +3,7 @@ import { CloudClient } from './cloud-client.js';
 import { ChromeModelClient, chromeAvailability, chromeExecutors, chromeDownload, chromeToolGates, CHROME_TOOL_APIS } from './chrome-ai.js';
 import { pickFile } from './picker.mjs';
 import { createFileHost } from './files-host.js';
+import { createSearchHost } from './search-host.js';
 import { AgentSession } from './session.js';
 import { ConversationStore, validateConversation, MODEL_KEY, LEGACY_MODEL_KEY } from './storage.js';
 import { MODELS, DEFAULT_MODEL } from './models.js';
@@ -122,18 +123,42 @@ async function chromeDownloadTool(toolKey, api) {
     if (err.name !== 'AbortError') status(`Chrome ${api.label} model download failed: ${err?.message ?? err}`);
   } finally { chromeDownloading = false; renderChromeStatus(); }
 }
-// ---------- files (grants, AI-2) ----------
+// ---------- files (grants + search index, AI-2/AI-3) ----------
 // Grants are per session: they live only in this page's memory and are cleared on reload (fresh
 // page), New chat and close. They are never written to IndexedDB, localStorage or exports.
 const fileGrants = [];
 const fileHost = createFileHost({ grants: fileGrants, confirm: text => confirm(text), note: status });
 const fileTools = { grants: null };
+// The search index is per session too: memory only, cleared with the grants, offered while it has
+// chunks. Its embedding model (about 23 MB, Hugging Face, pinned revision) runs in its own worker
+// on the WASM device and is downloaded only by the explicit Build click.
+let indexAbort = null;
+const embedClient = new ModelClient({
+  createWorker: () => new Worker(new URL('./embed-worker.js', import.meta.url), { type: 'module' }),
+  progress: (p) => { if (indexAbort && p.file) searchStatus(`Downloading ${p.file}: ${p.total ? Math.round(p.progress ?? 0) + '%' : Math.round((p.loaded ?? 0) / 1024) + ' KB'}`); },
+});
+const searchHost = createSearchHost({ grants: fileGrants, embed: (texts) => embedClient.embed(texts), note: searchStatus, onState: applyFileGates });
+function searchStatus(text) { $('files-index-status').textContent = text; }
+async function searchFiles(query, k) {
+  // A reload of the worker happens only after a Cancel terminated it; with an index present the
+  // model files are already fetched (and cached) by the Build click, so this adds no new download.
+  if (!embedClient.ready) await embedClient.load('embed');
+  return searchHost.search(query, k);
+}
+function renderIndexControls() {
+  const busy = indexAbort !== null;
+  $('files-build').disabled = busy || !fileGrants.length;
+  $('files-cancel-index').disabled = !busy;
+  $('files-build').textContent = searchHost.has() ? 'Rebuild search index' : 'Build search index (downloads about 23 MB once)';
+}
 function applyFileGates() {
   const on = fileGrants.length > 0;
   fileTools.grants = on ? [...fileGrants] : null;
   fileTools.list = on ? fileHost.list : undefined;
   fileTools.read = on ? fileHost.read : undefined;
   fileTools.write = on ? fileHost.write : undefined;
+  fileTools.search = searchHost.has() ? searchFiles : undefined;
+  renderIndexControls();
 }
 function renderFileGrants() {
   const box = $('files-grants'); box.replaceChildren();
@@ -144,7 +169,7 @@ function renderFileGrants() {
     label.textContent = `${grant.kind === 'folder' ? '▸ ' : '▪ '}${grant.root || '(Files root)'} · ${grant.kind}`;
     const revoke = document.createElement('button');
     revoke.textContent = 'Revoke';
-    revoke.addEventListener('click', () => { fileGrants.splice(fileGrants.indexOf(grant), 1); applyFileGates(); renderFileGrants(); });
+    revoke.addEventListener('click', () => { fileGrants.splice(fileGrants.indexOf(grant), 1); searchHost.revokeGrant(grant); applyFileGates(); renderFileGrants(); });
     row.append(label, ' ', revoke); box.append(row);
   }
 }
@@ -157,6 +182,24 @@ $('files-grant').addEventListener('click', async () => {
   fileGrants.push(grant); applyFileGates(); renderFileGrants();
   status(`Granted ${grant.kind} "${grant.root || '(Files root)'}". ${isCloud(selected) ? 'Note: with a cloud model, file contents the agent reads are sent to that provider.' : ''}`);
 });
+$('files-build').addEventListener('click', async () => {
+  error('');
+  if (!fileGrants.length || indexAbort) return;
+  indexAbort = new AbortController();
+  renderIndexControls();
+  searchStatus('Downloading the search model (about 23 MB, Hugging Face) and indexing the granted files…');
+  try {
+    if (!embedClient.ready) await embedClient.load('embed');
+    await searchHost.indexFiles({ signal: indexAbort.signal });
+  } catch (err) {
+    if (err.name === 'AbortError') searchStatus('Cancelled — the index keeps what it already had.');
+    else error(err.message);
+  } finally {
+    indexAbort = null;
+    applyFileGates();
+  }
+});
+$('files-cancel-index').addEventListener('click', () => { indexAbort?.abort(); embedClient.stop(); });
 applyFileGates(); renderFileGrants();
 const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, chrome: chromeTools, files: fileTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
   if (type === 'busy') { controls(); if (!data) status(client.ready ? 'Ready for your next question.' : 'Load a model to continue.'); }
@@ -231,7 +274,7 @@ $('model').addEventListener('change', () => {
 });
 $('new-chat').addEventListener('click', async () => {
   if ((session.history.length || session.active) && !confirm('Start a new chat? The current stored chat will be kept as the previous record. Export it first if you need a permanent copy.')) return;
-  cancel(); error(''); cloud.clear(); fileGrants.length = 0; applyFileGates(); renderFileGrants(); bindClient(); await session.newChat();
+  cancel(); error(''); cloud.clear(); indexAbort?.abort(); indexAbort = null; searchHost.dispose(); embedClient.stop(); fileGrants.length = 0; applyFileGates(); renderFileGrants(); bindClient(); await session.newChat();
   if (isCloud(selected)) status('New chat started. The cloud key was cleared — confirm the cloud model in Settings to continue.');
   controls(); $('message').focus();
 });
@@ -360,9 +403,9 @@ window.pcFlush = () => {
   if (unsaved()) { error(store.pending ? 'Saving is still in progress. Try closing again after it completes.' : 'This chat could not be saved. Retry save or Export before closing.'); return false; }
   return true;
 };
-window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); fileGrants.length = 0; bindClient(); return window.pcFlush(); };
+window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); fileGrants.length = 0; bindClient(); return window.pcFlush(); };
 addEventListener('beforeunload', event => { if (unsaved()) { event.preventDefault(); event.returnValue = ''; } });
-addEventListener('pagehide', () => { loadVersion++; cloud.clear(); fileGrants.length = 0; session.cancel(); });
+addEventListener('pagehide', () => { loadVersion++; cloud.clear(); indexAbort = null; searchHost.dispose(); embedClient.stop(); fileGrants.length = 0; session.cancel(); });
 modelInfo(); cloudNotice(); bindClient(); controls();
 try {
   const { value, migrated } = await store.restore(); session.history = value.history; session.summary = value.summary; render(value);

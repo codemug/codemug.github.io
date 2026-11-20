@@ -24,6 +24,7 @@ const LANG_CODE = /^[a-z]{2,3}(-[A-Za-z]{2,8})*$/;
  *   listFiles?: (path: string) => Promise<object>,
  *   readFile?: (path: string) => Promise<object>,
  *   writeFile?: (path: string, content: string) => Promise<object>,
+ *   searchFiles?: (query: string, k: number) => Promise<object>,
  * }} host
  */
 export function createTools(host) {
@@ -174,6 +175,27 @@ export function createTools(host) {
       if (!p.trim() || p.length > 200) return { error: "path must be 1 to 200 characters" };
       if (c.length > MAX_WRITE_CHARS) return { error: `content is too large (max ${MAX_WRITE_CHARS} characters)` };
       return host.writeFile(p, c);
+    },
+  };
+  // Files search (AI-3): offered only while the in-memory index has chunks. Runs the local embedding
+  // model on this device; the returned chunks are untrusted tool data like the other file tools.
+  if (host.searchFiles) tools.search_files = {
+    description: "Search the granted files by meaning (local embedding model, on this device). Returns the most similar chunks: path, similarity score (0-1) and a snippet.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: `What to look for (max ${MAX_QUERY_CHARS} characters)` },
+        k: { type: "number", description: "How many chunks to return (integer 1-10, default 5)" },
+      },
+      required: ["query"],
+    },
+    run: ({ query, k }) => {
+      const q = String(query ?? "");
+      if (!q.trim() || q.length > MAX_QUERY_CHARS) return { error: `query must be 1 to ${MAX_QUERY_CHARS} characters` };
+      if (k !== undefined && (typeof k !== "number" || !Number.isInteger(k))) return { error: "k must be an integer from 1 to 10" };
+      const n = k === undefined ? 5 : k;
+      if (n < 1 || n > 10) return { error: "k must be an integer from 1 to 10" };
+      return host.searchFiles(q, n);
     },
   };
   return tools;
