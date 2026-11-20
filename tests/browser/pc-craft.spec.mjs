@@ -56,7 +56,14 @@ test('SoundCraft plays actual imported audio, exports media bundle, restores it 
  await expect.poll(()=>frame.evaluate(()=>{return Math.max(0,...(window.webpcTestAnalysers||[]).map(a=>{const samples=new Float32Array(a.fftSize);a.getFloatTimeDomainData(samples);return Math.max(...samples.map(Math.abs));}));})).toBeGreaterThan(0.01);
  await page.keyboard.press('Space');const file=await saved(page,async()=>{await page.keyboard.press('ControlOrMeta+s');await page.waitForTimeout(150);await page.keyboard.press('Enter');});const zip=await JSZip.loadAsync(file.bytes);expect(file.name).toMatch(/\.scraftz$/);expect(Object.keys(zip.files).some(x=>/Audio Files\/tone\.wav$/.test(x))).toBe(true);await expect(page.locator('#status')).toContainText('browser copy saved');
  // Native session replacement must ask before discarding a new import. Cancel keeps it.
- await page.locator('#file').setInputFiles({name:'second.wav',mimeType:'audio/wav',buffer:wav()});await page.waitForTimeout(400);await page.locator('#restore').click();await page.waitForTimeout(300);await frame.locator('canvas').press('Escape');await page.waitForTimeout(200);
+ // The editor is canvas-drawn, so wait on what each step draws (fixed sleeps lost this race on a
+ // slow runner: Escape landed before the dialog, which then blocked the save): the import adds a
+ // track row, Reopen saved shows the "Unsaved Changes" dialog, and Escape (Cancel) closes it.
+ const changes=async(clip,action)=>{const before=await page.screenshot({clip});await action();await expect.poll(async()=>(await page.screenshot({clip})).equals(before),{timeout:30000,intervals:[250,500,1000]}).toBe(false);};
+ const tracks={x:0,y:160,width:160,height:300},dialog={x:540,y:390,width:320,height:100};
+ await changes(tracks,()=>page.locator('#file').setInputFiles({name:'second.wav',mimeType:'audio/wav',buffer:wav()}));
+ await changes(dialog,()=>page.locator('#restore').click());
+ await changes(dialog,()=>frame.locator('canvas').press('Escape'));
  const kept=await saved(page,async()=>{await frame.locator('canvas').click({position:{x:500,y:400}});await page.keyboard.press('ControlOrMeta+s');});expect(Object.keys((await JSZip.loadAsync(kept.bytes)).files).some(x=>/Audio Files\/second\.wav$/.test(x))).toBe(true);
  expect(await page.evaluate(()=>pcBeforeClose())).toBe(true);await expect.poll(()=>frame.evaluate(()=>webpcAudio.states().filter(x=>x!=='closed'))).toEqual(['suspended']);await expect(page.locator('#audio')).toHaveText('Enable audio');
  page.on('dialog',d=>d.accept());await page.reload({waitUntil:'domcontentloaded'});await expect(page.locator('#restore')).toBeEnabled();frame=page.frames().find(f=>f.url().includes('/vendor/'));await page.locator('#restore').click();await page.waitForTimeout(500);
