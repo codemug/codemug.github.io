@@ -1,5 +1,6 @@
 import { ModelClient } from './model-client.js';
 import { CloudClient } from './cloud-client.js';
+import { ChromeModelClient, chromeAvailability, chromeExecutors, chromeDownload, chromeToolGates, CHROME_TOOL_APIS } from './chrome-ai.js';
 import { AgentSession } from './session.js';
 import { ConversationStore, validateConversation, MODEL_KEY, LEGACY_MODEL_KEY } from './storage.js';
 import { MODELS, DEFAULT_MODEL } from './models.js';
@@ -10,26 +11,29 @@ const $ = id => document.getElementById(id);
 // Cloud models are opt-in per session: the key lives only in CloudClient's memory and is never persisted.
 const CLOUD_MODELS = { 'cloud:anthropic': 'Claude · cloud (your key)', 'cloud:openai': 'OpenAI-compatible · cloud (your key)' };
 const isCloud = key => Boolean(CLOUD_MODELS[key]);
+const CHROME_MODEL = 'chrome:builtin'; const isChrome = key => key === CHROME_MODEL;
 const store = new ConversationStore(); let initialized = false, loading = false, loadVersion = 0, selected = DEFAULT_MODEL, pendingImage = null;
 try { const saved = localStorage.getItem(MODEL_KEY) ?? localStorage.getItem(LEGACY_MODEL_KEY); if (MODELS[saved]) selected = saved; } catch {}
 for (const [key, model] of Object.entries(MODELS)) $('model').add(new Option(`${model.label} · ${model.size}`, key));
 for (const [key, label] of Object.entries(CLOUD_MODELS)) $('model').add(new Option(label, key));
 $('model').value = selected;
 const cloud = new CloudClient();
-// The session talks to whichever backend is active: the local worker or the BYOK cloud client.
-function bindClient() { session.client = isCloud(selected) ? cloud : client; }
+const chrome = new ChromeModelClient(self);
+// The session talks to whichever backend is active: the local worker, the BYOK cloud client or Chrome's on-device model.
+function bindClient() { session.client = isChrome(selected) ? chrome : isCloud(selected) ? cloud : client; }
 const status = text => { $('status').textContent = text; };
 const error = text => { $('error').textContent = text; $('error').hidden = !text; };
 function storageError(text) { $('storage-warning').hidden = false; $('storage-warning').querySelector('span').textContent = `${text} Your chat is still in memory; export it before closing.`; $('save-state').textContent = 'Not saved — export your chat'; }
 function controls() {
-  $('load-model').disabled = !initialized || loading || Boolean(session.active) || client.ready || isCloud(selected);
-  $('stop').disabled = !(loading || session.active || client.ready || cloud.ready);
+  $('load-model').disabled = !initialized || loading || Boolean(session.active) || client.ready || isCloud(selected) || (isChrome(selected) && chrome.ready);
+  $('stop').disabled = !(loading || session.active || client.ready || cloud.ready || chrome.ready);
   $('send').disabled = !initialized || !session.client.ready || Boolean(session.active) || loading;
   $('new-chat').disabled = !initialized; $('import').disabled = !initialized; $('previous').disabled = !initialized;
-  $('model-state').textContent = loading ? 'Loading…' : cloud.ready ? `Cloud · ${cloud.host}` : client.ready ? session.active ? 'Working locally' : 'Ready · on device' : 'Not loaded';
+  $('model-state').textContent = loading ? 'Loading…' : cloud.ready ? `Cloud · ${cloud.host}` : isChrome(selected) && chrome.ready ? 'Chrome · on device' : client.ready ? session.active ? 'Working locally' : 'Ready · on device' : 'Not loaded';
   imageInputControls();
 }
-// Image input is offered by the Qwen vision models and by an active cloud model; LFM3 is text-only.
+// Image input is offered by the Qwen vision models and by an active cloud model; LFM3 and the on-device
+// Chrome model are text-only.
 function imageInputControls() {
   const cloudSelected = isCloud(selected);
   const vision = Boolean(MODELS[selected]?.vision) || (cloudSelected && cloud.ready);
@@ -37,7 +41,7 @@ function imageInputControls() {
   box.disabled = !vision || loading || Boolean(session.active);
   if (!vision) box.checked = false;
   $('attach').disabled = !box.checked;
-  $('image-note').textContent = cloudSelected ? (cloud.ready ? `sent to ${cloud.host}` : 'enable it in Settings') : (MODELS[selected]?.vision ? `+${MODELS[selected].vision.size} when first used` : 'Qwen models only');
+  $('image-note').textContent = isChrome(selected) ? 'Chrome built-in model is text-only' : cloudSelected ? (cloud.ready ? `sent to ${cloud.host}` : 'enable it in Settings') : (MODELS[selected]?.vision ? `+${MODELS[selected].vision.size} when first used` : 'Qwen models only');
 }
 const nearBottom = () => $('conversation').scrollHeight - $('conversation').scrollTop - $('conversation').clientHeight < 100;
 function follow(wasNear) { if (wasNear) $('conversation').scrollTop = $('conversation').scrollHeight; }
@@ -77,7 +81,46 @@ const client = new ModelClient({ failure: err => { error(err.message); controls(
   else $('progress').removeAttribute('value');
   status(`${data.status ?? 'Loading'}${data.file ? ` · ${data.file}` : ''}${Number.isFinite(percent) ? ` · ${Math.round(percent)}%` : ''}`);
 } });
-const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
+// Chrome built-in AI (on-device): a tool is offered only when its API reports 'available' — a
+// model-initiated create() has no user gesture to start Chrome's own download. The Settings buttons
+// for 'downloadable' APIs are that gesture; on success availability is re-checked and the tool appears.
+const chromeTools = {}; let chromeAvail = null, chromeExec_ = null, chromeDownloading = false;
+chromeAvailability(self).then((availability) => {
+  chromeAvail = availability; chromeExec_ = chromeExecutors(self, status);
+  applyChromeGates(); renderChromeStatus();
+  if (availability.languageModel !== 'unavailable') { $('model').add(new Option('Chrome built-in · on-device', CHROME_MODEL)); controls(); }
+});
+function applyChromeGates() {
+  const gates = chromeToolGates(chromeAvail);
+  chromeTools.translate = gates.translate ? chromeExec_.translate : null;
+  chromeTools.summarize = gates.summarize ? chromeExec_.summarize : null;
+  chromeTools.detectLanguage = gates.detectLanguage ? chromeExec_.detectLanguage : null;
+}
+function renderChromeStatus() {
+  const box = $('chrome-downloads'); box.replaceChildren();
+  if (!chromeAvail) return;
+  $('chrome-status').textContent = [['Prompt API (chat)', chromeAvail.languageModel], ['Translator', chromeAvail.translator], ['Summarizer', chromeAvail.summarizer], ['Language detector', chromeAvail.detector]].map(([name, s]) => `${name}: ${s}`).join(' · ');
+  for (const [toolKey, api] of Object.entries(CHROME_TOOL_APIS)) {
+    if (chromeAvail[api.availabilityKey] !== 'downloadable') continue;
+    const b = document.createElement('button');
+    b.textContent = `Download ${api.label} model`;
+    b.disabled = chromeDownloading;
+    b.addEventListener('click', () => chromeDownloadTool(toolKey, api));
+    box.append(b);
+  }
+}
+async function chromeDownloadTool(toolKey, api) {
+  chromeDownloading = true; renderChromeStatus();
+  try {
+    await chromeDownload(self, toolKey, status); // the click is the user gesture Chrome's create() needs
+    chromeAvail = await chromeAvailability(self); // re-check so the tool appears once the download completes
+    applyChromeGates();
+    status(`Chrome ${api.label} model ready.`);
+  } catch (err) {
+    if (err.name !== 'AbortError') status(`Chrome ${api.label} model download failed: ${err?.message ?? err}`);
+  } finally { chromeDownloading = false; renderChromeStatus(); }
+}
+const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, chrome: chromeTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
   if (type === 'busy') { controls(); if (!data) status(client.ready ? 'Ready for your next question.' : 'Load a model to continue.'); }
   else if (type === 'status') status(data);
   else if (type === 'error') error(data);
@@ -90,7 +133,7 @@ const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScr
   else if (type === 'tool-start') toolCard(data);
   else if (type === 'tool-result') toolResult(data.toolCard, data.result);
 } });
-function cancel(text = isCloud(selected) ? 'Stopped. Send the message again to continue.' : 'Stopped. Load the model again to continue; cached downloads are kept.') {
+function cancel(text = isCloud(selected) || isChrome(selected) ? 'Stopped. Send the message again to continue.' : 'Stopped. Load the model again to continue; cached downloads are kept.') {
   loadVersion++; loading = false; session.cancel(); $('progress').hidden = true;
   document.querySelectorAll('.message-body:empty').forEach(el => { el.textContent = 'Stopped.'; });
   document.querySelectorAll('.tool summary').forEach(el => { if (el.textContent.endsWith('· running')) el.textContent = el.textContent.replace('· running', '· stopped'); });
@@ -102,13 +145,29 @@ function modelInfo() {
     $('model-license').replaceChildren(document.createTextNode('The provider sets its own terms and pricing; the key is used only in this browser session.'));
     return;
   }
+  if (isChrome(selected)) {
+    $('download-note').textContent = 'Chrome built-in model: nothing downloads from this site. Load it to start Chrome’s own on-device model download (needs at least 22 GB free space). Chat, translation and summarization stay on this device.';
+    $('model-license').replaceChildren(document.createTextNode('On-device: no data is sent to Google or any third party when using the model.'));
+    return;
+  }
   const model = MODELS[selected];
   $('download-note').textContent = `Load ${model.label} when ready: ${model.size} of model files from Hugging Face. No model files download automatically. Chat and computation stay on device; web tools make the requests you ask for.`;
   const link = document.createElement('a'); link.href = `https://huggingface.co/${model.repo}/tree/${model.revision}`; link.target = '_blank'; link.rel = 'noopener'; link.textContent = `${model.label} · ${model.license}`;
   $('model-license').replaceChildren(link, document.createTextNode('. Model weights have their own license. Sizes are approximate; small models may miss tools or return incorrect answers.'));
 }
 async function doLoad(vision) {
-  cancel(); const version = ++loadVersion; loading = true; controls(); error(''); $('progress').hidden = false; $('progress').removeAttribute('value'); status('Checking WebGPU…');
+  cancel(); const version = ++loadVersion; loading = true; controls(); error(''); $('progress').hidden = false; $('progress').removeAttribute('value');
+  if (isChrome(selected)) {
+    // The click is the user gesture Chrome's create() needs; its monitor drives the status line.
+    status('Loading Chrome’s on-device model…');
+    try {
+      await chrome.load(status); if (version !== loadVersion) return;
+      status('Chrome model ready. Everything runs on this device.'); $('message').focus();
+    } catch (err) { if (version === loadVersion && err.name !== 'AbortError') error(err.message); }
+    finally { if (version === loadVersion) { loading = false; $('progress').hidden = true; controls(); } }
+    return;
+  }
+  status('Checking WebGPU…');
   try {
     if (!navigator.gpu) throw new Error('WebGPU is unavailable. Use a compatible browser/device with hardware acceleration. Your saved conversation is still available.');
     const adapter = await navigator.gpu.requestAdapter();
@@ -128,7 +187,8 @@ $('model').addEventListener('change', () => {
   cancel('Model changed. Load it when you’re ready.');
   selected = $('model').value;
   cloud.clear(); bindClient();
-  if (!isCloud(selected)) { try { localStorage.setItem(MODEL_KEY, selected); } catch {} if (!MODELS[selected].vision) clearPendingImage(); }
+  // Cloud and on-device selections are per session only: never persisted to MODEL_KEY.
+  if (!isCloud(selected) && !isChrome(selected)) { try { localStorage.setItem(MODEL_KEY, selected); } catch {} if (!MODELS[selected]?.vision) clearPendingImage(); }
   modelInfo(); controls();
 });
 $('new-chat').addEventListener('click', async () => {
@@ -147,7 +207,7 @@ $('composer').addEventListener('submit', async event => {
       if (isCloud(selected)) {
         if (!cloud.ready) { clearPendingImage(); throw new Error('Confirm the cloud model in Settings first (your key was cleared).'); }
         image = { name: pendingImage.name, width: pendingImage.width, height: pendingImage.height, data: pendingImage.data, type: pendingImage.type };
-      } else if (!MODELS[selected].vision) clearPendingImage();
+      } else if (!MODELS[selected]?.vision) clearPendingImage();
       else {
         // First image with a text-loaded model: fetch the vision encoder now, on demand.
         if (client.ready && !client.vision) await doLoad(true);
@@ -197,7 +257,7 @@ $('image-file').addEventListener('change', async () => {
 });
 $('image-remove').addEventListener('click', () => clearPendingImage());
 $('image-input').addEventListener('change', async () => {
-  if (isCloud(selected)) { if (!$('image-input').checked) clearPendingImage(); imageInputControls(); return; }
+  if (isCloud(selected) || isChrome(selected)) { if (!$('image-input').checked) clearPendingImage(); imageInputControls(); return; }
   const spec = MODELS[selected];
   if (!spec.vision || !$('image-input').checked) { if (!$('image-input').checked) clearPendingImage(); imageInputControls(); return; }
   imageInputControls();

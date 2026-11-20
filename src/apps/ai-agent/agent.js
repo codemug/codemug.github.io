@@ -4,6 +4,8 @@
 const SAFE_EXPRESSION = /^[\d\s+\-*/().,%^]+$/;
 const MAX_QUERY_CHARS = 200;
 const MAX_CODE_CHARS = 10_000;
+const MAX_CHROME_TEXT_CHARS = 4_000;
+const LANG_CODE = /^[a-z]{2,3}(-[A-Za-z]{2,8})*$/;
 
 /** @typedef {{ name: string, arguments: Record<string, unknown> }} ToolCall */
 
@@ -15,10 +17,13 @@ const MAX_CODE_CHARS = 10_000;
  *   httpGet: (url: string) => Promise<object>,
  *   runJavaScript: (code: string) => Promise<object>,
  *   allowedHosts: () => Set<string>,
+ *   translate?: (text: string, target: string, source: string) => Promise<object>,
+ *   summarize?: (text: string, type: string) => Promise<object>,
+ *   detectLanguage?: (text: string) => Promise<object>,
  * }} host
  */
 export function createTools(host) {
-  return {
+  const tools = {
     calculate: {
       description: "Evaluate an arithmetic expression with + - * / ^ % and parentheses, e.g. (12.5*4)/3.",
       parameters: {
@@ -77,6 +82,60 @@ export function createTools(host) {
       },
     },
   };
+  // Chrome built-in on-device tools, offered only when the app reports the matching API available or
+  // downloadable (see chrome-ai.js). They run on the page, and their results are untrusted tool data.
+  if (host.translate) tools.translate = {
+    description: `Translate text on this device with Chrome's Translator API. target_language is a BCP 47 code like 'fr'; call detect_language first when the source language is unknown (otherwise English is assumed).`,
+    parameters: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: `Text to translate (max ${MAX_CHROME_TEXT_CHARS} characters)` },
+        target_language: { type: "string", description: "BCP 47 target language code, e.g. 'fr'" },
+        source_language: { type: "string", description: "BCP 47 source language code; omit to assume English" },
+      },
+      required: ["text", "target_language"],
+    },
+    run: ({ text, target_language, source_language }) => {
+      const t = String(text ?? "");
+      if (!t.trim() || t.length > MAX_CHROME_TEXT_CHARS) return { error: `text must be 1 to ${MAX_CHROME_TEXT_CHARS} characters` };
+      if (typeof target_language !== "string" || !LANG_CODE.test(target_language)) return { error: "target_language must be a BCP 47 code like 'fr' or 'de-CH'" };
+      const source = source_language == null ? "en" : String(source_language);
+      if (!LANG_CODE.test(source)) return { error: "source_language must be a BCP 47 code" };
+      return host.translate(t, target_language, source);
+    },
+  };
+  if (host.summarize) tools.summarize = {
+    description: "Summarize text on this device with Chrome's Summarizer API.",
+    parameters: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: `Text to summarize (max ${MAX_CHROME_TEXT_CHARS} characters)` },
+        type: { type: "string", description: "key-points (default), tldr, teaser or headline" },
+      },
+      required: ["text"],
+    },
+    run: ({ text, type }) => {
+      const t = String(text ?? "");
+      if (!t.trim() || t.length > MAX_CHROME_TEXT_CHARS) return { error: `text must be 1 to ${MAX_CHROME_TEXT_CHARS} characters` };
+      const kind = type == null ? "key-points" : String(type);
+      if (!["key-points", "tldr", "teaser", "headline"].includes(kind)) return { error: "type must be key-points, tldr, teaser or headline" };
+      return host.summarize(t, kind);
+    },
+  };
+  if (host.detectLanguage) tools.detect_language = {
+    description: "Detect the language of text on this device with Chrome's Language Detector API. Returns the detected code and confidence.",
+    parameters: {
+      type: "object",
+      properties: { text: { type: "string", description: `Text to inspect (max ${MAX_CHROME_TEXT_CHARS} characters)` } },
+      required: ["text"],
+    },
+    run: ({ text }) => {
+      const t = String(text ?? "");
+      if (!t.trim() || t.length > MAX_CHROME_TEXT_CHARS) return { error: `text must be 1 to ${MAX_CHROME_TEXT_CHARS} characters` };
+      return host.detectLanguage(t);
+    },
+  };
+  return tools;
 }
 
 /**
