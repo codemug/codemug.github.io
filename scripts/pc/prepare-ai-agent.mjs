@@ -44,7 +44,9 @@ try {
       await writeFile(join(stage, 'vendor/readability.mjs'), '// @mozilla/readability 0.6.0 (Apache-2.0), CommonJS footer replaced with an ESM export.\n' + text.replace(footer, 'export { Readability };'));
     } else await writeFile(join(stage, 'vendor', name), name === 'idb-keyval.js' ? Buffer.concat([Buffer.from('// idb-keyval 6.2.1 (Apache-2.0) dist/index.js\n'), bytes]) : bytes);
   }
-  for (const name of ['app.js','agent.js','chrome-ai.js','cloud.js','cloud-client.js','models.js','model-client.js','storage.js','session.js','web.js','worker.js','sandbox.js','styles.css']) await copyFile(join(source, name), join(stage, name));
+  for (const name of ['app.js','agent.js','chrome-ai.js','cloud.js','cloud-client.js','file-tools.js','files-host.js','models.js','model-client.js','storage.js','session.js','web.js','worker.js','sandbox.js','styles.css']) await copyFile(join(source, name), join(stage, name));
+  // Shared Files app modules (AI-2 grants), copied verbatim from src so the same-origin vendor page can import them.
+  for (const name of ['store.mjs','picker.mjs']) await copyFile(join(root, 'src/scripts/pc/files', name), join(stage, name));
   { // Anthropic SDK browser bundle from the pinned npm package (deterministic: pinned esbuild + pinned package).
     const sdk = JSON.parse(await readFile(join(root, 'node_modules/@anthropic-ai/sdk/package.json'), 'utf8'));
     if (sdk.version !== ANTHROPIC_SDK_VERSION) throw new Error(`Anthropic SDK version ${sdk.version} does not match pinned ${ANTHROPIC_SDK_VERSION}`);

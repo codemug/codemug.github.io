@@ -1,6 +1,8 @@
 import { ModelClient } from './model-client.js';
 import { CloudClient } from './cloud-client.js';
 import { ChromeModelClient, chromeAvailability, chromeExecutors, chromeDownload, chromeToolGates, CHROME_TOOL_APIS } from './chrome-ai.js';
+import { pickFile } from './picker.mjs';
+import { createFileHost } from './files-host.js';
 import { AgentSession } from './session.js';
 import { ConversationStore, validateConversation, MODEL_KEY, LEGACY_MODEL_KEY } from './storage.js';
 import { MODELS, DEFAULT_MODEL } from './models.js';
@@ -120,7 +122,43 @@ async function chromeDownloadTool(toolKey, api) {
     if (err.name !== 'AbortError') status(`Chrome ${api.label} model download failed: ${err?.message ?? err}`);
   } finally { chromeDownloading = false; renderChromeStatus(); }
 }
-const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, chrome: chromeTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
+// ---------- files (grants, AI-2) ----------
+// Grants are per session: they live only in this page's memory and are cleared on reload (fresh
+// page), New chat and close. They are never written to IndexedDB, localStorage or exports.
+const fileGrants = [];
+const fileHost = createFileHost({ grants: fileGrants, confirm: text => confirm(text), note: status });
+const fileTools = { grants: null };
+function applyFileGates() {
+  const on = fileGrants.length > 0;
+  fileTools.grants = on ? [...fileGrants] : null;
+  fileTools.list = on ? fileHost.list : undefined;
+  fileTools.read = on ? fileHost.read : undefined;
+  fileTools.write = on ? fileHost.write : undefined;
+}
+function renderFileGrants() {
+  const box = $('files-grants'); box.replaceChildren();
+  if (!fileGrants.length) { box.textContent = 'No grants yet.'; return; }
+  for (const grant of fileGrants) {
+    const row = document.createElement('p');
+    const label = document.createElement('span');
+    label.textContent = `${grant.kind === 'folder' ? '▸ ' : '▪ '}${grant.root || '(Files root)'} · ${grant.kind}`;
+    const revoke = document.createElement('button');
+    revoke.textContent = 'Revoke';
+    revoke.addEventListener('click', () => { fileGrants.splice(fileGrants.indexOf(grant), 1); applyFileGates(); renderFileGrants(); });
+    row.append(label, ' ', revoke); box.append(row);
+  }
+}
+$('files-grant').addEventListener('click', async () => {
+  error('');
+  const picked = await pickFile({ select: 'any', title: 'Give the agent access to…' });
+  if (!picked) return;
+  const grant = picked.name != null ? { root: picked.path, kind: 'file' } : { root: picked.path, kind: 'folder' };
+  if (fileGrants.some((g) => g.root === grant.root && g.kind === grant.kind)) { status('Already granted.'); return; }
+  fileGrants.push(grant); applyFileGates(); renderFileGrants();
+  status(`Granted ${grant.kind} "${grant.root || '(Files root)'}". ${isCloud(selected) ? 'Note: with a cloud model, file contents the agent reads are sent to that provider.' : ''}`);
+});
+applyFileGates(); renderFileGrants();
+const session = new AgentSession({ client, store, webSearch, httpGet, runJavaScript, chrome: chromeTools, files: fileTools, proxyAllowed: () => $('reader-proxy').checked, emit(type, data) {
   if (type === 'busy') { controls(); if (!data) status(client.ready ? 'Ready for your next question.' : 'Load a model to continue.'); }
   else if (type === 'status') status(data);
   else if (type === 'error') error(data);
@@ -193,7 +231,7 @@ $('model').addEventListener('change', () => {
 });
 $('new-chat').addEventListener('click', async () => {
   if ((session.history.length || session.active) && !confirm('Start a new chat? The current stored chat will be kept as the previous record. Export it first if you need a permanent copy.')) return;
-  cancel(); error(''); cloud.clear(); bindClient(); await session.newChat();
+  cancel(); error(''); cloud.clear(); fileGrants.length = 0; applyFileGates(); renderFileGrants(); bindClient(); await session.newChat();
   if (isCloud(selected)) status('New chat started. The cloud key was cleared — confirm the cloud model in Settings to continue.');
   controls(); $('message').focus();
 });
@@ -322,9 +360,9 @@ window.pcFlush = () => {
   if (unsaved()) { error(store.pending ? 'Saving is still in progress. Try closing again after it completes.' : 'This chat could not be saved. Retry save or Export before closing.'); return false; }
   return true;
 };
-window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); bindClient(); return window.pcFlush(); };
+window.pcBeforeClose = () => { cancel('App closed. Load the model again to continue.'); $('reader-proxy').checked = false; cloud.clear(); fileGrants.length = 0; bindClient(); return window.pcFlush(); };
 addEventListener('beforeunload', event => { if (unsaved()) { event.preventDefault(); event.returnValue = ''; } });
-addEventListener('pagehide', () => { loadVersion++; cloud.clear(); session.cancel(); });
+addEventListener('pagehide', () => { loadVersion++; cloud.clear(); fileGrants.length = 0; session.cancel(); });
 modelInfo(); cloudNotice(); bindClient(); controls();
 try {
   const { value, migrated } = await store.restore(); session.history = value.history; session.summary = value.summary; render(value);

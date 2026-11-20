@@ -42,6 +42,13 @@ export function matchesAccept(spec,name,type=''){
   return false;
 }
 
+// Row visibility per select mode: 'file' (default) keeps the current behaviour, 'folder' hides files,
+// 'any' shows both (AI-2 grants). Folders are always browsable.
+export function visibleInPicker(select='file',accept='',item){
+  if(item.kind==='folder')return true;
+  return select!=='folder'&&matchesAccept(accept,item.name);
+}
+
 const STYLE_ID='wp-picker-style';
 // Opaque panel that follows the host page's theme: Craft wrapper pages define
 // --panel/--line (:root light, html[data-theme=dark] dark), utility pages the
@@ -82,10 +89,11 @@ function ensureStyle(){
 }
 const esc=text=>text.replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]));
 
-// Pick a file from webpc-files/: {accept,title,root} like <input accept>.
-// Resolves {name, bytes} on choice, null on Escape/cancel or if storage is
-// unavailable. Arrow keys move between rows, Enter opens, Escape cancels.
-export function pickFile({accept='',title='Open from Files',root=''}={}){
+// Pick a file from webpc-files/: {accept,title,root,select} like <input accept>; select is
+// 'file' (default), 'folder' or 'any'. Resolves {name, bytes, path} on a file choice, {path}
+// on a folder choice (the "Select this folder" footer button), and null on Escape/cancel or
+// if storage is unavailable. Arrow keys move between rows, Enter opens, Escape cancels.
+export function pickFile({accept='',title='Open from Files',root='',select='file'}={}){
   ensureStyle();
   if(!store.available())return Promise.resolve(null);
   const dialog=document.createElement('dialog');
@@ -97,7 +105,7 @@ export function pickFile({accept='',title='Open from Files',root=''}={}){
   dialog.querySelector('.cancel').addEventListener('click',()=>dialog.close());
   let dir=root,settled=false,resolveResult;
   const result=new Promise(resolve=>{resolveResult=resolve;});
-  const pick=name=>store.read(dir,name).then(item=>item.data.arrayBuffer()).then(bytes=>{settled=true;resolveResult({name,bytes});dialog.close();})
+  const pick=name=>store.read(dir,name).then(item=>item.data.arrayBuffer()).then(bytes=>{settled=true;resolveResult({name,bytes,path:dir?`${dir}/${name}`:name});dialog.close();})
     .catch(error=>{footEl.textContent=error.message;});
   const activate=row=>{
     if(row.dataset.kind==='folder'){dir=dir?`${dir}/${row.dataset.name}`:row.dataset.name;void refresh();}
@@ -106,11 +114,20 @@ export function pickFile({accept='',title='Open from Files',root=''}={}){
   async function refresh(){
     try{
       const items=await store.list(dir);
-      const visible=items.filter(item=>item.kind==='folder'||matchesAccept(accept,item.name));
+      const visible=items.filter(item=>visibleInPicker(select,accept,item));
       listEl.innerHTML=visible.map(item=>`<li data-name="${esc(item.name)}" data-kind="${item.kind}" tabindex="0">${item.kind==='folder'?'▸ ':''}${esc(item.name)}</li>`).join('')||'<li class="hint">Empty — no matching files here.</li>';
       const crumbs=['Files',...dir.split('/')];
       navEl.innerHTML=crumbs.map((segment,index)=>index<crumbs.length-1?`<button data-crumb="${index}">${esc(segment)}</button>`:`<span class="here">${esc(segment)}</span>`).join('<span aria-hidden="true">/</span>');
-      footEl.textContent='Arrow keys move, Enter opens, Esc cancels.';
+      const hint=select==='folder'?'Enter opens a folder, Esc cancels.':'Arrow keys move, Enter opens, Esc cancels.';
+      footEl.innerHTML=`<span>${hint}</span>`;
+      if(select!=='file'){
+        // Folder selection is the current directory (grant mode): an explicit action, never a mis-click.
+        const choose=document.createElement('button');
+        choose.className='cancel';
+        choose.textContent='Select this folder';
+        choose.addEventListener('click',()=>{settled=true;resolveResult({path:dir});dialog.close();});
+        footEl.append(' ',choose);
+      }
       listEl.querySelector('li[data-name]')?.focus();
     }catch(error){footEl.textContent=error.message;}
   }

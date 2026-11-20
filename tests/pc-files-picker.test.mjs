@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseAccept, matchesAccept} from '../src/scripts/pc/files/picker.mjs';
+import {parseAccept, matchesAccept, visibleInPicker} from '../src/scripts/pc/files/picker.mjs';
 
 test('parseAccept splits extension groups and MIME types', () => {
   const {exts, mimes} = parseAccept(' .pdf , .PNG , audio/*, video/mp4 ');
@@ -42,4 +42,17 @@ test('the media accept list keeps audio and video, drops the rest', () => {
   assert.ok(matchesAccept(spec, 'b.mp4'));
   assert.ok(!matchesAccept(spec, 'c.pdf'));
   assert.ok(!matchesAccept(spec, 'd.txt'));
+});
+
+test('select mode controls which rows are visible; the default keeps the old file-pick behaviour', () => {
+  const folder = { name: 'notes', kind: 'folder' };
+  const file = { name: 'a.txt', kind: 'file' };
+  assert.ok(visibleInPicker('file', '', folder));
+  assert.ok(visibleInPicker('file', '', file));
+  assert.ok(!visibleInPicker('file', '.pdf', file), 'the accept filter still applies in file mode');
+  assert.ok(visibleInPicker(undefined, '.txt', file), 'the default select is file');
+  assert.ok(visibleInPicker('folder', '', folder));
+  assert.ok(!visibleInPicker('folder', '', file), 'folder mode hides files');
+  assert.ok(visibleInPicker('any', '', folder));
+  assert.ok(visibleInPicker('any', '', file), 'any mode shows both (AI-2 grants)');
 });

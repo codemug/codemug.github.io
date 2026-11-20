@@ -1,5 +1,6 @@
 // Pure agent logic (no DOM): tool definitions, tool-call parsing and visible-text extraction.
 // Qwen3.5 and LFM3 both emit: <tool_call>\n<function=NAME>\n<parameter=ARG>\nVALUE\n</parameter>\n</function>\n</tool_call>
+import { MAX_WRITE_CHARS } from "./file-tools.js";
 
 const SAFE_EXPRESSION = /^[\d\s+\-*/().,%^]+$/;
 const MAX_QUERY_CHARS = 200;
@@ -20,6 +21,9 @@ const LANG_CODE = /^[a-z]{2,3}(-[A-Za-z]{2,8})*$/;
  *   translate?: (text: string, target: string, source: string) => Promise<object>,
  *   summarize?: (text: string, type: string) => Promise<object>,
  *   detectLanguage?: (text: string) => Promise<object>,
+ *   listFiles?: (path: string) => Promise<object>,
+ *   readFile?: (path: string) => Promise<object>,
+ *   writeFile?: (path: string, content: string) => Promise<object>,
  * }} host
  */
 export function createTools(host) {
@@ -133,6 +137,43 @@ export function createTools(host) {
       const t = String(text ?? "");
       if (!t.trim() || t.length > MAX_CHROME_TEXT_CHARS) return { error: `text must be 1 to ${MAX_CHROME_TEXT_CHARS} characters` };
       return host.detectLanguage(t);
+    },
+  };
+  // Files tools (AI-2), offered only while the user has at least one grant: paths are relative to the
+  // grant root, the resolver rejects escapes, and results are untrusted tool data like the others.
+  if (host.listFiles) tools.list_files = {
+    description: "List the files and folders the user granted you, or a subfolder of them. Omit path (or use '') for the grant root.",
+    parameters: {
+      type: "object",
+      properties: { path: { type: "string", description: "Folder to list, relative to the grant root" } },
+      required: [],
+    },
+    run: ({ path }) => host.listFiles(path == null ? "" : String(path)),
+  };
+  if (host.readFile) tools.read_file = {
+    description: "Read a granted text file (txt, md, csv, json, html, xml, js, py and similar; UTF-8, at most 200 KB). PDFs are not supported — PDFCraft is.",
+    parameters: {
+      type: "object",
+      properties: { path: { type: "string", description: "File to read, relative to the grant root" } },
+      required: ["path"],
+    },
+    run: ({ path }) => host.readFile(String(path ?? "")),
+  };
+  if (host.writeFile) tools.write_file = {
+    description: "Create or update a text file inside a granted FOLDER; the user confirms every write and overwrites are announced. The parent folder must already exist.",
+    parameters: {
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File to write, relative to the grant root" },
+        content: { type: "string", description: `Full file content, UTF-8 (max ${MAX_WRITE_CHARS} characters)` },
+      },
+      required: ["path", "content"],
+    },
+    run: ({ path, content }) => {
+      const p = String(path ?? ""); const c = String(content ?? "");
+      if (!p.trim() || p.length > 200) return { error: "path must be 1 to 200 characters" };
+      if (c.length > MAX_WRITE_CHARS) return { error: `content is too large (max ${MAX_WRITE_CHARS} characters)` };
+      return host.writeFile(p, c);
     },
   };
   return tools;
