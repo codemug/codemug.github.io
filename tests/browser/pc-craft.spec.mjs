@@ -29,7 +29,7 @@ test('LightCraft imports, edits, exports and reloads its isolated library; reset
 
 test('FigCraft native design saves real files and browser copies; spoofed events and storage errors are safe',async({page})=>{
  page.on('dialog',d=>d.accept());let frame=await open(page,'figcraft');await frame.evaluate(async()=>{await figcraft.execute('file.new',{name:'WebPC design'});await figcraft.execute('shape.rectangle',{x:100,y:100,width:240,height:160,name:'Real rectangle'});});
- expect(await page.evaluate(()=>pcBeforeClose())).toBe(false);
+ await expect.poll(()=>page.evaluate(()=>pcBeforeClose()),{timeout:10000}).toBe(false);
  const file=await saved(page,async()=>{await frame.locator('canvas').click({position:{x:600,y:400}});await page.keyboard.press('ControlOrMeta+s');});expect(file.name).toMatch(/\.figcraft$/);await expect(page.locator('#status')).toContainText('browser copy saved');
  await page.evaluate(()=>window.postMessage({type:'figcraft:save',name:'spoof.figcraft',bytes:new ArrayBuffer(2)},location.origin));await expect(page.locator('#status')).not.toContainText('spoof');
  await page.reload({waitUntil:'domcontentloaded'});await expect(page.locator('#restore')).toBeEnabled();frame=page.frames().find(f=>f.url().includes('/vendor/'));await page.locator('#restore').click();await expect.poll(async()=>JSON.stringify(await frame.evaluate(()=>figcraft.docInspect()))).toContain('Real rectangle');
@@ -81,7 +81,7 @@ test('Craft assets are lazy and the desktop caches SoundCraft while closing susp
  await frame.evaluate(()=>window.webpcIdentity='same cached session');await outer.locator('#audio').click();await expect.poll(()=>frame.evaluate(()=>webpcAudio.states())).toEqual(['running']);
  await page.getByRole('button',{name:'Close SoundCraft',exact:true}).click();await expect(win).toBeHidden();await expect.poll(()=>frame.evaluate(()=>webpcAudio.states())).toEqual(['suspended']);
  await page.locator('[data-shortcut="soundcraft"]').dblclick();expect(await frame.evaluate(()=>window.webpcIdentity)).toBe('same cached session');await expect(outer.locator('#audio')).toHaveText('Enable audio');expect(requests.filter(x=>/\/vendor\/(lightcraft|figcraft|pdfcraft)\//.test(x))).toEqual([]);
- await page.setViewportSize({width:390,height:844});expect(await outer.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);await page.screenshot({path:'/tmp/webpc-craft-mobile.png'});
+ await page.setViewportSize({width:390,height:844});await expect.poll(()=>outer.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);await page.screenshot({path:'/tmp/webpc-craft-mobile.png'});
 });
 
 test('VectorCraft runs standalone: the generic seam reads ready, the documented API opens a file and a native save is copied',async({page})=>{
@@ -102,9 +102,14 @@ test('VectorCraft runs standalone: the generic seam reads ready, the documented 
   const external=[];page.on('request',r=>{if(/^https?:/.test(r.url())&&new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
   const frame=await open(page,'photocraft');
   expect(frame.url()).toContain('standalone');
+  const canvas=frame.locator('canvas').first();
+  // The eframe UI is canvas-drawn (no DOM tab bar) and idle frames are bit-identical, so a
+  // changed canvas is the proof the drop really opened the document on the tab bar.
+  const idle=await canvas.screenshot();
   await page.locator('#file').setInputFiles({name:'photo.png',mimeType:'image/png',buffer:await orangePng(page)});
   await expect(page.locator('#error')).toBeHidden();
-  await expect(page.locator('#status')).toHaveText('Save in the editor to download and keep a browser copy');
+  await expect(page.locator('#status')).toHaveText('Opened: photo.png');
+  await expect.poll(async()=>(await canvas.screenshot()).equals(idle),{timeout:15000,intervals:[250,500]}).toBe(false);
   expect(external).toEqual([]);
   await page.screenshot({path:'/tmp/webpc-photocraft-final.png'});
  });
@@ -114,7 +119,7 @@ test('VectorCraft runs standalone: the generic seam reads ready, the documented 
   const frame=await open(page,'effectcraft');
   expect(frame.url()).toContain('standalone');expect(frame.url()).toContain('nosw');
   await page.locator('#file').setInputFiles({name:'spec-photo.png',mimeType:'image/png',buffer:await orangePng(page)});
-  await expect.poll(async()=>JSON.stringify(await frame.evaluate(async()=>window.effectcraft.files().catch(()=>[]))),{timeout:30000}).toContain('spec-photo.png');
+  await expect.poll(async()=>JSON.stringify(await frame.evaluate(async()=>Promise.resolve().then(()=>window.effectcraft.files()))),{timeout:30000}).toContain('spec-photo.png');
   await frame.locator('canvas').click({position:{x:500,y:300}});
   await expect.poll(()=>frame.evaluate(()=>webpcAudio.states().filter(x=>x!=='closed'))).toContain('running');
   expect(await page.evaluate(()=>pcBeforeClose())).toBe(true);
@@ -128,9 +133,28 @@ test('VectorCraft runs standalone: the generic seam reads ready, the documented 
    const external=[];page.on('request',r=>{if(/^https?:/.test(r.url())&&new URL(r.url()).hostname!=='127.0.0.1')external.push(r.url());});
    const frame=await open(page,id);
    expect(frame.url()).toContain('standalone');
-   await page.locator('#file').setInputFiles({name:'photo.png',mimeType:'image/png',buffer:await orangePng(page)});
-   await expect(page.locator('#error')).toBeHidden();
-   await expect(page.locator('#status')).toHaveText('Save in the editor to download and keep a browser copy');
+   if(id==='materialcraft'){
+    // The eframe UI is canvas-drawn and idle frames are bit-identical, so a changed canvas
+    // is the proof the drop was imported (Resources gains the bitmap, the BITMAP panel opens).
+    const canvas=frame.locator('canvas').first();
+    const idle=await canvas.screenshot();
+    await page.locator('#file').setInputFiles({name:'photo.png',mimeType:'image/png',buffer:await orangePng(page)});
+    await expect(page.locator('#error')).toBeHidden();
+    await expect(page.locator('#status')).toHaveText('Opened: photo.png');
+    await expect.poll(async()=>(await canvas.screenshot()).equals(idle),{timeout:15000,intervals:[250,500]}).toBe(false);
+   }else{
+    // TextureCraft's wrapper drop opens meshes (flat images are not accepted: its web build
+    // ignores them there). A dropped quad becomes the project's mesh, so the Texture Sets panel
+    // (a static 2D egui region; the 3D viewports repaint continuously) changes.
+    const panel={x:1105,y:140,width:295,height:100};
+    const before=await page.screenshot({clip:panel});
+    const quad='v -1 -1 0\nv 1 -1 0\nv 1 1 0\nv -1 1 0\nvt 0 0\nvt 1 0\nvt 1 1\nvt 0 1\nvn 0 0 1\nf 1/1/1 2/2/1 3/3/1\nf 1/1/1 3/3/1 4/4/1\n';
+    expect(await page.locator('#file').getAttribute('accept')).not.toContain('image/');
+    await page.locator('#file').setInputFiles({name:'quad.obj',mimeType:'model/obj',buffer:Buffer.from(quad)});
+    await expect(page.locator('#error')).toBeHidden();
+    await expect(page.locator('#status')).toHaveText('Opened: quad.obj');
+    await expect.poll(async()=>(await page.screenshot({clip:panel})).equals(before),{timeout:20000,intervals:[500,1000]}).toBe(false);
+   }
    expect(external).toEqual([]);
    await page.screenshot({path:`/tmp/webpc-${id}-final.png`});
    page.removeAllListeners('request');
