@@ -58,6 +58,7 @@ async function tweakBeepBox(payload) {
   let text = await readFile(html, 'utf8');
   const font = '<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" rel="stylesheet" media="none" onload="if (this.media != \'all\') this.media=\'all\';" />';
   if (!text.includes(font)) throw new Error('beepbox: Google Fonts link not found; upstream changed, refusing to prepare.');
+  if (text.split('<head>').length !== 2) throw new Error('beepbox: index.html must contain <head> exactly once; upstream changed, refusing to prepare.');
   text = text.replace(font, '').replace('<head>', '<head>\n\t<script src="./webpc-audio-guard.js"></script>');
   await writeFile(html, text);
   const js = join(payload, 'beepbox_editor.min.js');

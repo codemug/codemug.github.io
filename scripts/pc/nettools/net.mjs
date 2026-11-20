@@ -91,13 +91,13 @@ export function validateUrl(input) {
 }
 
 // Build the PTR (reverse-DNS) name for an IP: v4 -> x.3.2.1.in-addr.arpa, v6 -> reversed
-// hex nibbles + .ip6-arpa. Throws if the input is not a valid IP.
+// hex nibbles + .ip6.arpa. Throws if the input is not a valid IP.
 export function buildPtrName(ip) {
   const v4 = validateIPv4(ip);
   if (v4.ok) return v4.octets.slice().reverse().join('.') + '.in-addr.arpa';
   const v6 = validateIPv6(ip);
   if (!v6.ok) throw new Error('Not a valid IP address.');
-  return v6.value.toString(16).padStart(32, '0').split('').reverse().join('.') + '.ip6-arpa';
+  return v6.value.toString(16).padStart(32, '0').split('').reverse().join('.') + '.ip6.arpa';
 }
 
 // Format a DNS-over-HTTPS JSON response ({ Status, Answer: [...] }) into display strings.

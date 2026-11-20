@@ -31,7 +31,9 @@ for(const [id,release] of Object.entries(releases)){
        await copyTree(snippets,target);
      }
    }
-   let html=await readFile(join(payload,'index.html'),'utf8');html=html.replace('<html lang="en">',`<html lang="en" data-webpc-app="${id}">`).replace('<head>','<head>\n<script src="./webpc-audio-guard.js"></script>\n<script src="./webpc-bootstrap.js"></script>');
+   // Each marker must appear exactly once: a silent miss would ship without the audio guard or bootstrap.
+   const once=(text,from,to)=>{if(text.split(from).length!==2)throw new Error(`${id}: index.html must contain ${from} exactly once; upstream changed, refusing to prepare.`);return text.replace(from,to);};
+   let html=await readFile(join(payload,'index.html'),'utf8');html=once(once(html,'<html lang="en">',`<html lang="en" data-webpc-app="${id}">`),'<head>','<head>\n<script src="./webpc-audio-guard.js"></script>\n<script src="./webpc-bootstrap.js"></script>');
    await writeFile(join(payload,'index.html'),html);await writeFile(join(payload,'webpc-audio-guard.js'),audioGuard);await writeFile(join(payload,'webpc-bootstrap.js'),bootstrap);
    const notice=join(root,'public/third-party',id);await mkdir(notice,{recursive:true});
    async function notices(dir,relative=''){for(const entry of await readdir(dir,{withFileTypes:true})){const path=join(dir,entry.name),rel=join(relative,entry.name);if(entry.isDirectory())await notices(path,rel);else if(/^(LICENSE|NOTICE|OFL|ATTRIBUTION)|\.LICEN[CS]E(?:\.txt)?$/i.test(entry.name)){const target=join(notice,rel);await mkdir(dirname(target),{recursive:true});await copyFile(path,target);}}}

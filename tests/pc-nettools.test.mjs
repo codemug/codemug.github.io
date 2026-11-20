@@ -76,7 +76,7 @@ test('validateUrl: https only', () => {
 });
 
 test('buildPtrName: v4 and v6 reverse names; throws on non-IP', () => {
-  assert.equal(buildPtrName('2001:db8::1'), '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6-arpa');
+  assert.equal(buildPtrName('2001:db8::1'), '1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa');
   assert.equal(buildPtrName('9.9.9.9'), '9.9.9.9.in-addr.arpa');
   assert.throws(() => buildPtrName('nope'), /valid IP/);
 });

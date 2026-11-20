@@ -11,7 +11,7 @@ const progress = (stage, detail) => post({ type: 'progress', stage, detail: deta
 const fail = (error) => post({ type: 'error', error: String(error) });
 
 let wg = null; // initialized engine
-let busy = false;
+let queue = Promise.resolve(); // operations run one at a time, in arrival order
 
 async function fetchGz(name) {
   const res = await fetch(new URL(name, self.location.href), { credentials: 'omit' });
@@ -34,8 +34,8 @@ async function engine() {
   progress('fetch', 'fetching the dissection engine (about 21 MB, local files)');
   const [wasmBinary, dataPackage] = await Promise.all([fetchGz('wiregasm.wasm.gz'), fetchGz('wiregasm.data.gz')]);
   progress('init', 'initializing the engine (Wireshark 4.6)');
-  wg = new Wiregasm();
-  await wg.init(loadWiregasm, {
+  const engineInstance = new Wiregasm();
+  await engineInstance.init(loadWiregasm, {
     wasmBinary,
     getPreloadedPackage: (name, size) => {
       // The loader asks for the "wiregasm.data" package (size matches the inflated bytes).
@@ -48,6 +48,7 @@ async function engine() {
       if (typeof message === 'string' && message.trim()) progress('init', message.trim().slice(0, 120));
     },
   });
+  wg = engineInstance; // only a fully initialized engine is reused; a failed init retries next time
   progress('ready', 'engine ready');
   return wg;
 }
@@ -68,10 +69,9 @@ function frameResult(n) {
   return { number: frame.number, dataSources, nodes, comments };
 }
 
-self.addEventListener('message', async event => {
-  if (busy) return; // one operation at a time; the UI serializes requests anyway
-  busy = true;
-  const m = event.data ?? {};
+self.addEventListener('message', event => { queue = queue.then(() => handle(event.data ?? {})); });
+
+async function handle(m) {
   try {
     if (m.type === 'warm') {
       await engine();
@@ -101,7 +101,5 @@ self.addEventListener('message', async event => {
     }
   } catch (e) {
     fail(e instanceof Error ? e.message : String(e));
-  } finally {
-    busy = false;
   }
-});
+}

@@ -54,20 +54,25 @@ export function select(cls, value, options) {
 // Build the tab shell (title, tab bar, content area) and lazy-load each tab on first click.
 export async function mountTabs(root, tabs) {
   const bar = el('nav', { className: 'nt-tabs', attrs: { 'aria-label': 'Tools' } });
-  const content = el('section', { className: 'nt-content' });
-  const mounted = new Set();
+  // One panel per tab, kept mounted and toggled with `hidden`, so a tab keeps its state.
+  const content = el('section');
+  const panels = new Map();
   async function activate(id) {
     const tab = tabs.find(t => t.id === id);
     for (const b of bar.querySelectorAll('button')) b.classList.toggle('active', b.dataset.id === id);
-    content.replaceChildren(el('p', { text: `Loading ${tab.label}…` }));
-    if (mounted.has(id)) return;
+    if (panels.get(id)?.dataset.failed) { panels.get(id).remove(); panels.delete(id); } // retry a failed load
+    for (const [key, panel] of panels) panel.hidden = key !== id;
+    if (panels.has(id)) return;
+    const panel = el('div', { className: 'nt-content' });
+    panels.set(id, panel); content.append(panel);
+    panel.replaceChildren(el('p', { text: `Loading ${tab.label}…` }));
     try {
       const mod = await tab.load();
-      content.replaceChildren();
-      await mod.mount(content);
-      mounted.add(id);
+      panel.replaceChildren();
+      await mod.mount(panel);
     } catch (e) {
-      content.replaceChildren(el('p', { className: 'nt-err', text: `Could not load ${tab.label}: ${e?.message ?? e}` }));
+      panel.dataset.failed = '1';
+      panel.replaceChildren(el('p', { className: 'nt-err', text: `Could not load ${tab.label}: ${e?.message ?? e}` }));
     }
   }
   for (const t of tabs) {

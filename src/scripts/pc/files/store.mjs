@@ -89,6 +89,7 @@ export async function exists(path,name){
 export async function rename(path,from,to){
   if(validateName(from))throw new Error(validateName(from));
   if(validateName(to))throw new Error(validateName(to));
+  if(await exists(path,to))throw new Error(`"${to}" already exists here.`);
   const{data}=await read(path,from);
   await write(path,to,data);
   await remove(path,from);
@@ -102,9 +103,9 @@ async function countUnder(handle){
 
 // Total entries a deletion will remove, including the entry itself.
 export async function countEntries(path,name){
-  const handle=await openDir(await dirHandle(path),name,false);
-  if(handle.kind!=='directory')return 1;
-  return 1+await countUnder(handle);
+  // A file makes openDir throw TypeMismatchError, so check the kind first.
+  if(await exists(path,name)!=='folder')return 1;
+  return 1+await countUnder(await openDir(await dirHandle(path),name,false));
 }
 
 export async function remove(path,name){

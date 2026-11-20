@@ -46,6 +46,7 @@ async function upload(fileList){
  for(const file of files){
   const problem=store.validateName(file.name);
   if(problem){status(`Skipped "${file.name}": ${problem}`,true);failed++;continue;}
+  if(await store.exists(path.join('/'),file.name).catch(()=>null)&&!confirm(`Replace the existing "${file.name}"? This cannot be undone.`)){status(`Skipped "${file.name}": kept the existing one.`);failed++;continue;}
   status(`Uploading ${done+failed+1} of ${files.length}: ${file.name}…`);
   try{await store.write(path.join('/'),file.name,await file.arrayBuffer());done++;}
   catch(error){status(`Upload failed for "${file.name}": ${error.message}`,true);failed++;}

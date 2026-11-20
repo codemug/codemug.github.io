@@ -9,9 +9,6 @@
   --pc-wallpaper-line: color-mix(in srgb, var(--color-accent) 14%, var(--color-bg));
   --pc-selection: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
   --pc-window-shadow: #00000060;
-  --pc-sheet: #198757;
-  --pc-sheet-fold: #65c795;
-  --pc-sheet-ink: #ffffff;
   --pc-error: #f87171;
   --pc-error-ink: #18181b;
   --pc-link: var(--color-accent);

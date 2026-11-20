@@ -28,7 +28,7 @@ addEventListener('message',event=>{
  if(message?.type===`${id}:failed`){error(String(message.error||'The editor reported an error.'));}
  if(message?.type===`${id}:save`){
    if(!validSave(message)){error('The editor returned an invalid save. Keep the window open.');saveError=true;return;}
-   try{if(id!=='soundcraft')download(message.name,message.bytes);status(`Downloaded: ${message.name}`);if(nativeFile(id,message.name,message.bytes))void keep({name:message.name,bytes:message.bytes});}
+   try{if(!standalone)download(message.name,message.bytes);status(`Downloaded: ${message.name}`);if(nativeFile(id,message.name,message.bytes))void keep({name:message.name,bytes:message.bytes});}
    catch(e){saveError=true;error(`Download failed: ${e.message}. Keep this window open.`);}
  }
 });

@@ -17,6 +17,7 @@
 .nt-tab { border: 1px solid var(--nt-border); background: var(--nt-card); color: var(--nt-fg); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; }
 .nt-tab.active { background: var(--nt-accent); color: var(--nt-accent-fg); border-color: var(--nt-accent); }
 .nt-content { display: flex; flex-direction: column; gap: 14px; }
+.nt-content[hidden] { display: none; }
 .nt-card { border: 1px solid var(--nt-border); background: var(--nt-card); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .nt-card h3 { margin: 0; font-size: 15px; }
 .nt-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
