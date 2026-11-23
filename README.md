@@ -63,7 +63,7 @@ The full original deck is not bundled with the tracked source, so full regenerat
 
 ## WebPC
 
-WebPC, the browser desktop at `/pc/`, is its own project: [codemug/webpc](https://github.com/codemug/webpc). There, a YAML catalog pins every app, a weekly workflow upgrades them after tests and smoke checks, and CI publishes each tested build as the `latest-dist` release. This site's deploy downloads that build after `astro build`, and runs daily so upgrades go live. The navigation link lives in `src/layouts/Base.astro`.
+WebPC, the browser desktop at `/pc/`, is its own project: [codemug/webpc](https://github.com/codemug/webpc). There, a YAML catalog pins every app, a weekly workflow upgrades them after tests and smoke checks, and every tested push to its main updates a draft of the next version. This site's deploy downloads the published version pinned in `webpc.version` after `astro build`; to upgrade WebPC, publish the draft there and bump that file in a pull request. The navigation link lives in `src/layouts/Base.astro`.
 
 ## Contact
 

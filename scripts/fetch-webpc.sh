@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# Add WebPC to the built site. WebPC lives in github.com/codemug/webpc; its CI publishes each
-# tested build of main as the "latest-dist" release. This downloads that build, checks it against
-# its published SHA-256, and extracts pc/ and third-party/ into dist/ (served at /pc/).
+# Add WebPC to the built site. WebPC lives in github.com/codemug/webpc and publishes versioned
+# releases. This downloads the version pinned in webpc.version, checks it against its published
+# SHA-256, and extracts pc/ and third-party/ into dist/ (served at /pc/). To upgrade WebPC, bump
+# webpc.version in a pull request.
 # Usage: npm run build && npm run webpc
 set -euo pipefail
 cd "$(dirname "$0")/.."
-base="${WEBPC_RELEASE_URL:-https://github.com/codemug/webpc/releases/download/latest-dist}"
+version=$(tr -d ' \n' < webpc.version)
+base="${WEBPC_RELEASE_URL:-https://github.com/codemug/webpc/releases/download/${version}}"
 test -d dist || { echo "fetch-webpc: run npm run build first" >&2; exit 1; }
 mkdir -p .webpc
 for name in webpc-dist.tar.gz webpc-dist.tar.gz.sha256 webpc-build.json; do
@@ -20,4 +22,4 @@ if [ "$expected" != "$actual" ]; then
 fi
 rm -rf dist/pc dist/third-party
 tar -xzf .webpc/webpc-dist.tar.gz -C dist pc third-party
-echo "fetch-webpc: added WebPC $(cat .webpc/webpc-build.json) to dist/ ($(du -sh dist/pc | cut -f1))"
+echo "fetch-webpc: added WebPC ${version} $(cat .webpc/webpc-build.json) to dist/ ($(du -sh dist/pc | cut -f1))"
