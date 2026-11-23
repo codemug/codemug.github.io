@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
-  # Daily, so WebPC upgrades (published by github.com/codemug/webpc) reach the site.
+  # Daily rebuild of the site. WebPC upgrades arrive by bumping webpc.version.
   schedule:
     - cron: "0 5 * * *"
   workflow_dispatch:
@@ -41,7 +41,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      # WebPC (/pc/) is built and tested in github.com/codemug/webpc; add its latest build.
+      # WebPC (/pc/) is built and tested in github.com/codemug/webpc; add the version in webpc.version.
       - name: Add WebPC
         run: npm run webpc
 
